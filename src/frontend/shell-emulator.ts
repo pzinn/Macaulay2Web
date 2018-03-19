@@ -135,6 +135,9 @@ module.exports = function() {
     shell.on("postMessage", function(e, msg) {
       shell.trigger("track", msg);
       postRawMessage(msg, socket);
+// TEMP (plus it's wrong place -- this is only for when clicking on code in the tuto) plus it appears twice
+postRawMessage("tex oo\n",socket);
+// end TEMP
     });
 
     shell.on("innerTrack", function(e, msg) {
@@ -213,6 +216,19 @@ module.exports = function() {
     });
 
     shell.on("onmessage", function(e, msgDirty) {
+    // TEMP
+    var txt=msgDirty.split("$");
+    var i=1; while (i<txt.length)
+    {
+        var sec=document.createElement('p');
+      	sec.innerHTML+="$$"+txt[i]+"$$";
+	sec.id="last";
+	document.getElementById("LaTeX").appendChild(sec);
+	MathJax.Hub.Queue(["Typeset",MathJax.Hub,"last"]);
+	sec.id="";
+	i+=2;
+    }
+    // END TEMP
       if (msgDirty === unicodeBell) {
         return;
       }
