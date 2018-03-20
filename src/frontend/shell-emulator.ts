@@ -29,11 +29,12 @@ const getSelected = require("get-selected-text");
 let mathProgramOutput = "";
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
+// LaTeX HACK
+var texstate = false;
+var texcode="";
+// end LaTeX HACK
 
 const postRawMessage = function(msg: string, socket: Socket) {
-    // LaTeX HACK
-      msg="-*@ignore*-(local out;out=(-*@end*-"+msg.substr(0,msg.length-1)+"-*@ignore*-); print tex2 out; out)-*@end*-\n";
-    // end LaTeX HACK
   socket.emit("input", msg);
   return true;
 };
@@ -234,25 +235,26 @@ module.exports = function() {
       let msg: string = msgDirty.replace(/\u0007/, "");
       msg = msg.replace(/\r\n/g, "\n");
       msg = msg.replace(/\r/g, "\n");
-
-    // LaTeX HACK
-	var txt=msg.split("-*@");
-    msg="";
-    for (var i=0; i<txt.length; i++)
-    {
-      if (i==0) msg+=txt[i];
-      else if (txt[i].startsWith("end")) msg+=txt[i].substr(txt[i].indexOf("*-")+2);
-      else if (txt[i].startsWith("begin")) {
-        var sec=document.createElement('p');
-      	sec.innerHTML="$$"+txt[i].substr(txt[i].indexOf("*-")+2)+"$$"; // or maybe single $
-	sec.id="lastTeX";
-	document.getElementById("LaTeX").appendChild(sec);
-	MathJax.Hub.Queue(["Typeset",MathJax.Hub,document.getElementById("lastTeX")]); // the document.get* is more prudent, we don't know when mathjax will execute and see next statement
-	sec.id="";
-      }
-      }
+      // LaTeX HACK
+      var txt=msg.split("-*@");
+      msg="";
+      for (var i=0; i<txt.length; i++)
+	{
+	  if (i>0) {
+	    if (txt[i].startsWith("end")) {
+	      texstate=false;
+	      var sec=document.createElement('p');
+	      sec.innerHTML="$$"+texcode+"$$";
+	      document.getElementById("LaTeX").appendChild(sec);
+	      MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
+	      texcode="";
+	    }
+	    else if (txt[i].startsWith("begin")) texstate=true;
+	    txt[i]=txt[i].substr(txt[i].indexOf("*-")+2);
+	  }
+	  if (texstate) texcode+=txt[i]; else msg+=txt[i];
+	}
     // end LaTeX HACK
-
       
       const completeText = shell.val();
       mathProgramOutput += msg;
