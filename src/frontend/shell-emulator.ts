@@ -31,6 +31,9 @@ const cmdHistory: any = []; // History of commands for shell-like arrow navigati
 cmdHistory.index = 0;
 
 const postRawMessage = function(msg: string, socket: Socket) {
+    // LaTeX HACK
+      msg="-*@ignore*-(local out;out=(-*@end*-"+msg.substr(0,msg.length-1)+"-*@ignore*-); print tex2 out; out)-*@end*-\n";
+    // end LaTeX HACK
   socket.emit("input", msg);
   return true;
 };
@@ -135,9 +138,6 @@ module.exports = function() {
     shell.on("postMessage", function(e, msg) {
       shell.trigger("track", msg);
       postRawMessage(msg, socket);
-// TEMP (plus it's wrong place -- this is only for when clicking on code in the tuto) plus it appears twice
-postRawMessage("tex oo\n",socket);
-// end TEMP
     });
 
     shell.on("innerTrack", function(e, msg) {
@@ -171,7 +171,7 @@ postRawMessage("tex oo\n",socket);
             // We trigger the track manually, since we might have used tab.
         shell.trigger("track", getCurrentCommand(shell));
             // Disable tracking of posted message.
-        packageAndSendMessage("");
+	packageAndSendMessage("");
       }
     });
 
@@ -216,19 +216,6 @@ postRawMessage("tex oo\n",socket);
     });
 
     shell.on("onmessage", function(e, msgDirty) {
-    // TEMP
-    var txt=msgDirty.split("$");
-    var i=1; while (i<txt.length)
-    {
-        var sec=document.createElement('p');
-      	sec.innerHTML+="$$"+txt[i]+"$$";
-	sec.id="last";
-	document.getElementById("LaTeX").appendChild(sec);
-	MathJax.Hub.Queue(["Typeset",MathJax.Hub,"last"]);
-	sec.id="";
-	i+=2;
-    }
-    // END TEMP
       if (msgDirty === unicodeBell) {
         return;
       }
@@ -247,6 +234,26 @@ postRawMessage("tex oo\n",socket);
       let msg: string = msgDirty.replace(/\u0007/, "");
       msg = msg.replace(/\r\n/g, "\n");
       msg = msg.replace(/\r/g, "\n");
+
+    // LaTeX HACK
+	var txt=msg.split("-*@");
+    msg="";
+    for (var i=0; i<txt.length; i++)
+    {
+      if (i==0) msg+=txt[i];
+      else if (txt[i].startsWith("end")) msg+=txt[i].substr(txt[i].indexOf("*-")+2);
+      else if (txt[i].startsWith("begin")) {
+        var sec=document.createElement('p');
+      	sec.innerHTML="$$"+txt[i].substr(txt[i].indexOf("*-")+2)+"$$"; // or maybe single $
+	sec.id="lastTeX";
+	document.getElementById("LaTeX").appendChild(sec);
+	MathJax.Hub.Queue(["Typeset",MathJax.Hub,document.getElementById("lastTeX")]); // the document.get* is more prudent, we don't know when mathjax will execute and see next statement
+	sec.id="";
+      }
+      }
+    // end LaTeX HACK
+
+      
       const completeText = shell.val();
       mathProgramOutput += msg;
       const after = completeText.substring(mathProgramOutput.length, completeText.length);
