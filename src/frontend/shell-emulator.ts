@@ -244,7 +244,7 @@ module.exports = function() {
 	    if (txt[i].startsWith("end")) {
 	      texstate=false;
 	      var sec=document.createElement('p');
-	      sec.innerHTML="$$"+texcode+"$$";
+	      sec.innerHTML=texcode;
 	      document.getElementById("LaTeX").appendChild(sec);
 	      MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
 	      texcode="";
