@@ -31,7 +31,7 @@ const cmdHistory: any = []; // History of commands for shell-like arrow navigati
 cmdHistory.index = 0;
 // LaTeX HACK
 var texstate = 3; // 1 = normal output, 2 = mathJax, 3 = both
-var texcode="";
+var texcode=false;
 // end LaTeX HACK
 
 const postRawMessage = function(msg: string, socket: Socket) {
@@ -237,23 +237,26 @@ module.exports = function() {
       msg = msg.replace(/\r/g, "\n");
       // LaTeX HACK
       var txt=msg.split("-*@");
+	var sec=document.getElementById("currentLaTeX");
       msg="";
       for (var i=0; i<txt.length; i++)
 	{
+	    var oldstate=texstate;
 	    if (i>0) {
 		texstate=+txt[i][0];
 		txt[i]=txt[i].substr(txt[i].indexOf("*-")+2);
 	    }
-	    if (((texstate&2)==0)&&(texcode.length>0)) // some text left over to send -- mathJax stuff must always end with change of state back to normal
+	    if (texcode&&(oldstate!=texstate)) // some text left over to compile -- mathJax stuff must always end with change of state back to normal
 	    {
-	      var sec=document.createElement('p');
-	      sec.innerHTML=texcode;
-	      document.getElementById("LaTeX").appendChild(sec);
-	      MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
-	      texcode="";
+		MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
+		sec.removeAttribute('id');
+		texcode=false;
+		sec=document.createElement('p');
+		sec.id="currentLaTeX";
+		document.getElementById("LaTeX").appendChild(sec);
 	    }
 	    if (texstate&1) msg+=txt[i];
-	    if (texstate&2) texcode+=txt[i];
+	    if (texstate&2) { sec.innerHTML+=txt[i]; texcode=true; }
 	}
     // end LaTeX HACK
       
