@@ -30,8 +30,9 @@ let mathProgramOutput = "";
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
 // LaTeX HACK
-var texstate = 3; // 1 = normal output, 2 = mathJax, 3 = both
-var texcode=false;
+var texState = 3; // 1 = normal output, 2 = mathJax, 3 = both
+var texCode=false;
+var texSpecial= String.fromCharCode(30);
 // end LaTeX HACK
 
 const postRawMessage = function(msg: string, socket: Socket) {
@@ -236,28 +237,30 @@ module.exports = function() {
       msg = msg.replace(/\r\n/g, "\n");
       msg = msg.replace(/\r/g, "\n");
       // LaTeX HACK
-      var txt=msg.split("-*@");
-	var sec=document.getElementById("currentLaTeX");
+      var txt=msg.split(texSpecial);
+      var lat=document.getElementById("LaTeX");
+      var sec=document.getElementById("currentLaTeX");
       msg="";
       for (var i=0; i<txt.length; i++)
 	{
-	    var oldstate=texstate;
+	    var oldstate=texState;
 	    if (i>0) {
-		texstate=+txt[i][0];
-		txt[i]=txt[i].substr(txt[i].indexOf("*-")+2);
+		texState=+txt[i][0];
+		txt[i]=txt[i].substr(1);
 	    }
-	    if (texcode&&(oldstate!=texstate)) // some text left over to compile -- mathJax stuff must always end with change of state back to normal
+	    if (texCode&&(oldstate!=texState)) // some text left over to compile -- mathJax stuff must always end with change of state in order to get compiled
 	    {
 		MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
 		sec.removeAttribute('id');
-		texcode=false;
+		texCode=false;
 		sec=document.createElement('p');
 		sec.id="currentLaTeX";
-		document.getElementById("LaTeX").appendChild(sec);
+		lat.appendChild(sec);
 	    }
-	    if (texstate&1) msg+=txt[i];
-	    if (texstate&2) { sec.innerHTML+=txt[i]; texcode=true; }
+	    if (texState&1) msg+=txt[i];
+	    if (texState&2) { sec.innerHTML+=txt[i]; texCode=true; }
 	}
+	lat.scrollTop=lat.scrollHeight-lat.clientHeight;
     // end LaTeX HACK
       
       const completeText = shell.val();
