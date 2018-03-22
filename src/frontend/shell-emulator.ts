@@ -30,7 +30,7 @@ let mathProgramOutput = "";
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
 // LaTeX HACK
-var texstate = false;
+var texstate = 3; // 1 = normal output, 2 = mathJax, 3 = both
 var texcode="";
 // end LaTeX HACK
 
@@ -240,19 +240,20 @@ module.exports = function() {
       msg="";
       for (var i=0; i<txt.length; i++)
 	{
-	  if (i>0) {
-	    if (txt[i].startsWith("end")) {
-	      texstate=false;
+	    if (i>0) {
+		texstate=+txt[i][0];
+		txt[i]=txt[i].substr(txt[i].indexOf("*-")+2);
+	    }
+	    if (((texstate&2)==0)&&(texcode.length>0)) // some text left over to send -- mathJax stuff must always end with change of state back to normal
+	    {
 	      var sec=document.createElement('p');
 	      sec.innerHTML=texcode;
 	      document.getElementById("LaTeX").appendChild(sec);
 	      MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
 	      texcode="";
 	    }
-	    else if (txt[i].startsWith("begin")) texstate=true;
-	    txt[i]=txt[i].substr(txt[i].indexOf("*-")+2);
-	  }
-	  if (texstate) texcode+=txt[i]; else msg+=txt[i];
+	    if (texstate&1) msg+=txt[i];
+	    if (texstate&2) texcode+=txt[i];
 	}
     // end LaTeX HACK
       
