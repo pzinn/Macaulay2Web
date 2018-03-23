@@ -243,22 +243,39 @@ module.exports = function() {
       msg="";
       for (var i=0; i<txt.length; i++)
 	{
-	    var oldstate=texState;
+	    var oldState=texState;
 	    if (i>0) {
 		texState=+txt[i][0];
 		txt[i]=txt[i].substr(1);
 	    }
-	    if (texCode&&(oldstate!=texState)) // some text left over to compile -- mathJax stuff must always end with change of state in order to get compiled
+	    if (texCode&&(oldState!=texState)) // some text left over to compile -- mathJax stuff must always end with change of state in order to get compiled
 	    {
 		MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
 		sec.removeAttribute('id');
+		lat.appendChild(document.createElement('br'));
 		texCode=false;
-		sec=document.createElement('p');
+		sec=document.createElement('span');
 		sec.id="currentLaTeX";
 		lat.appendChild(sec);
 	    }
-	    if (texState&1) msg+=txt[i];
-	    if (texState&2) { sec.innerHTML+=txt[i]; texCode=true; }
+	    if (txt[i].length>0) {
+		if (texState&1) msg+=txt[i];
+		if (texState&2) {
+		    if (txt[i].search(/\\\(/)>=0) { // detect code. bit of a hack for now
+			txt[i]=txt[i].replace(/</g,"&lt;");
+			txt[i]=txt[i].replace(/>/g,"&gt;");
+			texCode=true;
+		    }
+		    if (texState==3) { // if this is normal output, do some html-ifying
+			// $ \( are dangerous because might be mathJax-ified
+			txt[i]=txt[i].replace(/</g,"&lt;");
+			txt[i]=txt[i].replace(/>/g,"&gt;");
+			txt[i]=txt[i].replace(/\$/g,"<span>$</span>");
+			txt[i]=txt[i].replace(/\n/g,"<br/>");
+		    }
+		    sec.innerHTML+=txt[i];
+		}
+	    }
 	}
 	lat.scrollTop=lat.scrollHeight;
     // end LaTeX HACK
