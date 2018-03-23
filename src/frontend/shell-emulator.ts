@@ -260,7 +260,7 @@ module.exports = function() {
 	    if (texState&1) msg+=txt[i];
 	    if (texState&2) { sec.innerHTML+=txt[i]; texCode=true; }
 	}
-	lat.scrollTop=lat.scrollHeight-lat.clientHeight;
+	lat.scrollTop=lat.scrollHeight;
     // end LaTeX HACK
       
       const completeText = shell.val();

@@ -168,7 +168,7 @@
 
     <main class="mdl-layout__content" id="content">
         <div class="mdl-grid">
-            <div class="mdl-cell mdl-cell--4-col mdl-cell--4-col-tablet mdl-cell--4-col-phone"
+            <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone"
                  id="left-half">
 
                 <div class="mdl-tabs mdl-js-tabs ">
@@ -286,7 +286,7 @@
                 </div>
             </div>
 
-            <div class="mdl-cell mdl-cell--4-col mdl-cell--4-col-tablet mdl-cell--4-col-phone"
+            <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone"
                  id="right-half">
               <div id="M2OutCtrlBtns">
                 <div id="M2OutZoomBtns">
@@ -300,26 +300,15 @@
                 <i id="maximizeOutput"
                    class="material-icons icon-with-action">fullscreen</i>
               </div>
+	      <div id="LaTeX">
+		<p id="currentLaTeX"></p>
+	      </div>
               <textarea id="M2Out" wrap='off' autocorrect="off" spellcheck="false"
-			autocapitalize="off">
+			autocapitalize="off"  height="200">
               </textarea>
+
             </div>
 
-	    <div class="mdl-cell mdl-cell--4-col mdl-cell--4-col-tablet mdl-cell--4-col-phone"
-		 id="very-right-half" wrap="off">
-
-                <div class="mdl-tabs mdl-js-tabs ">
-                    <div class="mdl-tabs__tab-bar mdl mdl-layout--large-screen-only">
-                        <a href="#LaTeX" id="LaTeXTitle"
-                           class="mdl-tabs__tab">LaTeX</a>
-                    </div>
-                    <div class="mdl-tabs__panel mdl-layout--fixed-header is-active"
-                         id="LaTeX">
-		      <h3>LaTeX output:</h3>
-		      <p id="currentLaTeX"></p>
-		    </div>
-		</div>
-	    </div>
         </div>
     </main>
 
