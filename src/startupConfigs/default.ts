@@ -6,7 +6,7 @@ const options = {
   serverConfig: {
     CONTAINERS: "../lib/LocalContainerManager",
     MATH_PROGRAM: "Macaulay2",
-    MATH_PROGRAM_COMMAND: "M2 -e \"texMode = true\"",
+    MATH_PROGRAM_COMMAND: "M2 -e \"mathJaxMode = true\"",
     port: "8002",
     resumeString: "Type 'listUserSymbols' to print the list of " +
     "existing symbols.\n\ni* : ",
