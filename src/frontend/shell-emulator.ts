@@ -247,32 +247,34 @@ module.exports = function() {
 	    if (i>0) {
 		texState=+txt[i][0];
 		txt[i]=txt[i].substr(1);
-	    }
-	    if (texCode&&(oldState!=texState)) // some text left over to compile -- mathJax stuff must always end with change of state in order to get compiled
-	    {
-		MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
-		sec.removeAttribute('id');
-		lat.appendChild(document.createElement('br'));
-		texCode=false;
-		sec=document.createElement('span');
-		sec.id="currentLaTeX";
-		lat.appendChild(sec);
+		if (texCode&&(oldState!=texState)) // some text left over to compile -- mathJax stuff must always end with change of state in order to get compiled
+		{
+		    MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
+		    sec.removeAttribute('id');
+		    lat.appendChild(document.createElement('br'));
+		    texCode=false;
+		    sec=document.createElement('span');
+		    sec.id="currentLaTeX";
+		    lat.appendChild(sec);
+		}
 	    }
 	    if (txt[i].length>0) {
 		if (texState&1) msg+=txt[i];
 		if (texState&2) {
-		    if (txt[i].search(/\\\(/)>=0) { // detect code. bit of a hack for now
-			txt[i]=txt[i].replace(/</g,"&lt;");
-			txt[i]=txt[i].replace(/>/g,"&gt;");
-			texCode=true;
-		    }
 		    if (texState==3) { // if this is normal output, do some html-ifying
-			// $ \( are dangerous because might be mathJax-ified
+			// < > are dangerous, & " less so
+			txt[i]=txt[i].replace(/&/g,"&amp;");
 			txt[i]=txt[i].replace(/</g,"&lt;");
 			txt[i]=txt[i].replace(/>/g,"&gt;");
+			txt[i]=txt[i].replace(/"/g,"&amp;");
+			// $ \( \) are dangerous because might be mathJax-ified
 			txt[i]=txt[i].replace(/\$/g,"<span>$</span>");
+			txt[i]=txt[i].replace(/\\\(/g,"<span>\\(</span>");
+			txt[i]=txt[i].replace(/\\\)/g,"<span>\\)</span>");
+			// turn \n into html line breaks
 			txt[i]=txt[i].replace(/\n/g,"<br/>");
 		    }
+		    else texCode=true;
 		    sec.innerHTML+=txt[i];
 		}
 	    }
