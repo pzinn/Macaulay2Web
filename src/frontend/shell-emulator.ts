@@ -31,6 +31,7 @@ const cmdHistory: any = []; // History of commands for shell-like arrow navigati
 cmdHistory.index = 0;
 // LaTeX HACK
 var texState = 3; // 1 = normal output, 2 = mathJax, 3 = both
+var texOldState=0;
 var texCode=false;
 var texSpecial= String.fromCharCode(30);
 // end LaTeX HACK
@@ -243,15 +244,14 @@ module.exports = function() {
       msg="";
       for (var i=0; i<txt.length; i++)
 	{
-	    var oldState=texState;
 	    if (i>0) {
 		texState=+txt[i][0];
 		txt[i]=txt[i].substr(1);
-		if (texCode&&(oldState!=texState)) // some text left over to compile -- mathJax stuff must always end with change of state in order to get compiled
+		if (texOldState&2)
 		{
-		    MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
+		    if (texCode) MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]); // some text left over to compile -- mathJax stuff must always end with change of state in order to get compiled
 		    sec.removeAttribute('id');
-		    lat.appendChild(document.createElement('br'));
+		    texOldState=0;
 		    texCode=false;
 		    sec=document.createElement('span');
 		    sec.id="currentLaTeX";
@@ -259,6 +259,7 @@ module.exports = function() {
 		}
 	    }
 	    if (txt[i].length>0) {
+		texOldState=texState; // we record that we've written something
 		if (texState&1) msg+=txt[i];
 		if (texState&2) {
 		    if (texState==3) { // if this is normal output, do some html-ifying
@@ -274,7 +275,7 @@ module.exports = function() {
 			// turn \n into html line breaks
 			txt[i]=txt[i].replace(/\n/g,"<br/>");
 		    }
-		    else texCode=true;
+		    else texCode=true; // we record that something may need compiling
 		    sec.innerHTML+=txt[i];
 		}
 	    }
