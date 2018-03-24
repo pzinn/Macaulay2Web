@@ -266,7 +266,7 @@ module.exports = function() {
 			txt[i]=txt[i].replace(/&/g,"&amp;");
 			txt[i]=txt[i].replace(/</g,"&lt;");
 			txt[i]=txt[i].replace(/>/g,"&gt;");
-			txt[i]=txt[i].replace(/"/g,"&amp;");
+			txt[i]=txt[i].replace(/"/g,"&quot;");
 			// $ \( \) are dangerous because might be mathJax-ified
 			txt[i]=txt[i].replace(/\$/g,"<span>$</span>");
 			txt[i]=txt[i].replace(/\\\(/g,"<span>\\(</span>");
