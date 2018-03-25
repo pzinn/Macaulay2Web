@@ -32,7 +32,6 @@ cmdHistory.index = 0;
 // LaTeX HACK
 var texState = 3; // 1 = normal output, 2 = mathJax, 3 = both
 var texOldState=0;
-var texCode=false;
 var texSpecial= String.fromCharCode(30);
 // end LaTeX HACK
 
@@ -249,10 +248,8 @@ module.exports = function() {
 		txt[i]=txt[i].substr(1);
 		if (texOldState&2)
 		{
-		    if (texCode) MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]); // some text left over to compile -- mathJax stuff must always end with change of state in order to get compiled
 		    sec.removeAttribute('id');
 		    texOldState=0;
-		    texCode=false;
 		    sec=document.createElement('span');
 		    sec.id="currentLaTeX";
 		    lat.appendChild(sec);
@@ -275,8 +272,8 @@ module.exports = function() {
 			// turn \n into html line breaks
 			txt[i]=txt[i].replace(/\n/g,"<br/>");
 		    }
-		    else texCode=true; // we record that something may need compiling
 		    sec.innerHTML+=txt[i];
+		    if (texState==2) MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]); // if special output, compile it
 		}
 	    }
 	}
