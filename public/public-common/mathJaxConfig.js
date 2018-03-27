@@ -2,6 +2,9 @@
 /* eslint "new-cap": "off" */
 MathJax.Hub.Config({tex2jax: {inlineMath: [['$', '$'], ['\\(', '\\)']]}});
 MathJax.Hub.Config({
+  TeX: {noErrors: {disabled: true}}
+});
+MathJax.Hub.Config({
   TeX: {
     Macros: {
       PP: "{\\mathbb{P}}",
