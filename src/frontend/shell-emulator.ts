@@ -33,6 +33,7 @@ cmdHistory.index = 0;
 var texState = 3; // 1 = normal output, 2 = mathJax, 3 = both
 var texOldState=0;
 var texSpecial= String.fromCharCode(30);
+var texCode="";
 // end LaTeX HACK
 
 const postRawMessage = function(msg: string, socket: Socket) {
@@ -248,33 +249,33 @@ module.exports = function() {
 		txt[i]=txt[i].substr(1);
 		if (texOldState&2)
 		{
+		    sec.innerHTML+=texCode; // we need to send it all at once, otherwise breaks might screw up the html division
+		    MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
 		    sec.removeAttribute('id');
-		    texOldState=0;
+		    texOldState=0; texCode="";
 		    sec=document.createElement('span');
 		    sec.id="currentLaTeX";
 		    lat.appendChild(sec);
 		}
 	    }
 	    if (txt[i].length>0) {
-		texOldState=texState; // we record that we've written something
+		texOldState=texState|texOldState;
 		if (texState&1) msg+=txt[i];
-		if (texState&2) {
-		    if (texState==3) { // if this is normal output, do some html-ifying
-			// < > are dangerous, & " less so
-			txt[i]=txt[i].replace(/&/g,"&amp;");
-			txt[i]=txt[i].replace(/</g,"&lt;");
-			txt[i]=txt[i].replace(/>/g,"&gt;");
-			txt[i]=txt[i].replace(/"/g,"&quot;");
-			// $ \( \) are dangerous because might be mathJax-ified
-			txt[i]=txt[i].replace(/\$/g,"<span>$</span>");
-			txt[i]=txt[i].replace(/\\\(/g,"<span>\\(</span>");
-			txt[i]=txt[i].replace(/\\\)/g,"<span>\\)</span>");
-			// turn \n into html line breaks
-			txt[i]=txt[i].replace(/\n/g,"<br/>");
-		    }
+		if (texState==3) { // if this is normal output, do some html-ifying
+		    // < > are dangerous, & " less so
+		    txt[i]=txt[i].replace(/&/g,"&amp;");
+		    txt[i]=txt[i].replace(/</g,"&lt;");
+		    txt[i]=txt[i].replace(/>/g,"&gt;");
+		    txt[i]=txt[i].replace(/"/g,"&quot;");
+		    // $ \( \) are dangerous because might be mathJax-ified
+		    txt[i]=txt[i].replace(/\$/g,"<span>$</span>");
+		    txt[i]=txt[i].replace(/\\\(/g,"<span>\\(</span>");
+		    txt[i]=txt[i].replace(/\\\)/g,"<span>\\)</span>");
+		    // turn \n into html line breaks: actually not needed because of white-space: pre-line
+		    //txt[i]=txt[i].replace(/\n/g,"<br/>");
 		    sec.innerHTML+=txt[i];
-		    if (texState==2) MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]); // if special output, compile it
-		}
+		    }
+		else if (texState==2) texCode+=txt[i];
 	    }
 	}
 	lat.scrollTop=lat.scrollHeight;
