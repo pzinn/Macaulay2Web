@@ -251,6 +251,7 @@ module.exports = function() {
 		{
 		    sec.innerHTML+=texCode; // we need to send it all at once, otherwise breaks might screw up the html division
 		    MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
+		    MathJax.Hub.Queue(function() { lat.scrollTop=lat.scrollHeight }); // because compiling moves stuff around
 		    sec.removeAttribute('id');
 		    texOldState=0; texCode="";
 		    sec=document.createElement('span');

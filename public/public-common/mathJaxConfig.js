@@ -1,6 +1,8 @@
 /* global MathJax */
 /* eslint "new-cap": "off" */
-MathJax.Hub.Config({tex2jax: {inlineMath: [['$', '$'], ['\\(', '\\)']]}});
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$', '$'], ['\\(', '\\)']]}
+});
 MathJax.Hub.Config({
   TeX: {noErrors: {disabled: true}}
 });
@@ -14,7 +16,8 @@ MathJax.Hub.Config({
       CC: "{\\mathbb{C}}",
       mac: "{{\\it Macaulay2}}",
       bold: ["{\\bf #1}", 1]
-    }
+    },
+    MAXBUFFER: 20 * 1024
   }
 });
 MathJax.Hub.Config({
