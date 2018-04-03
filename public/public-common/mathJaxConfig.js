@@ -20,6 +20,7 @@ MathJax.Hub.Config({
     MAXBUFFER: 20 * 1024
   }
 });
+/*
 MathJax.Hub.Config({
   "CommonHTML": {linebreaks: {automatic: true}},
   "HTML-CSS": {linebreaks: {automatic: true}},
@@ -28,4 +29,4 @@ MathJax.Hub.Config({
 MathJax.Hub.Register.StartupHook("mml Jax Ready", function() {
   MathJax.ElementJax.mml.math.prototype.defaults.lineleading = "0px";
 });
-
+*/
