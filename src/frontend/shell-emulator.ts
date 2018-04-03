@@ -34,6 +34,17 @@ var texState = 3; // 1 = normal output, 2 = mathJax, 3 = both
 var texOldState=0;
 var texSpecial= String.fromCharCode(30);
 var texCode="";
+
+function placeCaretAtEnd() {
+    const el=document.getElementById("M2Out"); // FIX
+    el.focus();
+    var range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    }
 // end LaTeX HACK
 
 const postRawMessage = function(msg: string, socket: Socket) {
@@ -82,8 +93,8 @@ function stripPrompt(lastLine: string) {
 }
 
 const getCurrentCommand = function(shell): string {
-  const completeText = shell.val().split("\n");
-  let lastLine: string = completeText[completeText.length - 2];
+  const completeText = shell.text().split("\n");
+  let lastLine: string = completeText[completeText.length - 1];
     // Need to set prompt symbol somewhere else.
   lastLine = stripInputPrompt(lastLine);
   lastLine = stripSpacesAtBeginningOfLine(lastLine);
@@ -102,24 +113,24 @@ const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
   }
   if ((e.keyCode === keys.arrowUp) && (cmdHistory.index > 0)) { // UP
     if (cmdHistory.index === cmdHistory.length) {
-      cmdHistory.current = shell.val().substring(mathProgramOutput.length, shell.val().length);
+      cmdHistory.current = shell.text().substring(mathProgramOutput.length, shell.text().length);
     }
     cmdHistory.index--;
   }
   if (cmdHistory.index === cmdHistory.length) {
-    shell.val(shell.val().substring(0, mathProgramOutput.length) + cmdHistory.current);
+    shell.text(shell.text().substring(0, mathProgramOutput.length) + cmdHistory.current);
   } else {
-    shell.val(shell.val().substring(0, mathProgramOutput.length) + cmdHistory[cmdHistory.index]);
+    shell.text(shell.text().substring(0, mathProgramOutput.length) + cmdHistory[cmdHistory.index]);
   }
   scrollDown(shell);
 };
 
 const backspace = function(shell) {
-  const completeText = shell.val();
+  const completeText = shell.text();
   const before = completeText.substring(0, mathProgramOutput.length - 1);
   const after = completeText.substring(mathProgramOutput.length, completeText.length);
   mathProgramOutput = before;
-  shell.val(before + after);
+  shell.text(before + after);
   scrollDown(shell);
 };
 
@@ -157,10 +168,12 @@ module.exports = function() {
     });
 
     const packageAndSendMessage = function(tail) {
-      setCaretPosition(shell.attr("id"), shell.val().length);
-      if (shell.val().length >= mathProgramOutput.length) {
-        const l = shell.val().length;
-        const msg = shell.val().substring(mathProgramOutput.length, l) + tail;
+	//      setCaretPosition(shell.attr("id"), shell.text().length);
+	placeCaretAtEnd();
+	if (shell.text().length >= mathProgramOutput.length) {
+	    const txt = shell.text();
+            const l = txt.length;
+        const msg = txt.substring(mathProgramOutput.length, l) + tail+"\n";
         postRawMessage(msg, socket);
       } else {
         console.log("There must be an error.");
@@ -181,7 +194,8 @@ module.exports = function() {
     // If something is entered, change to end of textarea, if at wrong position.
     shell.keydown(function(e: KeyboardEvent) {
       if (e.keyCode === keys.enter) {
-        setCaretPosition(shell.attr("id"), shell.val().length);
+	  //        setCaretPosition(shell.attr("id"), shell.text().length);
+	  placeCaretAtEnd();
       }
 
       if ((e.keyCode === keys.arrowUp) || (e.keyCode === keys.arrowDown)) {
@@ -197,16 +211,14 @@ module.exports = function() {
       if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
         return;
       }
-      const pos = shell[0].selectionStart;
-      if (pos < mathProgramOutput.length) {
-        setCaretPosition(shell.attr("id"), shell.val().length);
-      }
+	placeCaretAtEnd();
+
         // This deals with backspace.
         // If we start removing output, we have already received, then we need
         // to forward the backspace to M2. If backspacing is still allowed, we
         // will get a backspace back.
       if (e.keyCode === keys.backspace) {
-        if (shell.val().length === mathProgramOutput.length) {
+        if (shell.text().length === mathProgramOutput.length) {
           packageAndSendMessage("\b");
           e.preventDefault();
         }
@@ -236,66 +248,56 @@ module.exports = function() {
       }
       let msg: string = msgDirty.replace(/\u0007/, "");
       msg = msg.replace(/\r\n/g, "\n");
-      msg = msg.replace(/\r/g, "\n");
-      // LaTeX HACK
+	msg = msg.replace(/\r/g, "\n");
+	// LaTeX HACK
+	var lat=document.getElementById("M2Out"); // TEMP
+	/*
       var txt=msg.split(texSpecial);
-      var lat=document.getElementById("LaTeX");
-      var sec=document.getElementById("currentLaTeX");
+	var sec=document.getElementById("latest"); // TEMP: should use last child or something
       msg="";
       for (var i=0; i<txt.length; i++)
 	{
 	    if (i>0) {
 		texState=+txt[i][0];
 		txt[i]=txt[i].substr(1);
-		if (texOldState&2)
+		if (texOldState==2)
 		{
-		    sec.innerHTML+=texCode; // we need to send it all at once, otherwise breaks might screw up the html division
+		    sec.innerHTML+=texCode; // we need to send it all at once, otherwise breaks might screw up the html division -- also TEMP, reread mathJax doc on how to do this better
 		    MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
 		    MathJax.Hub.Queue(function() { lat.scrollTop=lat.scrollHeight }); // because compiling moves stuff around
 		    sec.removeAttribute('id');
 		    texOldState=0; texCode="";
-		    sec=document.createElement('span');
-		    sec.id="currentLaTeX";
-		    lat.appendChild(sec);
 		}
 	    }
 	    if (txt[i].length>0) {
-		texOldState=texState|texOldState;
-		if (texState&1) msg+=txt[i];
-		if (texState==3) { // if this is normal output, do some html-ifying
-		    // < > are dangerous, & " less so
-		    txt[i]=txt[i].replace(/&/g,"&amp;");
-		    txt[i]=txt[i].replace(/</g,"&lt;");
-		    txt[i]=txt[i].replace(/>/g,"&gt;");
-		    txt[i]=txt[i].replace(/"/g,"&quot;");
-		    // $ \( \) are dangerous because might be mathJax-ified
-		    txt[i]=txt[i].replace(/\$/g,"<span>$</span>");
-		    txt[i]=txt[i].replace(/\\\(/g,"<span>\\(</span>");
-		    txt[i]=txt[i].replace(/\\\)/g,"<span>\\)</span>");
-		    // turn \n into html line breaks: actually not needed because of white-space: pre-line
-		    //txt[i]=txt[i].replace(/\n/g,"<br/>");
-		    sec.innerHTML+=txt[i];
+		texOldState=texState;
+		if (texState==3) msg+=txt[i];
+		else if (texState==2) {
+		    if (sec===null) {
+			sec=document.createElement('span');
+			sec.id="latest";
+			lat.appendChild(sec);
 		    }
-		else if (texState==2) texCode+=txt[i];
+		    texCode+=txt[i];
+		}
 	    }
 	}
-	lat.scrollTop=lat.scrollHeight;
     // end LaTeX HACK
-      
-      const completeText = shell.val();
-      mathProgramOutput += msg;
+*/
+      const completeText = shell.text();
+	mathProgramOutput += msg;
       const after = completeText.substring(mathProgramOutput.length, completeText.length);
       let commonIndex = 0;
       while ((after[commonIndex] === msg[commonIndex]) && (commonIndex < after.length) && (commonIndex < msg.length)) {
         commonIndex++;
       }
       const nonReturnedInput = after.substring(commonIndex, after.length);
-      shell.val(mathProgramOutput + nonReturnedInput);
+      shell.text(mathProgramOutput + nonReturnedInput);
       scrollDown(shell);
     });
 
     shell.on("reset", function() {
-      shell.val(mathProgramOutput);
+      shell.text(mathProgramOutput);
     });
   };
 
