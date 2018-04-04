@@ -266,10 +266,10 @@ module.exports = function() {
 		if ((texOldState==2)&&(texState!=2))
 		{
 		    var sec=document.createElement('span');
-		    sec.innerHTML=texCode; // we need to send it all at once, otherwise breaks might screw up the html division -- also TEMP, reread mathJax doc on how to do this better
+		    sec.innerHTML=texCode; // we need to send it all at once, otherwise breaks might screw up the html
 		    shell[0].appendChild(sec);
 		    MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
-//		    MathJax.Hub.Queue(function() { scrollDown(shell) }); // because compiling moves stuff around. reintroduce later
+		    MathJax.Hub.Queue(function() { scrollDown(shell) }); // because compiling moves stuff around
 		    texOldState=0; texCode="";
 		}
 	    }
@@ -283,7 +283,7 @@ module.exports = function() {
 	}
     // end LaTeX HACK
 
-	mathProgramOutput=lastText(shell).textContent+=msg; // eventually I can reintroduce the whole returninput thing to avoid erasing the input before processing
+	mathProgramOutput=lastText(shell).textContent+=msg; // eventually I can reintroduce the whole returninput thing to avoid erasing the input before processing, but shouldn't be necessary -- much faster now anyway
 	scrollDown(shell);
     });
 

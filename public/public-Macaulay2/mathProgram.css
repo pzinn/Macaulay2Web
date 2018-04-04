@@ -68,6 +68,30 @@ body {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     font-family: "Roboto Mono";
+    position: relative;
+}
+#M2Out div,#M2Out li,#M2Out ul,#M2Out h1,#M2Out h2,#M2Out h3,#M2Out h4,#M2Out h5,#M2Out h6 {
+    line-height: 16px;
+    margin: 0px;
+}
+
+#M2Out h1 {
+    font-size: 26px;
+}
+#M2Out h2 {
+    font-size: 24px;
+}
+#M2Out h3 {
+    font-size: 22px;
+}
+#M2Out h4 {
+    font-size: 20px;
+}
+#M2Out h5 {
+    font-size: 18px;
+}
+#M2Out h6 {
+    font-size: 16px;
 }
 
 #M2In {
@@ -123,10 +147,6 @@ body {
     position: absolute;
     top: 16px;
     right: 16px;
-}
-
-#M2Out {
-    position: relative;
 }
 
 .icon-with-action {
