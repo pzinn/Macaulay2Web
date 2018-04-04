@@ -29,23 +29,22 @@ const getSelected = require("get-selected-text");
 let mathProgramOutput = "";
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
-// LaTeX HACK
+// LaTeX HACK -- needs closure
 var texState = 3; // 1 = normal output, 2 = mathJax, 3 = both
 var texOldState=0;
 var texSpecial= String.fromCharCode(30);
 var texCode="";
+// end LaTeX HACK
 
-function placeCaretAtEnd() {
-    const el=document.getElementById("M2Out"); // FIX. use shell[0] instead
-    el.focus();
+function placeCaretAtEnd(shell) {
+    shell[0].focus();
     var range = document.createRange();
-    range.selectNodeContents(el);
+    range.selectNodeContents(shell[0]);
     range.collapse(false);
     var sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(range);
     }
-// end LaTeX HACK
 
 const postRawMessage = function(msg: string, socket: Socket) {
   socket.emit("input", msg);
@@ -120,8 +119,8 @@ const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
     cmdHistory.index--;
   }
     if (cmdHistory.index === cmdHistory.length) {
-	if (cmdHistory.current)
-	    lastText(shell).textContent=mathProgramOutput+cmdHistory.current;
+	if (!cmdHistory.current) cmdHistory.current="";
+	lastText(shell).textContent=mathProgramOutput+cmdHistory.current;
   } else {
 	lastText(shell).textContent=mathProgramOutput+cmdHistory[cmdHistory.index];
   }
@@ -172,7 +171,7 @@ module.exports = function() {
 
     const packageAndSendMessage = function(msg) {
 	//      setCaretPosition(shell.attr("id"), shell.text().length);
-	placeCaretAtEnd();
+	placeCaretAtEnd(shell);
 /*	if (shell.text().length >= mathProgramOutput.length) {
 	    const txt = shell.text();
             const l = txt.length;
@@ -200,7 +199,7 @@ module.exports = function() {
     shell.keydown(function(e: KeyboardEvent) {
       if (e.keyCode === keys.enter) {
 	  //        setCaretPosition(shell.attr("id"), shell.text().length);
-	  placeCaretAtEnd();
+	  placeCaretAtEnd(shell);
 	  return false; // no crappy <div></div> added
       }
 
@@ -219,7 +218,7 @@ module.exports = function() {
         return;
       }
 	if (window.getSelection().baseOffset<mathProgramOutput.length)
-	    placeCaretAtEnd();
+	    placeCaretAtEnd(shell);
 
         // This deals with backspace.
         // If we start removing output, we have already received, then we need
@@ -256,8 +255,8 @@ module.exports = function() {
       }
       let msg: string = msgDirty.replace(/\u0007/, "");
       msg = msg.replace(/\r\n/g, "\n");
-	msg = msg.replace(/\r/g, "\n");
-	// LaTeX HACK
+      msg = msg.replace(/\r/g, "\n");
+      // LaTeX HACK
       var txt=msg.split(texSpecial);
       msg="";
       for (var i=0; i<txt.length; i++)
@@ -290,7 +289,7 @@ module.exports = function() {
     });
 
     shell.on("reset", function() {
-      //shell.text(mathProgramOutput);
+	lastText(shell).textContent=mathProgramOutput;
     });
   };
 
