@@ -23,7 +23,7 @@ const keys = {
 
 import {Socket} from "./mathProgram";
 const unicodeBell = "\u0007";
-const setCaretPosition = require("set-caret-position");
+//const setCaretPosition = require("set-caret-position");
 const scrollDown = require("scroll-down");
 const getSelected = require("get-selected-text");
 let mathProgramOutput = "";
@@ -36,7 +36,7 @@ var texSpecial= String.fromCharCode(30);
 var texCode="";
 
 function placeCaretAtEnd() {
-    const el=document.getElementById("M2Out"); // FIX
+    const el=document.getElementById("M2Out"); // FIX. use shell[0] instead
     el.focus();
     var range = document.createRange();
     range.selectNodeContents(el);
@@ -92,14 +92,16 @@ function stripPrompt(lastLine: string) {
   return result.replace(/^\. /, "");
 }
 
+const lastText = function(shell) {
+    if ((shell[0].lastChild===null) || !(shell[0].lastChild instanceof Text)) shell[0].appendChild(document.createTextNode(""));
+    return shell[0].lastChild;
+}
+
 const getCurrentCommand = function(shell): string {
-  const completeText = shell.text().split("\n");
-  let lastLine: string = completeText[completeText.length - 1];
-    // Need to set prompt symbol somewhere else.
-  lastLine = stripInputPrompt(lastLine);
-  lastLine = stripSpacesAtBeginningOfLine(lastLine);
-  lastLine = stripPrompt(lastLine);
-  return lastLine;
+    const completeText = lastText(shell);
+    let lastLine: string = completeText.textContent.substring(mathProgramOutput.length);
+    completeText.textContent=mathProgramOutput; // eventually we'll remove this
+    return lastLine;
 };
 
 const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
@@ -125,7 +127,7 @@ const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
   scrollDown(shell);
 };
 
-const backspace = function(shell) {
+const backspace = function(shell) { // TODO rewrite and/or remove
   const completeText = shell.text();
   const before = completeText.substring(0, mathProgramOutput.length - 1);
   const after = completeText.substring(mathProgramOutput.length, completeText.length);
@@ -167,27 +169,29 @@ module.exports = function() {
       }
     });
 
-    const packageAndSendMessage = function(tail) {
+    const packageAndSendMessage = function(msg) {
 	//      setCaretPosition(shell.attr("id"), shell.text().length);
 	placeCaretAtEnd();
-	if (shell.text().length >= mathProgramOutput.length) {
+/*	if (shell.text().length >= mathProgramOutput.length) {
 	    const txt = shell.text();
             const l = txt.length;
-        const msg = txt.substring(mathProgramOutput.length, l) + tail+"\n";
-        postRawMessage(msg, socket);
-      } else {
+            const msg = txt.substring(mathProgramOutput.length, l) + tail;*/
+	if (msg.length>0)
+            postRawMessage(msg, socket);
+       else {
         console.log("There must be an error.");
             // We don't want empty lines send to M2 at pressing return twice.
-      }
+       }
     };
 
     // On pressing return send last part of M2Out to M2 and remove it.
     shell.keyup(function(e) {
       if (e.keyCode === keys.enter) { // Return
-            // We trigger the track manually, since we might have used tab.
-        shell.trigger("track", getCurrentCommand(shell));
+          // We trigger the track manually, since we might have used tab.
+	  const msg=getCurrentCommand(shell);
+          shell.trigger("track", msg);
             // Disable tracking of posted message.
-	packageAndSendMessage("");
+	  packageAndSendMessage(msg+"\n");
       }
     });
 
@@ -196,6 +200,7 @@ module.exports = function() {
       if (e.keyCode === keys.enter) {
 	  //        setCaretPosition(shell.attr("id"), shell.text().length);
 	  placeCaretAtEnd();
+	  return false; // no crappy <div></div> added
       }
 
       if ((e.keyCode === keys.arrowUp) || (e.keyCode === keys.arrowDown)) {
@@ -218,14 +223,14 @@ module.exports = function() {
         // to forward the backspace to M2. If backspacing is still allowed, we
         // will get a backspace back.
       if (e.keyCode === keys.backspace) {
-        if (shell.text().length === mathProgramOutput.length) {
-          packageAndSendMessage("\b");
+          if (lastText(shell).length === mathProgramOutput.length) {
+          packageAndSendMessage("\b"); // why do we send backspace anyway?
           e.preventDefault();
         }
       }
         // Forward key for tab completion, but do not track it.
       if (e.keyCode === keys.tab) {
-        packageAndSendMessage("\t");
+        packageAndSendMessage("\t"); // messed up atm, TODO
         e.preventDefault();
       }
     });
@@ -237,7 +242,7 @@ module.exports = function() {
         // If we get a 'Session resumed.' message, we check whether it is
         // relevant.
       if (msgDirty.indexOf("Session resumed.") > -1) {
-        if (mathProgramOutput.length > 0) {
+        if (mathProgramOutput.length > 0) { // TODO change
           return;
         }
       }
@@ -250,8 +255,8 @@ module.exports = function() {
       msg = msg.replace(/\r\n/g, "\n");
 	msg = msg.replace(/\r/g, "\n");
 	// LaTeX HACK
-	var lat=document.getElementById("M2Out"); // TEMP
 	/*
+	var lat=document.getElementById("M2Out"); // TEMP
       var txt=msg.split(texSpecial);
 	var sec=document.getElementById("latest"); // TEMP: should use last child or something
       msg="";
@@ -284,20 +289,12 @@ module.exports = function() {
 	}
     // end LaTeX HACK
 */
-      const completeText = shell.text();
-	mathProgramOutput += msg;
-      const after = completeText.substring(mathProgramOutput.length, completeText.length);
-      let commonIndex = 0;
-      while ((after[commonIndex] === msg[commonIndex]) && (commonIndex < after.length) && (commonIndex < msg.length)) {
-        commonIndex++;
-      }
-      const nonReturnedInput = after.substring(commonIndex, after.length);
-      shell.text(mathProgramOutput + nonReturnedInput);
-      scrollDown(shell);
+	mathProgramOutput=lastText(shell).textContent+=msg; // eventually I can reintroduce the whole returninput thing to avoid erasing the input before processing
+	scrollDown(shell);
     });
 
     shell.on("reset", function() {
-      shell.text(mathProgramOutput);
+      //shell.text(mathProgramOutput);
     });
   };
 
