@@ -120,7 +120,8 @@ const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
     cmdHistory.index--;
   }
     if (cmdHistory.index === cmdHistory.length) {
-	lastText(shell).textContent=mathProgramOutput+cmdHistory.current;
+	if (cmdHistory.current)
+	    lastText(shell).textContent=mathProgramOutput+cmdHistory.current;
   } else {
 	lastText(shell).textContent=mathProgramOutput+cmdHistory[cmdHistory.index];
   }
@@ -204,7 +205,8 @@ module.exports = function() {
       }
 
       if ((e.keyCode === keys.arrowUp) || (e.keyCode === keys.arrowDown)) {
-        upDownArrowKeyHandling(shell, e);
+          upDownArrowKeyHandling(shell, e);
+	  return;
       }
       if (e.keyCode === keys.ctrlKeyCode) { // do not jump to bottom on Ctrl+C or on Ctrl
         return;
