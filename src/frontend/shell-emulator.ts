@@ -115,14 +115,14 @@ const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
   }
   if ((e.keyCode === keys.arrowUp) && (cmdHistory.index > 0)) { // UP
     if (cmdHistory.index === cmdHistory.length) {
-      cmdHistory.current = shell.text().substring(mathProgramOutput.length, shell.text().length);
+	cmdHistory.current = lastText(shell).textContent.substring(mathProgramOutput.length);
     }
     cmdHistory.index--;
   }
-  if (cmdHistory.index === cmdHistory.length) {
-    shell.text(shell.text().substring(0, mathProgramOutput.length) + cmdHistory.current);
+    if (cmdHistory.index === cmdHistory.length) {
+	lastText(shell).textContent=mathProgramOutput+cmdHistory.current;
   } else {
-    shell.text(shell.text().substring(0, mathProgramOutput.length) + cmdHistory[cmdHistory.index]);
+	lastText(shell).textContent=mathProgramOutput+cmdHistory[cmdHistory.index];
   }
   scrollDown(shell);
 };
@@ -216,7 +216,8 @@ module.exports = function() {
       if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
         return;
       }
-	placeCaretAtEnd();
+	if (window.getSelection().baseOffset<mathProgramOutput.length)
+	    placeCaretAtEnd();
 
         // This deals with backspace.
         // If we start removing output, we have already received, then we need
@@ -255,22 +256,20 @@ module.exports = function() {
       msg = msg.replace(/\r\n/g, "\n");
 	msg = msg.replace(/\r/g, "\n");
 	// LaTeX HACK
-	/*
-	var lat=document.getElementById("M2Out"); // TEMP
       var txt=msg.split(texSpecial);
-	var sec=document.getElementById("latest"); // TEMP: should use last child or something
       msg="";
       for (var i=0; i<txt.length; i++)
 	{
 	    if (i>0) {
 		texState=+txt[i][0];
 		txt[i]=txt[i].substr(1);
-		if (texOldState==2)
+		if ((texOldState==2)&&(texState!=2))
 		{
-		    sec.innerHTML+=texCode; // we need to send it all at once, otherwise breaks might screw up the html division -- also TEMP, reread mathJax doc on how to do this better
+		    var sec=document.createElement('span');
+		    sec.innerHTML=texCode; // we need to send it all at once, otherwise breaks might screw up the html division -- also TEMP, reread mathJax doc on how to do this better
+		    shell[0].appendChild(sec);
 		    MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
-		    MathJax.Hub.Queue(function() { lat.scrollTop=lat.scrollHeight }); // because compiling moves stuff around
-		    sec.removeAttribute('id');
+//		    MathJax.Hub.Queue(function() { scrollDown(shell) }); // because compiling moves stuff around. reintroduce later
 		    texOldState=0; texCode="";
 		}
 	    }
@@ -278,17 +277,12 @@ module.exports = function() {
 		texOldState=texState;
 		if (texState==3) msg+=txt[i];
 		else if (texState==2) {
-		    if (sec===null) {
-			sec=document.createElement('span');
-			sec.id="latest";
-			lat.appendChild(sec);
-		    }
 		    texCode+=txt[i];
 		}
 	    }
 	}
     // end LaTeX HACK
-*/
+
 	mathProgramOutput=lastText(shell).textContent+=msg; // eventually I can reintroduce the whole returninput thing to avoid erasing the input before processing
 	scrollDown(shell);
     });
