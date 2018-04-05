@@ -29,22 +29,26 @@ const getSelected = require("get-selected-text");
 let mathProgramOutput = "";
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
-// LaTeX HACK -- needs closure
+var tabString="";
+// LaTeX HACK
 var texState = 3; // 1 = normal output, 2 = mathJax, 3 = both
 var texOldState=0;
 var texSpecial= String.fromCharCode(30);
 var texCode="";
 // end LaTeX HACK
 
-function placeCaretAtEnd(shell) {
+function placeCaretAtEnd(shell,flag?) {
     shell[0].focus();
-    var range = document.createRange();
-    range.selectNodeContents(shell[0]);
-    range.collapse(false);
     var sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
+    if ((!flag)||(sel.baseOffset<mathProgramOutput.length))
+    {
+	var range = document.createRange();
+	range.selectNodeContents(shell[0]);
+	range.collapse(false);
+	sel.removeAllRanges();
+	sel.addRange(range);
     }
+}
 
 const postRawMessage = function(msg: string, socket: Socket) {
   socket.emit("input", msg);
@@ -78,64 +82,44 @@ const sendOnEnterCallback = function(id: string, socket: Socket, shell) {
   };
 };
 
-function stripInputPrompt(lastLine: string) {
-  return lastLine.replace(/^i(\d|\*)+\s*:/, "");
-}
-
-function stripSpacesAtBeginningOfLine(lastLine: string) {
-  return lastLine.replace(/^\s*/, "");
-}
-
-function stripPrompt(lastLine: string) {
-  const result = lastLine.replace(/^> /, "");
-  return result.replace(/^\. /, "");
-}
-
 const lastText = function(shell) {
     if ((shell[0].lastChild===null) || !(shell[0].lastChild instanceof Text)) shell[0].appendChild(document.createTextNode(""));
     return shell[0].lastChild;
 }
 
-const getCurrentCommand = function(shell): string {
+const getCurrentCommandAndErase = function(shell): string {
     const completeText = lastText(shell);
     let lastLine: string = completeText.textContent.substring(mathProgramOutput.length);
-    completeText.textContent=mathProgramOutput; // eventually we'll remove this
+    completeText.textContent=mathProgramOutput;
     return lastLine;
 };
 
 const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
-  e.preventDefault();
-  if (cmdHistory.length === 0) {
+    e.preventDefault();
+    if (cmdHistory.length === 0) {
         // Maybe we did nothing so far.
-    return;
-  }
-  if ((e.keyCode === keys.arrowDown) && (cmdHistory.index < cmdHistory.length)) { // DOWN
-    cmdHistory.index++;
-    if (cmdHistory.index === cmdHistory.length) {
-	lastText(shell).textContent=mathProgramOutput+cmdHistory.current;
-    } else {
+	return;
+    }
+    if (e.keyCode === keys.arrowDown) { // DOWN
+	if (cmdHistory.index < cmdHistory.length) {
+	    cmdHistory.index++;
+	    if (cmdHistory.index === cmdHistory.length) {
+		lastText(shell).textContent=mathProgramOutput+cmdHistory.current;
+	    } else {
+		lastText(shell).textContent=mathProgramOutput+cmdHistory[cmdHistory.index];
+	    }
+	}
+	placeCaretAtEnd(shell);
+    }
+    else if ((e.keyCode === keys.arrowUp) && (cmdHistory.index > 0)) { // UP
+	if (cmdHistory.index === cmdHistory.length) {
+	    cmdHistory.current = lastText(shell).textContent.substring(mathProgramOutput.length);
+	}
+	cmdHistory.index--;
 	lastText(shell).textContent=mathProgramOutput+cmdHistory[cmdHistory.index];
+	placeCaretAtEnd(shell,true);
     }
-    placeCaretAtEnd(shell);
-  }
-  if ((e.keyCode === keys.arrowUp) && (cmdHistory.index > 0)) { // UP
-    if (cmdHistory.index === cmdHistory.length) {
-	cmdHistory.current = lastText(shell).textContent.substring(mathProgramOutput.length);
-    }
-    cmdHistory.index--;
-    lastText(shell).textContent=mathProgramOutput+cmdHistory[cmdHistory.index];
-    placeCaretAtEnd(shell);
-  }
-  scrollDown(shell);
-};
-
-const backspace = function(shell) { // TODO rewrite and/or remove
-  const completeText = shell.text();
-  const before = completeText.substring(0, mathProgramOutput.length - 1);
-  const after = completeText.substring(mathProgramOutput.length, completeText.length);
-  mathProgramOutput = before;
-  shell.text(before + after);
-  scrollDown(shell);
+    scrollDown(shell);
 };
 
 module.exports = function() {
@@ -172,12 +156,7 @@ module.exports = function() {
     });
 
     const packageAndSendMessage = function(msg) {
-	//      setCaretPosition(shell.attr("id"), shell.text().length);
 	placeCaretAtEnd(shell);
-/*	if (shell.text().length >= mathProgramOutput.length) {
-	    const txt = shell.text();
-            const l = txt.length;
-            const msg = txt.substring(mathProgramOutput.length, l) + tail;*/
 	if (msg.length>0)
             postRawMessage(msg, socket);
        else {
@@ -190,8 +169,8 @@ module.exports = function() {
     shell.keyup(function(e) {
       if (e.keyCode === keys.enter) { // Return
           // We trigger the track manually, since we might have used tab.
-	  const msg=getCurrentCommand(shell);
-          shell.trigger("track", msg);
+	  const msg=getCurrentCommandAndErase(shell);
+          shell.trigger("track", tabString+msg); tabString="";
             // Disable tracking of posted message.
 	  packageAndSendMessage(msg+"\n");
       }
@@ -200,7 +179,6 @@ module.exports = function() {
     // If something is entered, change to end of textarea, if at wrong position.
     shell.keydown(function(e: KeyboardEvent) {
       if (e.keyCode === keys.enter) {
-	  //        setCaretPosition(shell.attr("id"), shell.text().length);
 	  placeCaretAtEnd(shell);
 	  return false; // no crappy <div></div> added
       }
@@ -219,22 +197,17 @@ module.exports = function() {
       if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
         return;
       }
-	if (window.getSelection().baseOffset<mathProgramOutput.length)
-	    placeCaretAtEnd(shell);
+	placeCaretAtEnd(shell,true);
 
         // This deals with backspace.
-        // If we start removing output, we have already received, then we need
-        // to forward the backspace to M2. If backspacing is still allowed, we
-        // will get a backspace back.
       if (e.keyCode === keys.backspace) {
-          if (lastText(shell).length === mathProgramOutput.length) {
-          packageAndSendMessage("\b"); // why do we send backspace anyway?
-          e.preventDefault();
-        }
+          if (lastText(shell).length === mathProgramOutput.length) e.preventDefault();
       }
         // Forward key for tab completion, but do not track it.
-      if (e.keyCode === keys.tab) {
-        packageAndSendMessage("\t"); // messed up atm, TODO
+	if (e.keyCode === keys.tab) {
+	    var msg = getCurrentCommandAndErase(shell);
+	    tabString+=msg+"\t"; // slightly messed up: if we use arrow keys the text will appear with a tab
+          packageAndSendMessage(msg+"\t");
         e.preventDefault();
       }
     });
@@ -249,11 +222,6 @@ module.exports = function() {
         if (mathProgramOutput.length > 0) { // TODO change
           return;
         }
-      }
-        // If we received a backspace, since backspacing was ok.
-      if (msgDirty === "\b \b") {
-        backspace(shell);
-        return;
       }
       let msg: string = msgDirty.replace(/\u0007/, "");
       msg = msg.replace(/\r\n/g, "\n");
@@ -285,10 +253,9 @@ module.exports = function() {
 	    }
 	}
     // end LaTeX HACK
-
-	mathProgramOutput=lastText(shell).textContent+=msg; // eventually I can reintroduce the whole returninput thing to avoid erasing the input before processing, but shouldn't be necessary -- much faster now anyway
+	mathProgramOutput=lastText(shell).textContent+=msg;
 	scrollDown(shell);
-	placeCaretAtEnd(shell);
+	placeCaretAtEnd(shell,true);
     });
 
     shell.on("reset", function() {
