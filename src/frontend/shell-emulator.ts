@@ -166,21 +166,13 @@ module.exports = function() {
        }
     };
 
-    // On pressing return send last part of M2Out to M2 and remove it.
-    shell.keyup(function(e) {
-      if (e.keyCode === keys.enter) { // Return
-          // We trigger the track manually, since we might have used tab.
-	  const msg=getCurrentCommandAndErase(shell);
-          shell.trigger("track", tabString+msg); tabString="";
-            // Disable tracking of posted message.
-	  packageAndSendMessage(msg+"\n");
-      }
-    });
 
     // If something is entered, change to end of textarea, if at wrong position.
     shell.keydown(function(e: KeyboardEvent) {
       if (e.keyCode === keys.enter) {
-	  placeCaretAtEnd(shell);
+	  const msg=getCurrentCommandAndErase(shell);
+          shell.trigger("track", tabString+msg); tabString="";
+	  packageAndSendMessage(msg+"\n");
 	  return false; // no crappy <div></div> added
       }
 
