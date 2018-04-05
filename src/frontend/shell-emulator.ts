@@ -40,7 +40,7 @@ var texCode="";
 function placeCaretAtEnd(shell,flag?) {
     shell[0].focus();
     var sel = window.getSelection();
-    if ((!flag)||(sel.baseOffset<mathProgramOutput.length))
+    if ((!flag)||(sel.baseNode!=lastText(shell))||(sel.baseOffset<mathProgramOutput.length)) // !!!
     {
 	var range = document.createRange();
 	range.selectNodeContents(shell[0]);
@@ -48,6 +48,7 @@ function placeCaretAtEnd(shell,flag?) {
 	sel.removeAllRanges();
 	sel.addRange(range);
     }
+    return sel.baseOffset;
 }
 
 const postRawMessage = function(msg: string, socket: Socket) {
@@ -197,11 +198,11 @@ module.exports = function() {
       if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
         return;
       }
-	placeCaretAtEnd(shell,true);
+	var pos=placeCaretAtEnd(shell,true);
 
-        // This deals with backspace.
-      if (e.keyCode === keys.backspace) {
-          if (lastText(shell).length === mathProgramOutput.length) e.preventDefault();
+        // This deals with backspace and left arrow.
+	if ((e.keyCode === keys.backspace)||(e.keyCode === keys.arrowLeft)) {
+          if (pos === mathProgramOutput.length) e.preventDefault();
       }
         // Forward key for tab completion, but do not track it.
 	if (e.keyCode === keys.tab) {
@@ -237,6 +238,7 @@ module.exports = function() {
 		if ((texOldState==2)&&(texState!=2))
 		{
 		    var sec=document.createElement('span');
+		    sec.contentEditable="false"; // !!!
 		    sec.innerHTML=texCode; // we need to send it all at once, otherwise breaks might screw up the html
 		    shell[0].appendChild(sec);
 		    MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
@@ -255,7 +257,7 @@ module.exports = function() {
     // end LaTeX HACK
 	mathProgramOutput=lastText(shell).textContent+=msg;
 	scrollDown(shell);
-	placeCaretAtEnd(shell,true);
+	placeCaretAtEnd(shell);
     });
 
     shell.on("reset", function() {
