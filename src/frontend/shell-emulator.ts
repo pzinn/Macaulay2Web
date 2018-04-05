@@ -228,8 +228,8 @@ module.exports = function() {
 		if ((mathJaxOldState!="txt")&&(mathJaxState!=mathJaxOldState))
 		{
 		    var sec=document.createElement('span');
-		    sec.contentEditable="false"; // !!!
-		    sec.innerHTML=texCode; // we need to send it all at once, otherwise breaks might screw up the html
+//		    sec.contentEditable="false"; // not needed now edit bug fixed
+		    sec.innerHTML=texCode; // we need to send it all at once, otherwise breaks might screw up the html/mathJax
 		    shell[0].appendChild(sec);
 		    if (mathJaxOldState=="tex") {
 			MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
