@@ -30,12 +30,11 @@ let mathProgramOutput = "";
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
 var tabString="";
-// LaTeX HACK
-var texState = 3; // 1 = normal output, 2 = mathJax, 3 = both
-var texOldState=0;
-var texSpecial= String.fromCharCode(30);
+// mathJax related stuff
+var mathJaxState = "txt"; // txt = normal output, tex = mathJax (needs compile), html = ordinary html
+var mathJaxOldState = "txt";
+var htmlComment= /<!--(txt|tex|html)-->/; // the hope is, these sequences are never used in M2
 var texCode="";
-// end LaTeX HACK
 
 function placeCaretAtEnd(shell,flag?) {
     shell[0].focus();
@@ -219,35 +218,30 @@ module.exports = function() {
       let msg: string = msgDirty.replace(/\u0007/, "");
       msg = msg.replace(/\r\n/g, "\n");
       msg = msg.replace(/\r/g, "\n");
-      // LaTeX HACK
-      var txt=msg.split(texSpecial);
+      var txt=msg.split(htmlComment);
       msg="";
-      for (var i=0; i<txt.length; i++)
+      for (var i=0; i<txt.length; i+=2)
 	{
 	    if (i>0) {
-		texState=+txt[i][0];
-		txt[i]=txt[i].substr(1);
-		if ((texOldState==2)&&(texState!=2))
+		mathJaxOldState=mathJaxState;
+		mathJaxState=txt[i-1];
+		if ((mathJaxOldState!="txt")&&(mathJaxState!=mathJaxOldState))
 		{
 		    var sec=document.createElement('span');
 		    sec.contentEditable="false"; // !!!
 		    sec.innerHTML=texCode; // we need to send it all at once, otherwise breaks might screw up the html
 		    shell[0].appendChild(sec);
-		    MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
-		    MathJax.Hub.Queue(function() { scrollDown(shell) }); // because compiling moves stuff around
-		    texOldState=0; texCode="";
+		    if (mathJaxOldState=="tex") {
+			MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
+			MathJax.Hub.Queue(function() { scrollDown(shell) }); // because compiling moves stuff around
+		    }
+		    texCode="";
 		}
 	    }
-	    if (txt[i].length>0) {
-		texOldState=texState;
-		if (texState==3) msg+=txt[i];
-		else if (texState==2) {
-		    texCode+=txt[i];
-		}
-	    }
+	    if (txt[i].length>0)
+		if (mathJaxState=="txt") lastText(shell).textContent+=txt[i]; else texCode+=txt[i];
 	}
-    // end LaTeX HACK
-	mathProgramOutput=lastText(shell).textContent+=msg;
+	mathProgramOutput=lastText(shell).textContent;
 	scrollDown(shell);
 	placeCaretAtEnd(shell);
     });
