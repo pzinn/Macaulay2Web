@@ -69,10 +69,14 @@ body {
     box-sizing: border-box;
     font-family: "Roboto Mono";
     position: relative;
+    outline: none;
 }
-#M2Out div,#M2Out li,#M2Out ul,#M2Out h1,#M2Out h2,#M2Out h3,#M2Out h4,#M2Out h5,#M2Out h6 {
-    line-height: 16px;
+
+#M2Out * {
     margin: 0px;
+}
+#M2Out div,#M2Out li,#M2Out ul,#M2Out p {
+    line-height: 16px;
 }
 
 #M2Out h1 {

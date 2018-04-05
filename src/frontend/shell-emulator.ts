@@ -111,18 +111,20 @@ const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
   }
   if ((e.keyCode === keys.arrowDown) && (cmdHistory.index < cmdHistory.length)) { // DOWN
     cmdHistory.index++;
+    if (cmdHistory.index === cmdHistory.length) {
+	lastText(shell).textContent=mathProgramOutput+cmdHistory.current;
+    } else {
+	lastText(shell).textContent=mathProgramOutput+cmdHistory[cmdHistory.index];
+    }
+    placeCaretAtEnd(shell);
   }
   if ((e.keyCode === keys.arrowUp) && (cmdHistory.index > 0)) { // UP
     if (cmdHistory.index === cmdHistory.length) {
 	cmdHistory.current = lastText(shell).textContent.substring(mathProgramOutput.length);
     }
     cmdHistory.index--;
-  }
-    if (cmdHistory.index === cmdHistory.length) {
-	if (!cmdHistory.current) cmdHistory.current="";
-	lastText(shell).textContent=mathProgramOutput+cmdHistory.current;
-  } else {
-	lastText(shell).textContent=mathProgramOutput+cmdHistory[cmdHistory.index];
+    lastText(shell).textContent=mathProgramOutput+cmdHistory[cmdHistory.index];
+    placeCaretAtEnd(shell);
   }
   scrollDown(shell);
 };
@@ -286,6 +288,7 @@ module.exports = function() {
 
 	mathProgramOutput=lastText(shell).textContent+=msg; // eventually I can reintroduce the whole returninput thing to avoid erasing the input before processing, but shouldn't be necessary -- much faster now anyway
 	scrollDown(shell);
+	placeCaretAtEnd(shell);
     });
 
     shell.on("reset", function() {
