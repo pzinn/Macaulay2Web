@@ -229,11 +229,11 @@ module.exports = function() {
 		{
 		    var sec=document.createElement('span');
 		    sec.innerHTML=texCode; // we need to send it all at once, otherwise breaks might screw up the html/mathJax
-		    if (mathJaxOldState=="tex") sec.style.visibility="hidden";
+//		    if (mathJaxOldState=="tex") sec.style.visibility="hidden"; // sadly, mathJax is too buggy atm for that
 		    shell[0].appendChild(sec);
 		    if (mathJaxOldState=="tex") {
 			MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
-			MathJax.Hub.Queue(function() { sec.style.visibility="visible"; scrollDown(shell) }); // because compiling moves stuff around
+			MathJax.Hub.Queue(function() { /* sec.style.visibility="visible"; */ scrollDown(shell) }); // because compiling moves stuff around
 		    }
 		    texCode="";
 		}
