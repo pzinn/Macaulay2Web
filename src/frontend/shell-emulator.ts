@@ -228,12 +228,12 @@ module.exports = function() {
 		if ((mathJaxOldState!="txt")&&(mathJaxState!=mathJaxOldState))
 		{
 		    var sec=document.createElement('span');
-//		    sec.contentEditable="false"; // not needed now edit bug fixed
 		    sec.innerHTML=texCode; // we need to send it all at once, otherwise breaks might screw up the html/mathJax
+		    if (mathJaxOldState=="tex") sec.style.visibility="hidden";
 		    shell[0].appendChild(sec);
 		    if (mathJaxOldState=="tex") {
 			MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
-			MathJax.Hub.Queue(function() { scrollDown(shell) }); // because compiling moves stuff around
+			MathJax.Hub.Queue(function() { sec.style.visibility="visible"; scrollDown(shell) }); // because compiling moves stuff around
 		    }
 		    texCode="";
 		}
@@ -246,8 +246,9 @@ module.exports = function() {
 	placeCaretAtEnd(shell);
     });
 
-    shell.on("reset", function() {
-	lastText(shell).textContent=mathProgramOutput;
+      shell.on("reset", function() {
+	  tabString="";
+	  lastText(shell).textContent=mathProgramOutput;
     });
   };
 
