@@ -31,15 +31,21 @@ const cmdHistory: any = []; // History of commands for shell-like arrow navigati
 cmdHistory.index = 0;
 var tabString="";
 // mathJax related stuff
-var mathJaxState = "txt"; // txt = normal output, tex = mathJax (needs compile), html = ordinary html
-var mathJaxOldState = "txt";
-var htmlComment= /<!--(txt|tex|html)-->/; // the hope is, these sequences are never used in M2
+var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
+var htmlComment= /(<!--txt-->|<!--html-->|\\\(|\\\))/; // the hope is, these sequences are never used in M2
 var htmlCode=""; // saves the current html code to avoid rewriting
 var texCode=""; // saves the current TeX code
 var htmlSec; // html element of current html code
-var compileStack=[]; // list of ids of mathJax elements to be compiled
-var compileNumber=0;
 declare var katex;
+
+function dehtml(s) {
+    s=s.replace(/&amp;/g,"&");
+    s=s.replace(/&lt;/g,"<");
+    s=s.replace(/&gt;/g,">");
+    s=s.replace(/&quot;/g,"\"");
+    return s;
+}
+
 
 function placeCaretAtEnd(shell,flag?) { // flag means only put at end if outside the input area
     shell[0].focus();
@@ -225,35 +231,28 @@ module.exports = function() {
       msg = msg.replace(/\r\n/g, "\n");
       msg = msg.replace(/\r/g, "\n");
       var txt=msg.split(htmlComment);
-      msg="";
       for (var i=0; i<txt.length; i+=2)
 	{
 	    if (i>0) {
-		mathJaxOldState=mathJaxState;
 		mathJaxState=txt[i-1];
-		if ((mathJaxOldState=="txt")&&(mathJaxState!="txt")) { // html section beginning
+		if (mathJaxState=="<!--html-->") { // html section beginning
 		    htmlSec=document.createElement('span');
 		    shell[0].appendChild(htmlSec);
 		    htmlCode="";
 		}
-		if ((mathJaxOldState!="tex")&&(mathJaxState=="tex")) { // tex section beginning
+		if (mathJaxState=="\\(") { // tex section beginning
 		    texCode="";
 		}
-		if ((mathJaxOldState=="tex")&&(mathJaxState!="tex")) { // tex section ending
-		    texCode=texCode.substring(2,texCode.length-2); // bit of a hack: we remove \( \)
-		    if (htmlSec) htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
-		    else {
-			var texSec=document.createElement('span');
-			katex.render(texCode,texSec);
-			shell[0].appendChild(texSec);
-		    }
+		if (mathJaxState=="\\)") { // tex section ending
+		    texCode=dehtml(texCode);
+		    if (htmlCode!="") htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
+		    else katex.render(texCode,htmlSec);
 		}
-		if (mathJaxState=="txt") htmlSec=null; // html section ending
 	    }
 	    if (txt[i].length>0) {
-		if (mathJaxState=="txt") lastText(shell).textContent+=txt[i];
-		else if (mathJaxState=="html") htmlSec.innerHTML=htmlCode+=txt[i];
-		else if (mathJaxState=="tex") texCode+=txt[i];
+		if (mathJaxState=="<!--txt-->") lastText(shell).textContent+=txt[i];
+		else if (mathJaxState=="\\(") texCode+=txt[i];
+		else htmlSec.innerHTML=htmlCode+=txt[i];
 	    }
 	}
 	mathProgramOutput=lastText(shell).textContent;
