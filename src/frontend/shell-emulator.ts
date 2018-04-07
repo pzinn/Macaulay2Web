@@ -240,9 +240,13 @@ module.exports = function() {
 		    texCode="";
 		}
 		if ((mathJaxOldState=="tex")&&(mathJaxState!="tex")) { // tex section ending
-		    var texSec=document.createElement('span');
-		    katex.render(texCode.substring(2,texCode.length-2),texSec); // bit of a hack: we remove \( \)
-		    if (htmlSec) htmlSec.appendChild(texSec); else shell[0].appendChild(texSec);
+		    texCode=texCode.substring(2,texCode.length-2); // bit of a hack: we remove \( \)
+		    if (htmlSec) htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
+		    else {
+			var texSec=document.createElement('span');
+			katex.render(texCode,texSec);
+			shell[0].appendChild(texSec);
+		    }
 		}
 		if (mathJaxState=="txt") htmlSec=null; // html section ending
 	    }
