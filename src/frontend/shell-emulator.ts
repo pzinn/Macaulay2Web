@@ -34,7 +34,10 @@ var tabString="";
 var mathJaxState = "txt"; // txt = normal output, tex = mathJax (needs compile), html = ordinary html
 var mathJaxOldState = "txt";
 var htmlComment= /<!--(txt|tex|html)-->/; // the hope is, these sequences are never used in M2
-var texCode="";
+var htmlCode=""; // saves the current html code to avoid rewriting
+var htmlSec; // html element of current html code
+var compileStack=[]; // list of ids of mathJax elements to be compiled
+var compileNumber=0;
 
 function placeCaretAtEnd(shell,flag?) {
     shell[0].focus();
@@ -225,21 +228,30 @@ module.exports = function() {
 	    if (i>0) {
 		mathJaxOldState=mathJaxState;
 		mathJaxState=txt[i-1];
-		if ((mathJaxOldState!="txt")&&(mathJaxState!=mathJaxOldState))
-		{
-		    var sec=document.createElement('span');
-		    sec.innerHTML=texCode; // we need to send it all at once, otherwise breaks might screw up the html/mathJax
-//		    if (mathJaxOldState=="tex") sec.style.visibility="hidden"; // sadly, mathJax is too buggy atm for that
-		    shell[0].appendChild(sec);
-		    if (mathJaxOldState=="tex") {
-			MathJax.Hub.Queue(["Typeset",MathJax.Hub,sec]);
-			MathJax.Hub.Queue(function() { /* sec.style.visibility="visible"; */ scrollDown(shell) }); // because compiling moves stuff around
-		    }
-		    texCode="";
+		if ((mathJaxOldState=="txt")&&(mathJaxState!="txt")) { // html section beginning
+		    htmlSec=document.createElement('span');
+		    shell[0].appendChild(htmlSec);
+		    htmlCode="";
+		}
+		if ((mathJaxOldState!="tex")&&(mathJaxState=="tex")) { // tex section beginning: we put an extra span to localize compilation
+		    var id = "compile"+compileNumber;
+		    compileStack.push(id);
+		    compileNumber++;
+		    txt[i]="<span id=\""+id+"\">"+txt[i]; // one can add style="visibility:hidden" and then getDocumentById(...).style.visibility="visible" post-compilation
+		}
+		if ((mathJaxOldState=="tex")&&(mathJaxState!="tex")) { // tex section ending
+		    htmlSec.innerHTML=htmlCode+="</span>";
+		}
+	    }	    
+	    if (txt[i].length>0)
+		if (mathJaxState=="txt") lastText(shell).textContent+=txt[i]; else htmlSec.innerHTML=htmlCode+=txt[i];
+	    if (i>0) {
+		if ((mathJaxOldState!="txt")&&(mathJaxState=="txt")) { // html section ending, send all compile requests
+		    while (compileStack.length>0)
+			MathJax.Hub.Queue(["Typeset",MathJax.Hub,compileStack.pop()]);
+                    MathJax.Hub.Queue(function() { scrollDown(shell) }); // because compiling moves stuff around
 		}
 	    }
-	    if (txt[i].length>0)
-		if (mathJaxState=="txt") lastText(shell).textContent+=txt[i]; else texCode+=txt[i];
 	}
 	mathProgramOutput=lastText(shell).textContent;
 	scrollDown(shell);
