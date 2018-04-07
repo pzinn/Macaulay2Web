@@ -35,11 +35,13 @@ var mathJaxState = "txt"; // txt = normal output, tex = mathJax (needs compile),
 var mathJaxOldState = "txt";
 var htmlComment= /<!--(txt|tex|html)-->/; // the hope is, these sequences are never used in M2
 var htmlCode=""; // saves the current html code to avoid rewriting
+var texCode=""; // saves the current TeX code
 var htmlSec; // html element of current html code
 var compileStack=[]; // list of ids of mathJax elements to be compiled
 var compileNumber=0;
+declare var katex;
 
-function placeCaretAtEnd(shell,flag?) {
+function placeCaretAtEnd(shell,flag?) { // flag means only put at end if outside the input area
     shell[0].focus();
     var sel = window.getSelection();
     if ((!flag)||(sel.baseNode!=lastText(shell))||(sel.baseOffset<mathProgramOutput.length)) // !!!
@@ -168,6 +170,7 @@ module.exports = function() {
        }
     };
 
+    shell.bind('paste',function() { placeCaretAtEnd(shell,true); });
 
     // If something is entered, change to end of textarea, if at wrong position.
     shell.keydown(function(e: KeyboardEvent) {
@@ -233,24 +236,20 @@ module.exports = function() {
 		    shell[0].appendChild(htmlSec);
 		    htmlCode="";
 		}
-		if ((mathJaxOldState!="tex")&&(mathJaxState=="tex")) { // tex section beginning: we put an extra span to localize compilation
-		    var id = "compile"+compileNumber;
-		    compileStack.push(id);
-		    compileNumber++;
-		    txt[i]="<span id=\""+id+"\">"+txt[i]; // one can add style="visibility:hidden" and then getDocumentById(...).style.visibility="visible" post-compilation
+		if ((mathJaxOldState!="tex")&&(mathJaxState=="tex")) { // tex section beginning
+		    texCode="";
 		}
 		if ((mathJaxOldState=="tex")&&(mathJaxState!="tex")) { // tex section ending
-		    htmlSec.innerHTML=htmlCode+="</span>";
+		    var texSec=document.createElement('span');
+		    katex.render(texCode.substring(2,texCode.length-2),texSec); // bit of a hack: we remove \( \)
+		    if (htmlSec) htmlSec.appendChild(texSec); else shell[0].appendChild(texSec);
 		}
-	    }	    
-	    if (txt[i].length>0)
-		if (mathJaxState=="txt") lastText(shell).textContent+=txt[i]; else htmlSec.innerHTML=htmlCode+=txt[i];
-	    if (i>0) {
-		if ((mathJaxOldState!="txt")&&(mathJaxState=="txt")) { // html section ending, send all compile requests
-		    while (compileStack.length>0)
-			MathJax.Hub.Queue(["Typeset",MathJax.Hub,compileStack.pop()]);
-                    MathJax.Hub.Queue(function() { scrollDown(shell) }); // because compiling moves stuff around
-		}
+		if (mathJaxState=="txt") htmlSec=null; // html section ending
+	    }
+	    if (txt[i].length>0) {
+		if (mathJaxState=="txt") lastText(shell).textContent+=txt[i];
+		else if (mathJaxState=="html") htmlSec.innerHTML=htmlCode+=txt[i];
+		else if (mathJaxState=="tex") texCode+=txt[i];
 	    }
 	}
 	mathProgramOutput=lastText(shell).textContent;
