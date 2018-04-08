@@ -7,7 +7,7 @@ const options = {
     CONTAINERS: "../lib/LocalContainerManager",
     MATH_PROGRAM: "Macaulay2",
     MATH_PROGRAM_COMMAND: "M2 -e \"topLevelMode = MathJax\"",
-    port: "8002",
+    port: "8003",
     resumeString: "Type 'listUserSymbols' to print the list of " +
     "existing symbols.\n\ni* : ",
   },
