@@ -1,7 +1,7 @@
 /* eslint-env browser */
 /* eslint "new-cap": "off" */
 
-declare var MathJax: jax.IMathJax;
+//declare var MathJax: jax.IMathJax;
 const accordion = require("./accordion")();
 import * as $ from "jquery";
 
@@ -34,7 +34,7 @@ const loadLesson = function(tutorialid: number, lessonid: number) {
   const title = tutorials[tutorialNr].title.text();
   $("#lesson").html(lessonContent).prepend("<h3>" + title + "</h3>");
   $("#lesson").scrollTop(0); // scroll to the top of a new lesson
-  MathJax.Hub.Queue(["Typeset", MathJax.Hub, "#lesson"]);
+//  MathJax.Hub.Queue(["Typeset", MathJax.Hub, "#lesson"]);
 };
 
 const loadLessonIfChanged = function(tutorialid: number, lessonid: number): void {
