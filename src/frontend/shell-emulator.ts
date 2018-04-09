@@ -50,15 +50,19 @@ function dehtml(s) {
 function placeCaretAtEnd(shell,flag?) { // flag means only put at end if outside the input area
     shell[0].focus();
     var sel = window.getSelection();
-    if ((!flag)||(sel.baseNode!=lastText(shell))||(sel.baseOffset<mathProgramOutput.length)) // !!!
+    var nd,of;
+    if ("baseNode" in sel) { nd = sel.baseNode; of = sel.baseOffset; } // chrome
+    else { nd = sel.focusNode; of = sel.focusOffset; } // firefox. these fields exist in chrome but give different answers :(
+    if ((!flag)||(nd!=lastText(shell))||(of<mathProgramOutput.length))
     {
 	var range = document.createRange();
 	range.selectNodeContents(shell[0]);
 	range.collapse(false);
 	sel.removeAllRanges();
 	sel.addRange(range);
+	return lastText(shell).length; // *should* be the correct answer (though sadly in firefox focus is not given to last text node)
     }
-    return sel.baseOffset;
+    else return of;
 }
 
 const postRawMessage = function(msg: string, socket: Socket) {
@@ -256,8 +260,8 @@ module.exports = function() {
 	    }
 	}
 	mathProgramOutput=lastText(shell).textContent;
-	scrollDown(shell);
 	placeCaretAtEnd(shell);
+	scrollDown(shell);
     });
 
       shell.on("reset", function() {
