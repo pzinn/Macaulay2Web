@@ -205,7 +205,7 @@ module.exports = function() {
 
         // This deals with backspace and left arrow.
 	if ((e.keyCode === keys.backspace)||(e.keyCode === keys.arrowLeft)) {
-          if (pos === mathProgramOutput.length) e.preventDefault();
+          if (pos <= mathProgramOutput.length) e.preventDefault();
       }
         // Forward key for tab completion, but do not track it.
 	if (e.keyCode === keys.tab) {
