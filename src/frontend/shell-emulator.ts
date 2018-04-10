@@ -249,6 +249,7 @@ module.exports = function() {
 		mathJaxState=txt[i-1];
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    htmlSec=document.createElement('span');
+		    htmlSec.style.whiteSpace="initial"; // !!! should probably define a class
 		    shell[0].appendChild(htmlSec);
 		    htmlCode="";
 		}
