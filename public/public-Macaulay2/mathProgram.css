@@ -73,10 +73,12 @@ body {
     line-height: 16px;
 }
 
+/*
 #M2Out tt {
     font-family: KaTeX_Typewriter;
     font-size: 1.21em;
 }
+*/
 
 #M2Out h1 {
     font-size: 26px;
@@ -129,6 +131,7 @@ body {
 }
 
 #fullScreenOutput {
+    background: lightsteelblue;
     width: 100%;
     height: 100%;
     -webkit-box-sizing: border-box;
