@@ -190,6 +190,7 @@ module.exports = function() {
 	  const msg=getCurrentCommand(shell);
           shell.trigger("track", tabString+msg); tabString="";
 	  packageAndSendMessage(msg+"\n");
+	  lastText(shell).textContent+="\n";
 	  return false; // no crappy <div></div> added
       }
 
