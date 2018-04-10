@@ -250,6 +250,7 @@ module.exports = function() {
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    htmlSec=document.createElement('span');
 		    htmlSec.style.whiteSpace="initial"; // !!! should probably define a class
+		    htmlSec.contentEditable="false"; // !!! should probably define a class
 		    shell[0].appendChild(htmlSec);
 		    htmlCode="";
 		}
