@@ -190,7 +190,9 @@ module.exports = function() {
 	  const msg=getCurrentCommand(shell);
           shell.trigger("track", tabString+msg); tabString="";
 	  packageAndSendMessage(msg+"\n");
-	  lastText(shell).textContent+="\n";
+	  lastText(shell).textContent+="\n "; // extra space necessary, sadly
+	  placeCaretAtEnd(shell);
+	  scrollDown(shell);
 	  return false; // no crappy <div></div> added
       }
 
