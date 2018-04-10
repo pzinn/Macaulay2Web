@@ -30,6 +30,7 @@ let mathProgramOutput = "";
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
 var tabString="";
+var inputErase=false; 
 // mathJax related stuff
 var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
 var htmlComment= /(<!--txt-->|<!--html-->|\\\(|\\\))/; // the hope is, these sequences are never used in M2
@@ -102,10 +103,11 @@ const lastText = function(shell) {
     return shell[0].lastChild;
 }
 
-const getCurrentCommandAndErase = function(shell): string {
+const getCurrentCommand = function(shell): string {
     const completeText = lastText(shell);
     let lastLine: string = completeText.textContent.substring(mathProgramOutput.length);
-    completeText.textContent=mathProgramOutput;
+    //    completeText.textContent=mathProgramOutput;
+    inputErase=true;
     return lastLine;
 };
 
@@ -185,7 +187,7 @@ module.exports = function() {
     // If something is entered, change to end of textarea, if at wrong position.
     shell.keydown(function(e: KeyboardEvent) {
       if (e.keyCode === keys.enter) {
-	  const msg=getCurrentCommandAndErase(shell);
+	  const msg=getCurrentCommand(shell);
           shell.trigger("track", tabString+msg); tabString="";
 	  packageAndSendMessage(msg+"\n");
 	  return false; // no crappy <div></div> added
@@ -213,7 +215,7 @@ module.exports = function() {
       }
         // Forward key for tab completion, but do not track it.
 	if (e.keyCode === keys.tab) {
-	    var msg = getCurrentCommandAndErase(shell);
+	    var msg = getCurrentCommand(shell);
 	    tabString+=msg+"\t"; // slightly messed up: if we use arrow keys the text will appear with a tab
           packageAndSendMessage(msg+"\t");
         e.preventDefault();
@@ -231,6 +233,9 @@ module.exports = function() {
           return;
         }
       }
+
+	if (inputErase) { lastText(shell).textContent=mathProgramOutput; inputErase=false; }
+	
       let msg: string = msgDirty.replace(/\u0007/, "");
       msg = msg.replace(/\r\n/g, "\n");
       msg = msg.replace(/\r/g, "\n");
