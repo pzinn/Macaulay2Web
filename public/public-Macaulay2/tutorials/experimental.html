@@ -66,7 +66,7 @@
     <h4>Using names with indices</h4>
     <p>
       One can use indexed variables for rings or other named objects:<br/>
-      <code>x=symbol x; scan(1..5,i->R_i=QQ[x_1..x_i]); R_3</code>
+      <code>x=symbol x; scan(0..5,i->R_i=QQ[(vars i)_1..(vars i)_10]); b_5</code>
     </p>
     <p>Cool application: alternate name for fraction fields:<br/>
       <code>altfrac = R -> ( if class F =!= IndexedVariableTable then F = new IndexedVariableTable; F_R = frac R); altfrac R_3</code>
