@@ -182,16 +182,21 @@ module.exports = function() {
        }
     };
 
-    shell.bind('paste',function() { placeCaretAtEnd(shell,true); });
+      shell.bind('paste',function(e) {
+	  placeCaretAtEnd(shell,true);
+	  var msg = (e.originalEvent || e).clipboardData.getData('text/plain');
+	  lastText(shell).textContent+=msg; // compared to the default behavior, prevents crappy <div></div> when \n
+	  scrollDown(shell);
+	  return false;
+      });
 
     // If something is entered, change to end of textarea, if at wrong position.
     shell.keydown(function(e: KeyboardEvent) {
       if (e.keyCode === keys.enter) {
 	  const msg=getCurrentCommand(shell);
           shell.trigger("track", tabString+msg); tabString="";
-	  packageAndSendMessage(msg+"\n");
 	  lastText(shell).textContent+="\n "; // extra space necessary, sadly
-	  placeCaretAtEnd(shell);
+	  packageAndSendMessage(msg+"\n");
 	  scrollDown(shell);
 	  return false; // no crappy <div></div> added
       }
@@ -210,18 +215,19 @@ module.exports = function() {
       if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
         return;
       }
-	var pos=placeCaretAtEnd(shell,true);
 
-        // This deals with backspace and left arrow.
-	if ((e.keyCode === keys.backspace)||(e.keyCode === keys.arrowLeft)) {
-          if (pos <= mathProgramOutput.length) e.preventDefault();
-      }
-        // Forward key for tab completion, but do not track it.
+	// Forward key for tab completion, but do not track it.
 	if (e.keyCode === keys.tab) {
 	    var msg = getCurrentCommand(shell);
 	    tabString+=msg+"\t"; // slightly messed up: if we use arrow keys the text will appear with a tab
           packageAndSendMessage(msg+"\t");
         e.preventDefault();
+      }
+	var pos=placeCaretAtEnd(shell,true);
+
+        // This deals with backspace and left arrow.
+	if ((e.keyCode === keys.backspace)||(e.keyCode === keys.arrowLeft)) {
+          if (pos <= mathProgramOutput.length) e.preventDefault();
       }
     });
 
