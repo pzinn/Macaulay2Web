@@ -49,19 +49,16 @@ function dehtml(s) {
 
 
 function placeCaretAtEnd(shell,flag?) { // flag means only put at end if outside the input area
-    shell[0].focus();
+    shell[0].focus(); // what's that for?
     var sel = window.getSelection();
+    var lst = lastText(shell);
     var nd,of;
     if ("baseNode" in sel) { nd = sel.baseNode; of = sel.baseOffset; } // chrome
     else { nd = sel.focusNode; of = sel.focusOffset; } // firefox. these fields exist in chrome but give different answers :(
-    if ((!flag)||(nd!=lastText(shell))||(of<mathProgramOutput.length))
+    if ((!flag)||(nd!=lst)||(of<mathProgramOutput.length))
     {
-	var range = document.createRange();
-	range.selectNodeContents(shell[0]);
-	range.collapse(false);
-	sel.removeAllRanges();
-	sel.addRange(range);
-	return lastText(shell).length; // *should* be the correct answer (though sadly in firefox focus is not given to last text node)
+	sel.collapse(lst,lst.length);
+	return lst.length;
     }
     else return of;
 }
@@ -206,17 +203,11 @@ module.exports = function() {
 	      }
 	  }
 	  if (msg=="") msg = (e.originalEvent || e).clipboardData.getData('text/plain');
-	  if (nd != lst) {
-	      var range = document.createRange();
-	      range.selectNodeContents(shell[0]);
-	      range.collapse(false);
-	      sel.removeAllRanges();
-	      sel.addRange(range);
+	  if ((nd != lst) || (of < mathProgramOutput.length)) 
 	      of = s.length; // same as lst.length
-	  }
 	  lst.textContent=s.substring(0,of)+msg+s.substring(of,s.length); // note s.length rather than s.length-1 to avoid switching of arguments
 	  // compared to the default behavior, prevents crappy <div></div> when \n
-	  // TODO: position pointer correctly
+	  sel.collapse(lst,of+msg.length);
 	  scrollDown(shell);
 	  return false;
       });
