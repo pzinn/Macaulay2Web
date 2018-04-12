@@ -77,7 +77,7 @@ const emitReset = function() {
 };
 
 const attachCtrlBtnActions = function() {
-  $("#sendBtn").click(shell.sendCallback("M2In", socket));
+  $("#sendBtn").click(shell.sendCallback("M2In", socket, $("#M2Out")));
   $("#resetBtn").click(emitReset);
   $("#interruptBtn").click(shell.interrupt(socket));
   $("#saveBtn").click(saveInteractions);

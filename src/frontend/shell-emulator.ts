@@ -77,17 +77,21 @@ const interrupt = function(socket: Socket) {
   };
 };
 
-const sendCallback = function(id: string, socket: Socket) {
+const sendCallback = function(id: string, socket: Socket, shell) { // called by pressing Evaluate
   return function() {
+      tabString="";
+      lastText(shell).textContent=mathProgramOutput;
     const str = getSelected(id);
     postRawMessage(str, socket);
     return false;
   };
 };
 
-const sendOnEnterCallback = function(id: string, socket: Socket, shell) {
+const sendOnEnterCallback = function(id: string, socket: Socket, shell) { // shift-enter in editor
   return function(e) {
     if (e.which === 13 && e.shiftKey) {
+      tabString="";
+      lastText(shell).textContent=mathProgramOutput;
       e.preventDefault();
       // do not make a line break or remove selected text when sending
       const msg = getSelected(id);
@@ -183,9 +187,36 @@ module.exports = function() {
     };
 
       shell.bind('paste',function(e) {
-	  placeCaretAtEnd(shell,true);
-	  var msg = (e.originalEvent || e).clipboardData.getData('text/plain');
-	  lastText(shell).textContent+=msg; // compared to the default behavior, prevents crappy <div></div> when \n
+	  var msg = "";
+	  var sel = window.getSelection();
+	  var lst = lastText(shell);
+	  var s = lst.textContent;
+	  var nd,of;
+	  if ("baseNode" in sel) { nd = sel.baseNode; of = sel.baseOffset; } // chrome
+	  else { nd = sel.focusNode; of = sel.focusOffset; } // firefox. these fields exist in chrome but give different answers :(
+	  if ((nd instanceof Text)&&(nd != lst)) {
+	      var ss = nd.textContent;
+	      var i = ss.lastIndexOf(" : "); // bit of a hack...
+	      if ((i>=0)&&(i<of-2)) {
+		  ss=ss.substring(i+3,ss.length-1);
+		  var j = ss.indexOf("\n\n"); // same
+		  if (i+3+j>=of) {
+		      msg = ss.substring(0,j);
+		  }
+	      }
+	  }
+	  if (msg=="") msg = (e.originalEvent || e).clipboardData.getData('text/plain');
+	  if (nd != lst) {
+	      var range = document.createRange();
+	      range.selectNodeContents(shell[0]);
+	      range.collapse(false);
+	      sel.removeAllRanges();
+	      sel.addRange(range);
+	      of = s.length; // same as lst.length
+	  }
+	  lst.textContent=s.substring(0,of)+msg+s.substring(of,s.length); // note s.length rather than s.length-1 to avoid switching of arguments
+	  // compared to the default behavior, prevents crappy <div></div> when \n
+	  // TODO: position pointer correctly
 	  scrollDown(shell);
 	  return false;
       });
@@ -195,7 +226,7 @@ module.exports = function() {
       if (e.keyCode === keys.enter) {
 	  const msg=getCurrentCommand(shell);
           shell.trigger("track", tabString+msg); tabString="";
-	  lastText(shell).textContent+="\n "; // extra space necessary, sadly
+	  lastText(shell).textContent+="\n "; // extra space necessary, sadly -- see the related <div></div> issue below
 	  packageAndSendMessage(msg+"\n");
 	  scrollDown(shell);
 	  return false; // no crappy <div></div> added
