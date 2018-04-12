@@ -13,6 +13,7 @@ const keys = {
   arrowLeft: 37,
   arrowRight: 39,
   cKey: 67,
+  zKey: 90,
   ctrlKeyCode: 17,
   metaKeyCodes: [224, 17, 91, 93],
   backspace: 8,
@@ -230,6 +231,7 @@ module.exports = function() {
       if (e.keyCode === keys.ctrlKeyCode) { // do not jump to bottom on Ctrl+C or on Ctrl
         return;
       }
+      if (e.ctrlKey && e.keyCode === keys.zKey) { e.preventDefault(); return; } // no Ctrl+Z
       if (e.ctrlKey && e.keyCode === keys.cKey) {
         interrupt(socket);
       }
@@ -249,7 +251,9 @@ module.exports = function() {
 
         // This deals with backspace and left arrow.
 	if ((e.keyCode === keys.backspace)||(e.keyCode === keys.arrowLeft)) {
-          if (pos <= mathProgramOutput.length) e.preventDefault();
+            if ((pos <= mathProgramOutput.length)
+		||((e.ctrlKey)&&( lastText(shell).textContent.substring(mathProgramOutput.length,pos).replace(/[^a-zA-Z0-9]+/g, "")=="" ))) // phew
+		e.preventDefault();
       }
     });
 
