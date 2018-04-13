@@ -85,28 +85,22 @@ const attachCtrlBtnActions = function() {
 };
 
 const loadFile = function(event) {
-    var dialog = document.getElementById("loadDialog"); // should just recreate each time
-    dialog || (dialog = document.createElement("input"),
-               dialog.setAttribute("type", "file"),
-               dialog.setAttribute("id", "loadDialog"),
-               dialog.style.display = "none",
-               document.body.appendChild(dialog));
-    dialog.addEventListener("change",loadFileSuccess,false);
+    var dialog = document.createElement("input");
+    dialog.setAttribute("type", "file"),
+    dialog.addEventListener("change",loadFileProcess,false);
     dialog.click();
-//    var e = document.createEvent("MouseEvents");
-//    e.initMouseEvent("click", !0, !0, window, 0, 0, 0, 0, 0, !1, !1, !1, !1, 0, null);
-//    dialog.dispatchEvent(e);
 };
 
-const loadFileSuccess = function(event) {
+const loadFileProcess = function(event) {
     if (event.target.files.length>0) {
 	var fileToLoad = event.target.files[0];
 	var fileReader = new FileReader();
-	fileReader.onload = function(fileLoadedEvent: ProgressEvent)
+	fileReader.onload = function(e)
 	{
-	    //            var textFromFileLoaded = fileLoadedEvent.target.result;
+	    // var textFromFileLoaded = e.target.result;
 	    var textFromFileLoaded = fileReader.result;
             $("#M2In").val(textFromFileLoaded);
+	    document.getElementById("editorTitle").click();
 	};
 	fileReader.readAsText(fileToLoad, "UTF-8");
     }
