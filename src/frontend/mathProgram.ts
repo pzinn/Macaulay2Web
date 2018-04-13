@@ -80,8 +80,38 @@ const attachCtrlBtnActions = function() {
   $("#sendBtn").click(shell.sendCallback("M2In", socket, $("#M2Out")));
   $("#resetBtn").click(emitReset);
   $("#interruptBtn").click(shell.interrupt(socket));
-  $("#saveBtn").click(saveInteractions);
+    $("#saveBtn").click(saveInteractions);
+    $("#loadBtn").click(loadFile);
 };
+
+const loadFile = function(event) {
+    var dialog = document.getElementById("loadDialog"); // should just recreate each time
+    dialog || (dialog = document.createElement("input"),
+               dialog.setAttribute("type", "file"),
+               dialog.setAttribute("id", "loadDialog"),
+               dialog.style.display = "none",
+               document.body.appendChild(dialog));
+    dialog.addEventListener("change",loadFileSuccess,false);
+    dialog.click();
+//    var e = document.createEvent("MouseEvents");
+//    e.initMouseEvent("click", !0, !0, window, 0, 0, 0, 0, 0, !1, !1, !1, !1, 0, null);
+//    dialog.dispatchEvent(e);
+};
+
+const loadFileSuccess = function(event) {
+    if (event.target.files.length>0) {
+	var fileToLoad = event.target.files[0];
+	var fileReader = new FileReader();
+	fileReader.onload = function(fileLoadedEvent: ProgressEvent)
+	{
+	    //            var textFromFileLoaded = fileLoadedEvent.target.result;
+	    var textFromFileLoaded = fileReader.result;
+            $("#M2In").val(textFromFileLoaded);
+	};
+	fileReader.readAsText(fileToLoad, "UTF-8");
+    }
+};
+
 
 const showUploadSuccessDialog = function(event) {
   const dialog: any = document.getElementById("uploadSuccessDialog");
