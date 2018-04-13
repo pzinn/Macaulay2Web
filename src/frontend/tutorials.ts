@@ -37,6 +37,12 @@ const loadLesson = function(tutorialid: number, lessonid: number) {
   $("#lesson").scrollTop(0); // scroll to the top of a new lesson
     //  MathJax.Hub.Queue(["Typeset", MathJax.Hub, "#lesson"]);
     renderMathInElement(document.getElementById("lesson"),{
+	delimiters: [
+	    {left: "$$", right: "$$", display: true},
+	    {left: "\\[", right: "\\]", display: true},
+	    {left: "$", right: "$", display: false},
+	    {left: "\\(", right: "\\)", display: false}
+	],
   macros: {
       "\\PP": "{\\mathbb{P}}",
       "\\ZZ": "{\\mathbb{Z}}",
