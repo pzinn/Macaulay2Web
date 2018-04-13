@@ -192,10 +192,10 @@ module.exports = function() {
 	  var nd,of;
 	  if ("baseNode" in sel) { nd = sel.baseNode; of = sel.baseOffset; } // chrome
 	  else { nd = sel.focusNode; of = sel.focusOffset; } // firefox. these fields exist in chrome but give different answers :(
-	  if ((nd instanceof Text)&&(nd != lst)) {
+	  if (nd instanceof Text) {
 	      var ss = nd.textContent;
-	      var i = ss.lastIndexOf(" : "); // bit of a hack...
-	      if ((i>=0)&&(i<of-2)) {
+	      var i = ss.substring(0,of).lastIndexOf(" : "); // bit of a hack...
+	      if (i>=0) {
 		  ss=ss.substring(i+3,ss.length-1);
 		  var j = ss.indexOf("\n\n"); // same
 		  if (i+3+j>=of) {
