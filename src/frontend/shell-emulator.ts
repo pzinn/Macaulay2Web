@@ -29,9 +29,9 @@ const scrollDown = require("scroll-down");
 const getSelected = require("get-selected-text");
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
-var tabString="";
-var inputSent=0;
+var inputSent=false;
 var inputDiv = document.getElementById("M2OutInput"); // or could just shell[0].lastChildNode or something
+var tabSent = false; // used for tabbing, but really could be true during the whole input process -- since no output is expected then
 // mathJax related stuff
 var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
 var htmlComment= /(<!--txt-->|<!--html-->|\\\(|\\\))/; // the hope is, these sequences are never used in M2
@@ -78,7 +78,6 @@ const sendCallback = function(id: string, socket: Socket, shell) { // called by 
   return function() {
       const msg = getSelected(id);
       // We only trigger the innerTrack.
-      tabString="";
       shell.trigger("postMessage", [msg, false, true, false]);
   };
 };
@@ -89,7 +88,6 @@ const sendOnEnterCallback = function(id: string, socket: Socket, shell) { // shi
 	  e.preventDefault();
 	  // We only trigger the innerTrack.
 	  const msg = getSelected(id);
-	  tabString="";
 	  shell.trigger("postMessage", [msg, false, true, true]);
       }
   };
@@ -129,10 +127,10 @@ module.exports = function() {
 
       shell.on("postMessage", function(e,msg,flag1,flag2,flag3) {
 	  inputDiv.textContent=msg;
-	  inputSent=1; // TODO: proper number
-	  if (flag1) shell.trigger("track",tabString+msg);
-	  if (flag2) shell.trigger("innerTrack",tabString+msg);
-	  tabString="";
+	  inputSent=true; // TODO: proper number
+	  tabSent=false;
+	  if (flag1) shell.trigger("track",msg);
+	  if (flag2) shell.trigger("innerTrack",msg);
 	  if (flag3) placeCaretAtEnd();
 	  postRawMessage(msg, socket);
       });
@@ -205,10 +203,10 @@ module.exports = function() {
 */ // TODO rewrite. for now CTRL-C is usual "copy"
 
 	// Forward key for tab completion, but do not track it.
-	if (e.keyCode === keys.tab) { // TODO: rewrite
+	if (e.keyCode === keys.tab) {
 	    var msg = inputDiv.textContent;
-	    tabString+=msg+"\t"; // slightly messed up: if we use arrow keys the text will appear with a tab
-	    inputSent=1;
+	    inputSent=true;
+	    tabSent=true;
 	    placeCaretAtEnd();
 	    postRawMessage(msg+"\t", socket);
             e.preventDefault();
@@ -227,9 +225,25 @@ module.exports = function() {
           return;
         }
       }
-*/ // TODO rewrite
+	*/ // TODO rewrite
+	msgDirty = msgDirty.replace(/\u0008 \u0008/g,"");
 
-	if (inputSent>0) {
+      let msg: string = msgDirty.replace(/\u0007/, "");
+      msg = msg.replace(/\r\n/g, "\n");
+      msg = msg.replace(/\r/g, "\n");
+	if (tabSent) { // first treat separately the very special case of tab
+	    // simplify for now: only one line thing
+	    if (inputSent) { inputDiv.textContent=""; inputSent=false; }
+	    inputDiv.textContent+=msg;
+	    //tabSent=false;
+	    var s="\b".repeat(msg.length);
+	    postRawMessage(s,socket);
+	    placeCaretAtEnd();
+	    scrollDown(shell);
+	    return;
+	}
+	
+	if (inputSent) {
 	    inputDiv.textContent="";
 	     // force new section when input got sent (avoids nasty hacks with parsing for prompt later)
 	    htmlSec=document.createElement('span');
@@ -242,9 +256,6 @@ module.exports = function() {
 	    htmlSec=document.createElement('span');
 	    shell[0].insertBefore(htmlSec,inputDiv);
 	}
-      let msg: string = msgDirty.replace(/\u0007/, "");
-      msg = msg.replace(/\r\n/g, "\n");
-      msg = msg.replace(/\r/g, "\n");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
@@ -270,7 +281,7 @@ module.exports = function() {
 	    }
 	    if (txt[i].length>0) {
 		if (mathJaxState=="<!--txt-->") {
-		    if (inputSent==0)
+		    if (!inputSent)
 			htmlSec.textContent+=txt[i];
 		    else { // a bit messy: we're going to try to isolate [one line of] input for future purposes
 			var j = txt[i].indexOf("\n");
@@ -280,7 +291,7 @@ module.exports = function() {
 			    htmlSec=document.createElement('span');
 			    shell[0].insertBefore(htmlSec,inputDiv);
 			    htmlSec.textContent=txt[i].substring(j,txt[i].length);
-			    inputSent--;
+			    inputSent=false;
 			}
 		    }
 		}
@@ -292,9 +303,8 @@ module.exports = function() {
     });
 
       shell.on("reset", function() {
-	  tabString="";
 	  inputDiv.textContent="";
-	  inputSent=0;
+	  inputSent=false; tabSent=false;
     });
   };
 
