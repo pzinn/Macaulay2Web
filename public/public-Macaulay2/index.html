@@ -193,7 +193,7 @@
 
                         <h3>KaTeX/MathJax output alpha</h3>
 			Currently only chrome is fully supported (firefox/linux seeems to work, safari/mac not)<br/>
-			<a href="http://94011c91.ngrok.io/">Link to the MathJax version</a><br/>
+			<a href="http://94011c91.ngrok.io/">Link to the MathJax version (deprecated)</a><br/>
 			<a href="http://ef07cf47.ngrok.io/">Link to the KaTeX version</a><br/>
 
                         <h3>Welcome to Macaulay2</h3>
@@ -306,10 +306,7 @@
                 <i id="maximizeOutput"
                    class="material-icons icon-with-action">fullscreen</i>
               </div>
-              <div contenteditable="true" id="M2Out" wrap='off' autocorrect="off" spellcheck="false"
-			autocapitalize="off" ondragstart="return false">
-              </div>
-
+              <div id="M2Out" wrap='off' tabindex="0"><span id="M2OutInput" contenteditable="true" autocorrect="off" spellcheck="false" autocapitalize="off"></span></div>
             </div>
 
         </div>

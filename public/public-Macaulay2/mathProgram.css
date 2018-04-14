@@ -74,6 +74,9 @@ body {
 }
 
 /*
+#M2OutInput {
+    outline: none;
+}
 #M2Out tt {
     font-family: KaTeX_Typewriter;
     font-size: 1.21em;

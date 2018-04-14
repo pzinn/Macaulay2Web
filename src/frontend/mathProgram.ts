@@ -265,7 +265,6 @@ const init = function() {
   attachCtrlBtnActions();
   attachCloseDialogBtns();
 
-  $("#M2Out").text("");
   $("#M2In").val(DefaultText);
 
   shell.create($("#M2Out"), $("#M2In"), socket);

@@ -27,7 +27,6 @@ const unicodeBell = "\u0007";
 //const setCaretPosition = require("set-caret-position");
 const scrollDown = require("scroll-down");
 const getSelected = require("get-selected-text");
-let mathProgramOutput = "";
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
 var tabString="";
@@ -39,6 +38,7 @@ var htmlCode=""; // saves the current html code to avoid rewriting
 var texCode=""; // saves the current TeX code
 var htmlSec; // html element of current html code
 declare var katex;
+var inputDiv = document.getElementById("M2OutInput"); // or could just shell[0].lastChildNode or something
 
 function dehtml(s) {
     s=s.replace(/&amp;/g,"&");
@@ -49,19 +49,15 @@ function dehtml(s) {
 }
 
 
-function placeCaretAtEnd(shell,flag?) { // flag means only put at end if outside the input area
-    shell[0].focus(); // what's that for?
+function placeCaretAtEnd() {
+    inputDiv.focus();
+    // way more complicated than should be
+    var range = document.createRange();
+    range.selectNodeContents(inputDiv);
+    range.collapse(false);
     var sel = window.getSelection();
-    var lst = lastText(shell);
-    var nd,of;
-    if ("baseNode" in sel) { nd = sel.baseNode; of = sel.baseOffset; } // chrome
-    else { nd = sel.focusNode; of = sel.focusOffset; } // firefox. these fields exist in chrome but give different answers :(
-    if ((!flag)||(nd!=lst)||(of<mathProgramOutput.length))
-    {
-	sel.collapse(lst,lst.length);
-	return lst.length;
-    }
-    else return of;
+    sel.removeAllRanges();
+    sel.addRange(range);
 }
 
 const postRawMessage = function(msg: string, socket: Socket) {
@@ -78,7 +74,7 @@ const interrupt = function(socket: Socket) {
 const sendCallback = function(id: string, socket: Socket, shell) { // called by pressing Evaluate
   return function() {
       tabString="";
-      lastText(shell).textContent=mathProgramOutput;
+      inputDiv.textContent="";
     const str = getSelected(id);
     postRawMessage(str, socket);
     return false;
@@ -89,7 +85,7 @@ const sendOnEnterCallback = function(id: string, socket: Socket, shell) { // shi
   return function(e) {
     if (e.which === 13 && e.shiftKey) {
       tabString="";
-      lastText(shell).textContent=mathProgramOutput;
+      inputDiv.textContent="";
       e.preventDefault();
       // do not make a line break or remove selected text when sending
       const msg = getSelected(id);
@@ -100,17 +96,9 @@ const sendOnEnterCallback = function(id: string, socket: Socket, shell) { // shi
   };
 };
 
-const lastText = function(shell) {
-    if ((shell[0].lastChild===null) || !(shell[0].lastChild instanceof Text)) shell[0].appendChild(document.createTextNode(""));
-    return shell[0].lastChild;
-}
-
 const getCurrentCommand = function(shell): string {
-    const completeText = lastText(shell);
-    let lastLine: string = completeText.textContent.substring(mathProgramOutput.length);
-    //    completeText.textContent=mathProgramOutput;
     inputErase=true;
-    return lastLine;
+    return inputDiv.textContent;
 };
 
 const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
@@ -123,21 +111,20 @@ const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
 	if (cmdHistory.index < cmdHistory.length) {
 	    cmdHistory.index++;
 	    if (cmdHistory.index === cmdHistory.length) {
-		lastText(shell).textContent=mathProgramOutput+cmdHistory.current;
+		inputDiv.textContent=cmdHistory.current;
 	    } else {
-		lastText(shell).textContent=mathProgramOutput+cmdHistory[cmdHistory.index];
+		inputDiv.textContent=cmdHistory[cmdHistory.index];
 	    }
 	}
-	placeCaretAtEnd(shell);
     }
     else if ((e.keyCode === keys.arrowUp) && (cmdHistory.index > 0)) { // UP
 	if (cmdHistory.index === cmdHistory.length) {
-	    cmdHistory.current = lastText(shell).textContent.substring(mathProgramOutput.length);
+	    cmdHistory.current = inputDiv.textContent;
 	}
 	cmdHistory.index--;
-	lastText(shell).textContent=mathProgramOutput+cmdHistory[cmdHistory.index];
-	placeCaretAtEnd(shell,true);
+	inputDiv.textContent=cmdHistory[cmdHistory.index];
     }
+    placeCaretAtEnd();
     scrollDown(shell);
 };
 
@@ -175,7 +162,7 @@ module.exports = function() {
     });
 
     const packageAndSendMessage = function(msg) {
-	placeCaretAtEnd(shell);
+	placeCaretAtEnd();
 	if (msg.length>0)
             postRawMessage(msg, socket);
        else {
@@ -184,8 +171,9 @@ module.exports = function() {
        }
     };
 
-      shell.bind('paste',function(e) {
-	  var msg = "";
+      shell.bind('paste',function(e) { inputDiv.focus();
+				     });
+/*	  var msg = "";
 	  var sel = window.getSelection();
 	  var lst = lastText(shell);
 	  var s = lst.textContent;
@@ -210,14 +198,14 @@ module.exports = function() {
 	  sel.collapse(lst,of+msg.length);
 	  scrollDown(shell);
 	  return false;
-      });
+      });*/ // TODO rewrite
 
     // If something is entered, change to end of textarea, if at wrong position.
-    shell.keydown(function(e: KeyboardEvent) {
+      shell.keydown(function(e: KeyboardEvent) {
       if (e.keyCode === keys.enter) {
 	  const msg=getCurrentCommand(shell);
           shell.trigger("track", tabString+msg); tabString="";
-	  lastText(shell).textContent+="\n "; // extra space necessary, sadly -- see the related <div></div> issue below
+	  inputDiv.textContent+="\n "; // extra space necessary, sadly -- see the related <div></div> issue below
 	  packageAndSendMessage(msg+"\n");
 	  scrollDown(shell);
 	  return false; // no crappy <div></div> added
@@ -227,17 +215,21 @@ module.exports = function() {
           upDownArrowKeyHandling(shell, e);
 	  return;
       }
-      if (e.keyCode === keys.ctrlKeyCode) { // do not jump to bottom on Ctrl+C or on Ctrl
+
+	  if (e.ctrlKey || (e.keyCode === keys.ctrlKeyCode)) { // do not jump to bottom on Ctrl
         return;
-      }
-      if (e.ctrlKey && e.keyCode === keys.zKey) { e.preventDefault(); return; } // no Ctrl+Z
-      if (e.ctrlKey && e.keyCode === keys.cKey) {
-        interrupt(socket);
       }
         // for MAC OS
       if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
         return;
       }
+      inputDiv.focus();
+
+	  /*
+      if (e.ctrlKey && e.keyCode === keys.cKey) {
+        interrupt(socket);
+      }
+*/ // TODO rewrite. for now CTRL-C is usual "copy"
 
 	// Forward key for tab completion, but do not track it.
 	if (e.keyCode === keys.tab) {
@@ -245,14 +237,6 @@ module.exports = function() {
 	    tabString+=msg+"\t"; // slightly messed up: if we use arrow keys the text will appear with a tab
           packageAndSendMessage(msg+"\t");
         e.preventDefault();
-      }
-	var pos=placeCaretAtEnd(shell,true);
-
-        // This deals with backspace and left arrow.
-	if ((e.keyCode === keys.backspace)||(e.keyCode === keys.arrowLeft)) {
-            if ((pos <= mathProgramOutput.length)
-		||((e.ctrlKey)&&( lastText(shell).textContent.substring(mathProgramOutput.length,pos).replace(/[^a-zA-Z0-9]+/g, "")=="" ))) // phew
-		e.preventDefault();
       }
     });
 
@@ -262,14 +246,19 @@ module.exports = function() {
       }
         // If we get a 'Session resumed.' message, we check whether it is
         // relevant.
+	/*
       if (msgDirty.indexOf("Session resumed.") > -1) {
-        if (mathProgramOutput.length > 0) { // TODO change
+        if (mathProgramOutput.length > 0) { 
           return;
         }
       }
+*/ // TODO rewrite
 
-	if (inputErase) { lastText(shell).textContent=mathProgramOutput; inputErase=false; }
-	
+	if (inputErase) { inputDiv.textContent=""; inputErase=false; }
+	if (!htmlSec) { // for very first time
+	    htmlSec=document.createElement('span');
+	    shell[0].insertBefore(htmlSec,inputDiv);
+	}
       let msg: string = msgDirty.replace(/\u0007/, "");
       msg = msg.replace(/\r\n/g, "\n");
       msg = msg.replace(/\r/g, "\n");
@@ -281,33 +270,39 @@ module.exports = function() {
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    htmlSec=document.createElement('span');
 		    htmlSec.style.whiteSpace="initial"; // !!! should probably define a class
-		    htmlSec.contentEditable="false"; // !!! should probably define a class
-		    shell[0].appendChild(htmlSec);
-		    htmlCode="";
+		    shell[0].insertBefore(htmlSec,inputDiv);
+		    htmlCode=""; // need to record because html tags may get broken
 		}
-		if (mathJaxState=="\\(") { // tex section beginning
+		else if (mathJaxState=="\\(") { // tex section beginning
 		    texCode="";
 		}
-		if (mathJaxState=="\\)") { // tex section ending
+		else if (mathJaxState=="\\)") { // tex section ending
 		    texCode=dehtml(texCode);
-		    if (htmlCode!="") htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
-		    else katex.render(texCode,htmlSec);
+		    htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
+		}
+		else if (mathJaxState=="<!--txt-->") {
+		    htmlSec=document.createElement('span');
+		    shell[0].insertBefore(htmlSec,inputDiv);
 		}
 	    }
 	    if (txt[i].length>0) {
-		if (mathJaxState=="<!--txt-->") lastText(shell).textContent+=txt[i];
+		if (mathJaxState=="<!--txt-->") htmlSec.textContent+=txt[i]; // simpler
+		    /*
+		    if (htmlSec.children.length == 0) // needed because chrome refuses to create empty text nodes
+			htmlSec.appendChild(document.createTextNode(txt[i]));
+		    else
+			htmlSec.children[0].textContent+=txt[i];
+		    */
 		else if (mathJaxState=="\\(") texCode+=txt[i];
 		else htmlSec.innerHTML=htmlCode+=txt[i];
 	    }
 	}
-	mathProgramOutput=lastText(shell).textContent;
-	placeCaretAtEnd(shell);
 	scrollDown(shell);
     });
 
       shell.on("reset", function() {
 	  tabString="";
-	  lastText(shell).textContent=mathProgramOutput;
+	  inputDiv.textContent="";
     });
   };
 
