@@ -26,7 +26,7 @@ import {Socket} from "./mathProgram";
 const unicodeBell = "\u0007";
 //const setCaretPosition = require("set-caret-position");
 const scrollDown = require("scroll-down");
-const getSelected = require("get-selected-text");
+//const getSelected = require("get-selected-text");
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
 var inputSent=false;
@@ -72,6 +72,33 @@ const interrupt = function(socket: Socket) {
   return function() {
     postRawMessage(keys.ctrlc, socket);
   };
+};
+
+const getSelected = function (id: string){
+    var element=document.getElementById(id);
+    var sel=window.getSelection();
+    var str = sel.baseNode.textContent,
+        start = sel.baseOffset,
+        end = sel.extentOffset,
+        endPos; // for chrome. TODO: for firefox etc
+    if (start === end) {
+        // grab the current line
+        if (end != 0) {
+            start = 1 + str.lastIndexOf("\n", end - 1);
+        } else {
+            start = 0;
+        }
+        endPos = str.indexOf("\n", start);
+        if (endPos !== -1) {
+            end = endPos;
+        } else {
+            str = str + "\n";
+//            element.value = str;
+            end = str.length - 1; // position of last \n 
+        }
+	// something about caret position TODO
+    }
+    return str.slice(start, end) + "\n";
 };
 
 const sendCallback = function(id: string, socket: Socket, shell) { // called by pressing Evaluate
