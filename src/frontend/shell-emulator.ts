@@ -30,7 +30,7 @@ const getSelected = require("get-selected-text");
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
 var inputSent=false;
-var inputDiv = document.getElementById("M2OutInput"); // or could just shell[0].lastChildNode or something
+var inputDiv = document.getElementById("M2CurrentInput"); // or could just shell[0].lastChildNode or something
 var tabSent = false; // used for tabbing, but really could be true during the whole input process -- since no output is expected then
 // mathJax related stuff
 var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
@@ -168,7 +168,7 @@ module.exports = function() {
 	      //    this.classList.add("redbg");
 	      this.className="redbg"; // a bit primitive
 	      inputDiv.textContent = this.textContent;
-	      this.addEventListener("transitionend", function () { this.className="M2textinput"; });
+	      this.addEventListener("transitionend", function () { this.className="M2PastInput"; });
 	      placeCaretAtEnd();
 	  }
       };
@@ -226,7 +226,7 @@ module.exports = function() {
         }
       }
 	*/ // TODO rewrite
-	msgDirty = msgDirty.replace(/\u0008 \u0008/g,"");
+	msgDirty = msgDirty.replace(/\u0008 \u0008/g,""); // we're removing the backspaces that have been possibly sent by the tab hack
 
       let msg: string = msgDirty.replace(/\u0007/, "");
       msg = msg.replace(/\r\n/g, "\n");
@@ -235,9 +235,8 @@ module.exports = function() {
 	    // simplify for now: only one line thing
 	    if (inputSent) { inputDiv.textContent=""; inputSent=false; }
 	    inputDiv.textContent+=msg;
-	    //tabSent=false;
 	    var s="\b".repeat(msg.length);
-	    postRawMessage(s,socket);
+	    postRawMessage(s,socket); // nasty hack: we're removing all the output so it can be input again
 	    placeCaretAtEnd();
 	    scrollDown(shell);
 	    return;
@@ -247,8 +246,8 @@ module.exports = function() {
 	    inputDiv.textContent="";
 	     // force new section when input got sent (avoids nasty hacks with parsing for prompt later)
 	    htmlSec=document.createElement('span');
-	    //	    htmlSec.classList.add('M2textinput'); // a class that's designed to be reused, highlighted, etc
-	    htmlSec.className="M2textinput";
+	    //	    htmlSec.classList.add('M2PastInput'); // a class that's designed to be reused, highlighted, etc
+	    htmlSec.className="M2PastInput";
 	    htmlSec.addEventListener("click", codeInputAction);
 	    shell[0].insertBefore(htmlSec,inputDiv);
 	}
