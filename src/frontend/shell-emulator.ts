@@ -65,41 +65,28 @@ const postRawMessage = function(msg: string, socket: Socket) {
   return true;
 };
 
-const packageAndSendMessage = function(msg: string, socket: Socket) {
-    inputSent=1;
-    placeCaretAtEnd();
-    postRawMessage(msg, socket);
-};
-
-
 const interrupt = function(socket: Socket) {
   return function() {
     postRawMessage(keys.ctrlc, socket);
   };
 };
 
-const sendCallback = function(id: string, socket: Socket) { // called by pressing Evaluate
+const sendCallback = function(id: string, socket: Socket, shell) { // called by pressing Evaluate
   return function() {
-      tabString="";
       const msg = getSelected(id);
-      inputDiv.textContent=msg;
-      packageAndSendMessage(msg,socket);
+      // We only trigger the innerTrack.
+      tabString="";
+      shell.trigger("postMessage", [msg, false, true, false]);
       return false;
   };
 };
 
 const sendOnEnterCallback = function(id: string, socket: Socket, shell) { // shift-enter in editor
   return function(e) {
-    if (e.which === 13 && e.shiftKey) {
-      tabString="";
-      e.preventDefault();
-      // do not make a line break or remove selected text when sending
-      const msg = getSelected(id);
-      inputDiv.textContent=msg;
-      // We only trigger the innerTrack.
-      shell.trigger("innerTrack", msg);
-	packageAndSendMessage(msg,socket);
-    }
+      if (e.which === 13 && e.shiftKey) {
+	  e.preventDefault();
+	  sendCallback(id,socket,shell);
+      }
   };
 };
 
@@ -131,32 +118,34 @@ const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
 };
 
 module.exports = function() {
-  const create = function(shell, historyArea, socket: Socket) {
-    const history = historyArea;
-    history.keypress(sendOnEnterCallback("M2In", socket, shell));
+  const create = function(shell, editorArea, socket: Socket) {
+    const editor = editorArea;
+      editor.keypress(sendOnEnterCallback("M2In", socket, shell));
 
-    shell.on("track", function(e, msg) { // add command to history
-      if (typeof msg !== "undefined") {
-        if (history !== undefined) {
-          history.val(history.val() + msg + "\n");
-          scrollDown(history);
-        }
-        shell.trigger("innerTrack", msg);
-      }
-    });
-
-      shell.on("postMessage", function(e, msg) {
-	  tabString="";
+      shell.on("postMessage", function(e,msg,flag1,flag2,flag3) {
 	  inputDiv.textContent=msg;
-	  shell.trigger("track", msg);
-	  packageAndSendMessage(msg, socket);
+	  inputSent=1; // TODO: proper number
+	  if (flag1) shell.trigger("track",tabString+msg);
+	  if (flag2) shell.trigger("innerTrack",tabString+msg);
+	  tabString="";
+	  if (flag3) placeCaretAtEnd();
+	  postRawMessage(msg, socket);
+      });
+
+    shell.on("track", function(e, msg) { // add command to editor area
+      if (typeof msg !== "undefined") {
+        if (editor !== undefined) {
+          editor.val(editor.val() + msg + "\n");
+          scrollDown(editor);
+        }
+      }
     });
 
     shell.on("innerTrack", function(e, msg) {
         // This function will track the messages, i.e. such that arrow up and
-        // down work, but it will not put the msg in the history textarea. We
+        // down work, but it will not put the msg in the editor textarea. We
         // need this if someone uses the shift+enter functionality in the
-        // history area, because we do not want to track these messages.
+        // editor area, because we do not want to track these messages.
       const input = msg.split("\n");
       for (const line in input) {
         if (input[line].length > 0) {
@@ -167,13 +156,21 @@ module.exports = function() {
 
       shell.bind('paste',function(e) { inputDiv.focus(); });
 
+const codeInputAction = function(e) {
+    //    this.classList.add("redbg");
+    this.className="redbg"; // a bit primitive
+    inputDiv.textContent = this.textContent;
+    this.addEventListener("transitionend", function () { this.className="M2textinput"; });
+    placeCaretAtEnd();
+};
+
+
+      
     // If something is entered, change to end of textarea, if at wrong position.
       shell.keydown(function(e: KeyboardEvent) {
       if (e.keyCode === keys.enter) {
 	  const msg=inputDiv.textContent;
-          shell.trigger("track", tabString+msg); tabString="";
-	  inputDiv.textContent+="\n "; // extra space necessary, sadly -- see the related <div></div> issue below
-	  packageAndSendMessage(msg+"\n",socket);
+	  shell.trigger("postMessage",[msg+"\n",true,true,true]);
 	  scrollDown(shell);
 	  return false; // no crappy <div></div> added
       }
@@ -199,13 +196,15 @@ module.exports = function() {
 */ // TODO rewrite. for now CTRL-C is usual "copy"
 
 	// Forward key for tab completion, but do not track it.
-	if (e.keyCode === keys.tab) {
+	if (e.keyCode === keys.tab) { // TODO: rewrite
 	    var msg = inputDiv.textContent;
 	    tabString+=msg+"\t"; // slightly messed up: if we use arrow keys the text will appear with a tab
-            packageAndSendMessage(msg+"\t",socket);
-        e.preventDefault();
-      }
-    });
+	    inputSent=1;
+	    placeCaretAtEnd();
+	    postRawMessage(msg+"\t", socket);
+            e.preventDefault();
+	}
+      });
 
     shell.on("onmessage", function(e, msgDirty) {
       if (msgDirty === unicodeBell) {
@@ -225,8 +224,9 @@ module.exports = function() {
 	    inputDiv.textContent="";
 	     // force new section when input got sent (avoids nasty hacks with parsing for prompt later)
 	    htmlSec=document.createElement('span');
-	    htmlSec.classList.add('M2textinput'); // a class that's designed to be reused, highlighted, etc
-	    htmlSec.addEventListener("auxclick", function(e) { inputDiv.textContent = this.textContent; e.stopPropagation(); return false; } )
+	    //	    htmlSec.classList.add('M2textinput'); // a class that's designed to be reused, highlighted, etc
+	    htmlSec.className="M2textinput";
+	    htmlSec.addEventListener("click", codeInputAction);
 	    shell[0].insertBefore(htmlSec,inputDiv);
 	}
 	else if (!htmlSec) { // for very first time
@@ -271,7 +271,7 @@ module.exports = function() {
 			    htmlSec=document.createElement('span');
 			    shell[0].insertBefore(htmlSec,inputDiv);
 			    htmlSec.textContent=txt[i].substring(j,txt[i].length);
-			    inputSent=0;
+			    inputSent--;
 			}
 		    }
 		}
@@ -285,12 +285,13 @@ module.exports = function() {
       shell.on("reset", function() {
 	  tabString="";
 	  inputDiv.textContent="";
+	  inputSent=0;
     });
   };
 
   return {
     create,
-    sendCallback,
+      sendCallback,
     interrupt,
   };
 };

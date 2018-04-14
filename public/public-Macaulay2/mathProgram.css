@@ -213,7 +213,7 @@ code, codeblock {
     display: inline-block;
     text-decoration: none;
     line-height: 1.5;
-    transition: background-color 300ms;
+    transition: background-color 100ms;
 }
 
 code {
@@ -227,10 +227,11 @@ codeblock {
     border-radius: 10px;
 }
 
-.redWithShortTransition {
+.redbg {
     background-color: red;
-    /* Use >0ms transition, otherwise transitionend event is not fired */
-    transition: 1ms;
+    transition: background-color 100ms;
+    box-shadow: 1px 1px 2px #000;
+    text-decoration: none;
 }
 
 .mdl-mini-footer {
@@ -254,6 +255,7 @@ a.submenuItem {
     background-color: lightyellow;
     box-shadow: 1px 1px 2px #000;
     text-decoration: none;
-    transition: background-color 300ms;
     border-radius: 5px;
+    cursor: pointer;
 }
+

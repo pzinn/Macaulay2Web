@@ -77,11 +77,11 @@ const emitReset = function() {
 };
 
 const attachCtrlBtnActions = function() {
-  $("#sendBtn").click(shell.sendCallback("M2In", socket));
+  $("#sendBtn").click(shell.sendCallback("M2In", socket, $("#M2Out")));
   $("#resetBtn").click(emitReset);
   $("#interruptBtn").click(shell.interrupt(socket));
-    $("#saveBtn").click(saveInteractions);
-    $("#loadBtn").click(loadFile);
+  $("#saveBtn").click(saveInteractions);
+  $("#loadBtn").click(loadFile);
 };
 
 const loadFile = function(event) {
@@ -194,10 +194,11 @@ const displayUrlInNewWindow = function(url) {
 };
 
 const codeClickAction = function() {
-  $(this).addClass("redWithShortTransition");
+  $(this).addClass("redbg");
   const code = $(this).text() + "\n";
   $("#M2Out").trigger("postMessage", code);
 };
+
 
 const openTabCloseDrawer = function(event) {
   const panelId = $(this).attr("href");
@@ -234,7 +235,7 @@ const socketOnError = function(type) {
 };
 
 const fadeBackToOriginalColor = function() {
-  $(this).removeClass("redWithShortTransition");
+  $(this).removeClass("redbg");
 };
 
 const init = function() {
@@ -279,9 +280,9 @@ const init = function() {
   $(document).on("click", ".tabPanelActivator", openTabCloseDrawer);
   $(document).on("click", "#about", openAboutTab);
 
-  $(document).on("transitionend", "code.redWithShortTransition",
+  $(document).on("transitionend", "code.redbg",
       fadeBackToOriginalColor);
-  $(document).on("transitionend", "codeblock.redWithShortTransition",
+  $(document).on("transitionend", "codeblock.redbg",
       fadeBackToOriginalColor);
 };
 
