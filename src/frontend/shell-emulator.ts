@@ -49,15 +49,18 @@ function dehtml(s) {
 }
 
 
-function placeCaretAtEnd() {
-    inputDiv.focus();
-    // way more complicated than should be
-    var range = document.createRange();
-    range.selectNodeContents(inputDiv);
-    range.collapse(false);
-    var sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
+function placeCaretAtEnd(flag?) { // flag means only do it if not already in input
+    if ((!flag)||(document.activeElement!=inputDiv))
+    {
+	inputDiv.focus();
+	// way more complicated than should be
+	var range = document.createRange();
+	range.selectNodeContents(inputDiv);
+	range.collapse(false);
+	var sel = window.getSelection();
+	sel.removeAllRanges();
+	sel.addRange(range);
+    }
 }
 
 const postRawMessage = function(msg: string, socket: Socket) {
@@ -77,7 +80,6 @@ const sendCallback = function(id: string, socket: Socket, shell) { // called by 
       // We only trigger the innerTrack.
       tabString="";
       shell.trigger("postMessage", [msg, false, true, false]);
-      return false;
   };
 };
 
@@ -85,7 +87,10 @@ const sendOnEnterCallback = function(id: string, socket: Socket, shell) { // shi
   return function(e) {
       if (e.which === 13 && e.shiftKey) {
 	  e.preventDefault();
-	  sendCallback(id,socket,shell);
+	  // We only trigger the innerTrack.
+	  const msg = getSelected(id);
+	  tabString="";
+	  shell.trigger("postMessage", [msg, false, true, true]);
       }
   };
 };
@@ -154,7 +159,9 @@ module.exports = function() {
       }
     });
 
-      shell.bind('paste',function(e) { inputDiv.focus(); });
+      shell.bind('paste',function(e) { placeCaretAtEnd(true); });
+
+      shell.click(function(e) { if (window.getSelection().isCollapsed) placeCaretAtEnd(true) });
 
       const codeInputAction = function(e) {
 	  // will only trigger if selection is empty
@@ -189,7 +196,7 @@ module.exports = function() {
       if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
         return;
       }
-      inputDiv.focus();
+	  placeCaretAtEnd(true);
 
 	  /*
       if (e.ctrlKey && e.keyCode === keys.cKey) {
