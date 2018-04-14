@@ -156,15 +156,17 @@ module.exports = function() {
 
       shell.bind('paste',function(e) { inputDiv.focus(); });
 
-const codeInputAction = function(e) {
-    //    this.classList.add("redbg");
-    this.className="redbg"; // a bit primitive
-    inputDiv.textContent = this.textContent;
-    this.addEventListener("transitionend", function () { this.className="M2textinput"; });
-    placeCaretAtEnd();
-};
-
-
+      const codeInputAction = function(e) {
+	  // will only trigger if selection is empty
+	  if (window.getSelection().isCollapsed)
+	  {
+	      //    this.classList.add("redbg");
+	      this.className="redbg"; // a bit primitive
+	      inputDiv.textContent = this.textContent;
+	      this.addEventListener("transitionend", function () { this.className="M2textinput"; });
+	      placeCaretAtEnd();
+	  }
+      };
       
     // If something is entered, change to end of textarea, if at wrong position.
       shell.keydown(function(e: KeyboardEvent) {

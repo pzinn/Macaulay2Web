@@ -196,7 +196,7 @@ const displayUrlInNewWindow = function(url) {
 const codeClickAction = function() {
   $(this).addClass("redbg");
   const code = $(this).text() + "\n";
-  $("#M2Out").trigger("postMessage", code);
+    $("#M2Out").trigger("postMessage", [code,false,true,false]);
 };
 
 
