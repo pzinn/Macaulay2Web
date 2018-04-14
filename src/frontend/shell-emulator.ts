@@ -30,7 +30,8 @@ const getSelected = require("get-selected-text");
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
 var tabString="";
-var inputErase=false; 
+var inputSent=false;
+var inputDiv = document.getElementById("M2OutInput"); // or could just shell[0].lastChildNode or something
 // mathJax related stuff
 var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
 var htmlComment= /(<!--txt-->|<!--html-->|\\\(|\\\))/; // the hope is, these sequences are never used in M2
@@ -38,7 +39,6 @@ var htmlCode=""; // saves the current html code to avoid rewriting
 var texCode=""; // saves the current TeX code
 var htmlSec; // html element of current html code
 declare var katex;
-var inputDiv = document.getElementById("M2OutInput"); // or could just shell[0].lastChildNode or something
 
 function dehtml(s) {
     s=s.replace(/&amp;/g,"&");
@@ -71,13 +71,14 @@ const interrupt = function(socket: Socket) {
   };
 };
 
-const sendCallback = function(id: string, socket: Socket, shell) { // called by pressing Evaluate
+const sendCallback = function(id: string, socket: Socket) { // called by pressing Evaluate
   return function() {
       tabString="";
-      inputDiv.textContent="";
-    const str = getSelected(id);
-    postRawMessage(str, socket);
-    return false;
+      inputSent=true;
+      const str = getSelected(id);
+      inputDiv.textContent=str;
+      postRawMessage(str, socket);
+      return false;
   };
 };
 
@@ -85,10 +86,11 @@ const sendOnEnterCallback = function(id: string, socket: Socket, shell) { // shi
   return function(e) {
     if (e.which === 13 && e.shiftKey) {
       tabString="";
-      inputDiv.textContent="";
+      inputSent=true;
       e.preventDefault();
       // do not make a line break or remove selected text when sending
       const msg = getSelected(id);
+      inputDiv.textContent=msg;
       // We only trigger the innerTrack.
       shell.trigger("innerTrack", msg);
       postRawMessage(msg, socket);
@@ -97,7 +99,7 @@ const sendOnEnterCallback = function(id: string, socket: Socket, shell) { // shi
 };
 
 const getCurrentCommand = function(shell): string {
-    inputErase=true;
+    inputSent=true;
     return inputDiv.textContent;
 };
 
@@ -171,34 +173,7 @@ module.exports = function() {
        }
     };
 
-      shell.bind('paste',function(e) { inputDiv.focus();
-				     });
-/*	  var msg = "";
-	  var sel = window.getSelection();
-	  var lst = lastText(shell);
-	  var s = lst.textContent;
-	  var nd,of;
-	  if ("baseNode" in sel) { nd = sel.baseNode; of = sel.baseOffset; } // chrome
-	  else { nd = sel.focusNode; of = sel.focusOffset; } // firefox. these fields exist in chrome but give different answers :(
-	  if (nd instanceof Text) {
-	      var ss = nd.textContent;
-	      var i = ss.lastIndexOf(" : ",of-1); // bit of a hack...
-	      if (i>=0) {
-		  var j = ss.indexOf("\n\n",of); // same
-		  if (j>=0) {
-		      msg = ss.substring(i+3,j);
-		  }
-	      }
-	  }
-	  if (msg=="") msg = (e.originalEvent || e).clipboardData.getData('text/plain');
-	  if ((nd != lst) || (of < mathProgramOutput.length)) 
-	      of = s.length; // same as lst.length
-	  lst.textContent=s.substring(0,of)+msg+s.substring(of,s.length); // note s.length rather than s.length-1 to avoid switching of arguments
-	  // compared to the default behavior, prevents crappy <div></div> when \n
-	  sel.collapse(lst,of+msg.length);
-	  scrollDown(shell);
-	  return false;
-      });*/ // TODO rewrite
+      shell.bind('paste',function(e) { inputDiv.focus(); });
 
     // If something is entered, change to end of textarea, if at wrong position.
       shell.keydown(function(e: KeyboardEvent) {
@@ -254,8 +229,15 @@ module.exports = function() {
       }
 */ // TODO rewrite
 
-	if (inputErase) { inputDiv.textContent=""; inputErase=false; }
-	if (!htmlSec) { // for very first time
+	if (inputSent) {
+	    inputDiv.textContent="";
+	     // force new section when input got sent (avoids nasty hacks with parsing for prompt later)
+	    htmlSec=document.createElement('span');
+	    htmlSec.classList.add('M2textinput'); // a class that's designed to be reused, highlighted, etc
+	    htmlSec.addEventListener("auxclick", function(e) { inputDiv.textContent = this.textContent; e.stopPropagation(); return false; } )
+	    shell[0].insertBefore(htmlSec,inputDiv);
+	}
+	else if (!htmlSec) { // for very first time
 	    htmlSec=document.createElement('span');
 	    shell[0].insertBefore(htmlSec,inputDiv);
 	}
@@ -286,13 +268,21 @@ module.exports = function() {
 		}
 	    }
 	    if (txt[i].length>0) {
-		if (mathJaxState=="<!--txt-->") htmlSec.textContent+=txt[i]; // simpler
-		    /*
-		    if (htmlSec.children.length == 0) // needed because chrome refuses to create empty text nodes
-			htmlSec.appendChild(document.createTextNode(txt[i]));
-		    else
-			htmlSec.children[0].textContent+=txt[i];
-		    */
+		if (mathJaxState=="<!--txt-->") {
+		    if (!inputSent)
+			htmlSec.textContent+=txt[i];
+		    else { // a bit messy: we're going to try to isolate input for future purposes
+			var j = txt[i].indexOf("\n");
+			if (j<0) htmlSec.textContent+=txt[i];
+			else {
+			    htmlSec.textContent+=txt[i].substring(0,j);
+			    htmlSec=document.createElement('span');
+			    shell[0].insertBefore(htmlSec,inputDiv);
+			    htmlSec.textContent=txt[i].substring(j,txt[i].length);
+			    inputSent=false;
+			}
+		    }
+		}
 		else if (mathJaxState=="\\(") texCode+=txt[i];
 		else htmlSec.innerHTML=htmlCode+=txt[i];
 	    }

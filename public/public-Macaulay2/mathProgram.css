@@ -249,3 +249,11 @@ a.submenuItem {
 .material-icons {
     vertical-align: middle;
 }
+
+.M2textinput:hover {
+    background-color: lightyellow;
+    box-shadow: 1px 1px 2px #000;
+    text-decoration: none;
+    transition: background-color 300ms;
+    border-radius: 5px;
+}
