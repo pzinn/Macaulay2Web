@@ -30,7 +30,7 @@ const getSelected = require("get-selected-text");
 const cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
 var tabString="";
-var inputSent=false;
+var inputSent=0;
 var inputDiv = document.getElementById("M2OutInput"); // or could just shell[0].lastChildNode or something
 // mathJax related stuff
 var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
@@ -65,6 +65,13 @@ const postRawMessage = function(msg: string, socket: Socket) {
   return true;
 };
 
+const packageAndSendMessage = function(msg: string, socket: Socket) {
+    inputSent=1;
+    placeCaretAtEnd();
+    postRawMessage(msg, socket);
+};
+
+
 const interrupt = function(socket: Socket) {
   return function() {
     postRawMessage(keys.ctrlc, socket);
@@ -74,10 +81,9 @@ const interrupt = function(socket: Socket) {
 const sendCallback = function(id: string, socket: Socket) { // called by pressing Evaluate
   return function() {
       tabString="";
-      inputSent=true;
-      const str = getSelected(id);
-      inputDiv.textContent=str;
-      postRawMessage(str, socket);
+      const msg = getSelected(id);
+      inputDiv.textContent=msg;
+      packageAndSendMessage(msg,socket);
       return false;
   };
 };
@@ -86,21 +92,15 @@ const sendOnEnterCallback = function(id: string, socket: Socket, shell) { // shi
   return function(e) {
     if (e.which === 13 && e.shiftKey) {
       tabString="";
-      inputSent=true;
       e.preventDefault();
       // do not make a line break or remove selected text when sending
       const msg = getSelected(id);
       inputDiv.textContent=msg;
       // We only trigger the innerTrack.
       shell.trigger("innerTrack", msg);
-      postRawMessage(msg, socket);
+	packageAndSendMessage(msg,socket);
     }
   };
-};
-
-const getCurrentCommand = function(shell): string {
-    inputSent=true;
-    return inputDiv.textContent;
 };
 
 const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
@@ -145,9 +145,11 @@ module.exports = function() {
       }
     });
 
-    shell.on("postMessage", function(e, msg) {
-      shell.trigger("track", msg);
-      postRawMessage(msg, socket);
+      shell.on("postMessage", function(e, msg) {
+	  tabString="";
+	  inputDiv.textContent=msg;
+	  shell.trigger("track", msg);
+	  packageAndSendMessage(msg, socket);
     });
 
     shell.on("innerTrack", function(e, msg) {
@@ -163,25 +165,15 @@ module.exports = function() {
       }
     });
 
-    const packageAndSendMessage = function(msg) {
-	placeCaretAtEnd();
-	if (msg.length>0)
-            postRawMessage(msg, socket);
-       else {
-        console.log("There must be an error.");
-            // We don't want empty lines send to M2 at pressing return twice.
-       }
-    };
-
       shell.bind('paste',function(e) { inputDiv.focus(); });
 
     // If something is entered, change to end of textarea, if at wrong position.
       shell.keydown(function(e: KeyboardEvent) {
       if (e.keyCode === keys.enter) {
-	  const msg=getCurrentCommand(shell);
+	  const msg=inputDiv.textContent;
           shell.trigger("track", tabString+msg); tabString="";
 	  inputDiv.textContent+="\n "; // extra space necessary, sadly -- see the related <div></div> issue below
-	  packageAndSendMessage(msg+"\n");
+	  packageAndSendMessage(msg+"\n",socket);
 	  scrollDown(shell);
 	  return false; // no crappy <div></div> added
       }
@@ -208,9 +200,9 @@ module.exports = function() {
 
 	// Forward key for tab completion, but do not track it.
 	if (e.keyCode === keys.tab) {
-	    var msg = getCurrentCommand(shell);
+	    var msg = inputDiv.textContent;
 	    tabString+=msg+"\t"; // slightly messed up: if we use arrow keys the text will appear with a tab
-          packageAndSendMessage(msg+"\t");
+            packageAndSendMessage(msg+"\t",socket);
         e.preventDefault();
       }
     });
@@ -229,7 +221,7 @@ module.exports = function() {
       }
 */ // TODO rewrite
 
-	if (inputSent) {
+	if (inputSent>0) {
 	    inputDiv.textContent="";
 	     // force new section when input got sent (avoids nasty hacks with parsing for prompt later)
 	    htmlSec=document.createElement('span');
@@ -269,9 +261,9 @@ module.exports = function() {
 	    }
 	    if (txt[i].length>0) {
 		if (mathJaxState=="<!--txt-->") {
-		    if (!inputSent)
+		    if (inputSent==0)
 			htmlSec.textContent+=txt[i];
-		    else { // a bit messy: we're going to try to isolate input for future purposes
+		    else { // a bit messy: we're going to try to isolate [one line of] input for future purposes
 			var j = txt[i].indexOf("\n");
 			if (j<0) htmlSec.textContent+=txt[i];
 			else {
@@ -279,7 +271,7 @@ module.exports = function() {
 			    htmlSec=document.createElement('span');
 			    shell[0].insertBefore(htmlSec,inputDiv);
 			    htmlSec.textContent=txt[i].substring(j,txt[i].length);
-			    inputSent=false;
+			    inputSent=0;
 			}
 		    }
 		}
