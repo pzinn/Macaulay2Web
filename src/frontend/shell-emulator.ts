@@ -50,29 +50,39 @@ function dehtml(s) {
     return s;
 }
 
+/* caret/selection issues:
+- in chrome, anchor*=base* = start, extent*=focus* = end. *node = the DOM element itself
+- in firefox, anchor* = start, focus* = end.              *node = the text node inside the dom element
+*/
+
 function addToInput(pos,s) {
     var msg=inputDiv.textContent;
     inputDiv.textContent = msg.substring(0,pos)+s+msg.substring(pos,msg.length);
     // put the caret where it should be
     inputDiv.focus();
     var sel=window.getSelection();
-    sel.collapse(sel.extentNode,pos+s.length);
+    //    sel.collapse(sel.focusNode,pos+s.length);
+    sel.collapse(inputDiv.childNodes[0],pos+s.length);
 }
 
 function placeCaretAtEnd(flag?) { // flag means only do it if not already in input. returns position. remember inputDiv can only contain one (text) node
     if ((!flag)||(document.activeElement!=inputDiv))
     {
 	inputDiv.focus();
-	// way more complicated than should be. TODO: simplify (checking cross-browser) cf right above
-	var range = document.createRange();
+/*	var range = document.createRange();
 	range.selectNodeContents(inputDiv);
 	range.collapse(false);
 	var sel = window.getSelection();
 	sel.removeAllRanges();
 	sel.addRange(range);
-	return inputDiv.textContent.length;
+*/
+	var sel = window.getSelection();
+	var node = inputDiv.childNodes[0];
+	var len = node.textContent.length;
+	sel.collapse(node,len);
+	return len;
     }
-    else return window.getSelection().extentOffset; // check with firefox
+    else return window.getSelection().focusOffset;
 }
 
 const postRawMessage = function(msg: string, socket: Socket) {
@@ -229,7 +239,7 @@ module.exports = function() {
 			      tabMenu.appendChild(opt);
 			  }
 			  shell[0].appendChild(tabMenu);
-			  scrollDown(shell);
+			  scrollDown(shell); // TODO: not to the bottom: input should still be visible
 		      }
 		}
 	    }
