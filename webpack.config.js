@@ -12,7 +12,6 @@ module.exports = {
     ]
   },
   plugins: [
-    new webpack.optimize.UglifyJsPlugin({minimize: true, sourceMap: true})
   ],
-  devtool: "source-map"
+  devtool: "inline-module-source-map"
 };
