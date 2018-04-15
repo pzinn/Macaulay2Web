@@ -20,12 +20,12 @@ const saveInteractions = function() {
   const output = $("#M2Out");
   const dialog: any = document.querySelector("#saveDialog");
   const inputLink = "data:application/octet-stream," +
-      encodeURIComponent(input.val() as string);
+      encodeURIComponent(input.text() as string);
   const inputParagraph = document.getElementById("inputContent");
   inputParagraph.setAttribute("href", inputLink);
   inputParagraph.setAttribute("download", "input.txt");
   const outputLink = "data:application/octet-stream," +
-      encodeURIComponent(output.val() as string);
+      encodeURIComponent(output.text() as string);
   const outputParagraph = document.getElementById("outputContent");
   outputParagraph.setAttribute("href", outputLink);
   outputParagraph.setAttribute("download", "output.txt");
@@ -49,17 +49,13 @@ const getSelected = function (){ // could almost just trigger the paste event, e
 };
 
 const editorEvaluate = function() {
-      const msg = getSelected()+"\n";
-      // We only trigger the innerTrack.
-      $("#M2Out").trigger("postMessage", [msg, false, true, false]);
+    $("#M2Out").trigger("postMessage", [getSelected(), false, true, false]);
   };
 
 const editorKeypress = function(e) {
       if (e.which === 13 && e.shiftKey) {
 	  e.preventDefault();
-	  // We only trigger the innerTrack.
-	  const msg = getSelected()+"\n";
-	  $("#M2Out").trigger("postMessage", [msg, false, true, true]);
+	  $("#M2Out").trigger("postMessage", [getSelected(), false, true, true]);
       }
 };
 

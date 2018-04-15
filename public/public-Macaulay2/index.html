@@ -5,8 +5,8 @@
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet"
-          href="https://code.getmdl.io/1.1.3/material.indigo-deep_orange.min.css"/>
-    <script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+          href="https://code.getmdl.io/1.3.0/material.indigo-deep_orange.min.css"/>
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <link rel="stylesheet" type="text/css" href="dialog-polyfill.css"/>
     <link href='https://fonts.googleapis.com/css?family=Roboto+Mono'
           rel='stylesheet' type='text/css'>
@@ -128,22 +128,6 @@
                 <div class="mdl-tooltip" for="interruptBtn">
                     Send Ctrl-c to M2
                 </div>
-                <div id="loadBtn">
-                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored mdl-layout--large-screen-only">
-                        Load
-                    </button>
-                    <button class="mdl-button mdl-js-button mdl-button--icon  mdl-layout--small-screen-only">
-                        <i class="material-icons">file_upload</i>
-                    </button>
-                </div>
-                <div id="saveBtn">
-                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored mdl-layout--large-screen-only">
-                        Save
-                    </button>
-                    <button class="mdl-button mdl-js-button mdl-button--icon  mdl-layout--small-screen-only">
-                        <i class="material-icons">file_download</i>
-                    </button>
-                </div>
                 <div id="uploadBtn">
                     <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored mdl-layout--large-screen-only">
                         Upload file
@@ -229,13 +213,21 @@
 
                     </div>
                     <div class="mdl-tabs__panel" id="editor">
-                        <button type="button"
-                                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
-                                id="sendBtn">Evaluate
-                        </button> 
-                  <div id="M2In" wrap='off' autocorrect="off" contenteditable="true"
-                            spellcheck="false" autocapitalize="off">
-                  </div>
+                      <button type="button" id="sendBtn"
+                              class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                        Evaluate
+                      </button>
+                      <button type="button" id="loadBtn"
+			      class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+                        Load
+                      </button>
+                      <button type="button" id="saveBtn"
+			      class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+                        Save
+                      </button>
+                      <div id="M2In" wrap='off' autocorrect="off" contenteditable="true"
+                           spellcheck="false" autocapitalize="off">
+                      </div>
                     </div>
                     <div class="mdl-tabs__panel" id="help">
 
@@ -286,7 +278,8 @@
                                 href="http://page.mi.fu-berlin.de/lkastner/">Lars
                             Kastner</a>,
                             <a href="http://www.math.cornell.edu/~mike/">Mike
-                                Stillman</a>.
+                              Stillman</a>. <br/>
+			    Rewritten by <a href="http://blogs.unimelb.edu.au/paul-zinn-justin/">Paul Zinn-Justin</a>.
                         </p>
                     </div>
                 </div>
@@ -302,6 +295,12 @@
                      class="material-icons icon-with-action">find_replace</i>
                   <i id="M2OutZoomOut"
                      class="material-icons icon-with-action">zoom_out</i>
+		  <br/>
+		  	        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="editorToggle">
+  <input type="checkbox" id="editorToggle" class="mdl-switch__input">
+  <span class="mdl-switch__label" style="font-size:10px">copy to editor</span>
+</label>
+
                 </div>
                 <i id="maximizeOutput"
                    class="material-icons icon-with-action">fullscreen</i>

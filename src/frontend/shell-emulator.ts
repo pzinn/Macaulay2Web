@@ -106,26 +106,29 @@ module.exports = function() {
   const create = function(shell, editorArea, socket: Socket) {
     const editor = editorArea;
 
-      shell.on("postMessage", function(e,msg,flag1,flag2,flag3) {
-	  inputDiv.textContent=msg;
-	  inputSent=true; // TODO: proper number
-	  tabSent=false;
-	  if (flag1) shell.trigger("track",msg);
-	  if (flag2) shell.trigger("innerTrack",msg);
-	  if (flag3) placeCaretAtEnd();
-	  postRawMessage(msg, socket);
+      shell.on("postMessage", function(e,msg,flag1,flag2,flag3) { // send input, adding \n if necessary
+	  if (msg.length>0) {
+	      if (msg[msg.length-1] != "\n") msg+="\n";
+	      inputDiv.textContent=msg;
+	      inputSent=true; // TODO: proper number
+	      tabSent=false;
+	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",msg);
+	      if (flag2) shell.trigger("addToHistory",msg);
+	      if (flag3) placeCaretAtEnd();
+	      postRawMessage(msg, socket);
+	  }
       });
 
-    shell.on("track", function(e, msg) { // add command to editor area
+    shell.on("addToEditor", function(e, msg) { // add command to editor area
       if (typeof msg !== "undefined") {
         if (editor !== undefined) {
-          editor.val(editor.val() + msg + "\n");
+	    editor[0].appendChild(document.createTextNode(msg));
           scrollDown(editor);
         }
       }
     });
 
-    shell.on("innerTrack", function(e, msg) {
+    shell.on("addToHistory", function(e, msg) {
         // This function will track the messages, i.e. such that arrow up and
         // down work, but it will not put the msg in the editor textarea. We
         // need this if someone uses the shift+enter functionality in the
@@ -158,7 +161,7 @@ module.exports = function() {
       shell.keydown(function(e: KeyboardEvent) {
       if (e.keyCode === keys.enter) {
 	  const msg=inputDiv.textContent;
-	  shell.trigger("postMessage",[msg+"\n",true,true,true]);
+	  shell.trigger("postMessage",[msg,true,true,true]);
 	  scrollDown(shell);
 	  return false; // no crappy <div></div> added
       }

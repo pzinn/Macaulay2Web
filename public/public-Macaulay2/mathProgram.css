@@ -73,10 +73,10 @@ body {
     line-height: 16px;
 }
 
-/*
 #M2CurrentInput {
     outline: none;
 }
+/*
 #M2Out tt {
     font-family: KaTeX_Typewriter;
     font-size: 1.21em;
@@ -128,6 +128,18 @@ body {
     z-index: 2;
     top: 8px;
     right: 24px;
+}
+#loadBtn {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    right: 200px;
+}
+#saveBtn {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    right: 130px;
 }
 
 
