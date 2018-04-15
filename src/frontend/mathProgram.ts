@@ -54,12 +54,25 @@ const editorEvaluate = function() {
   };
 
 const editorKeypress = function(e) {
+//    var prismInvoked=false;
       if (e.which === 13 && e.shiftKey) {
 	  e.preventDefault();
 	  $("#M2Out").trigger("postMessage", [getSelected(), false, true, true]);
       }
-};
+    // should remove the unpleasant insertions of <div> or <br> when \n
 
+    /*
+    if (!prismInvoked) {
+	prismInvoked=true;
+	window.setTimeout( function() {
+	    // the trickiest part is to preserve the selection/caret
+	    // dirty trick: insert a forbidden character
+	    $("#M2In").html(Prism.highlight($("#M2In").text(),Prism.languages.macaulay2));
+	    prismInvoked=false;
+	}, 1000 );
+    };
+*/
+};
 
 const attachMinMaxBtnActions = function() {
   const maximize = document.getElementById("maximizeOutput");
@@ -293,7 +306,8 @@ const init = function() {
   attachCtrlBtnActions();
   attachCloseDialogBtns();
 
-  $("#M2In").text(DefaultText);
+//  $("#M2In").text(DefaultText);
+    $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
 
   shell.create($("#M2Out"), $("#M2In"), socket);
 

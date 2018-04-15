@@ -39,6 +39,7 @@ var htmlCode=""; // saves the current html code to avoid rewriting
 var texCode=""; // saves the current TeX code
 var htmlSec; // html element of current html code
 declare var katex;
+declare var Prism;
 
 function dehtml(s) {
     s=s.replace(/&amp;/g,"&");
@@ -271,6 +272,7 @@ module.exports = function() {
 			if (j<0) htmlSec.textContent+=txt[i];
 			else {
 			    htmlSec.textContent+=txt[i].substring(0,j);
+			    htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
 			    htmlSec=document.createElement('span');
 			    shell[0].insertBefore(htmlSec,inputDiv);
 			    htmlSec.textContent=txt[i].substring(j,txt[i].length);
