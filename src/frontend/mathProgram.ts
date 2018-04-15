@@ -5,6 +5,7 @@ declare var mathProgramName: string;
 declare var DefaultText: string;
 import io = require("socket.io-client");
 declare var SocketIOFileUpload: any;
+declare var Prism;
 
 type Socket =  SocketIOClient.Socket & {oldEmit?: any};
 
@@ -124,7 +125,8 @@ const loadFileProcess = function(event) {
 	{
 	    // var textFromFileLoaded = e.target.result;
 	    var textFromFileLoaded = fileReader.result;
-            $("#M2In").text(textFromFileLoaded);
+            //$("#M2In").text(textFromFileLoaded);
+	    $("#M2In").html(Prism.highlight(textFromFileLoaded,Prism.languages.macaulay2));
 	    document.getElementById("editorTitle").click();
 	};
 	fileReader.readAsText(fileToLoad, "UTF-8");
