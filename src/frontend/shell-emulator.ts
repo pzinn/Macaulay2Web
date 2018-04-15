@@ -27,7 +27,7 @@ const unicodeBell = "\u0007";
 //const setCaretPosition = require("set-caret-position");
 const scrollDown = require("scroll-down");
 //const getSelected = require("get-selected-text");
-const cmdHistory: any = []; // History of commands for shell-like arrow navigation
+var cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
 var inputSent=false;
 var inputDiv = document.getElementById("M2CurrentInput"); // or could just shell[0].lastChildNode or something
@@ -74,51 +74,6 @@ const interrupt = function(socket: Socket) {
   };
 };
 
-const getSelected = function (id: string){
-    var element=document.getElementById(id);
-    var sel=window.getSelection();
-    var str = sel.baseNode.textContent,
-        start = sel.baseOffset,
-        end = sel.extentOffset,
-        endPos; // for chrome. TODO: for firefox etc
-    if (start === end) {
-        // grab the current line
-        if (end != 0) {
-            start = 1 + str.lastIndexOf("\n", end - 1);
-        } else {
-            start = 0;
-        }
-        endPos = str.indexOf("\n", start);
-        if (endPos !== -1) {
-            end = endPos;
-        } else {
-            str = str + "\n";
-//            element.value = str;
-            end = str.length - 1; // position of last \n 
-        }
-	// something about caret position TODO
-    }
-    return str.slice(start, end) + "\n";
-};
-
-const sendCallback = function(id: string, socket: Socket, shell) { // called by pressing Evaluate
-  return function() {
-      const msg = getSelected(id);
-      // We only trigger the innerTrack.
-      shell.trigger("postMessage", [msg, false, true, false]);
-  };
-};
-
-const sendOnEnterCallback = function(id: string, socket: Socket, shell) { // shift-enter in editor
-  return function(e) {
-      if (e.which === 13 && e.shiftKey) {
-	  e.preventDefault();
-	  // We only trigger the innerTrack.
-	  const msg = getSelected(id);
-	  shell.trigger("postMessage", [msg, false, true, true]);
-      }
-  };
-};
 
 const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
     e.preventDefault();
@@ -150,7 +105,6 @@ const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
 module.exports = function() {
   const create = function(shell, editorArea, socket: Socket) {
     const editor = editorArea;
-      editor.keypress(sendOnEnterCallback("M2In", socket, shell));
 
       shell.on("postMessage", function(e,msg,flag1,flag2,flag3) {
 	  inputDiv.textContent=msg;
@@ -336,7 +290,6 @@ module.exports = function() {
 
   return {
     create,
-      sendCallback,
     interrupt,
   };
 };

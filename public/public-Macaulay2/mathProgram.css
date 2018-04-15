@@ -103,6 +103,8 @@ body {
 }
 
 #M2In {
+    overflow: scroll;
+    background: whitesmoke;
     white-space: pre;
     width: 100%;
     height: 100%;

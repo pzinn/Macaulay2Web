@@ -35,6 +35,35 @@ const saveInteractions = function() {
   dialog.showModal();
 };
 
+
+const getSelected = function (){ // could almost just trigger the paste event, except for when there's no selection and final \n...
+    var sel=window.getSelection();
+    if (sel.isCollapsed) {
+	(<any>sel).modify("move", "backward", "lineboundary");
+	(<any>sel).modify("extend", "forward", "lineboundary");
+	var s=sel.toString();
+	(<any>sel).modify("move", "forward", "line");
+	return s;
+    }
+    else return sel.toString();
+};
+
+const editorEvaluate = function() {
+      const msg = getSelected()+"\n";
+      // We only trigger the innerTrack.
+      $("#M2Out").trigger("postMessage", [msg, false, true, false]);
+  };
+
+const editorKeypress = function(e) {
+      if (e.which === 13 && e.shiftKey) {
+	  e.preventDefault();
+	  // We only trigger the innerTrack.
+	  const msg = getSelected()+"\n";
+	  $("#M2Out").trigger("postMessage", [msg, false, true, true]);
+      }
+};
+
+
 const attachMinMaxBtnActions = function() {
   const maximize = document.getElementById("maximizeOutput");
   const downsize = document.getElementById("downsizeOutput");
@@ -77,7 +106,7 @@ const emitReset = function() {
 };
 
 const attachCtrlBtnActions = function() {
-  $("#sendBtn").click(shell.sendCallback("M2In", socket, $("#M2Out")));
+    $("#sendBtn").click(editorEvaluate);
   $("#resetBtn").click(emitReset);
   $("#interruptBtn").click(shell.interrupt(socket));
   $("#saveBtn").click(saveInteractions);
@@ -99,7 +128,7 @@ const loadFileProcess = function(event) {
 	{
 	    // var textFromFileLoaded = e.target.result;
 	    var textFromFileLoaded = fileReader.result;
-            $("#M2In").val(textFromFileLoaded);
+            $("#M2In").text(textFromFileLoaded);
 	    document.getElementById("editorTitle").click();
 	};
 	fileReader.readAsText(fileToLoad, "UTF-8");
@@ -270,6 +299,9 @@ const init = function() {
 
   shell.create($("#M2Out"), $("#M2In"), socket);
 
+    $("#M2In").keypress(editorKeypress);
+
+    
   const siofu = new SocketIOFileUpload(socket);
   document.getElementById("uploadBtn").addEventListener("click", siofu.prompt,
       false);
