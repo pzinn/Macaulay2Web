@@ -76,7 +76,7 @@ body {
     line-height: 16px;
 }
 
-#M2CurrentInput {
+.M2CurrentInput {
     outline: none;
 }
 /*
@@ -246,7 +246,7 @@ codeblock {
 }
 
 .redbg {
-    background-color: red;
+    background-color: red !important;
     transition: background-color 100ms;
     box-shadow: 1px 1px 2px #000;
     text-decoration: none;

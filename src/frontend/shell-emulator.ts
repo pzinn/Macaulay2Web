@@ -30,7 +30,7 @@ const scrollDown = require("scroll-down");
 var cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
 var inputSent=false;
-var inputDiv = document.getElementById("M2CurrentInput"); // note that inputDiv should always have *one text node*
+var inputEl; //= document.getElementById("M2CurrentInput"); // note that inputEl should always have *one text node*
 var autoComplete=null;
 // mathJax related stuff
 var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
@@ -56,30 +56,29 @@ function dehtml(s) {
 */
 
 function addToInput(pos,s) {
-    var msg=inputDiv.textContent;
-    inputDiv.textContent = msg.substring(0,pos)+s+msg.substring(pos,msg.length);
+    var msg=inputEl.textContent;
+    inputEl.textContent = msg.substring(0,pos)+s+msg.substring(pos,msg.length);
     // put the caret where it should be
-    inputDiv.focus();
+    inputEl.focus();
     var sel=window.getSelection();
-    //    sel.collapse(sel.focusNode,pos+s.length);
-    sel.collapse(inputDiv.firstChild,pos+s.length);
+    sel.collapse(inputEl.firstChild,pos+s.length); // remember inputEl can only contain one (text) node
 }
 
-function placeCaretAtEnd(flag?) { // flag means only do it if not already in input. returns position. remember inputDiv can only contain one (text) node
-    if ((!flag)||(document.activeElement!=inputDiv))
+function placeCaretAtEnd(flag?) { // flag means only do it if not already in input. returns position
+    if ((!flag)||(document.activeElement!=inputEl))
     {
-	inputDiv.focus();
+	inputEl.focus();
 /*	var range = document.createRange();
-	range.selectNodeContents(inputDiv);
+	range.selectNodeContents(inputEl);
 	range.collapse(false);
 	var sel = window.getSelection();
 	sel.removeAllRanges();
 	sel.addRange(range);
 */
 	var sel = window.getSelection();
-	if (inputDiv.childNodes.length>0)
+	if (inputEl.childNodes.length>0)
 	{
-	    var node = inputDiv.childNodes[0];
+	    var node = inputEl.childNodes[0];
 	    var len = node.textContent.length;
 	    sel.collapse(node,len);
 	    return len;
@@ -111,18 +110,18 @@ const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
 	if (cmdHistory.index < cmdHistory.length) {
 	    cmdHistory.index++;
 	    if (cmdHistory.index === cmdHistory.length) {
-		inputDiv.textContent=cmdHistory.current;
+		inputEl.textContent=cmdHistory.current;
 	    } else {
-		inputDiv.textContent=cmdHistory[cmdHistory.index];
+		inputEl.textContent=cmdHistory[cmdHistory.index];
 	    }
 	}
     }
     else if ((e.keyCode === keys.arrowUp) && (cmdHistory.index > 0)) { // UP
 	if (cmdHistory.index === cmdHistory.length) {
-	    cmdHistory.current = inputDiv.textContent;
+	    cmdHistory.current = inputEl.textContent;
 	}
 	cmdHistory.index--;
-	inputDiv.textContent=cmdHistory[cmdHistory.index];
+	inputEl.textContent=cmdHistory[cmdHistory.index];
     }
     placeCaretAtEnd();
     scrollDown(shell);
@@ -130,31 +129,47 @@ const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
 
 module.exports = function() {
   const create = function(shell, editorArea, socket: Socket) {
-    const editor = editorArea;
+      const editor = editorArea;
+      inputEl = document.createElement("span");
+      inputEl.contentEditable = true;
+      inputEl.classList.add("M2CurrentInput");
+      shell[0].appendChild(inputEl);
+      inputEl.focus();
 
-function removeAutoComplete(flag) { // flag means insert the selection or not
-    if (autoComplete)
-    {
-	var pos=inputDiv.textContent.length;
-	inputDiv.textContent+=autoComplete.lastChild.textContent;
-	if (flag) {
-	    var el=document.getElementById("autocomplete-selection");
-	    if (el)
-		addToInput(pos,el.textContent+" ");
-	    else
-		addToInput(pos,autoComplete.word);
-	}
-	else addToInput(pos,autoComplete.word);
-	shell[0].removeChild(autoComplete); autoComplete=null;
-    }
-}
+      const codeInputAction = function(e) {
+	  // will only trigger if selection is empty
+	  if (window.getSelection().isCollapsed)
+	  {
+	      this.classList.add("redbg"); // this should be done with CSS only
+	      inputEl.textContent = this.textContent;
+	      this.addEventListener("transitionend", function () { this.classList.remove("redbg"); });
+	      placeCaretAtEnd();
+	  }
+      };
+
+      function removeAutoComplete(flag) { // flag means insert the selection or not
+	  if (autoComplete)
+	  {
+	      var pos=inputEl.textContent.length;
+	      inputEl.textContent+=autoComplete.lastChild.textContent;
+	      if (flag) {
+		  var el=document.getElementById("autocomplete-selection");
+		  if (el)
+		      addToInput(pos,el.textContent+" ");
+		  else
+		      addToInput(pos,autoComplete.word);
+	      }
+	      else addToInput(pos,autoComplete.word);
+	      shell[0].removeChild(autoComplete); autoComplete=null;
+	  }
+      }
 
       
       shell.on("postMessage", function(e,msg,flag1,flag2,flag3) { // send input, adding \n if necessary
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  if (msg.length>0) {
 	      if (msg[msg.length-1] != "\n") msg+="\n";
-	      inputDiv.textContent=msg;
+	      inputEl.textContent=msg;
 	      inputSent=true; // TODO: proper number
 	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",msg);
 	      if (flag2) shell.trigger("addToHistory",msg);
@@ -189,23 +204,11 @@ function removeAutoComplete(flag) { // flag means insert the selection or not
 
       shell.click(function(e) { if (window.getSelection().isCollapsed) placeCaretAtEnd(true) });
 
-      const codeInputAction = function(e) {
-	  // will only trigger if selection is empty
-	  if (window.getSelection().isCollapsed)
-	  {
-	      //    this.classList.add("redbg");
-	      this.className="redbg"; // a bit primitive
-	      inputDiv.textContent = this.textContent;
-	      this.addEventListener("transitionend", function () { this.className="M2PastInput"; });
-	      placeCaretAtEnd();
-	  }
-      };
-
     // If something is entered, change to end of textarea, if at wrong position.
       shell.keydown(function(e: KeyboardEvent) {
 	  removeAutoComplete(false); // remove autocomplete menu if open
       if (e.keyCode === keys.enter) {
-	  const msg=inputDiv.textContent;
+	  const msg=inputEl.textContent;
 	  shell.trigger("postMessage",[msg,true,true,true]);
 	  scrollDown(shell);
 	  return false; // no crappy <div></div> added
@@ -229,11 +232,11 @@ function removeAutoComplete(flag) { // flag means insert the selection or not
       if (e.ctrlKey && e.keyCode === keys.cKey) {
         interrupt(socket);
       }
-*/ // TODO rewrite. for now CTRL-C is usual "copy"
+	  */ // for now CTRL-C is usual "copy"
 
 	// Forward key for tab completion, but do not track it.
 	  if (e.keyCode === keys.tab) {
-	      var msg = inputDiv.textContent;
+	      var msg = inputEl.textContent;
 	      var i=pos-1;
 	      while ((i>=0)&&(((msg[i]>="A")&&(msg[i]<="Z"))||((msg[i]>="a")&&(msg[i]<="z")))) i--; // would be faster with regex
 	      var word = msg.substring(i+1,pos);
@@ -248,7 +251,7 @@ function removeAutoComplete(flag) { // flag means insert the selection or not
 			  addToInput(pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
 		      }
 		      else { // more interesting: several solutions
-			  // obvious would've been datalist + input; sadly, the events generated by the input are 200% erratic, so can't use
+			  // obvious solution would've been datalist + input; sadly, the events generated by the input are 200% erratic, so can't use
 			  autoComplete = document.createElement("span");
 			  autoComplete.classList.add("autocomplete");
 			  autoComplete.word=word;
@@ -267,9 +270,9 @@ function removeAutoComplete(flag) { // flag means insert the selection or not
 			      tabMenu.appendChild(opt);
 			  }
 			  autoComplete.appendChild(tabMenu);
-			  autoComplete.appendChild(document.createTextNode(inputDiv.textContent.substring(pos,inputDiv.textContent.length)));
-			  inputDiv.textContent=inputDiv.textContent.substring(0,i+1);
-			  shell[0].appendChild(autoComplete); // if we're gonna use inline-table, then should add extra element with " "+rest of text probably all inside a <span></span> to remove easier
+			  autoComplete.appendChild(document.createTextNode(inputEl.textContent.substring(pos,inputEl.textContent.length)));
+			  inputEl.textContent=inputEl.textContent.substring(0,i+1);
+			  shell[0].appendChild(autoComplete);
 			  tabMenu.addEventListener("click", function(e) {
 				  removeAutoComplete(true);
 				  e.preventDefault();
@@ -341,17 +344,16 @@ function removeAutoComplete(flag) { // flag means insert the selection or not
       msg = msg.replace(/\r/g, "\n");
 	
 	if (inputSent) {
-	    inputDiv.textContent="";
+	    inputEl.textContent="";
 	     // force new section when input got sent (avoids nasty hacks with parsing for prompt later)
 	    htmlSec=document.createElement('span');
-	    //	    htmlSec.classList.add('M2PastInput'); // a class that's designed to be reused, highlighted, etc
-	    htmlSec.className="M2PastInput";
+	    htmlSec.classList.add('M2PastInput'); // a class that's designed to be reused, highlighted, etc	    
 	    htmlSec.addEventListener("click", codeInputAction);
-	    shell[0].insertBefore(htmlSec,inputDiv);
+	    shell[0].insertBefore(htmlSec,inputEl);
 	}
 	else if (!htmlSec) { // for very first time
 	    htmlSec=document.createElement('span');
-	    shell[0].insertBefore(htmlSec,inputDiv);
+	    shell[0].insertBefore(htmlSec,inputEl);
 	}
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
@@ -361,7 +363,7 @@ function removeAutoComplete(flag) { // flag means insert the selection or not
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    htmlSec=document.createElement('span');
 		    htmlSec.style.whiteSpace="initial"; // !!! should probably define a class
-		    shell[0].insertBefore(htmlSec,inputDiv);
+		    shell[0].insertBefore(htmlSec,inputEl);
 		    htmlCode=""; // need to record because html tags may get broken
 		}
 		else if (mathJaxState=="\\(") { // tex section beginning
@@ -373,7 +375,7 @@ function removeAutoComplete(flag) { // flag means insert the selection or not
 		}
 		else if (mathJaxState=="<!--txt-->") {
 		    htmlSec=document.createElement('span');
-		    shell[0].insertBefore(htmlSec,inputDiv);
+		    shell[0].insertBefore(htmlSec,inputEl);
 		}
 	    }
 	    if (txt[i].length>0) {
@@ -387,7 +389,7 @@ function removeAutoComplete(flag) { // flag means insert the selection or not
 			    htmlSec.textContent+=txt[i].substring(0,j);
 			    htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
 			    htmlSec=document.createElement('span');
-			    shell[0].insertBefore(htmlSec,inputDiv);
+			    shell[0].insertBefore(htmlSec,inputEl);
 			    htmlSec.textContent=txt[i].substring(j,txt[i].length);
 			    inputSent=false;
 			}
@@ -401,7 +403,7 @@ function removeAutoComplete(flag) { // flag means insert the selection or not
     });
 
       shell.on("reset", function() {
-	  inputDiv.textContent="";
+	  inputEl.textContent="";
 	  inputSent=false;
 	  removeAutoComplete(false); // remove autocomplete menu if open
     });
