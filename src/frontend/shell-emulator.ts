@@ -29,7 +29,7 @@ const scrollDown = require("scroll-down");
 //const getSelected = require("get-selected-text");
 var cmdHistory: any = []; // History of commands for shell-like arrow navigation
 cmdHistory.index = 0;
-var inputSent=false;
+var inputBack=0; // number of lines of input that M2 has regurgitated so far
 var inputEl; //= document.getElementById("M2CurrentInput"); // note that inputEl should always have *one text node*
 var autoComplete=null;
 // mathJax related stuff
@@ -167,10 +167,9 @@ module.exports = function() {
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  if (msg.length>0) {
 	      if (msg[msg.length-1] != "\n") msg+="\n";
-	      inputEl.textContent=msg;
-	      inputSent=true; // TODO: proper number
+	      inputEl.textContent=msg;	      
 	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",msg);
-	      if (flag2) shell.trigger("addToHistory",msg);
+	      if (flag2) shell.trigger("addToHistory",msg); // TODO remove flag2
 	      if (flag3) placeCaretAtEnd();
 	      postRawMessage(msg, socket);
 	  }
@@ -340,18 +339,11 @@ module.exports = function() {
       let msg: string = msgDirty.replace(/\u0007/, "");
       msg = msg.replace(/\r\n/g, "\n");
       msg = msg.replace(/\r/g, "\n");
+
+	if (inputBack<cmdHistory.length)
+	    inputEl.textContent=""; // input will eventually be regurgitated by M2
 	
-	if (inputSent) {
-	    inputEl.textContent="";
-	    // force new section when input got sent (avoids nasty hacks with parsing for prompt later)
-	    // REWRITE
-	    htmlSec=document.createElement('span');
-	    htmlSec.classList.add('M2PastInput'); // a class that's designed to be reused, highlighted, etc	    
-	    htmlSec.tabIndex=0; // HACK
-	    htmlSec.addEventListener("click", codeInputAction);
-	    shell[0].insertBefore(htmlSec,inputEl);
-	}
-	else if (!htmlSec) { // for very first time
+	if (!htmlSec) { // for very first time
 	    htmlSec=document.createElement('span');
 	    shell[0].insertBefore(htmlSec,inputEl);
 	}
@@ -362,7 +354,7 @@ module.exports = function() {
 		mathJaxState=txt[i-1];
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    htmlSec=document.createElement('span');
-		    htmlSec.style.whiteSpace="initial"; // !!! should probably define a class
+		    htmlSec.style.whiteSpace="initial"; // TODO define a class
 		    shell[0].insertBefore(htmlSec,inputEl);
 		    htmlCode=""; // need to record because html tags may get broken
 		}
@@ -380,18 +372,18 @@ module.exports = function() {
 	    }
 	    if (txt[i].length>0) {
 		if (mathJaxState=="<!--txt-->") {
-		    if (!inputSent)
-			htmlSec.textContent+=txt[i];
-		    else { // a bit messy: we're going to try to isolate [one line of] input for future purposes TODO: deal with multiple line input
-			var j = txt[i].indexOf("\n");
-			if (j<0) htmlSec.textContent+=txt[i];
-			else {
-			    htmlSec.textContent+=txt[i].substring(0,j);
-			    htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
+		    htmlSec.textContent+=txt[i];
+		    if (inputBack<cmdHistory.length) { // some output hasn't been sent back yet
+			var s = htmlSec.textContent;
+			// a bit messy: we're going to try to isolate [one line of] input for future purposes
+			var j = s.indexOf(cmdHistory[inputBack]);
+			if (j>=0) { // gonna have to split TODO add decoration
+			    htmlSec.textContent=s.substring(0,j);
+			    htmlSec.innerHTML+=Prism.highlight(cmdHistory[inputBack],Prism.languages.macaulay2);
 			    htmlSec=document.createElement('span');
 			    shell[0].insertBefore(htmlSec,inputEl);
-			    htmlSec.textContent=txt[i].substring(j,txt[i].length);
-			    inputSent=false;
+			    htmlSec.textContent=s.substring(j+cmdHistory[inputBack].length,s.length);
+			    inputBack++;
 			}
 		    }
 		}
@@ -404,7 +396,6 @@ module.exports = function() {
 
       shell.on("reset", function() {
 	  inputEl.textContent="";
-	  inputSent=false;
 	  removeAutoComplete(false); // remove autocomplete menu if open
     });
   };
