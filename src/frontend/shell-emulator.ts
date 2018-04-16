@@ -34,10 +34,11 @@ var inputEl; // note that inputEl should always have *one text node*
 var autoComplete=null;
 // mathJax related stuff
 var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
-var htmlComment= /(<!--txt-->|<!--html-->|\\\(|\\\))/; // the hope is, these sequences are never used in M2
+var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|\n|\\\(|\\\))/; // the hope is, these sequences are never used in M2
 var htmlCode=""; // saves the current html code to avoid rewriting
 var texCode=""; // saves the current TeX code
 var htmlSec; // html element of current html code
+var inputPossibleEnd = false; // TODO explain
 declare var katex;
 declare var Prism;
 declare const M2symbols;
@@ -144,31 +145,9 @@ module.exports = function() {
 	  // will only trigger if selection is empty
 	  if (window.getSelection().isCollapsed)
 	      inputEl.textContent = this.textContent;
+	  placeCaretAtEnd();
+	  scrollDown(shell);
       };
-
-      function processReturnedInput(htmlSec) { // the idea is to highlight/decorate returned input
-	  var ii = inputBack;
-	  while (ii<cmdHistory.length) { // loops over all. so be it if some are missed
-	      var s = htmlSec.textContent;
-	      // a bit messy: we're going to try to isolate [one line of] input for future purposes
-	      var j = s.indexOf(cmdHistory[ii]);
-	      if (j>=0) { // found one; gonna have to split
-		  htmlSec.textContent=s.substring(0,j);
-		  htmlSec=document.createElement('span');
-		  htmlSec.classList.add("M2PastInput");
-		  htmlSec.innerHTML=Prism.highlight(cmdHistory[ii],Prism.languages.macaulay2);
-		  htmlSec.addEventListener("click",codeInputAction);
-		  shell[0].insertBefore(htmlSec,inputEl);
-		  htmlSec=document.createElement('span');
-		  htmlSec.textContent=s.substring(j+cmdHistory[ii].length,s.length);
-		  shell[0].insertBefore(htmlSec,inputEl);
-		  if (ii != inputBack) console.log("Missed "+(ii-inputBack)+" lines of input");
-		  inputBack=ii+1;
-	      }
-	      ii++;
-	  }
-	  return htmlSec;
-      }
 
       function removeAutoComplete(flag) { // flag means insert the selection or not
 	  if (autoComplete)
@@ -362,8 +341,9 @@ module.exports = function() {
 //	msgDirty = msgDirty.replace(/\u0008 \u0008/g,""); // we're removing the backspaces that have been possibly sent by the tab hack
 
       let msg: string = msgDirty.replace(/\u0007/, "");
-      msg = msg.replace(/\r\n/g, "\n");
-      msg = msg.replace(/\r/g, "\n");
+//      msg = msg.replace(/\r\n/g, "\n"); // ???
+	//      msg = msg.replace(/\r/g, "\n");
+	msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
 
 	if (inputBack<cmdHistory.length)
 	    inputEl.textContent=""; // input will eventually be regurgitated by M2
@@ -372,45 +352,83 @@ module.exports = function() {
 	    htmlSec=document.createElement('span');
 	    shell[0].insertBefore(htmlSec,inputEl);
 	}
+	console.log("msg='"+msg+"'");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
 	    if (i>0) {
+		var oldState=mathJaxState;
 		mathJaxState=txt[i-1];
+		if (inputPossibleEnd&&(mathJaxState!="<!--con-->")) {
+		    // remove the \n
+		    htmlSec.innerHTML=Prism.highlight(htmlSec.textContent.substring(0,htmlSec.textContent.length-1),Prism.languages.macaulay2);
+		    htmlSec.addEventListener("click",codeInputAction);
+		    // new section
+		    htmlSec=document.createElement('span');
+		    shell[0].insertBefore(htmlSec,inputEl);
+		    txt[i]="\n"+txt[i]; // and put it back
+		}
+		inputPossibleEnd=false;
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    htmlSec=document.createElement('span');
 		    htmlSec.style.whiteSpace="initial"; // TODO define a class
 		    shell[0].insertBefore(htmlSec,inputEl);
 		    htmlCode=""; // need to record because html tags may get broken
 		}
-		else if (mathJaxState=="\\(") { // tex section beginning
+		else if (mathJaxState=="\\(") { // tex section beginning. should always be in a html section
 		    texCode="";
 		}
 		else if (mathJaxState=="\\)") { // tex section ending
 		    texCode=dehtml(texCode);
 		    htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
 		}
-		else if (mathJaxState=="<!--txt-->") {
+		else if (mathJaxState=="<!--inp-->") { // input section: a bit special (ends at first \n)
+		    htmlSec=document.createElement('span');
+		    htmlSec.classList.add("M2PastInput");
+		    shell[0].insertBefore(htmlSec,inputEl);
+		}
+		else if (mathJaxState=="<!--con-->") { // continuation of input section
+		    // have to navigate around the fact that chrome refuses to focus on empty text node *at start of line*
+		    // current solution: leave the blank
+		    // TODO: make it prettier so the bubble is rectangular
+		}
+		else if (mathJaxState=="\n") {
+		    if ((oldState=="<!--inp-->")||(oldState=="<!--con-->")) { // possible end of input
+			if (txt[i].length>0) {
+			    htmlSec=document.createElement('span');
+			    shell[0].insertBefore(htmlSec,inputEl);
+			} else { // but we're not sure yet, have to wait
+			    inputPossibleEnd=true;
+			}
+		    }
+		    txt[i]="\n"+txt[i]; // otherwise, means nothing special
+		}
+		else { // ordinary text (error messages, prompts, etc)
 		    htmlSec=document.createElement('span');
 		    shell[0].insertBefore(htmlSec,inputEl);
 		}
 	    }
 	    if (txt[i].length>0) {
-		if (mathJaxState=="<!--txt-->") {
+		if (mathJaxState=="\\(") texCode+=txt[i];
+		else if (mathJaxState=="<!--html-->") htmlSec.innerHTML=htmlCode+=txt[i];
+		else {
 		    htmlSec.textContent+=txt[i];
-		    htmlSec=processReturnedInput(htmlSec);
+//		    htmlSec=processReturnedInput(htmlSec);
 		}
-		else if (mathJaxState=="\\(") texCode+=txt[i];
-		else htmlSec.innerHTML=htmlCode+=txt[i];
 	    }
 	}
 	scrollDown(shell);
     });
 
       shell.on("reset", function() {
+	  console.log("Reset");
 	  inputEl.textContent="";
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  inputBack=cmdHistory.length;
+	  mathJaxState = "<!--txt-->";
+	  inputPossibleEnd = false;
+	  htmlSec=null;
+	  shell[0].insertBefore(document.createElement("br"),inputEl);
     });
   };
 
