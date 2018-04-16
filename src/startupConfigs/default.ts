@@ -8,8 +8,8 @@ const options = {
     MATH_PROGRAM: "Macaulay2",
     MATH_PROGRAM_COMMAND: "M2-experimental -e \"topLevelMode = MathJax\"",
     port: "8003",
-    resumeString: "Type <!--html--><span class=\"M2PastInput\">listUserSymbols</span><!--txt--> to print the list of " +
-    "existing symbols.\n\ni* : ",
+      // tslint:disable-next-line:max-line-length
+      resumeString: "Type <!--html--><span class=\"M2PastInput\" onclick=\"this.parentElement.parentElement.lastChild.textContent = this.textContent\">listUserSymbols</span><!--txt--> to print the list of existing symbols.\n\ni* : ",
   },
   startInstance: {
     host: "127.0.0.1",

@@ -269,8 +269,8 @@ a.submenuItem {
     vertical-align: middle;
 }
 
+
 .M2PastInput:hover {
-    transition: background-color 100ms;
     background-color: lightyellow;
     box-shadow: 1px 1px 2px #000;
     text-decoration: none;
@@ -278,7 +278,6 @@ a.submenuItem {
     cursor: pointer;
 }
 .M2PastInput:active {
-    transition: background-color 100ms;
     background-color: red;
     box-shadow: 1px 1px 2px #000;
     text-decoration: none;
