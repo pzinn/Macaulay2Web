@@ -61,7 +61,7 @@ function addToInput(pos,s) {
     // put the caret where it should be
     inputEl.focus();
     var sel=window.getSelection();
-    sel.collapse(inputEl.firstChild,pos+s.length); // remember inputEl can only contain one (text) node
+    sel.collapse(inputEl.firstChild,pos+s.length); // remember inputEl can only contain one (text) node. or should we relax this?
 }
 
 function placeCaretAtEnd(flag?) { // flag means only do it if not already in input. returns position
@@ -78,7 +78,7 @@ function placeCaretAtEnd(flag?) { // flag means only do it if not already in inp
 	var sel = window.getSelection();
 	if (inputEl.childNodes.length>0)
 	{
-	    var node = inputEl.childNodes[0];
+	    var node = inputEl.lastChild;
 	    var len = node.textContent.length;
 	    sel.collapse(node,len);
 	    return len;
@@ -164,14 +164,14 @@ module.exports = function() {
       }
 
       
-      shell.on("postMessage", function(e,msg,flag1,flag2,flag3) { // send input, adding \n if necessary
+      shell.on("postMessage", function(e,msg,flag1,flag2) { // send input, adding \n if necessary
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  if (msg.length>0) {
 	      if (msg[msg.length-1] != "\n") msg+="\n";
 	      inputEl.textContent=msg;	      
 	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",msg);
-	      if (flag2) shell.trigger("addToHistory",msg); // TODO remove flag2
-	      if (flag3) placeCaretAtEnd();
+	      shell.trigger("addToHistory",msg);
+	      if (flag2) placeCaretAtEnd();
 	      postRawMessage(msg, socket);
 	  }
       });
@@ -207,7 +207,7 @@ module.exports = function() {
 	  removeAutoComplete(false); // remove autocomplete menu if open
       if (e.keyCode === keys.enter) {
 	  const msg=inputEl.textContent;
-	  shell.trigger("postMessage",[msg,true,true,true]);
+	  shell.trigger("postMessage",[msg,true,true]);
 	  scrollDown(shell);
 	  return false; // no crappy <div></div> added
       }
