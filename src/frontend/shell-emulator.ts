@@ -146,6 +146,30 @@ module.exports = function() {
 	      inputEl.textContent = this.textContent;
       };
 
+      function processReturnedInput(htmlSec) { // the idea is to highlight/decorate returned input
+	  var ii = inputBack;
+	  while (ii<cmdHistory.length) { // loops over all. so be it if some are missed
+	      var s = htmlSec.textContent;
+	      // a bit messy: we're going to try to isolate [one line of] input for future purposes
+	      var j = s.indexOf(cmdHistory[ii]);
+	      if (j>=0) { // found one; gonna have to split
+		  htmlSec.textContent=s.substring(0,j);
+		  htmlSec=document.createElement('span');
+		  htmlSec.classList.add("M2PastInput");
+		  htmlSec.innerHTML=Prism.highlight(cmdHistory[ii],Prism.languages.macaulay2);
+		  htmlSec.addEventListener("click",codeInputAction);
+		  shell[0].insertBefore(htmlSec,inputEl);
+		  htmlSec=document.createElement('span');
+		  htmlSec.textContent=s.substring(j+cmdHistory[ii].length,s.length);
+		  shell[0].insertBefore(htmlSec,inputEl);
+		  if (ii != inputBack) console.log("Missed "+(ii-inputBack)+" lines of input");
+		  inputBack=ii+1;
+	      }
+	      ii++;
+	  }
+	  return htmlSec;
+      }
+
       function removeAutoComplete(flag) { // flag means insert the selection or not
 	  if (autoComplete)
 	  {
@@ -167,10 +191,10 @@ module.exports = function() {
       shell.on("postMessage", function(e,msg,flag1,flag2) { // send input, adding \n if necessary
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  if (msg.length>0) {
+	      shell.trigger("addToHistory",msg);
 	      if (msg[msg.length-1] != "\n") msg+="\n";
 	      inputEl.textContent=msg;	      
 	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",msg);
-	      shell.trigger("addToHistory",msg);
 	      if (flag2) placeCaretAtEnd();
 	      postRawMessage(msg, socket);
 	  }
@@ -232,7 +256,7 @@ module.exports = function() {
       }
 	  */ // for now CTRL-C is usual "copy"
 
-	// Forward key for tab completion, but do not track it.
+	  // auto-completion code
 	  if (e.keyCode === keys.tab) {
 	      var msg = inputEl.textContent;
 	      var i=pos-1;
@@ -374,28 +398,7 @@ module.exports = function() {
 	    if (txt[i].length>0) {
 		if (mathJaxState=="<!--txt-->") {
 		    htmlSec.textContent+=txt[i];
-		    if (inputBack<cmdHistory.length) { // some output hasn't been sent back yet
-			var ii = inputBack;
-			while (ii<cmdHistory.length) { // loops over all. so be it if some are missed
-			    var s = htmlSec.textContent;
-			    // a bit messy: we're going to try to isolate [one line of] input for future purposes
-			    var j = s.indexOf(cmdHistory[ii]);
-			    if (j>=0) { // gonna have to split
-				htmlSec.textContent=s.substring(0,j);
-				htmlSec=document.createElement('span');
-				htmlSec.classList.add("M2PastInput");
-				htmlSec.innerHTML=Prism.highlight(cmdHistory[ii],Prism.languages.macaulay2);
-				htmlSec.addEventListener("click",codeInputAction);
-				shell[0].insertBefore(htmlSec,inputEl);
-				htmlSec=document.createElement('span');
-				htmlSec.textContent=s.substring(j+cmdHistory[ii].length,s.length);
-				shell[0].insertBefore(htmlSec,inputEl);
-				if (ii != inputBack) console.log("Missed "+(ii-inputBack)+" lines of input");
-				inputBack=ii+1;
-			    }
-			    ii++;
-			}
-		    }
+		    htmlSec=processReturnedInput(htmlSec);
 		}
 		else if (mathJaxState=="\\(") texCode+=txt[i];
 		else htmlSec.innerHTML=htmlCode+=txt[i];
@@ -407,6 +410,7 @@ module.exports = function() {
       shell.on("reset", function() {
 	  inputEl.textContent="";
 	  removeAutoComplete(false); // remove autocomplete menu if open
+	  inputBack=cmdHistory.length;
     });
   };
 
