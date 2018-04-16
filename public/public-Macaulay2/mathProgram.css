@@ -277,14 +277,15 @@ a.submenuItem {
     cursor: pointer;
 }
 
-.autocomplete {
+.autocomplete ul {
     list-style: none;
     padding: 0px;
     margin: 0px;
-    display: inline-table;/* table; */
+    display: inline-table;
+    outline: none;
 }
 
-.autocomplete li:hover{
+#autocomplete-selection {
     background-color: lightyellow;
     cursor: pointer;
 }
