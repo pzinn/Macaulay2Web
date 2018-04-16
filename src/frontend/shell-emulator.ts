@@ -140,9 +140,7 @@ module.exports = function() {
 	  // will only trigger if selection is empty
 	  if (window.getSelection().isCollapsed)
 	  {
-	      this.classList.add("redbg"); // this should be done with CSS only
 	      inputEl.textContent = this.textContent;
-	      this.addEventListener("transitionend", function () { this.classList.remove("redbg"); });
 	      placeCaretAtEnd();
 	  }
       };
@@ -345,9 +343,11 @@ module.exports = function() {
 	
 	if (inputSent) {
 	    inputEl.textContent="";
-	     // force new section when input got sent (avoids nasty hacks with parsing for prompt later)
+	    // force new section when input got sent (avoids nasty hacks with parsing for prompt later)
+	    // REWRITE
 	    htmlSec=document.createElement('span');
 	    htmlSec.classList.add('M2PastInput'); // a class that's designed to be reused, highlighted, etc	    
+	    htmlSec.tabIndex=0; // HACK
 	    htmlSec.addEventListener("click", codeInputAction);
 	    shell[0].insertBefore(htmlSec,inputEl);
 	}
