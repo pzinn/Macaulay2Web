@@ -1,8 +1,11 @@
 body {
-    background: -webkit-linear-gradient(left, whitesmoke, lightsteelblue); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, whitesmoke, lightsteelblue); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, whitesmoke, lightsteelblue); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, whitesmoke, lightsteelblue); /* Standard syntax */
+    --left-color: whitesmoke;
+    --right-color: lightsteelblue;
+    /* --right-color: #F0FFE0; */
+    background: -webkit-linear-gradient(left, var(--left-color), var(--right-color)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(right, var(--left-color), var(--right-color)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(right, var(--left-color), var(--right-color)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to right, var(--left-color), var(--right-color)); /* Standard syntax */
 }
 
 .mdl-grid {
@@ -104,7 +107,7 @@ body {
 
 #M2In {
     overflow: scroll;
-    background: whitesmoke;
+    background: var(--left-color);
     white-space: pre;
     width: 100%;
     height: 100%;
@@ -149,7 +152,7 @@ body {
 }
 
 #fullScreenOutput {
-    background: lightsteelblue;
+    background: var(--left-color);
     width: 100%;
     height: 100%;
     -webkit-box-sizing: border-box;
@@ -278,7 +281,7 @@ a.submenuItem {
     list-style: none;
     padding: 0px;
     margin: 0px;
-    display: table;
+    display: inline-table;/* table; */
 }
 
 .autocomplete li:hover{
