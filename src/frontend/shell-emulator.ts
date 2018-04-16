@@ -402,6 +402,7 @@ module.exports = function() {
 			}
 		    }
 		    txt[i]="\n"+txt[i]; // otherwise, means nothing special
+		    mathJaxState=oldState;
 		}
 		else { // ordinary text (error messages, prompts, etc)
 		    htmlSec=document.createElement('span');
