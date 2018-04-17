@@ -37,7 +37,7 @@ b=GfxRectangle(10,10,20,50,"fill"=>"pink","stroke"=>"black")
 c=GfxCircle(50,50,50,"fill"=>"blue","fill-opacity"=>0.25)
 d=GfxRectangle(60,60,40,30,"rx"=>5, "ry"=>5, "fill"=>"red", "stroke"=>"grey")
 e=GfxEllipse(100,20,40,20)
-f=GfxLine(0,0,100,100,"stroke"=>green)
+f=GfxLine(0,0,100,100,"stroke"=>"green")
 g=GfxPolygon({(0,10),(100,10),(90,90),(0,80)},"stroke"=>"red","fill"=>"white")
 gfx (g,a,b,c,d,e,f)
 GfxAnimation { "r", 0, 50, 1, Obj => a }
