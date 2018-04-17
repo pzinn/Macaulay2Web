@@ -27,20 +27,8 @@ const unicodeBell = "\u0007";
 //const setCaretPosition = require("set-caret-position");
 const scrollDown = require("scroll-down");
 //const getSelected = require("get-selected-text");
-var cmdHistory: any = []; // History of commands for shell-like arrow navigation
-cmdHistory.index = 0;
-var inputBack=0; // number of lines of input that M2 has regurgitated so far
-var inputEl; // note that inputEl should always have *one text node*
-var autoComplete=null;
-// mathJax related stuff
-var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
-var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|\n|\\\(|\\\))/; // the hope is, these sequences are never used in M2
-var htmlCode=""; // saves the current html code to avoid rewriting
-var texCode=""; // saves the current TeX code
-var htmlSec; // html element of current html code
-var inputPossibleEnd = false; // TODO explain
-declare var katex;
-declare var Prism;
+declare const katex;
+declare const Prism;
 declare const M2symbols;
 
 function dehtml(s) {
@@ -56,19 +44,19 @@ function dehtml(s) {
 - in firefox, anchor* = start, focus* = end.              *node = the text node inside the dom element
 */
 
-function addToInput(pos,s) {
-    var msg=inputEl.textContent;
-    inputEl.textContent = msg.substring(0,pos)+s+msg.substring(pos,msg.length);
+function addToEl(el,pos,s) { // insert into a pure text element
+    var msg=el.textContent;
+    el.textContent = msg.substring(0,pos)+s+msg.substring(pos,msg.length);
     // put the caret where it should be
-    inputEl.focus();
+    el.focus();
     var sel=window.getSelection();
-    sel.collapse(inputEl.firstChild,pos+s.length); // remember inputEl can only contain one (text) node. or should we relax this?
+    sel.collapse(el.firstChild,pos+s.length); // remember inputEl can only contain one (text) node. or should we relax this? anyway at this stage we rewrote its textContent
 }
 
-function placeCaretAtEnd(flag?) { // flag means only do it if not already in input. returns position
-    if ((!flag)||(document.activeElement!=inputEl))
+function placeCaretAtEnd(el,flag?) { // flag means only do it if not already in input. returns position
+    if ((!flag)||(document.activeElement!=el))
     {
-	inputEl.focus();
+	el.focus();
 /*	var range = document.createRange();
 	range.selectNodeContents(inputEl);
 	range.collapse(false);
@@ -77,16 +65,16 @@ function placeCaretAtEnd(flag?) { // flag means only do it if not already in inp
 	sel.addRange(range);
 */
 	var sel = window.getSelection();
-	if (inputEl.childNodes.length>0)
+	if (el.childNodes.length>0)
 	{
-	    var node = inputEl.lastChild;
+	    var node = el.lastChild;
 	    var len = node.textContent.length;
 	    sel.collapse(node,len);
 	    return len;
 	}
 	else return 0;
     }
-    else return window.getSelection().focusOffset;
+    else return window.getSelection().focusOffset; // correct only if one text node TODO think about this
 }
 
 const postRawMessage = function(msg: string, socket: Socket) {
@@ -100,37 +88,23 @@ const interrupt = function(socket: Socket) {
   };
 };
 
-
-const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
-    e.preventDefault();
-    if (cmdHistory.length === 0) {
-        // Maybe we did nothing so far.
-	return;
-    }
-    if (e.keyCode === keys.arrowDown) { // DOWN
-	if (cmdHistory.index < cmdHistory.length) {
-	    cmdHistory.index++;
-	    if (cmdHistory.index === cmdHistory.length) {
-		inputEl.textContent=cmdHistory.current;
-	    } else {
-		inputEl.textContent=cmdHistory[cmdHistory.index];
-	    }
-	}
-    }
-    else if ((e.keyCode === keys.arrowUp) && (cmdHistory.index > 0)) { // UP
-	if (cmdHistory.index === cmdHistory.length) {
-	    cmdHistory.current = inputEl.textContent;
-	}
-	cmdHistory.index--;
-	inputEl.textContent=cmdHistory[cmdHistory.index];
-    }
-    placeCaretAtEnd();
-    scrollDown(shell);
-};
-
 module.exports = function() {
   const create = function(shell, editorArea, socket: Socket) {
       const editor = editorArea;
+      var cmdHistory: any = []; // History of commands for shell-like arrow navigation
+      cmdHistory.index = 0;
+      var inputBack=0; // number of lines of input that M2 has regurgitated so far
+      var inputEl; // note that inputEl should always have *one text node*
+      var autoComplete=null;
+      // mathJax related stuff
+      var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
+      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|\n|\\\(|\\\))/; // the hope is, these sequences are never used in M2
+      var htmlCode=""; // saves the current html code to avoid rewriting
+      var texCode=""; // saves the current TeX code
+      var htmlSec; // html element of current html code
+      var inputPossibleEnd = false; // TODO explain
+
+      
       inputEl = document.createElement("span");
       inputEl.contentEditable = true; // inputEl.setAttribute("contentEditable",true);
       inputEl.spellcheck = false; // inputEl.setAttribute("spellcheck",false);
@@ -141,11 +115,38 @@ module.exports = function() {
       shell[0].appendChild(inputEl);
       inputEl.focus();
 
+      const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
+	  e.preventDefault();
+	  if (cmdHistory.length === 0) {
+              // Maybe we did nothing so far.
+	      return;
+	  }
+	  if (e.keyCode === keys.arrowDown) { // DOWN
+	      if (cmdHistory.index < cmdHistory.length) {
+		  cmdHistory.index++;
+		  if (cmdHistory.index === cmdHistory.length) {
+		      inputEl.textContent=cmdHistory.current;
+		  } else {
+		      inputEl.textContent=cmdHistory[cmdHistory.index];
+		  }
+	      }
+	  }
+	  else if ((e.keyCode === keys.arrowUp) && (cmdHistory.index > 0)) { // UP
+	      if (cmdHistory.index === cmdHistory.length) {
+		  cmdHistory.current = inputEl.textContent;
+	      }
+	      cmdHistory.index--;
+	      inputEl.textContent=cmdHistory[cmdHistory.index];
+	  }
+	  placeCaretAtEnd(inputEl);
+    scrollDown(shell);
+      };
+      
       const codeInputAction = function(e) {
 	  // will only trigger if selection is empty
 	  if (window.getSelection().isCollapsed)
 	      inputEl.textContent = this.textContent;
-	  placeCaretAtEnd();
+	  placeCaretAtEnd(inputEl);
 	  scrollDown(shell);
       };
 
@@ -157,11 +158,11 @@ module.exports = function() {
 	      if (flag) {
 		  var el=document.getElementById("autocomplete-selection");
 		  if (el)
-		      addToInput(pos,el.textContent+" ");
+		      addToEl(inputEl,pos,el.textContent+" ");
 		  else
-		      addToInput(pos,autoComplete.word);
+		      addToEl(inputEl,pos,autoComplete.word);
 	      }
-	      else addToInput(pos,autoComplete.word);
+	      else addToEl(inputEl,pos,autoComplete.word);
 	      shell[0].removeChild(autoComplete); autoComplete=null;
 	  }
       }
@@ -174,7 +175,7 @@ module.exports = function() {
 	      if (msg[msg.length-1] != "\n") msg+="\n";
 	      inputEl.textContent=msg;	      
 	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",msg);
-	      if (flag2) placeCaretAtEnd();
+	      if (flag2) placeCaretAtEnd(inputEl);
 	      postRawMessage(msg, socket);
 	  }
       });
@@ -201,9 +202,9 @@ module.exports = function() {
       }
     });
 
-      shell.bind('paste',function(e) { placeCaretAtEnd(true); });
+      shell.bind('paste',function(e) { placeCaretAtEnd(inputEl,true); });
 
-      shell.click(function(e) { if (window.getSelection().isCollapsed) placeCaretAtEnd(true) });
+      shell.click(function(e) { if (window.getSelection().isCollapsed) placeCaretAtEnd(inputEl,true) });
 
     // If something is entered, change to end of textarea, if at wrong position.
       shell.keydown(function(e: KeyboardEvent) {
@@ -227,7 +228,7 @@ module.exports = function() {
       if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
         return;
       }
-      var pos = placeCaretAtEnd(true);
+      var pos = placeCaretAtEnd(inputEl,true);
 
 	  /*
       if (e.ctrlKey && e.keyCode === keys.cKey) {
@@ -249,7 +250,7 @@ module.exports = function() {
 		  while ((k<M2symbols.length)&&(M2symbols[k].substring(0,word.length)==word)) k++;
 		  if (k>j) {
 		      if (k==j+1) { // yay, one solution
-			  addToInput(pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
+			  addToEl(inputEl,pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
 		      }
 		      else { // more interesting: several solutions
 			  // obvious solution would've been datalist + input; sadly, the events generated by the input are 200% erratic, so can't use
@@ -356,19 +357,23 @@ module.exports = function() {
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
-	    if (i>0) {
-		var oldState=mathJaxState;
-		mathJaxState=txt[i-1];
-		if (inputPossibleEnd&&(mathJaxState!="<!--con-->")) {
-		    // remove the \n
+	    if (inputPossibleEnd&&(txt[i].length>0)) { // take care of that nasty hack: if what comes right after some input + "\n" isn't <!--con-->, we start a new section
+		if ((i==0)||((i>0)&&(txt[i-1]!="<!--con-->"))) {
+		    // remove the \n and highlight
 		    htmlSec.innerHTML=Prism.highlight(htmlSec.textContent.substring(0,htmlSec.textContent.length-1),Prism.languages.macaulay2);
 		    htmlSec.addEventListener("click",codeInputAction);
 		    // new section
 		    htmlSec=document.createElement('span');
 		    shell[0].insertBefore(htmlSec,inputEl);
 		    txt[i]="\n"+txt[i]; // and put it back
+		    mathJaxState="<!--txt-->";
 		}
 		inputPossibleEnd=false;
+	    }
+	    
+	    if (i>0) {
+		var oldState=mathJaxState;
+		mathJaxState=txt[i-1];
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    htmlSec=document.createElement('span');
 		    htmlSec.style.whiteSpace="initial"; // TODO define a class
