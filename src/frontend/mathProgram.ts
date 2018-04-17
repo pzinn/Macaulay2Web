@@ -50,14 +50,14 @@ const getSelected = function (){ // could almost just trigger the paste event, e
 };
 
 const editorEvaluate = function() {
-    $("#M2Out").trigger("postMessage", [getSelected(), false, true, false]);
+    $("#M2Out").trigger("postMessage", [getSelected(), false, false]);
   };
 
 const editorKeypress = function(e) {
 //    var prismInvoked=false;
       if (e.which === 13 && e.shiftKey) {
 	  e.preventDefault();
-	  $("#M2Out").trigger("postMessage", [getSelected(), false, true, true]);
+	  $("#M2Out").trigger("postMessage", [getSelected(), false, true]);
       }
     // should remove the unpleasant insertions of <div> or <br> when \n
 
