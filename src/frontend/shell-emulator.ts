@@ -102,7 +102,6 @@ module.exports = function() {
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
       var htmlSec; // html element of current html code
-      var inputPossibleEnd = false; // TODO explain
 
       
       inputEl = document.createElement("span");
@@ -353,11 +352,11 @@ module.exports = function() {
 	    htmlSec=document.createElement('span');
 	    shell[0].insertBefore(htmlSec,inputEl);
 	}
-	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
+//	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
-	    console.log("state='"+mathJaxState+"',txt='"+txt[i]+"'");
+//	    console.log("state='"+mathJaxState+"',txt='"+txt[i]+"'");
 	    var oldState=mathJaxState;
 	    if (i>0) {
 		mathJaxState=txt[i-1];
@@ -380,9 +379,8 @@ module.exports = function() {
 		    shell[0].insertBefore(htmlSec,inputEl);
 		}
 		else if (mathJaxState=="<!--con-->") { // continuation of input section
-		    // have to navigate around the fact that chrome refuses to focus on empty text node *at start of line*
-		    // current solution: leave the blank
-		    // TODO: make it prettier so the bubble is rectangular
+		    // must navigate around the fact that chrome refuses focus on empty text node *at start of line*
+		    // current solution: leave the blanks
 		}
 		else { // ordinary text (error messages, prompts, etc)
 		    htmlSec=document.createElement('span');
@@ -392,9 +390,10 @@ module.exports = function() {
 	    if (txt[i].length>0) {
 		// if we are at the end of an input section
 		if ((oldState=="<!--inpend-->")&&((i==0)||(mathJaxState!="<!--con-->"))) {
-		    // remove the \n and highlight
+		    // remove the final \n and highlight
 		    htmlSec.innerHTML=Prism.highlight(htmlSec.textContent.substring(0,htmlSec.textContent.length-1),Prism.languages.macaulay2);
 		    htmlSec.addEventListener("click",codeInputAction);
+		    // TODO: make it prettier so the bubble is rectangular
 		    // new section
 		    htmlSec=document.createElement('span');
 		    shell[0].insertBefore(htmlSec,inputEl);
@@ -415,7 +414,7 @@ module.exports = function() {
 
 		if (mathJaxState=="\\(") texCode+=txt[i];
 		else if (mathJaxState=="<!--html-->") htmlSec.innerHTML=htmlCode+=txt[i];
-		else htmlSec.textContent+=txt[i];
+		else htmlSec.textContent+=txt[i]; // all other states are raw text
 	    }
 	}
 	scrollDown(shell);
