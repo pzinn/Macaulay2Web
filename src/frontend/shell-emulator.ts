@@ -98,7 +98,7 @@ module.exports = function() {
       var autoComplete=null;
       // mathJax related stuff
       var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
-      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|\n|\\\(|\\\))/; // the hope is, these sequences are never used in M2
+      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|\\\(|\\\))/; // the hope is, these sequences are never used in M2
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
       var htmlSec; // html element of current html code
@@ -357,22 +357,8 @@ module.exports = function() {
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
-	    if (inputPossibleEnd&&(txt[i].length>0)) { // take care of that nasty hack: if what comes right after some input + "\n" isn't <!--con-->, we start a new section
-		if ((i==0)||((i>0)&&(txt[i-1]!="<!--con-->"))) {
-		    // remove the \n and highlight
-		    htmlSec.innerHTML=Prism.highlight(htmlSec.textContent.substring(0,htmlSec.textContent.length-1),Prism.languages.macaulay2);
-		    htmlSec.addEventListener("click",codeInputAction);
-		    // new section
-		    htmlSec=document.createElement('span');
-		    shell[0].insertBefore(htmlSec,inputEl);
-		    txt[i]="\n"+txt[i]; // and put it back
-		    mathJaxState="<!--txt-->";
-		}
-		inputPossibleEnd=false;
-	    }
-	    
+	    var oldState=mathJaxState;
 	    if (i>0) {
-		var oldState=mathJaxState;
 		mathJaxState=txt[i-1];
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    htmlSec=document.createElement('span');
@@ -391,23 +377,13 @@ module.exports = function() {
 		    htmlSec=document.createElement('span');
 		    htmlSec.classList.add("M2PastInput");
 		    shell[0].insertBefore(htmlSec,inputEl);
+		    // TODO: if necessary (shouldn't happen) we do some surgery
 		}
 		else if (mathJaxState=="<!--con-->") { // continuation of input section
 		    // have to navigate around the fact that chrome refuses to focus on empty text node *at start of line*
 		    // current solution: leave the blank
 		    // TODO: make it prettier so the bubble is rectangular
-		}
-		else if (mathJaxState=="\n") {
-		    if ((oldState=="<!--inp-->")||(oldState=="<!--con-->")) { // possible end of input
-			if (txt[i].length>0) {
-			    htmlSec=document.createElement('span');
-			    shell[0].insertBefore(htmlSec,inputEl);
-			} else { // but we're not sure yet, have to wait
-			    inputPossibleEnd=true;
-			}
-		    }
-		    txt[i]="\n"+txt[i]; // otherwise, means nothing special
-		    mathJaxState=oldState;
+		    // TODO: if necessary (shouldn't happen) we do some surgery
 		}
 		else { // ordinary text (error messages, prompts, etc)
 		    htmlSec=document.createElement('span');
@@ -415,12 +391,34 @@ module.exports = function() {
 		}
 	    }
 	    if (txt[i].length>0) {
+		if ((mathJaxState=="<!--inp-->")||(mathJaxState=="<!--con-->")) {
+		    var ii=txt[i].indexOf("\n");
+		    if (ii>=0) {
+			mathJaxState="<!--inpend-->";
+			if (ii<txt[i].length-1) {
+			    // should never happen but still, should take care of it
+			    txt=txt.splice(i,-1,txt[i].substring(0,ii+1),"<!--txt-->",txt[i].substring(ii+1,txt[i].length));
+			}
+		    }
+		}
+			
+
+
+		if ((oldState=="<!--inpend-->")&&((i==0)||(mathJaxState!="<!--con-->"))) {
+		    // an input section ended
+		    // remove the \n and highlight
+		    htmlSec.innerHTML=Prism.highlight(htmlSec.textContent.substring(0,htmlSec.textContent.length-1),Prism.languages.macaulay2);
+		    htmlSec.addEventListener("click",codeInputAction);
+		    // new section
+		    htmlSec=document.createElement('span');
+		    shell[0].insertBefore(htmlSec,inputEl);
+		    txt[i]="\n"+txt[i]; // and put it back
+		    mathJaxState="<!--txt-->";
+		}
+		
 		if (mathJaxState=="\\(") texCode+=txt[i];
 		else if (mathJaxState=="<!--html-->") htmlSec.innerHTML=htmlCode+=txt[i];
-		else {
-		    htmlSec.textContent+=txt[i];
-//		    htmlSec=processReturnedInput(htmlSec);
-		}
+		else htmlSec.textContent+=txt[i];
 	    }
 	}
 	scrollDown(shell);
