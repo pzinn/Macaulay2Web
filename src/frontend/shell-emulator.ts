@@ -102,14 +102,13 @@ module.exports = function() {
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
       var htmlSec; // html element of current html code
-
       
       inputEl = document.createElement("span");
       inputEl.contentEditable = true; // inputEl.setAttribute("contentEditable",true);
-      inputEl.spellcheck = false; // inputEl.setAttribute("spellcheck",false);
-      inputEl.autocapitalize = false; // inputEl.setAttribute("autocapitalize","off");
-      inputEl.autocorrect = false;
-      inputEl.autocomplete = false;
+      inputEl.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
+      inputEl.autocapitalize = "off";
+      inputEl.autocorrect = "off";
+      inputEl.autocomplete = "off";
       inputEl.classList.add("M2CurrentInput");
       shell[0].appendChild(inputEl);
       inputEl.focus();
@@ -352,11 +351,11 @@ module.exports = function() {
 	    htmlSec=document.createElement('span');
 	    shell[0].insertBefore(htmlSec,inputEl);
 	}
-//	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
+	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
-//	    console.log("state='"+mathJaxState+"',txt='"+txt[i]+"'");
+	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
 	    var oldState=mathJaxState;
 	    if (i>0) {
 		mathJaxState=txt[i-1];
@@ -407,7 +406,7 @@ module.exports = function() {
 			mathJaxState="<!--inpend-->";
 			if (ii<txt[i].length-1) {
 			    // need to do some surgery: what's after the \n is some <!--txt--> stuff
-			    txt=txt.splice(i,1,txt[i].substring(0,ii+1),"<!--txt-->",txt[i].substring(ii+1,txt[i].length));
+			    txt.splice(i,1,txt[i].substring(0,ii+1),"<!--txt-->",txt[i].substring(ii+1,txt[i].length));
 			}
 		    }
 		}
@@ -426,7 +425,6 @@ module.exports = function() {
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  inputBack=cmdHistory.length;
 	  mathJaxState = "<!--txt-->";
-	  inputPossibleEnd = false;
 	  htmlSec=null;
 	  shell[0].insertBefore(document.createElement("br"),inputEl);
     });
