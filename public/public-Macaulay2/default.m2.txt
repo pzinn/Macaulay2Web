@@ -1,0 +1,53 @@
+-- Welcome to Macaulay2 !
+-- In this window you may type in Macaulay2 commands 
+-- and have them evaluated by the server.
+
+-- Evaluate a line or selection by typing Shift+Enter 
+-- or by clicking on Evaluate.
+
+-- To open the Macaulay2 documentation for a 
+-- topic in another browser tab or window do e.g.:
+
+viewHelp "determinant"
+
+-- If nothing shows up, you may need to set your browser 
+-- to allow pop up windows.
+
+-- To set the print width of the Macaulay2 output window:
+printWidth = 150
+-- (value of 0 means essentially infinite)
+
+-- Here are some sample commands:
+  R = ZZ/101[a,b,c,d]
+  I = ideal(a^2-b*c, a^3-b^3, a^4-b*d^3, a^5-c^2*d^3)
+  J = ideal groebnerBasis I;
+  netList J_*
+
+  -- Some examples of rings
+  A = ZZ/32003[a..g]
+  B = QQ[x_1..x_6]
+  C = ZZ/101[vars(0..12)]
+---------------
+
+-- something fun
+load "~/m2/Gfx/Gfx.m2"
+
+a=GfxCircle("fill"=>"yellow","stroke"=>"green",GfxWidth=>10,GfxHeight=>10)
+b=GfxRectangle(10,10,20,50,"fill"=>"pink","stroke"=>"black")
+c=GfxCircle(50,50,50,"fill"=>"blue","fill-opacity"=>0.25)
+d=GfxRectangle(60,60,40,30,"rx"=>5, "ry"=>5, "fill"=>"red", "stroke"=>"grey")
+e=GfxEllipse(100,20,40,20)
+f=GfxLine(0,0,100,100,"stroke"=>green)
+g=GfxPolygon({(0,10),(100,10),(90,90),(0,80)},"stroke"=>"red","fill"=>"white")
+gfx (g,a,b,c,d,e,f)
+GfxAnimation { "r", 0, 50, 1, Obj => a }
+
+-- or
+rgb={"red","green","blue"};
+scan(rgb, x -> (value x <- GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>10,GfxHeight=>10}))
+value\rgb
+R=QQ[x_red,x_green,x_blue]
+describe R
+x_red^2-x_green^2
+factor oo
+

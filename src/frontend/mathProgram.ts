@@ -36,7 +36,6 @@ const saveInteractions = function() {
   dialog.showModal();
 };
 
-
 const getSelected = function (){ // could almost just trigger the paste event, except for when there's no selection and final \n...
     var sel=window.getSelection();
     if (sel.isCollapsed) {
@@ -307,7 +306,7 @@ const init = function() {
   attachCloseDialogBtns();
 
 //  $("#M2In").text(DefaultText);
-    $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
+//    $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
 
   shell.create($("#M2Out"), $("#M2In"), socket);
 
