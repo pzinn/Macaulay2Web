@@ -143,9 +143,11 @@ module.exports = function() {
       const codeInputAction = function(e) {
 	  // will only trigger if selection is empty
 	  if (window.getSelection().isCollapsed)
+	  {
 	      inputEl.textContent = this.textContent;
-	  placeCaretAtEnd(inputEl);
-	  scrollDown(shell);
+	      placeCaretAtEnd(inputEl);
+	      scrollDown(shell);
+	  }
       };
 
       function removeAutoComplete(flag) { // flag means insert the selection or not
@@ -353,7 +355,7 @@ module.exports = function() {
 	    htmlSec=document.createElement('span');
 	    shell[0].insertBefore(htmlSec,inputEl);
 	}
-//	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
+	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{

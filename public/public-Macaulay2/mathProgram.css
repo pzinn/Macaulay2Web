@@ -87,8 +87,16 @@ body {
 }
 */
 
+.M2HTMLOutput:hover {
+    box-shadow: 1px 1px 2px #000;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+
 .M2HTMLOutput {
     white-space: initial;
+    display: inline-block; /* to make sure size is as big as content */
 }
 
 .M2HTMLOutput ul {
