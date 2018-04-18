@@ -170,7 +170,7 @@ module.exports = function() {
 		      addToEl(inputEl,pos,autoComplete.word);
 	      }
 	      else addToEl(inputEl,pos,autoComplete.word);
-	      shell[0].removeChild(autoComplete); autoComplete=null;
+	      autoComplete.parentElement.removeChild(autoComplete); autoComplete=null;
 	  }
       }
 
@@ -283,7 +283,7 @@ module.exports = function() {
 			  autoComplete.appendChild(tabMenu);
 			  autoComplete.appendChild(document.createTextNode(inputEl.textContent.substring(pos,inputEl.textContent.length)));
 			  inputEl.textContent=inputEl.textContent.substring(0,i+1);
-			  shell[0].appendChild(autoComplete);
+			  inputEl.parentElement.appendChild(autoComplete);
 			  tabMenu.addEventListener("click", function(e) {
 				  removeAutoComplete(true);
 				  e.preventDefault();
@@ -430,8 +430,7 @@ module.exports = function() {
 		    // must navigate around the fact that chrome refuses focus on empty text node *at start of line*
 		    // current solution: extra blank
 		    htmlSec.textContent+=" "; // TODO: find something better otherwise blanks add up
-		    console.log("TEST"+document.activeElement);
-		    var flag = document.activeElement == inputEl;
+		    var flag = document.activeElement == inputEl; // actually, this doesn't work either -- it's too late, the focus has been lost
 		    htmlSec.appendChild(inputEl); // !!! we move the input inside the current span to get proper indentation !!!
 		    if (flag) inputEl.focus();
 		}
@@ -467,6 +466,7 @@ module.exports = function() {
 	  inputBack=cmdHistory.length;
 	  mathJaxState = "<!--txt-->";
 	  htmlSec=null;
+	  shell[0].appendChild(inputEl);
 	  shell[0].insertBefore(document.createElement("br"),inputEl);
     });
   };
