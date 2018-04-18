@@ -16,26 +16,6 @@ const dialogPolyfill = require("dialog-polyfill");
 const shell = require("./shell-emulator")();
 import * as $ from "jquery";
 
-const saveInteractions = function() {
-  const input = $("#M2In");
-  const output = $("#M2Out");
-  const dialog: any = document.querySelector("#saveDialog");
-  const inputLink = "data:application/octet-stream," +
-      encodeURIComponent(input.text() as string);
-  const inputParagraph = document.getElementById("inputContent");
-  inputParagraph.setAttribute("href", inputLink);
-  inputParagraph.setAttribute("download", "input.txt");
-  const outputLink = "data:application/octet-stream," +
-      encodeURIComponent(output.text() as string);
-  const outputParagraph = document.getElementById("outputContent");
-  outputParagraph.setAttribute("href", outputLink);
-  outputParagraph.setAttribute("download", "output.txt");
-  if (!dialog.showModal) {
-    dialogPolyfill.registerDialog(dialog);
-  }
-  dialog.showModal();
-};
-
 const getSelected = function (){ // could almost just trigger the paste event, except for when there's no selection and final \n...
     var sel=window.getSelection();
     if (sel.isCollapsed) {
@@ -58,8 +38,6 @@ const editorKeypress = function(e) {
 	  e.preventDefault();
 	  $("#M2Out").trigger("postMessage", [getSelected(), false, true]);
       }
-    // should remove the unpleasant insertions of <div> or <br> when \n
-
     /*
     if (!prismInvoked) {
 	prismInvoked=true;
@@ -115,12 +93,15 @@ const emitReset = function() {
 };
 
 const attachCtrlBtnActions = function() {
-    $("#sendBtn").click(editorEvaluate);
+  $("#sendBtn").click(editorEvaluate);
   $("#resetBtn").click(emitReset);
   $("#interruptBtn").click(shell.interrupt(socket));
-  $("#saveBtn").click(saveInteractions);
+  $("#saveBtn").click(saveFile);
   $("#loadBtn").click(loadFile);
+  $("#hiliteBtn").click(hilite);
 };
+
+var fileName = "default.m2";
 
 const loadFile = function(event) {
     var dialog = document.createElement("input");
@@ -132,6 +113,7 @@ const loadFile = function(event) {
 const loadFileProcess = function(event) {
     if (event.target.files.length>0) {
 	var fileToLoad = event.target.files[0];
+	fileName = fileToLoad.name;
 	var fileReader = new FileReader();
 	fileReader.onload = function(e)
 	{
@@ -145,6 +127,21 @@ const loadFileProcess = function(event) {
     }
 };
 
+const saveFile = function() {
+    const input = $("#M2In");
+    const inputLink = "data:application/octet-stream," +
+	encodeURIComponent(input.text() as string);
+    var inputParagraph = document.createElement("a");
+    inputParagraph.setAttribute("href", inputLink);
+    inputParagraph.setAttribute("download", fileName); // reuses the last loaded file name
+    inputParagraph.click();
+};
+
+
+
+const hilite = function(event) {
+    $("#M2In").html(Prism.highlight($("#M2In").text(),Prism.languages.macaulay2));
+}
 
 const showUploadSuccessDialog = function(event) {
   const dialog: any = document.getElementById("uploadSuccessDialog");

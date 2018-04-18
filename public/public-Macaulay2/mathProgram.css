@@ -107,6 +107,7 @@ body {
 }
 
 #M2In {
+    display: inline-block; /* prevents chrome from creating new <div> when hitting \n. sadly, can't use this trick on M2CurrentInput, makes pointer disappear... */
     overflow: scroll;
     background: var(--left-color);
     white-space: pre;
@@ -137,15 +138,20 @@ body {
     position: absolute;
     z-index: 2;
     top: 8px;
-    right: 200px;
+    right: 205px;
 }
 #saveBtn {
     position: absolute;
     z-index: 2;
     top: 8px;
-    right: 130px;
+    right: 132px;
 }
-
+#hiliteBtn {
+    position: absolute;
+    z-index: 2;
+    top: 54px;
+    right: 24px;
+}
 
 /* Select all buttons within a class="mdl-dialog" element */
 .mdl-dialog > button {

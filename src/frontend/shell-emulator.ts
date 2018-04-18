@@ -1,7 +1,6 @@
 // initialize with ID (string) of field that should act like a shell,
 //  i.e., command history, taking input and replacing it with output from server
 
-// historyArea is a div in which we save the command for future use
 // shell functions for
 // * interrupt
 /* eslint-env browser */
@@ -95,14 +94,15 @@ module.exports = function() {
       cmdHistory.index = 0;
       var inputBack=0; // number of lines of input that M2 has regurgitated so far
       var inputEl; // note that inputEl should always have *one text node*
-      var autoComplete=null;
+      var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax related stuff
       var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
       var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|\\\(|\\\))/; // the hope is, these sequences are never used in M2
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
-      var htmlSec; // html element of current html code
+      var htmlSec; // html element of current output section
       
+      // create the input area
       inputEl = document.createElement("span");
       inputEl.contentEditable = true; // inputEl.setAttribute("contentEditable",true);
       inputEl.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
@@ -200,7 +200,9 @@ module.exports = function() {
       }
     });
 
-      shell.bind('paste',function(e) { placeCaretAtEnd(inputEl,true); });
+      shell.bind('paste',function(e) {
+	  placeCaretAtEnd(inputEl,true);
+      });
 
       shell.click(function(e) { if (window.getSelection().isCollapsed) placeCaretAtEnd(inputEl,true) });
 
