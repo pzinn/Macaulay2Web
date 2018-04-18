@@ -339,7 +339,10 @@ module.exports = function() {
 	  htmlSec=document.createElement('span');
 	  if (className) {
 	      htmlSec.classList.add(className);
-	      if (className=="M2PastInput") htmlSec.addEventListener("click",codeInputAction);
+	      if (className=="M2PastInput") {
+		  //htmlSec.style.display="inline-table";
+		  htmlSec.style.display="inline-block"; htmlSec.style.verticalAlign="top";
+	      }
 	      else if (className=="M2HTMLOutput") htmlSec.addEventListener("click",minOutput);
 	  }
 	  shell[0].insertBefore(htmlSec,inputEl);
@@ -374,13 +377,21 @@ module.exports = function() {
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
-//	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
+	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
 	    // if we are at the end of an input section
-	    if ((mathJaxState=="<!--inpend-->")&&(txt[i].length>0)&&((i==0)||(txt[i-1]!="<!--con-->"))) {
+	    if ((mathJaxState=="<!--inpend-->")&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!="<!--con-->")))) {
 		// remove the final \n and highlight
 		htmlSec.innerHTML=Prism.highlight(htmlSec.textContent.substring(0,htmlSec.textContent.length-1),Prism.languages.macaulay2);
-		// TODO: make it prettier so the bubble is rectangular
-		txt[i]="\n"+txt[i]; // and put it back
+		//htmlSec.textContent=htmlSec.textContent.substring(0,htmlSec.textContent.length-1);
+		if (inputEl.parentElement != shell[0]) { // we moved the input because of multi-line
+		    var flag = document.activeElement == inputEl;
+		    shell[0].appendChild(inputEl);
+		    if (flag) inputEl.focus();
+		}
+		htmlSec.addEventListener("click",codeInputAction);
+		// reintroduce a line break
+		//		shell[0].insertBefore(document.createElement("br"),inputEl);
+		shell[0].insertBefore(document.createTextNode("\n"),inputEl);
 		if (i==0) { // manually start new section
 		    mathJaxState="<!--txt-->";
 		    createSpan();
@@ -417,7 +428,12 @@ module.exports = function() {
 		}
 		else if (mathJaxState=="<!--con-->") { // continuation of input section
 		    // must navigate around the fact that chrome refuses focus on empty text node *at start of line*
-		    // current solution: leave the blanks
+		    // current solution: extra blank
+		    htmlSec.textContent+=" "; // TODO: find something better otherwise blanks add up
+		    console.log("TEST"+document.activeElement);
+		    var flag = document.activeElement == inputEl;
+		    htmlSec.appendChild(inputEl); // !!! we move the input inside the current span to get proper indentation !!!
+		    if (flag) inputEl.focus();
 		}
 		else { // ordinary text (error messages, prompts, etc)
 		    createSpan();
