@@ -353,11 +353,11 @@ module.exports = function() {
 	    htmlSec=document.createElement('span');
 	    shell[0].insertBefore(htmlSec,inputEl);
 	}
-	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
+//	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
-	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
+//	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
 	    // if we are at the end of an input section
 	    if ((mathJaxState=="<!--inpend-->")&&(txt[i].length>0)&&((i==0)||(txt[i-1]!="<!--con-->"))) {
 		// remove the final \n and highlight

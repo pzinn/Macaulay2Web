@@ -10,12 +10,9 @@
 
 viewHelp "determinant"
 
+-- (currently not working)
 -- If nothing shows up, you may need to set your browser 
 -- to allow pop up windows.
-
--- To set the print width of the Macaulay2 output window:
-printWidth = 150
--- (value of 0 means essentially infinite)
 
 -- Here are some sample commands:
   R = ZZ/101[a,b,c,d]
