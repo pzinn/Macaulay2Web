@@ -276,8 +276,8 @@ a.submenuItem {
     vertical-align: middle;
 }
 
-
 .M2PastInput:hover {
+    transition: background-color 200ms;
     background-color: lightyellow;
     box-shadow: 1px 1px 2px #000;
     text-decoration: none;
@@ -285,6 +285,7 @@ a.submenuItem {
     cursor: pointer;
 }
 .M2PastInput:active {
+    transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */
     background-color: red;
     box-shadow: 1px 1px 2px #000;
     text-decoration: none;
