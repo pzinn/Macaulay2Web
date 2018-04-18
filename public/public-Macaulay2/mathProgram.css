@@ -134,6 +134,7 @@ body {
 
 
 #M2In {
+    position: absolute; /* otherwise 2 scrollbars appear... (?) */
     display: inline-block; /* prevents chrome from creating new <div> when hitting \n. sadly, can't use this trick on M2CurrentInput, makes pointer disappear... */
     overflow: scroll;
     background: var(--left-color);
