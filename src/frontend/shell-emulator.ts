@@ -353,11 +353,11 @@ module.exports = function() {
 	    htmlSec=document.createElement('span');
 	    shell[0].insertBefore(htmlSec,inputEl);
 	}
-//	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
+	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
-//	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
+	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
 	    // if we are at the end of an input section
 	    if ((mathJaxState=="<!--inpend-->")&&(txt[i].length>0)&&((i==0)||(txt[i-1]!="<!--con-->"))) {
 		// remove the final \n and highlight
@@ -372,6 +372,7 @@ module.exports = function() {
 		}
 	    }
 	    if (i>0) {
+		var oldState = mathJaxState;
 		mathJaxState=txt[i-1];
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    htmlSec=document.createElement('span');
@@ -380,11 +381,22 @@ module.exports = function() {
 		    htmlCode=""; // need to record because html tags may get broken
 		}
 		else if (mathJaxState=="\\(") { // tex section beginning. should always be in a html section
-		    texCode="";
+		    if (oldState=="<!--html-->")
+			texCode="";
+		    else {
+			mathJaxState=oldState;
+			txt[i]="\\("+txt[i]; // if not, treat as ordinary text
+		    }
 		}
 		else if (mathJaxState=="\\)") { // tex section ending
-		    texCode=dehtml(texCode);
-		    htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
+		    if (oldState=="\\(") { // we're not allowing for complicated nested things yet. TODO
+			texCode=dehtml(texCode);
+			htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
+		    }
+		    else {
+			mathJaxState=oldState;
+			txt[i]="\\)"+txt[i]; // if not, treat as ordinary text
+		    }
 		}
 		else if (mathJaxState=="<!--inp-->") { // input section: a bit special (ends at first \n)
 		    htmlSec=document.createElement('span');
