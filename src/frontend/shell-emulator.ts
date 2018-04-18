@@ -150,6 +150,13 @@ module.exports = function() {
 	  }
       };
 
+      const minOutput = function(e) {
+	  // temporary. ideally, would move the content to a hidden area or something
+	  this.textContent="<deleted>";
+	  this.classList.remove("M2HTMLOutput");
+	  this.style.color="gray";
+      };
+
       function removeAutoComplete(flag) { // flag means insert the selection or not
 	  if (autoComplete)
 	  {
@@ -328,6 +335,16 @@ module.exports = function() {
 	}
       });
 
+      const createSpan = function(className?) {
+	  htmlSec=document.createElement('span');
+	  if (className) {
+	      htmlSec.classList.add(className);
+	      if (className=="M2PastInput") htmlSec.addEventListener("click",codeInputAction);
+	      else if (className=="M2HTMLOutput") htmlSec.addEventListener("click",minOutput);
+	  }
+	  shell[0].insertBefore(htmlSec,inputEl);
+      }
+
     shell.on("onmessage", function(e, msgDirty) {
       if (msgDirty === unicodeBell) {
         return;
@@ -351,10 +368,7 @@ module.exports = function() {
 	if (inputBack<cmdHistory.length)
 	    inputEl.textContent=""; // input will eventually be regurgitated by M2
 	
-	if (!htmlSec) { // for very first time
-	    htmlSec=document.createElement('span');
-	    shell[0].insertBefore(htmlSec,inputEl);
-	}
+	if (!htmlSec) createSpan(); // for very first time
 	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
@@ -364,22 +378,18 @@ module.exports = function() {
 	    if ((mathJaxState=="<!--inpend-->")&&(txt[i].length>0)&&((i==0)||(txt[i-1]!="<!--con-->"))) {
 		// remove the final \n and highlight
 		htmlSec.innerHTML=Prism.highlight(htmlSec.textContent.substring(0,htmlSec.textContent.length-1),Prism.languages.macaulay2);
-		htmlSec.addEventListener("click",codeInputAction);
 		// TODO: make it prettier so the bubble is rectangular
 		txt[i]="\n"+txt[i]; // and put it back
 		if (i==0) { // manually start new section
 		    mathJaxState="<!--txt-->";
-		    htmlSec=document.createElement('span');
-		    shell[0].insertBefore(htmlSec,inputEl);
+		    createSpan();
 		}
 	    }
 	    if (i>0) {
 		var oldState = mathJaxState;
 		mathJaxState=txt[i-1];
 		if (mathJaxState=="<!--html-->") { // html section beginning
-		    htmlSec=document.createElement('span');
-		    htmlSec.classList.add("M2HTMLOutput");
-		    shell[0].insertBefore(htmlSec,inputEl);
+		    createSpan("M2HTMLOutput");
 		    htmlCode=""; // need to record because html tags may get broken
 		}
 		else if (mathJaxState=="\\(") { // tex section beginning. should always be in a html section
@@ -402,17 +412,14 @@ module.exports = function() {
 		    }
 		}
 		else if (mathJaxState=="<!--inp-->") { // input section: a bit special (ends at first \n)
-		    htmlSec=document.createElement('span');
-		    htmlSec.classList.add("M2PastInput");
-		    shell[0].insertBefore(htmlSec,inputEl);
+		    createSpan("M2PastInput");
 		}
 		else if (mathJaxState=="<!--con-->") { // continuation of input section
 		    // must navigate around the fact that chrome refuses focus on empty text node *at start of line*
 		    // current solution: leave the blanks
 		}
 		else { // ordinary text (error messages, prompts, etc)
-		    htmlSec=document.createElement('span');
-		    shell[0].insertBefore(htmlSec,inputEl);
+		    createSpan();
 		}
 	    }
 	    if (txt[i].length>0) {
