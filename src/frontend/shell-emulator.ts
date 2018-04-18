@@ -151,7 +151,7 @@ module.exports = function() {
       };
 
       const minOutput = function(e) {
-	  // temporary. ideally, would move the content to a hidden area or something
+	  // not such a big deal, output can always be reproduced by typing oxxx (incidentally, that should be clickable as well)
 	  this.textContent="<deleted>";
 	  this.classList.remove("M2HTMLOutput");
 	  this.style.color="gray";
@@ -351,13 +351,14 @@ module.exports = function() {
       }
         // If we get a 'Session resumed.' message, we check whether it is
         // relevant.
+	// seems a bit brutal. what if there's more stuff in there? TODO
 	/*
       if (msgDirty.indexOf("Session resumed.") > -1) {
         if (mathProgramOutput.length > 0) { 
           return;
         }
       }
-	*/ // TODO rewrite
+*/
 //	msgDirty = msgDirty.replace(/\u0008 \u0008/g,""); // we're removing the backspaces that have been possibly sent by the tab hack
 
       let msg: string = msgDirty.replace(/\u0007/, "");
