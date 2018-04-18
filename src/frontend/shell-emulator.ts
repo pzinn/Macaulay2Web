@@ -155,6 +155,7 @@ module.exports = function() {
 	  this.textContent="<deleted>";
 	  this.classList.remove("M2HTMLOutput");
 	  this.style.color="gray";
+	  e.stopPropagation();
       };
 
       function removeAutoComplete(flag) { // flag means insert the selection or not
@@ -373,11 +374,11 @@ module.exports = function() {
 	    inputEl.textContent=""; // input will eventually be regurgitated by M2
 	
 	if (!htmlSec) createSpan(); // for very first time
-	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
+//	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
-	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
+//	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
 	    // if we are at the end of an input section
 	    if ((mathJaxState=="<!--inpend-->")&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!="<!--con-->")))) {
 		// remove the final \n and highlight
