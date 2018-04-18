@@ -230,7 +230,7 @@ const displayUrlInNewWindow = function(url) {
 };
 
 const codeClickAction = function() {
-  $(this).addClass("redbg");
+//  $(this).addClass("redbg"); // should be done via css
   const code = $(this).text() + "\n";
     $("#M2Out").trigger("postMessage", [code,false,false]);
 };
@@ -268,10 +268,6 @@ const socketOnError = function(type) {
     console.log("We got an " + type + " error. " + error);
     serverDisconnect = true;
   };
-};
-
-const fadeBackToOriginalColor = function() {
-  $(this).removeClass("redbg");
 };
 
 const init = function() {
@@ -320,10 +316,6 @@ const init = function() {
   $(document).on("click", ".tabPanelActivator", openTabCloseDrawer);
   $(document).on("click", "#about", openAboutTab);
 
-  $(document).on("transitionend", "code.redbg",
-      fadeBackToOriginalColor);
-  $(document).on("transitionend", "codeblock.redbg",
-      fadeBackToOriginalColor);
 };
 
 module.exports = function() {

@@ -228,37 +228,6 @@ body {
     width: 20vw;
 }
 
-code, codeblock {
-    white-space: pre;
-    background-color: lightyellow;
-    margin-left: 20px;
-    cursor: pointer;
-    font-family: 'Roboto Mono';
-    box-shadow: 1px 1px 2px #000;
-    display: inline-block;
-    text-decoration: none;
-    line-height: 1.5;
-    transition: background-color 100ms;
-}
-
-code {
-    padding: 1px 3px;
-    border-radius: 5px;
-
-}
-
-codeblock {
-    padding: 3px 6px;
-    border-radius: 10px;
-}
-
-.redbg {
-    background-color: red !important;
-    transition: background-color 100ms;
-    box-shadow: 1px 1px 2px #000;
-    text-decoration: none;
-}
-
 .mdl-mini-footer {
     padding-top: 1px;
     padding-bottom: 1px;
@@ -276,15 +245,39 @@ a.submenuItem {
     vertical-align: middle;
 }
 
-.M2PastInput:hover {
+code, codeblock {
+    white-space: pre;
+    margin-left: 20px;
+    font-family: 'Roboto Mono';
+    display: inline-block;
+    line-height: 1.5;
+    transition: background-color 100ms;
+}
+
+code, codeblock, .M2PastInput:hover {
     transition: background-color 200ms;
     background-color: lightyellow;
     box-shadow: 1px 1px 2px #000;
     text-decoration: none;
-    border-radius: 5px;
     cursor: pointer;
 }
-.M2PastInput:active {
+
+code {
+    padding: 1px 3px;
+    border-radius: 5px;
+
+}
+
+codeblock {
+    padding: 3px 6px;
+    border-radius: 10px;
+}
+
+.M2PastInput:hover {
+    border-radius: 5px;
+}
+ 
+code:active, codeblock:active, .M2PastInput:active {
     transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */
     background-color: red;
     box-shadow: 1px 1px 2px #000;
