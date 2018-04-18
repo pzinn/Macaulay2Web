@@ -376,7 +376,7 @@ module.exports = function() {
 		mathJaxState=txt[i-1];
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    htmlSec=document.createElement('span');
-		    htmlSec.style.whiteSpace="initial"; // TODO define a class
+		    htmlSec.classList.add("M2HTMLOutput");
 		    shell[0].insertBefore(htmlSec,inputEl);
 		    htmlCode=""; // need to record because html tags may get broken
 		}
@@ -389,9 +389,10 @@ module.exports = function() {
 		    }
 		}
 		else if (mathJaxState=="\\)") { // tex section ending
-		    if (oldState=="\\(") { // we're not allowing for complicated nested things yet. TODO
+		    if (oldState=="\\(") { // we're not allowing for complicated nested things yet. TODO???
 			texCode=dehtml(texCode);
 			htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
+			mathJaxState="<!--html-->"; // back to ordinary HTML
 		    }
 		    else {
 			mathJaxState=oldState;

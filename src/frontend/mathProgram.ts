@@ -92,13 +92,19 @@ const emitReset = function() {
   socket.emit("reset");
 };
 
+const ClearOut = function(e) {
+    var out = document.getElementById("M2Out");
+    while (out.childElementCount>3) out.removeChild(out.firstChild);
+}
+
 const attachCtrlBtnActions = function() {
-  $("#sendBtn").click(editorEvaluate);
-  $("#resetBtn").click(emitReset);
-  $("#interruptBtn").click(shell.interrupt(socket));
-  $("#saveBtn").click(saveFile);
-  $("#loadBtn").click(loadFile);
-  $("#hiliteBtn").click(hilite);
+    $("#sendBtn").click(editorEvaluate);
+    $("#resetBtn").click(emitReset);
+    $("#interruptBtn").click(shell.interrupt(socket));
+    $("#saveBtn").click(saveFile);
+    $("#loadBtn").click(loadFile);
+    $("#hiliteBtn").click(hilite);
+    $("#clearBtn").click(ClearOut);
 };
 
 var fileName = "default.m2";

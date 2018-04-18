@@ -87,24 +87,51 @@ body {
 }
 */
 
-#M2Out h1 {
+.M2HTMLOutput {
+    white-space: initial;
+}
+
+.M2HTMLOutput ul {
+    line-height: 16px;
+}
+
+.M2HTMLOutput pre {
+    border-style: solid;
+    border-width: 1px;
+    padding: 4px;
+}
+
+.M2HTMLOutput h1 {
     font-size: 26px;
+    line-height: 26px;
+    margin: 12px;
 }
-#M2Out h2 {
+.M2HTMLOutput h2 {
     font-size: 24px;
+    line-height: 24px;
+    margin: 10px;
 }
-#M2Out h3 {
+.M2HTMLOutput h3 {
     font-size: 22px;
+    line-height: 22px;
+    margin: 8px;
 }
-#M2Out h4 {
+.M2HTMLOutput h4 {
     font-size: 20px;
+    line-height: 20px;
+    margin: 6px;
 }
-#M2Out h5 {
+.M2HTMLOutput h5 {
     font-size: 18px;
+    line-height: 18px;
+    margin: 4px;
 }
-#M2Out h6 {
+.M2HTMLOutput h6 {
     font-size: 16px;
+    line-height: 16px;
+    margin: 2px;
 }
+
 
 #M2In {
     display: inline-block; /* prevents chrome from creating new <div> when hitting \n. sadly, can't use this trick on M2CurrentInput, makes pointer disappear... */
@@ -167,16 +194,21 @@ body {
     box-sizing: border-box;
 }
 
-
+/*
+#M2OutCtrlBtns, #M2OutCtrlBtnsMax {
+    z-index: 2;
+    position: absolute;
+    top: 16px;
+    right: 80px;
+}
+*/
 #M2OutZoomBtns {
     z-index: 2;
     position: absolute;
     top: 16px;
-    right: 40px;
+    right: 50px;
 }
-
 #maximizeOutput, #downsizeOutput {
-    /*opacity: 0.3;*/
     z-index: 2;
     position: absolute;
     top: 16px;
