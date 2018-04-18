@@ -30,6 +30,7 @@ printWidth = 150
 ---------------
 
 -- something fun
+restart
 load "~/m2/Gfx/Gfx.m2"
 
 a=GfxCircle("fill"=>"yellow","stroke"=>"green",GfxWidth=>10,GfxHeight=>10)

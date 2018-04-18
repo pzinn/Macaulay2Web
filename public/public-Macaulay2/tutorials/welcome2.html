@@ -118,13 +118,10 @@
   are terminated.
   </p>
 
-    <h4>Downloading your work</h4>
+    <h4>Loading/Saving your work</h4>
   
    <p>
-  Click on the <b>Save</b> button at the top right of the window.  A dialog will appear
-  where you can save the text in the <b>Input</b> window, or the text in the Macaulay2
-  terminal on the right-hand side.
-  Alternatively, you can just select the text you wish, and copy it.
+  Click on the <b>Load</b> and <b>Save</b> buttons at the top right of the editor tab to transfer the contents of a local file to the editor, and vice versa.
   </p>
 
 </div>
@@ -155,14 +152,13 @@
   For example, to see what files you have in your home directory on the server, try:</p>
   <p><code>get "!ls -a"</code></p>
 
-  <h4>Macaulay2 and image files</h4>
+  <h4>Macaulay2 and temporary files</h4>
 
-  <p>Sometimes Macaulay2 or one of its packages generates image files.
-  For example, the displayGraph function below creates a jpeg file.
+  <p>Sometimes Macaulay2 or one of its packages generate temporary files.
+  For example, the graph function below creates a jpeg file.
   </p>
     <p><code>needsPackage "Graphs"</code></p>
     <p><code>A = graph({{v_1,v_3},{v_2,v_4},{v_1,v_4}})</code></p>
-    <p><code>displayGraph A</code></p>
 
   <h4>Getting files back to your machine</h4>
 
