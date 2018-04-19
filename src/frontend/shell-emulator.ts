@@ -111,6 +111,7 @@ module.exports = function() {
 	  inputEl.autocapitalize = "off";
 	  inputEl.autocorrect = "off";
 	  inputEl.autocomplete = "off";
+	  inputEl.classList.add("M2Input");
 	  inputEl.classList.add("M2CurrentInput");
 	  shell[0].appendChild(inputEl);
 	  inputEl.focus();
@@ -155,11 +156,11 @@ module.exports = function() {
 	  }
       };
 
-      const minOutput = function(e) {
+      const eraseOutput = function(e) {
 	  if (window.getSelection().isCollapsed)
 	  {
 	      this.textContent="<deleted>"; // that's right, delete it (not such a big deal,
-	      this.classList.remove("M2HTMLOutput"); // output can always be reproduced by typing oxxx)
+	      this.classList.remove("M2HtmlOutput"); // output can always be reproduced by typing oxxx)
 
 	      this.style.color="gray";
 	      e.stopPropagation();
@@ -360,7 +361,7 @@ module.exports = function() {
 	  htmlSec=document.createElement('span');
 	  if (className) {
 	      htmlSec.className=className;
-	      if (className.indexOf("M2HtmlOutput")>=0) htmlSec.addEventListener("click",minOutput);
+	      if (className.indexOf("M2HtmlOutput")>=0) htmlSec.addEventListener("click",eraseOutput);
 	  }
 	  shell[0].insertBefore(htmlSec,inputEl);
       }

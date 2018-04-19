@@ -82,14 +82,12 @@ body {
     vertical-align: top;
 }
 
-.M2CurrentInput:empty {
-    display: inline; /* clever workaround for chrome's bug with empty inline-block not having focus */
-}
-
 .M2CurrentInput {
     outline: none;
-    display: inline-block;
-    vertical-align: top;
+}
+
+.M2CurrentInput:empty {
+    display: inline; /* clever workaround for chrome's bug with empty inline-block not having focus */
 }
 
 /*
