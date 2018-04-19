@@ -113,10 +113,15 @@ body {
     line-height: 16px;
 }
 
-.M2Html pre {
+.M2Html .single pre { /* "single" is the class name used by M2 documentation. pre is used for code example */
     border-style: solid;
     border-width: 1px;
+    margin: 4px;
     padding: 4px;
+}
+
+pre {
+    margin: 0px;
 }
 
 .M2Html h1 {
@@ -355,11 +360,19 @@ code:active, codeblock:active, .M2PastInput:active {
 }
 
 
-/* /* that would allow katex to wrap, except it screws up fraction bars */
+/* that allows katex to wrap */
+/*
 .katex {
-    max-width: 100%;
+    width: 100%;
     display: inline-block;
     white-space: normal;
     vertical-align: top;
 }
-&/
+*/
+/* except it screws up fraction bars */
+/*
+.mfrac {
+    white-space: nowrap;
+}
+*/
+/* and anything else that has vertical structure, really */
