@@ -79,6 +79,12 @@ body {
 
 .M2CurrentInput {
     outline: none;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.M2CurrentInput:empty {
+    display: inline; /* clever workaround for chrome's bug with empty inline-block not having focus */
 }
 /*
 #M2Out tt {
@@ -87,26 +93,66 @@ body {
 }
 */
 
-#M2Out h1 {
-    font-size: 26px;
-}
-#M2Out h2 {
-    font-size: 24px;
-}
-#M2Out h3 {
-    font-size: 22px;
-}
-#M2Out h4 {
-    font-size: 20px;
-}
-#M2Out h5 {
-    font-size: 18px;
-}
-#M2Out h6 {
-    font-size: 16px;
+.M2HTMLOutput:hover {
+    box-shadow: 1px 1px 2px #000;
+    text-decoration: none;
+    border-radius: 5px;
 }
 
+
+.M2HTMLOutput {
+    white-space: initial;
+    display: inline-block; /* to make sure size is as big as content */
+}
+
+.M2HTMLOutput ul {
+    line-height: 16px;
+}
+
+.M2HTMLOutput pre {
+    border-style: solid;
+    border-width: 1px;
+    padding: 4px;
+}
+
+.M2HTMLOutput h1 {
+    font-size: 26px;
+    line-height: 26px;
+    margin: 12px;
+}
+.M2HTMLOutput h2 {
+    font-size: 24px;
+    line-height: 24px;
+    margin: 10px;
+}
+.M2HTMLOutput h3 {
+    font-size: 22px;
+    line-height: 22px;
+    margin: 8px;
+}
+.M2HTMLOutput h4 {
+    font-size: 20px;
+    line-height: 20px;
+    margin: 6px;
+}
+.M2HTMLOutput h5 {
+    font-size: 18px;
+    line-height: 18px;
+    margin: 4px;
+}
+.M2HTMLOutput h6 {
+    font-size: 16px;
+    line-height: 16px;
+    margin: 2px;
+}
+
+
 #M2In {
+    /* position: absolute; */ /* otherwise 2 scrollbars appear... fixed instead by inline style hack */
+    display: inline-block; /* prevents chrome from creating new <div> when hitting \n.
+			      doesn't prevent firefox from inserting <br>, though.
+			      and incompatible with position: absolute */
+    outline: none;
     overflow: scroll;
     background: var(--left-color);
     white-space: pre;
@@ -137,15 +183,20 @@ body {
     position: absolute;
     z-index: 2;
     top: 8px;
-    right: 200px;
+    right: 205px;
 }
 #saveBtn {
     position: absolute;
     z-index: 2;
     top: 8px;
-    right: 130px;
+    right: 132px;
 }
-
+#hiliteBtn {
+    position: absolute;
+    z-index: 2;
+    top: 54px;
+    right: 24px;
+}
 
 /* Select all buttons within a class="mdl-dialog" element */
 .mdl-dialog > button {
@@ -161,16 +212,21 @@ body {
     box-sizing: border-box;
 }
 
-
+/*
+#M2OutCtrlBtns, #M2OutCtrlBtnsMax {
+    z-index: 2;
+    position: absolute;
+    top: 16px;
+    right: 80px;
+}
+*/
 #M2OutZoomBtns {
     z-index: 2;
     position: absolute;
     top: 16px;
-    right: 40px;
+    right: 50px;
 }
-
 #maximizeOutput, #downsizeOutput {
-    /*opacity: 0.3;*/
     z-index: 2;
     position: absolute;
     top: 16px;
@@ -222,37 +278,6 @@ body {
     width: 20vw;
 }
 
-code, codeblock {
-    white-space: pre;
-    background-color: lightyellow;
-    margin-left: 20px;
-    cursor: pointer;
-    font-family: 'Roboto Mono';
-    box-shadow: 1px 1px 2px #000;
-    display: inline-block;
-    text-decoration: none;
-    line-height: 1.5;
-    transition: background-color 100ms;
-}
-
-code {
-    padding: 1px 3px;
-    border-radius: 5px;
-
-}
-
-codeblock {
-    padding: 3px 6px;
-    border-radius: 10px;
-}
-
-.redbg {
-    background-color: red !important;
-    transition: background-color 100ms;
-    box-shadow: 1px 1px 2px #000;
-    text-decoration: none;
-}
-
 .mdl-mini-footer {
     padding-top: 1px;
     padding-bottom: 1px;
@@ -270,15 +295,40 @@ a.submenuItem {
     vertical-align: middle;
 }
 
+code, codeblock {
+    white-space: pre;
+    margin-left: 20px;
+    font-family: 'Roboto Mono';
+    display: inline-block;
+    line-height: 1.5;
+    transition: background-color 100ms;
+}
 
-.M2PastInput:hover {
+code, codeblock, .M2PastInput:hover {
+    transition: background-color 200ms;
     background-color: lightyellow;
     box-shadow: 1px 1px 2px #000;
     text-decoration: none;
-    border-radius: 5px;
     cursor: pointer;
 }
-.M2PastInput:active {
+
+code {
+    padding: 1px 3px;
+    border-radius: 5px;
+
+}
+
+codeblock {
+    padding: 3px 6px;
+    border-radius: 10px;
+}
+
+.M2PastInput:hover {
+    border-radius: 5px;
+}
+ 
+code:active, codeblock:active, .M2PastInput:active {
+    transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */
     background-color: red;
     box-shadow: 1px 1px 2px #000;
     text-decoration: none;
@@ -298,4 +348,9 @@ a.submenuItem {
 #autocomplete-selection {
     background-color: lightyellow;
     cursor: pointer;
+}
+
+.M2Input {
+    display: inline-block;
+    vertical-align: top;
 }

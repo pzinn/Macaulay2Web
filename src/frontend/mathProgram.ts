@@ -16,57 +16,40 @@ const dialogPolyfill = require("dialog-polyfill");
 const shell = require("./shell-emulator")();
 import * as $ from "jquery";
 
-const saveInteractions = function() {
-  const input = $("#M2In");
-  const output = $("#M2Out");
-  const dialog: any = document.querySelector("#saveDialog");
-  const inputLink = "data:application/octet-stream," +
-      encodeURIComponent(input.text() as string);
-  const inputParagraph = document.getElementById("inputContent");
-  inputParagraph.setAttribute("href", inputLink);
-  inputParagraph.setAttribute("download", "input.txt");
-  const outputLink = "data:application/octet-stream," +
-      encodeURIComponent(output.text() as string);
-  const outputParagraph = document.getElementById("outputContent");
-  outputParagraph.setAttribute("href", outputLink);
-  outputParagraph.setAttribute("download", "output.txt");
-  if (!dialog.showModal) {
-    dialogPolyfill.registerDialog(dialog);
-  }
-  dialog.showModal();
-};
-
-
 const getSelected = function (){ // could almost just trigger the paste event, except for when there's no selection and final \n...
     var sel=window.getSelection();
-    if (sel.isCollapsed) {
-	(<any>sel).modify("move", "backward", "lineboundary");
-	(<any>sel).modify("extend", "forward", "lineboundary");
-	var s=sel.toString();
-	(<any>sel).modify("move", "forward", "line");
-	return s;
+    if (document.getElementById("M2In").contains(sel.focusNode)) { // only if we're inside the editor
+	if (sel.isCollapsed) {
+	    (<any>sel).modify("move", "backward", "lineboundary");
+	    (<any>sel).modify("extend", "forward", "lineboundary");
+	    var s=sel.toString();
+	    (<any>sel).modify("move", "forward", "line");
+	    return s;
+	}
+	else return sel.toString();
     }
-    else return sel.toString();
+    else return "";
 };
 
 const editorEvaluate = function() {
-    $("#M2Out").trigger("postMessage", [getSelected(), false, false]);
+    var msg = getSelected();
+    if (msg != "")
+	$("#M2Out").trigger("postMessage", [msg, false, false]);
   };
 
 const editorKeypress = function(e) {
 //    var prismInvoked=false;
       if (e.which === 13 && e.shiftKey) {
 	  e.preventDefault();
-	  $("#M2Out").trigger("postMessage", [getSelected(), false, true]);
+	  var msg = getSelected();
+	  if (msg != "")
+	      $("#M2Out").trigger("postMessage", [msg, false, true]);
       }
-    // should remove the unpleasant insertions of <div> or <br> when \n
-
     /*
     if (!prismInvoked) {
 	prismInvoked=true;
 	window.setTimeout( function() {
 	    // the trickiest part is to preserve the selection/caret
-	    // dirty trick: insert a forbidden character
 	    $("#M2In").html(Prism.highlight($("#M2In").text(),Prism.languages.macaulay2));
 	    prismInvoked=false;
 	}, 1000 );
@@ -115,13 +98,22 @@ const emitReset = function() {
   socket.emit("reset");
 };
 
+const ClearOut = function(e) {
+    var out = document.getElementById("M2Out");
+    while (out.childElementCount>3) out.removeChild(out.firstChild);
+}
+
 const attachCtrlBtnActions = function() {
     $("#sendBtn").click(editorEvaluate);
-  $("#resetBtn").click(emitReset);
-  $("#interruptBtn").click(shell.interrupt(socket));
-  $("#saveBtn").click(saveInteractions);
-  $("#loadBtn").click(loadFile);
+    $("#resetBtn").click(emitReset);
+    $("#interruptBtn").click(shell.interrupt(socket));
+    $("#saveBtn").click(saveFile);
+    $("#loadBtn").click(loadFile);
+    $("#hiliteBtn").click(hilite);
+    $("#clearBtn").click(ClearOut);
 };
+
+var fileName = "default.m2";
 
 const loadFile = function(event) {
     var dialog = document.createElement("input");
@@ -133,6 +125,7 @@ const loadFile = function(event) {
 const loadFileProcess = function(event) {
     if (event.target.files.length>0) {
 	var fileToLoad = event.target.files[0];
+	fileName = fileToLoad.name;
 	var fileReader = new FileReader();
 	fileReader.onload = function(e)
 	{
@@ -146,6 +139,37 @@ const loadFileProcess = function(event) {
     }
 };
 
+const removeBR = function() { // for firefox only: remove <br> in the editor and replace with \n
+    const input = document.getElementById("M2In");
+    var i=0;
+    while (i<input.childElementCount) {
+	if (input.children[i].tagName == "BR") {
+	    input.insertBefore(document.createTextNode("\n"),input.children[i]);
+	    input.removeChild(input.children[i]);
+	} else if (input.children[i].tagName == "DIV") { // normally should never happen
+	    input.insertBefore(document.createTextNode(input.children[i].textContent+"\n"),input.children[i]);
+	    input.removeChild(input.children[i]);
+	} else i++;
+    }
+}
+
+const saveFile = function() {
+    const input = $("#M2In");
+    removeBR();
+    const inputLink = "data:application/octet-stream," +
+	encodeURIComponent(input.text() as string);
+    var inputParagraph = document.createElement("a");
+    inputParagraph.setAttribute("href", inputLink);
+    inputParagraph.setAttribute("download", fileName); // reuses the last loaded file name
+    inputParagraph.click();
+};
+
+
+
+const hilite = function(event) {
+    removeBR();
+    $("#M2In").html(Prism.highlight($("#M2In").text(),Prism.languages.macaulay2));
+}
 
 const showUploadSuccessDialog = function(event) {
   const dialog: any = document.getElementById("uploadSuccessDialog");
@@ -234,7 +258,7 @@ const displayUrlInNewWindow = function(url) {
 };
 
 const codeClickAction = function() {
-  $(this).addClass("redbg");
+//  $(this).addClass("redbg"); // should be done via css
   const code = $(this).text() + "\n";
     $("#M2Out").trigger("postMessage", [code,false,false]);
 };
@@ -274,10 +298,6 @@ const socketOnError = function(type) {
   };
 };
 
-const fadeBackToOriginalColor = function() {
-  $(this).removeClass("redbg");
-};
-
 const init = function() {
   const zoom = require("./zooming");
   zoom.attachZoomButtons("M2Out", "M2OutZoomIn", "M2OutResetZoom",
@@ -307,7 +327,7 @@ const init = function() {
   attachCloseDialogBtns();
 
 //  $("#M2In").text(DefaultText);
-    $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
+//    $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
 
   shell.create($("#M2Out"), $("#M2In"), socket);
 
@@ -324,10 +344,6 @@ const init = function() {
   $(document).on("click", ".tabPanelActivator", openTabCloseDrawer);
   $(document).on("click", "#about", openAboutTab);
 
-  $(document).on("transitionend", "code.redbg",
-      fadeBackToOriginalColor);
-  $(document).on("transitionend", "codeblock.redbg",
-      fadeBackToOriginalColor);
 };
 
 module.exports = function() {
