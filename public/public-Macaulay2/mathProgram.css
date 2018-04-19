@@ -354,3 +354,12 @@ code:active, codeblock:active, .M2PastInput:active {
     cursor: pointer;
 }
 
+
+/* /* that would allow katex to wrap, except it screws up fraction bars */
+.katex {
+    max-width: 100%;
+    display: inline-block;
+    white-space: normal;
+    vertical-align: top;
+}
+&/
