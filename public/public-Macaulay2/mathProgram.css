@@ -340,3 +340,8 @@ code:active, codeblock:active, .M2PastInput:active {
     background-color: lightyellow;
     cursor: pointer;
 }
+
+.M2Input {
+    display: inline-block;
+    vertical-align: top;
+}

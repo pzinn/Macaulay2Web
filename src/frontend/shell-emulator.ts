@@ -101,17 +101,22 @@ module.exports = function() {
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
       var htmlSec; // html element of current output section
-      
-      // create the input area
-      inputEl = document.createElement("span");
-      inputEl.contentEditable = true; // inputEl.setAttribute("contentEditable",true);
-      inputEl.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
-      inputEl.autocapitalize = "off";
-      inputEl.autocorrect = "off";
-      inputEl.autocomplete = "off";
-      inputEl.classList.add("M2CurrentInput");
-      shell[0].appendChild(inputEl);
-      inputEl.focus();
+
+      const inputElCreate = function() {
+	  // (re)create the input area
+	  if (inputEl) inputEl.parentElement.removeChild(inputEl);
+	  inputEl = document.createElement("span");
+	  inputEl.contentEditable = true; // inputEl.setAttribute("contentEditable",true);
+	  inputEl.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
+	  inputEl.autocapitalize = "off";
+	  inputEl.autocorrect = "off";
+	  inputEl.autocomplete = "off";
+	  inputEl.classList.add("M2CurrentInput");
+	  shell[0].appendChild(inputEl);
+	  inputEl.focus();
+      }
+
+      inputElCreate();
 
       const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
 	  e.preventDefault();
@@ -340,11 +345,7 @@ module.exports = function() {
 	  htmlSec=document.createElement('span');
 	  if (className) {
 	      htmlSec.classList.add(className);
-	      if (className=="M2PastInput") {
-		  //htmlSec.style.display="inline-table";
-		  htmlSec.style.display="inline-block"; htmlSec.style.verticalAlign="top";
-	      }
-	      else if (className=="M2HTMLOutput") htmlSec.addEventListener("click",minOutput);
+	      if (className=="M2HTMLOutput") htmlSec.addEventListener("click",minOutput);
 	  }
 	  shell[0].insertBefore(htmlSec,inputEl);
       }
@@ -381,17 +382,17 @@ module.exports = function() {
 //	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
 	    // if we are at the end of an input section
 	    if ((mathJaxState=="<!--inpend-->")&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!="<!--con-->")))) {
-		// remove the final \n and highlight
-		htmlSec.innerHTML=Prism.highlight(htmlSec.textContent.substring(0,htmlSec.textContent.length-1),Prism.languages.macaulay2);
-		//htmlSec.textContent=htmlSec.textContent.substring(0,htmlSec.textContent.length-1);
-		if (inputEl.parentElement != shell[0]) { // we moved the input because of multi-line
+		if (inputEl.parentElement != shell[0]) { // if we moved the input because of multi-line
 		    var flag = document.activeElement == inputEl;
-		    shell[0].appendChild(inputEl);
+		    shell[0].appendChild(inputEl); // move it back
 		    if (flag) inputEl.focus();
 		}
+		// remove the final \n and highlight
+		htmlSec.innerHTML=Prism.highlight(htmlSec.firstChild.textContent.substring(0,htmlSec.textContent.length-1),Prism.languages.macaulay2);
+		//htmlSec.textContent=htmlSec.textContent.substring(0,htmlSec.textContent.length-1);
+		htmlSec.classList.add("M2PastInput");
 		htmlSec.addEventListener("click",codeInputAction);
 		// reintroduce a line break
-		//		shell[0].insertBefore(document.createElement("br"),inputEl);
 		shell[0].insertBefore(document.createTextNode("\n"),inputEl);
 		if (i==0) { // manually start new section
 		    mathJaxState="<!--txt-->";
@@ -425,14 +426,14 @@ module.exports = function() {
 		    }
 		}
 		else if (mathJaxState=="<!--inp-->") { // input section: a bit special (ends at first \n)
-		    createSpan("M2PastInput");
+		    createSpan("M2Input");
 		}
 		else if (mathJaxState=="<!--con-->") { // continuation of input section
-		    // must navigate around the fact that chrome refuses focus on empty text node *at start of line*
-		    // current solution: extra blank
-		    htmlSec.textContent+=" "; // TODO: find something better otherwise blanks add up
-		    var flag = document.activeElement == inputEl; // actually, this doesn't work either -- it's too late, the focus has been lost
-		    htmlSec.appendChild(inputEl); // !!! we move the input inside the current span to get proper indentation !!!
+		    // sadly, chrome refuses focus on empty text node *at start of line*
+		    // current workaround: extra invisible blank...
+		    var lame=document.createElement("span"); lame.innerHTML="&#8203;"; htmlSec.appendChild(lame);
+		    var flag = document.activeElement == inputEl;
+		    htmlSec.appendChild(inputEl); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
 		    if (flag) inputEl.focus();
 		}
 		else { // ordinary text (error messages, prompts, etc)
@@ -454,7 +455,13 @@ module.exports = function() {
 
 		if (mathJaxState=="\\(") texCode+=txt[i];
 		else if (mathJaxState=="<!--html-->") htmlSec.innerHTML=htmlCode+=txt[i];
-		else htmlSec.textContent+=txt[i]; // all other states are raw text
+		else { // all other states are raw text
+		   // don't rewrite htmlSec.textContent+=txt[i] directly though -- because of multi-line input
+		    if (htmlSec.firstChild)
+			htmlSec.firstChild.textContent+=txt[i];
+		    else
+			htmlSec.appendChild(document.createTextNode(txt[i]));
+		}
 	    }
 	}
 	scrollDown(shell);
@@ -462,13 +469,12 @@ module.exports = function() {
 
       shell.on("reset", function() {
 	  console.log("Reset");
-	  inputEl.textContent="";
 	  removeAutoComplete(false); // remove autocomplete menu if open
+	  inputElCreate(); // recreate the input area
+	  shell[0].insertBefore(document.createTextNode("\n"),inputEl);
 	  inputBack=cmdHistory.length;
 	  mathJaxState = "<!--txt-->";
 	  htmlSec=null;
-	  shell[0].appendChild(inputEl);
-	  shell[0].insertBefore(document.createElement("br"),inputEl);
     });
   };
 
