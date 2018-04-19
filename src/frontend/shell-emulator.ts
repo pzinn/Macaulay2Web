@@ -156,11 +156,14 @@ module.exports = function() {
       };
 
       const minOutput = function(e) {
-	  // not such a big deal, output can always be reproduced by typing oxxx (incidentally, that should be clickable as well)
-	  this.textContent="<deleted>";
-	  this.classList.remove("M2HTMLOutput");
-	  this.style.color="gray";
-	  e.stopPropagation();
+	  if (window.getSelection().isCollapsed)
+	  {
+	      this.textContent="<deleted>"; // that's right, delete it (not such a big deal,
+	      this.classList.remove("M2HTMLOutput"); // output can always be reproduced by typing oxxx)
+
+	      this.style.color="gray";
+	      e.stopPropagation();
+	  }
       };
 
       function removeAutoComplete(flag) { // flag means insert the selection or not
@@ -180,16 +183,28 @@ module.exports = function() {
 	  }
       }
 
-      
+      const symbols = {
+	  0x3B1:"alpha",0x3B2:"beta",0x3B3:"gamma",0x3B4:"delta",0x3B5:"epsilon",0x3B6:"zeta",0x3B7:"eta",0x3B8:"theta",0x3B9:"iota",0x3BA:"kappa",0x3BB:"lambda",0x3BC:"mu",0x3BD:"nu",0x3BE:"xi",0x3C0:"pi",0x3C1:"rho",0x3C3:"sigma",0x3C2:"varsigma",0x3C4:"tau",0x3C5:"upsilon",0x3C6:"phi",0x3C7:"chi",0x3C8:"psi",0x3C9:"omega",
+	  0x393:"Gamma",0x394:"Delta",0x398:"Theta",0x39B:"Lambda",0x39E:"Xi",0x3A0:"Pi",0x3A3:"Sigma",0x3A5:"Upsilon",0x3A6:"Phi",0x3A8:"Psi",0x3A9:"Omega",
+	  0x2102:"CC",0x210D:"HH",0x2115:"NN",0x2119:"PP",0x211A:"QQ",0x211D:"RR",0x2124:"ZZ"
+      }; // partial support for unicode symbols
+
       shell.on("postMessage", function(e,msg,flag1,flag2) { // send input, adding \n if necessary
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  if (msg.length>0) {
 	      shell.trigger("addToHistory",msg);
 	      if (msg[msg.length-1] != "\n") msg+="\n";
-	      inputEl.textContent=msg;	      
+	      inputEl.textContent=msg;
 	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",msg);
 	      if (flag2) placeCaretAtEnd(inputEl);
-	      postRawMessage(msg, socket);
+	      // sanitize input
+	      var clean = "";
+	      for (var i=0; i<msg.length; i++) {
+		  var c = msg.charCodeAt(i);
+		  if (c<128) clean+=msg.charAt(i); // a bit too inclusive
+		  else if (symbols[c]) clean+=symbols[c];
+	      }
+	      postRawMessage(clean, socket);
 	  }
       });
 
