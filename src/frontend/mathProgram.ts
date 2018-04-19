@@ -18,32 +18,38 @@ import * as $ from "jquery";
 
 const getSelected = function (){ // could almost just trigger the paste event, except for when there's no selection and final \n...
     var sel=window.getSelection();
-    if (sel.isCollapsed) {
-	(<any>sel).modify("move", "backward", "lineboundary");
-	(<any>sel).modify("extend", "forward", "lineboundary");
-	var s=sel.toString();
-	(<any>sel).modify("move", "forward", "line");
-	return s;
+    if (document.getElementById("M2In").contains(sel.focusNode)) { // only if we're inside the editor
+	if (sel.isCollapsed) {
+	    (<any>sel).modify("move", "backward", "lineboundary");
+	    (<any>sel).modify("extend", "forward", "lineboundary");
+	    var s=sel.toString();
+	    (<any>sel).modify("move", "forward", "line");
+	    return s;
+	}
+	else return sel.toString();
     }
-    else return sel.toString();
+    else return "";
 };
 
 const editorEvaluate = function() {
-    $("#M2Out").trigger("postMessage", [getSelected(), false, false]);
+    var msg = getSelected();
+    if (msg != "")
+	$("#M2Out").trigger("postMessage", [msg, false, false]);
   };
 
 const editorKeypress = function(e) {
 //    var prismInvoked=false;
       if (e.which === 13 && e.shiftKey) {
 	  e.preventDefault();
-	  $("#M2Out").trigger("postMessage", [getSelected(), false, true]);
+	  var msg = getSelected();
+	  if (msg != "")
+	      $("#M2Out").trigger("postMessage", [msg, false, true]);
       }
     /*
     if (!prismInvoked) {
 	prismInvoked=true;
 	window.setTimeout( function() {
 	    // the trickiest part is to preserve the selection/caret
-	    // dirty trick: insert a forbidden character
 	    $("#M2In").html(Prism.highlight($("#M2In").text(),Prism.languages.macaulay2));
 	    prismInvoked=false;
 	}, 1000 );
