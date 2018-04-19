@@ -97,7 +97,7 @@ module.exports = function() {
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax related stuff
       var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
-      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|\\\(|\\\))/; // the hope is, these sequences are never used in M2
+      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\))/; // the hope is, these sequences are never used in M2
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
       var htmlSec; // html element of current output section
@@ -359,8 +359,8 @@ module.exports = function() {
       const createSpan = function(className?) {
 	  htmlSec=document.createElement('span');
 	  if (className) {
-	      htmlSec.classList.add(className);
-	      if (className=="M2HTMLOutput") htmlSec.addEventListener("click",minOutput);
+	      htmlSec.className=className;
+	      if (className.indexOf("M2HtmlOutput")>=0) htmlSec.addEventListener("click",minOutput);
 	  }
 	  shell[0].insertBefore(htmlSec,inputEl);
       }
@@ -418,11 +418,15 @@ module.exports = function() {
 		var oldState = mathJaxState;
 		mathJaxState=txt[i-1];
 		if (mathJaxState=="<!--html-->") { // html section beginning
-		    createSpan("M2HTMLOutput");
+		    createSpan("M2Html");
 		    htmlCode=""; // need to record because html tags may get broken
 		}
+		else if (mathJaxState=="<!--out-->") { // pretty much the same
+		    createSpan("M2Html M2HtmlOutput");
+		    htmlCode="";
+		}
 		else if (mathJaxState=="\\(") { // tex section beginning. should always be in a html section
-		    if (oldState=="<!--html-->")
+		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->"))
 			texCode="";
 		    else {
 			mathJaxState=oldState;
@@ -469,7 +473,7 @@ module.exports = function() {
 		}
 
 		if (mathJaxState=="\\(") texCode+=txt[i];
-		else if (mathJaxState=="<!--html-->") htmlSec.innerHTML=htmlCode+=txt[i];
+		else if ((mathJaxState=="<!--html-->")||(mathJaxState=="<!--out-->")) htmlSec.innerHTML=htmlCode+=txt[i];
 		else { // all other states are raw text
 		   // don't rewrite htmlSec.textContent+=txt[i] directly though -- because of multi-line input
 		    if (htmlSec.firstChild)
