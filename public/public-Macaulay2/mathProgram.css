@@ -223,14 +223,14 @@ body {
 #M2OutZoomBtns {
     z-index: 2;
     position: absolute;
-    top: 16px;
-    right: 50px;
+    top: 5px;
+    right: 64px;
 }
 #maximizeOutput, #downsizeOutput {
     z-index: 2;
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 5px;
+    right: 30px;
 }
 
 .icon-with-action {

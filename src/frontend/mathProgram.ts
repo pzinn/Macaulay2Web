@@ -182,7 +182,7 @@ const showUploadSuccessDialog = function(event) {
   // console.log("File uploaded successfully!" + filename);
   const successSentence = filename +
       " has been uploaded and you can use it by loading it into your " +
-      mathProgramName + " session (use the input terminal).";
+      mathProgramName + " session.";
   document.getElementById("uploadSuccessDialogContent").innerText =
       successSentence;
   dialog.showModal();
@@ -212,10 +212,6 @@ const showImageDialog = function(imageUrl) {
 };
 
 const attachCloseDialogBtns = function() {
-  document.getElementById("saveDialogClose").addEventListener("click",
-      function() {
-          (document.getElementById("saveDialog") as any).close();
-      });
   document.getElementById("uploadSuccessDialogClose").addEventListener("click",
       function() {
           (document.getElementById("uploadSuccessDialog") as any).close();
