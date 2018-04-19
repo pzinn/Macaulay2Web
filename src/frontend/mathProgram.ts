@@ -139,8 +139,23 @@ const loadFileProcess = function(event) {
     }
 };
 
+const removeBR = function() { // for firefox only: remove <br> in the editor and replace with \n
+    const input = document.getElementById("M2In");
+    var i=0;
+    while (i<input.childElementCount) {
+	if (input.children[i].tagName == "BR") {
+	    input.insertBefore(document.createTextNode("\n"),input.children[i]);
+	    input.removeChild(input.children[i]);
+	} else if (input.children[i].tagName == "DIV") { // normally should never happen
+	    input.insertBefore(document.createTextNode(input.children[i].textContent+"\n"),input.children[i]);
+	    input.removeChild(input.children[i]);
+	} else i++;
+    }
+}
+
 const saveFile = function() {
     const input = $("#M2In");
+    removeBR();
     const inputLink = "data:application/octet-stream," +
 	encodeURIComponent(input.text() as string);
     var inputParagraph = document.createElement("a");
@@ -152,6 +167,7 @@ const saveFile = function() {
 
 
 const hilite = function(event) {
+    removeBR();
     $("#M2In").html(Prism.highlight($("#M2In").text(),Prism.languages.macaulay2));
 }
 

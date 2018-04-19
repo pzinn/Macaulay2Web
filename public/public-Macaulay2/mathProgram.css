@@ -148,8 +148,11 @@ body {
 
 
 #M2In {
-    position: absolute; /* otherwise 2 scrollbars appear... (?) */
-    display: inline-block; /* prevents chrome from creating new <div> when hitting \n. sadly, can't use this trick on M2CurrentInput (or even better, use inline-table), makes pointer disappear... */
+    /* position: absolute; */ /* otherwise 2 scrollbars appear... fixed instead by inline style hack */
+    display: inline-block; /* prevents chrome from creating new <div> when hitting \n.
+			      doesn't prevent firefox from inserting <br>, though.
+			      and incompatible with position: absolute */
+    outline: none;
     overflow: scroll;
     background: var(--left-color);
     white-space: pre;
