@@ -3,6 +3,7 @@
 
 //declare var MathJax: jax.IMathJax;
 declare var renderMathInElement;
+declare var Prism;
 const accordion = require("./accordion")();
 import * as $ from "jquery";
 
@@ -36,6 +37,9 @@ const loadLesson = function(tutorialid: number, lessonid: number) {
   $("#lesson").html(lessonContent).prepend("<h3>" + title + "</h3>");
   $("#lesson").scrollTop(0); // scroll to the top of a new lesson
     //  MathJax.Hub.Queue(["Typeset", MathJax.Hub, "#lesson"]);
+    // the next line colorized the tutorials
+    // $("code").each(function() { this.innerHTML=Prism.highlight(this.textContent,Prism.languages.macaulay2)});
+
     renderMathInElement(document.getElementById("lesson"),{
 	delimiters: [
 	    {left: "$$", right: "$$", display: true},
