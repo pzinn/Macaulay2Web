@@ -92,12 +92,11 @@ module.exports = function() {
       const editor = editorArea;
       var cmdHistory: any = []; // History of commands for shell-like arrow navigation
       cmdHistory.index = 0;
-      var inputBack=0; // number of lines of input that M2 has regurgitated so far
-      var inputEl; // note that inputEl should always have *one text node*
+      var inputEl; // the input HTML element at the bottom of the shell. note that inputEl should always have *one text node*
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
-      // mathJax related stuff
-      var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
-      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|\\\(|\\\))/; // the hope is, these sequences are never used in M2
+      // mathJax/katex related stuff
+      var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html, etc
+      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\))/; // the hope is, these <!--*--> sequences are never used in M2
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
       var htmlSec; // html element of current output section
@@ -111,6 +110,7 @@ module.exports = function() {
 	  inputEl.autocapitalize = "off";
 	  inputEl.autocorrect = "off";
 	  inputEl.autocomplete = "off";
+	  inputEl.classList.add("M2Input");
 	  inputEl.classList.add("M2CurrentInput");
 	  shell[0].appendChild(inputEl);
 	  inputEl.focus();
@@ -155,14 +155,27 @@ module.exports = function() {
 	  }
       };
 
-      const minOutput = function(e) {
+      const toggleOutput = function(e) {
 	  if (window.getSelection().isCollapsed)
 	  {
-	      this.textContent="<deleted>"; // that's right, delete it (not such a big deal,
-	      this.classList.remove("M2HTMLOutput"); // output can always be reproduced by typing oxxx)
-
-	      this.style.color="gray";
+	      if (this.classList.contains("M2Html-wrapped")) {
+		  this.classList.remove("M2Html-wrapped");
+		  var ph = document.createElement("span");
+		  ph.classList.add("M2-hidden");
+		  var thisel=this; // because of closure, the element will be saved
+		  ph.addEventListener("click", function(e) { // so we can restore it later
+		      shell[0].insertBefore(thisel,ph);
+		      shell[0].removeChild(ph);
+		      e.stopPropagation();
+		      return false;
+		  } );
+		  ph.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
+		  shell[0].insertBefore(ph,this);
+		  shell[0].removeChild(this);
+	      }
+	      else this.classList.add("M2Html-wrapped");
 	      e.stopPropagation();
+	      return false;
 	  }
       };
 
@@ -359,8 +372,12 @@ module.exports = function() {
       const createSpan = function(className?) {
 	  htmlSec=document.createElement('span');
 	  if (className) {
-	      htmlSec.classList.add(className);
-	      if (className=="M2HTMLOutput") htmlSec.addEventListener("click",minOutput);
+	      htmlSec.className=className;
+	      if (className.indexOf("M2HtmlOutput")>=0) {
+		  htmlSec.addEventListener("click",toggleOutput);
+		  htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
+	      }
+	      if (className.indexOf("M2Html")>=0) htmlCode=""; // need to keep track of innerHTML because html tags may get broken
 	  }
 	  shell[0].insertBefore(htmlSec,inputEl);
       }
@@ -386,11 +403,10 @@ module.exports = function() {
 	//      msg = msg.replace(/\r/g, "\n");
 	msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
 
-	if (inputBack<cmdHistory.length)
-	    inputEl.textContent=""; // input will eventually be regurgitated by M2
+	inputEl.textContent=""; // input will eventually be regurgitated by M2. TOOD: maybe only erase in certain states
 	
-	if (!htmlSec) createSpan(); // for very first time
-//	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
+	if (!htmlSec) createSpan("M2Text"); // for very first time
+	//	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
@@ -407,22 +423,26 @@ module.exports = function() {
 		//htmlSec.textContent=htmlSec.textContent.substring(0,htmlSec.textContent.length-1);
 		htmlSec.classList.add("M2PastInput");
 		htmlSec.addEventListener("click",codeInputAction);
+		htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
 		// reintroduce a line break
-		shell[0].insertBefore(document.createTextNode("\n"),inputEl);
+		//		shell[0].insertBefore(document.createTextNode("\n"),inputEl);
+		shell[0].insertBefore(document.createElement("br"),inputEl);
 		if (i==0) { // manually start new section
 		    mathJaxState="<!--txt-->";
-		    createSpan();
+		    createSpan("M2Text");
 		}
 	    }
 	    if (i>0) {
 		var oldState = mathJaxState;
 		mathJaxState=txt[i-1];
 		if (mathJaxState=="<!--html-->") { // html section beginning
-		    createSpan("M2HTMLOutput");
-		    htmlCode=""; // need to record because html tags may get broken
+		    createSpan("M2Html");
+		}
+		else if (mathJaxState=="<!--out-->") { // pretty much the same
+		    createSpan("M2Html M2HtmlOutput");
 		}
 		else if (mathJaxState=="\\(") { // tex section beginning. should always be in a html section
-		    if (oldState=="<!--html-->")
+		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->"))
 			texCode="";
 		    else {
 			mathJaxState=oldState;
@@ -433,7 +453,9 @@ module.exports = function() {
 		    if (oldState=="\\(") { // we're not allowing for complicated nested things yet. TODO???
 			texCode=dehtml(texCode);
 			htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
-			mathJaxState="<!--html-->"; // back to ordinary HTML
+			//htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode,  {macros: {"\\frac" : "\\left( #1 \\middle)\\middle/\\middle( #2 \\right)"}});
+
+			mathJaxState="<!--html-->"; // back to ordinary HTML -- actually, could be outputHTML, but do we care? TODO
 		    }
 		    else {
 			mathJaxState=oldState;
@@ -452,7 +474,7 @@ module.exports = function() {
 		    if (flag) inputEl.focus();
 		}
 		else { // ordinary text (error messages, prompts, etc)
-		    createSpan();
+		    createSpan("M2Text");
 		}
 	    }
 	    if (txt[i].length>0) {
@@ -469,7 +491,7 @@ module.exports = function() {
 		}
 
 		if (mathJaxState=="\\(") texCode+=txt[i];
-		else if (mathJaxState=="<!--html-->") htmlSec.innerHTML=htmlCode+=txt[i];
+		else if ((mathJaxState=="<!--html-->")||(mathJaxState=="<!--out-->")) htmlSec.innerHTML=htmlCode+=txt[i];
 		else { // all other states are raw text
 		   // don't rewrite htmlSec.textContent+=txt[i] directly though -- because of multi-line input
 		    if (htmlSec.firstChild)
@@ -486,8 +508,8 @@ module.exports = function() {
 	  console.log("Reset");
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  inputElCreate(); // recreate the input area
-	  shell[0].insertBefore(document.createTextNode("\n"),inputEl);
-	  inputBack=cmdHistory.length;
+//	  shell[0].insertBefore(document.createTextNode("\n"),inputEl);
+	  shell[0].insertBefore(document.createElement("br"),inputEl);
 	  mathJaxState = "<!--txt-->";
 	  htmlSec=null;
     });

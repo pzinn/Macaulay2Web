@@ -25,8 +25,12 @@ viewHelp "determinant"
   B = QQ[x_1..x_6]
   C = ZZ/101[vars(0..12)]
 ---------------
-
 -- something fun
+
+R=ZZ[x]; expression x
+x/(1+oo) -- repeat at will
+
+-- something fun #2
 restart
 load "~/m2/Gfx/Gfx.m2"
 
