@@ -389,8 +389,8 @@ module.exports = function() {
 
 	inputEl.textContent=""; // input will eventually be regurgitated by M2. TOOD: maybe only erase in certain states
 	
-	if (!htmlSec) createSpan(); // for very first time
-//	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
+	if (!htmlSec) createSpan("M2Text"); // for very first time
+	//	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
@@ -408,10 +408,11 @@ module.exports = function() {
 		htmlSec.classList.add("M2PastInput");
 		htmlSec.addEventListener("click",codeInputAction);
 		// reintroduce a line break
-		shell[0].insertBefore(document.createTextNode("\n"),inputEl);
+		//		shell[0].insertBefore(document.createTextNode("\n"),inputEl);
+		shell[0].insertBefore(document.createElement("br"),inputEl);
 		if (i==0) { // manually start new section
 		    mathJaxState="<!--txt-->";
-		    createSpan();
+		    createSpan("M2Text");
 		}
 	    }
 	    if (i>0) {
@@ -454,7 +455,7 @@ module.exports = function() {
 		    if (flag) inputEl.focus();
 		}
 		else { // ordinary text (error messages, prompts, etc)
-		    createSpan();
+		    createSpan("M2Text");
 		}
 	    }
 	    if (txt[i].length>0) {
@@ -488,7 +489,8 @@ module.exports = function() {
 	  console.log("Reset");
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  inputElCreate(); // recreate the input area
-	  shell[0].insertBefore(document.createTextNode("\n"),inputEl);
+//	  shell[0].insertBefore(document.createTextNode("\n"),inputEl);
+	  shell[0].insertBefore(document.createElement("br"),inputEl);
 	  mathJaxState = "<!--txt-->";
 	  htmlSec=null;
     });
