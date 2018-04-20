@@ -49,8 +49,8 @@ const loadLesson = function(tutorialid: number, lessonid: number) {
       "\\QQ": "{\\mathbb{Q}}",
       "\\RR": "{\\mathbb{R}}",
       "\\CC": "{\\mathbb{C}}",
-      "\\mac": "{{\\it Macaulay2}}"
-//      "\\bold": ["{\\bf #1}", 1]
+      "\\mac": "{{\\it Macaulay2}}",
+      "\\bold": "{\\bf #1}"
   }});
 };
 

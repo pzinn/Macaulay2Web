@@ -453,6 +453,8 @@ module.exports = function() {
 		    if (oldState=="\\(") { // we're not allowing for complicated nested things yet. TODO???
 			texCode=dehtml(texCode);
 			htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
+			//htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode,  {macros: {"\\frac" : "\\left( #1 \\middle)\\middle/\\middle( #2 \\right)"}});
+
 			mathJaxState="<!--html-->"; // back to ordinary HTML -- actually, could be outputHTML, but do we care? TODO
 		    }
 		    else {
