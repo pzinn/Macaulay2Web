@@ -155,13 +155,29 @@ module.exports = function() {
 	  }
       };
 
-      const eraseOutput = function(e) {
+      const toggleOutput = function(e) {
 	  if (window.getSelection().isCollapsed)
 	  {
+/*
 	      this.textContent="<deleted>"; // that's right, delete it (not such a big deal,
 	      this.classList.remove("M2HtmlOutput"); // output can always be reproduced by typing oxxx)
 
 	      this.style.color="gray";
+*/
+	      if (this.classList.contains("M2Html-wrapped")) {
+		  this.classList.remove("M2Html-wrapped");
+		  var ph = document.createElement("span");
+		  ph.classList.add("M2-hidden");
+		  var thisel=this; // because of closure, the element will be saved
+		  ph.addEventListener("click", function(e) { // so we can restore it later
+		      shell[0].insertBefore(thisel,ph);
+		      shell[0].removeChild(ph);
+		      e.stopPropagation();
+		  } );
+		  shell[0].insertBefore(ph,this);
+		  shell[0].removeChild(this);
+	      }
+	      else this.classList.add("M2Html-wrapped");
 	      e.stopPropagation();
 	  }
       };
@@ -360,7 +376,7 @@ module.exports = function() {
 	  htmlSec=document.createElement('span');
 	  if (className) {
 	      htmlSec.className=className;
-	      if (className.indexOf("M2HtmlOutput")>=0) htmlSec.addEventListener("click",eraseOutput);
+	      if (className.indexOf("M2HtmlOutput")>=0) htmlSec.addEventListener("click",toggleOutput);
 	      if (className.indexOf("M2Html")>=0) htmlCode=""; // need to keep track of innerHTML because html tags may get broken
 	  }
 	  shell[0].insertBefore(htmlSec,inputEl);

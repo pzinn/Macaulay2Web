@@ -105,7 +105,6 @@ body {
 
 .M2Html {
     display: inline-block; /* to make sure size is as big as content */
-    vertical-align: top;
     white-space: nowrap;
 }
 
@@ -118,12 +117,6 @@ body {
     border-width: 1px;
     margin: 4px;
     padding: 4px;
-}
-
-.M2HtmlOutput:hover {
-    box-shadow: 1px 1px 2px #000;
-    text-decoration: none;
-    border-radius: 5px;
 }
 
 .M2Html pre {
@@ -161,6 +154,103 @@ body {
     margin: 2px;
 }
 
+code, codeblock, .M2PastInput:hover, .M2HtmlOutput:hover {
+    box-shadow: 1px 1px 2px 0px black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* the wrapped variant */
+
+.M2Html-wrapped {
+    white-space: normal;
+}
+
+.M2Html-wrapped pre {
+    white-space: pre-wrap;
+}
+
+/* that allows katex to wrap */
+.M2Html-wrapped .katex {
+    width: 100%;
+    display: inline-block;
+    white-space: normal;
+}
+/* except it screws up fraction bars */
+.M2Html-wrapped .mfrac {
+    white-space: nowrap;
+}
+/* and anything else that has vertical structure, really */
+.M2Html-wrapped .vlist {
+    white-space: nowrap;
+}
+
+.M2Html-wrapped:hover {
+    box-shadow: 1px 1px 2px #600000;
+}
+
+.M2-hidden:hover {
+    box-shadow: 1px 1px 2px #006000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.M2-hidden::after {
+    content: "<hidden>";
+    color: gray;
+}
+
+code, codeblock {
+    white-space: pre;
+    margin-left: 20px;
+    font-family: 'Roboto Mono';
+    display: inline-block;
+    line-height: 1.5;
+    transition: background-color 100ms;
+}
+
+code, codeblock, .M2PastInput:hover {
+    transition: background-color 200ms;
+    background-color: lightyellow;
+}
+
+code {
+    padding: 1px 3px;
+    border-radius: 5px;
+
+}
+
+codeblock {
+    padding: 3px 6px;
+    border-radius: 10px;
+}
+
+.M2PastInput:hover, .M2HtmlOutput:hover {
+    border-radius: 5px;
+}
+ 
+code:active, codeblock:active, .M2PastInput:active {
+    transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */
+    background-color: red;
+    box-shadow: 1px 1px 2px #000;
+    text-decoration: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.autocomplete ul {
+    list-style: none;
+    padding: 0px;
+    margin: 0px;
+    display: inline-table;
+    outline: none;
+    line-height: 16px;
+}
+
+#autocomplete-selection {
+    background-color: lightyellow;
+    cursor: pointer;
+}
 
 #M2In {
     /* position: absolute; */ /* otherwise 2 scrollbars appear... fixed instead by inline style hack */
@@ -310,75 +400,3 @@ a.submenuItem {
     vertical-align: middle;
 }
 
-code, codeblock {
-    white-space: pre;
-    margin-left: 20px;
-    font-family: 'Roboto Mono';
-    display: inline-block;
-    line-height: 1.5;
-    transition: background-color 100ms;
-}
-
-code, codeblock, .M2PastInput:hover {
-    transition: background-color 200ms;
-    background-color: lightyellow;
-    box-shadow: 1px 1px 2px #000;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-code {
-    padding: 1px 3px;
-    border-radius: 5px;
-
-}
-
-codeblock {
-    padding: 3px 6px;
-    border-radius: 10px;
-}
-
-.M2PastInput:hover {
-    border-radius: 5px;
-}
- 
-code:active, codeblock:active, .M2PastInput:active {
-    transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */
-    background-color: red;
-    box-shadow: 1px 1px 2px #000;
-    text-decoration: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.autocomplete ul {
-    list-style: none;
-    padding: 0px;
-    margin: 0px;
-    display: inline-table;
-    outline: none;
-    line-height: 16px;
-}
-
-#autocomplete-selection {
-    background-color: lightyellow;
-    cursor: pointer;
-}
-
-
-/* that allows katex to wrap */
-/*
-.katex {
-    width: 100%;
-    display: inline-block;
-    white-space: normal;
-    vertical-align: top;
-}
-*/
-/* except it screws up fraction bars */
-/*
-.mfrac {
-    white-space: nowrap;
-}
-*/
-/* and anything else that has vertical structure, really */
