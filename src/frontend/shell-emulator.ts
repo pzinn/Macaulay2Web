@@ -158,12 +158,6 @@ module.exports = function() {
       const toggleOutput = function(e) {
 	  if (window.getSelection().isCollapsed)
 	  {
-/*
-	      this.textContent="<deleted>"; // that's right, delete it (not such a big deal,
-	      this.classList.remove("M2HtmlOutput"); // output can always be reproduced by typing oxxx)
-
-	      this.style.color="gray";
-*/
 	      if (this.classList.contains("M2Html-wrapped")) {
 		  this.classList.remove("M2Html-wrapped");
 		  var ph = document.createElement("span");
@@ -175,6 +169,7 @@ module.exports = function() {
 		      e.stopPropagation();
 		      return false;
 		  } );
+		  ph.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
 		  shell[0].insertBefore(ph,this);
 		  shell[0].removeChild(this);
 	      }
@@ -378,7 +373,10 @@ module.exports = function() {
 	  htmlSec=document.createElement('span');
 	  if (className) {
 	      htmlSec.className=className;
-	      if (className.indexOf("M2HtmlOutput")>=0) htmlSec.addEventListener("click",toggleOutput);
+	      if (className.indexOf("M2HtmlOutput")>=0) {
+		  htmlSec.addEventListener("click",toggleOutput);
+		  htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
+	      }
 	      if (className.indexOf("M2Html")>=0) htmlCode=""; // need to keep track of innerHTML because html tags may get broken
 	  }
 	  shell[0].insertBefore(htmlSec,inputEl);
@@ -425,6 +423,7 @@ module.exports = function() {
 		//htmlSec.textContent=htmlSec.textContent.substring(0,htmlSec.textContent.length-1);
 		htmlSec.classList.add("M2PastInput");
 		htmlSec.addEventListener("click",codeInputAction);
+		htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
 		// reintroduce a line break
 		//		shell[0].insertBefore(document.createTextNode("\n"),inputEl);
 		shell[0].insertBefore(document.createElement("br"),inputEl);
