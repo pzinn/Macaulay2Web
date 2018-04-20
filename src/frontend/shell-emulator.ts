@@ -92,12 +92,11 @@ module.exports = function() {
       const editor = editorArea;
       var cmdHistory: any = []; // History of commands for shell-like arrow navigation
       cmdHistory.index = 0;
-      var inputBack=0; // number of lines of input that M2 has regurgitated so far
-      var inputEl; // note that inputEl should always have *one text node*
+      var inputEl; // the input HTML element at the bottom of the shell. note that inputEl should always have *one text node*
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
-      // mathJax related stuff
-      var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html
-      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\))/; // the hope is, these sequences are never used in M2
+      // mathJax/katex related stuff
+      var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html, etc
+      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\))/; // the hope is, these <!--*--> sequences are never used in M2
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
       var htmlSec; // html element of current output section
@@ -362,6 +361,7 @@ module.exports = function() {
 	  if (className) {
 	      htmlSec.className=className;
 	      if (className.indexOf("M2HtmlOutput")>=0) htmlSec.addEventListener("click",eraseOutput);
+	      if (className.indexOf("M2Html")>=0) htmlCode=""; // need to keep track of innerHTML because html tags may get broken
 	  }
 	  shell[0].insertBefore(htmlSec,inputEl);
       }
@@ -387,8 +387,7 @@ module.exports = function() {
 	//      msg = msg.replace(/\r/g, "\n");
 	msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
 
-	if (inputBack<cmdHistory.length)
-	    inputEl.textContent=""; // input will eventually be regurgitated by M2
+	inputEl.textContent=""; // input will eventually be regurgitated by M2. TOOD: maybe only erase in certain states
 	
 	if (!htmlSec) createSpan(); // for very first time
 //	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
@@ -420,11 +419,9 @@ module.exports = function() {
 		mathJaxState=txt[i-1];
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    createSpan("M2Html");
-		    htmlCode=""; // need to record because html tags may get broken
 		}
 		else if (mathJaxState=="<!--out-->") { // pretty much the same
 		    createSpan("M2Html M2HtmlOutput");
-		    htmlCode="";
 		}
 		else if (mathJaxState=="\\(") { // tex section beginning. should always be in a html section
 		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->"))
@@ -438,7 +435,7 @@ module.exports = function() {
 		    if (oldState=="\\(") { // we're not allowing for complicated nested things yet. TODO???
 			texCode=dehtml(texCode);
 			htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
-			mathJaxState="<!--html-->"; // back to ordinary HTML
+			mathJaxState="<!--html-->"; // back to ordinary HTML -- actually, could be outputHTML, but do we care? TODO
 		    }
 		    else {
 			mathJaxState=oldState;
@@ -492,7 +489,6 @@ module.exports = function() {
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  inputElCreate(); // recreate the input area
 	  shell[0].insertBefore(document.createTextNode("\n"),inputEl);
-	  inputBack=cmdHistory.length;
 	  mathJaxState = "<!--txt-->";
 	  htmlSec=null;
     });
