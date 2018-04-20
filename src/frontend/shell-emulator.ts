@@ -173,12 +173,14 @@ module.exports = function() {
 		      shell[0].insertBefore(thisel,ph);
 		      shell[0].removeChild(ph);
 		      e.stopPropagation();
+		      return false;
 		  } );
 		  shell[0].insertBefore(ph,this);
 		  shell[0].removeChild(this);
 	      }
 	      else this.classList.add("M2Html-wrapped");
 	      e.stopPropagation();
+	      return false;
 	  }
       };
 

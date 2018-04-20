@@ -104,7 +104,7 @@ body {
 }
 
 .M2Html {
-    display: inline-block; /* to make sure size is as big as content */
+    display: inline-table; /* to make sure size is as big as content. inline-block is the more obvious choice */
     white-space: nowrap;
 }
 
