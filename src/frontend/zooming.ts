@@ -3,7 +3,6 @@
 function applySize(textarea, sizes) {
   const sizePercent = Math.round(sizes.currentSize * 100);
   textarea.style.fontSize = sizePercent.toString() + "%";
-  textarea.style.lineHeight = sizePercent.toString() + "%";
 }
 
 function zoomin(textarea, sizes) {

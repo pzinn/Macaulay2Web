@@ -73,7 +73,7 @@ body {
     font-family: "Roboto Mono";
     position: relative;
     outline: none;
-    line-height: 16px;
+    line-height: 1.14286;
 }
 
 /* various sections inside #M2Out */
@@ -102,7 +102,7 @@ body {
 }
 
 .M2Html ul {
-    line-height: 16px;
+    line-height: 1.14286;
 }
 
 .M2Html .single pre { /* "single" is the class name used by M2 documentation. pre is used for code example */
@@ -120,35 +120,39 @@ body {
     font-size: 1.21em;
 }
 
+.M2Html pre pre {
+    font-size: 1em; /* otherwise font size multipliers accumulate */
+}
+
 .M2Html h1 {
-    font-size: 26px;
-    line-height: 26px;
-    margin: 12px;
+    font-size: 2.2em;
+    margin: 12px 0px;
+    line-height: 1.2;
 }
 .M2Html h2 {
-    font-size: 24px;
-    line-height: 24px;
-    margin: 10px;
+    font-size: 2em;
+    margin: 10px 0px;
+    line-height: 1.2;
 }
 .M2Html h3 {
-    font-size: 22px;
-    line-height: 22px;
-    margin: 8px;
+    font-size: 1.8em;
+    margin: 8px 0px;
+    line-height: 1.2;
 }
 .M2Html h4 {
-    font-size: 20px;
-    line-height: 20px;
-    margin: 6px;
+    font-size: 1.6em;
+    margin: 6px 0px;
+    line-height: 1.2;
 }
 .M2Html h5 {
-    font-size: 18px;
-    line-height: 18px;
-    margin: 4px;
+    font-size: 1.4em;
+    margin: 4px 0px;
+    line-height: 1.2;
 }
 .M2Html h6 {
-    font-size: 16px;
-    line-height: 16px;
-    margin: 2px;
+    font-size: 1.2em;
+    margin: 2px 0px;
+    line-height: 1.2;
 }
 
 code, codeblock, .M2PastInput:hover, .M2HtmlOutput:hover {
@@ -241,7 +245,7 @@ code:active, codeblock:active, .M2PastInput:active {
     margin: 0px;
     display: inline-table;
     outline: none;
-    line-height: 16px;
+/*    line-height: 16px;*/
 }
 
 #autocomplete-selection {
