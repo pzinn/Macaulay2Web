@@ -76,13 +76,6 @@ body {
     line-height: 16px;
 }
 
-/*
-#M2Out tt {
-    font-family: KaTeX_Typewriter;
-    font-size: 1.21em;
-}
-*/
-
 /* various sections inside #M2Out */
 
 .M2Input {
@@ -117,10 +110,14 @@ body {
     border-width: 1px;
     margin: 4px;
     padding: 4px;
+    font-family: 'Roboto Mono';
+    font-size: 1em;
 }
 
 .M2Html pre {
     margin: 0px;
+    font-family: KaTeX_Typewriter;
+    font-size: 1.21em;
 }
 
 .M2Html h1 {
