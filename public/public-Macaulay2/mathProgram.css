@@ -62,7 +62,8 @@ body {
 
 #M2Out {
     overflow: scroll;
-/*    background: var(--left-color);*/
+    background: #F8FAE8; /* var(--left-color); */
+/*    box-shadow: 0px 0px 15px 5px #F8FAE8;*/
     width: 100%;
     height: 100%;
     z-index: 1;
@@ -112,6 +113,7 @@ body {
     padding: 4px;
     font-family: 'Roboto Mono';
     font-size: 1em;
+    line-height: 1em;
 }
 
 .M2Html pre {
@@ -260,7 +262,7 @@ code:active, codeblock:active, .M2PastInput:active {
 			      and incompatible with position: absolute */
     outline: none;
     overflow: scroll;
-    background: var(--left-color);
+    background: #F8FAE8; /* var(--left-color); */
     white-space: pre;
     width: 100%;
     height: 100%;
