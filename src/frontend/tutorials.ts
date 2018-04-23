@@ -53,7 +53,7 @@ const loadLesson = function(tutorialid: number, lessonid: number) {
       "\\QQ": "{\\mathbb{Q}}",
       "\\RR": "{\\mathbb{R}}",
       "\\CC": "{\\mathbb{C}}",
-      "\\mac": "{{\\it Macaulay2}}",
+      "\\mac": "\\textsf{Macaulay2}", // can't use italic because KaTeX doesn't know about italic correction
       "\\bold": "{\\bf #1}"
   }});
 };
