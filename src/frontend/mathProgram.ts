@@ -322,12 +322,12 @@ const init = function() {
   attachCtrlBtnActions();
   attachCloseDialogBtns();
 
-//  $("#M2In").text(DefaultText);
-//    $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
+  // $("#M2In").text(DefaultText);
+  // $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
 
   shell.create($("#M2Out"), $("#M2In"), socket);
 
-    $("#M2In").keypress(editorKeypress);
+  $("#M2In").keypress(editorKeypress);
 
     
   const siofu = new SocketIOFileUpload(socket);
