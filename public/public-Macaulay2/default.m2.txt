@@ -34,7 +34,7 @@ x/(1+oo) -- repeat at will
 restart
 load "~/m2/Gfx/Gfx.m2"
 
-a=GfxCircle("fill"=>"yellow","stroke"=>"green",GfxWidth=>10,GfxHeight=>10)
+a=GfxCircle("fill"=>"yellow","stroke"=>"green",GfxWidth=>1,GfxHeight=>1)
 b=GfxRectangle(10,10,20,50,"fill"=>"pink","stroke"=>"black")
 c=GfxCircle(50,50,50,"fill"=>"blue","fill-opacity"=>0.25)
 d=GfxRectangle(60,60,40,30,"rx"=>5, "ry"=>5, "fill"=>"red", "stroke"=>"grey")
@@ -46,7 +46,7 @@ GfxAnimation { "r", 0, 50, 1, Obj => a }
 
 -- or
 rgb={"red","green","blue"};
-scan(rgb, x -> (value x <- GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>10,GfxHeight=>10}))
+scan(rgb, x -> (value x <- GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>0.8,GfxHeight=>0.8}))
 value\rgb
 R=QQ[x_red,x_green,x_blue]
 describe R
