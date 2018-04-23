@@ -403,12 +403,12 @@ module.exports = function() {
       let msg: string = msgDirty.replace(/\u0007/, "");
       msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	//      msg = msg.replace(/\r/g, "\n");
-	msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
+      msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
+	msg = msg.replace(/file:\/\/\/home\/pzinn\/M2\/M2\/BUILD\/fedora\/usr-dist\/common/g,"https://faculty.math.illinois.edu/Macaulay2/doc/Macaulay2-1.11/"); // TODO: better, obviously
+      inputEl.textContent=""; // input will eventually be regurgitated by M2. TOOD: maybe only erase in certain states
 
-	inputEl.textContent=""; // input will eventually be regurgitated by M2. TOOD: maybe only erase in certain states
-	
-	if (!htmlSec) createSpan("M2Text"); // for very first time
-	//	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
+      if (!htmlSec) createSpan("M2Text"); // for very first time
+      //	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
       var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
