@@ -250,7 +250,7 @@ code:active, codeblock:active, .M2PastInput:active {
 }
 
 #autocomplete-selection {
-    background-color: lightyellow;
+    background-color: rgb(255,110,64);
     cursor: pointer;
 }
 
