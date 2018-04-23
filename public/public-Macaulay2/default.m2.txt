@@ -10,7 +10,6 @@
 
 viewHelp "determinant"
 
--- (currently not working)
 -- If nothing shows up, you may need to set your browser 
 -- to allow pop up windows.
 
