@@ -404,7 +404,7 @@ module.exports = function() {
       msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	//      msg = msg.replace(/\r/g, "\n");
       msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
-	msg = msg.replace(/file:\/\/\/home\/pzinn\/M2\/M2\/BUILD\/fedora\/usr-dist\/common/g,"https://faculty.math.illinois.edu/Macaulay2/doc/Macaulay2-1.11/"); // TODO: better, obviously
+      msg = msg.replace(/file:\/\/\/.*\/Macaulay2Doc/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2/Macaulay2Doc");
       inputEl.textContent=""; // input will eventually be regurgitated by M2. TOOD: maybe only erase in certain states
 
       if (!htmlSec) createSpan("M2Text"); // for very first time
