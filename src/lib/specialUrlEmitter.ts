@@ -107,7 +107,7 @@ module.exports = function(pathPrefix: string,
     },
     isSpecial(data: string) {
       const eventData = data.match(
-        />>SPECIAL_EVENT_START>>(.*)<<SPECIAL_EVENT_END<</);
+        /SPECIAL_EVENT_START(.*)SPECIAL_EVENT_END/);
       if (eventData) {
         return eventData[1];
       }

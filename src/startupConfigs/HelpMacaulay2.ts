@@ -23,7 +23,7 @@ const help = function() {
     },
     stripSpecialLines(data) {
       const stripped = data.replace(
-        /^.*>>SPECIAL_EVENT_START>>(.*)<<SPECIAL_EVENT_END<<.*$/mg, "");
+        /^.*SPECIAL_EVENT_START(.*)SPECIAL_EVENT_END.*$/mg, "");
       return stripped;
     },
   };
