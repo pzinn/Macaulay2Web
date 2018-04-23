@@ -247,7 +247,7 @@ const sendDataToClient = function(client: Client) {
       options,
     );
     const dataMarkedAsSpecial = specialUrlEmitter.isSpecial(data);
-    if (dataMarkedAsSpecial) {
+    if (dataMarkedAsSpecial !== false) {
       specialUrlEmitter.emitEventUrlToClient(
         client,
         dataMarkedAsSpecial,

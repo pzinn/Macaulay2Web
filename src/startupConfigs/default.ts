@@ -6,7 +6,7 @@ const options = {
   serverConfig: {
     CONTAINERS: "../lib/LocalContainerManager",
     MATH_PROGRAM: "Macaulay2",
-    MATH_PROGRAM_COMMAND: "M2-experimental -e \"topLevelMode = MathJax\"",
+    MATH_PROGRAM_COMMAND: "export WWWBROWSER=~/myopen; M2-experimental -e \"printWidth=0; topLevelMode = MathJax\"",
     port: "8003",
       // tslint:disable-next-line:max-line-length
       resumeString: "Type <!--html--><span class=\"M2PastInput\" onclick=\"document.getElementsByClassName('M2CurrentInput')[0].textContent=this.textContent\">listUserSymbols</span><!--txt--> to print the list of existing symbols.\n\ni* : <!--inp-->",
