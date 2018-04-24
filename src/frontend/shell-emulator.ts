@@ -208,7 +208,6 @@ module.exports = function() {
 	  if (msg.length>0) {
 	      shell.trigger("addToHistory",msg);
 	      inputEl.textContent=msg+"\u21B5"; // insert a cute return symbol; will be there only briefly
-;
 	      if (msg[msg.length-1] != "\n") msg+="\n";
 	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",msg);
 	      if (flag2) placeCaretAtEnd(inputEl);
