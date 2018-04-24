@@ -467,12 +467,11 @@ module.exports = function() {
 		    createSpan("M2Input");
 		}
 		else if (mathJaxState=="<!--con-->") { // continuation of input section
-		    // sadly, chrome refuses focus on empty text node *at start of line*
-		    // current workaround: extra invisible blank...
-		    var lame=document.createElement("span"); lame.innerHTML="&#8203;"; htmlSec.appendChild(lame);
-		    var flag = document.activeElement == inputEl;
-		    htmlSec.appendChild(inputEl); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
-		    if (flag) inputEl.focus();
+		    if (inputEl.parentElement == shell[0]) {
+			var flag = document.activeElement == inputEl;
+			htmlSec.appendChild(inputEl); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
+			if (flag) inputEl.focus();
+		    }
 		}
 		else { // ordinary text (error messages, prompts, etc)
 		    createSpan("M2Text");
@@ -485,9 +484,6 @@ module.exports = function() {
 		    if (ii>=0) {
 			if (mathJaxState=="<!--inp-->") {
 			    shell[0].insertBefore(document.createElement("br"),inputEl);
-			    // sadly, chrome refuses focus on empty text node *at start of line*
-			    // current workaround: extra invisible blank...
-			    var lame=document.createElement("span"); lame.innerHTML="&#8203;"; shell[0].insertBefore(lame,inputEl);
 			}
 			mathJaxState="<!--inpend-->";
 			if (ii<txt[i].length-1) {
@@ -508,6 +504,9 @@ module.exports = function() {
 		}
 	    }
 	}
+	// sadly, chrome refuses focus on empty text node *at start of line*
+	// current workaround: extra invisible blank...
+	var lame=document.createElement("span"); lame.innerHTML="&#8203;"; inputEl.parentElement.insertBefore(lame,inputEl);
 	scrollDown(shell);
     });
 
