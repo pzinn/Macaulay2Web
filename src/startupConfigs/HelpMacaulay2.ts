@@ -12,7 +12,7 @@ const help = function() {
       } else {
         return;
       }
-      helpPath = "http://www.math.uiuc.edu/Macaulay2/doc/Macaulay2-1.10/" +
+      helpPath = "http://www.math.uiuc.edu/Macaulay2/doc/Macaulay2-1.11/" +
               "share/doc/Macaulay2" + helpPath;
       logFunction(helpPath);
       emitDataViaSockets(client.socketArray, SocketEvent.viewHelp, helpPath);
@@ -23,7 +23,7 @@ const help = function() {
     },
     stripSpecialLines(data) {
       const stripped = data.replace(
-        /^.*>>SPECIAL_EVENT_START>>(.*)<<SPECIAL_EVENT_END<<.*$/mg, "");
+        /^.*SPECIAL_EVENT_START(.*)SPECIAL_EVENT_END.*$/mg, "");
       return stripped;
     },
   };
