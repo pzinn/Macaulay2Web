@@ -404,9 +404,19 @@ module.exports = function() {
       msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	//      msg = msg.replace(/\r/g, "\n");
       msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
-      msg = msg.replace(/file:\/\/\/.*\/Macaulay2Doc/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2/Macaulay2Doc");
-      inputEl.textContent=""; // input will eventually be regurgitated by M2. TOOD: maybe only erase in certain states
-
+	msg = msg.replace(/file:\/\/\/.*\/Macaulay2Doc/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2/Macaulay2Doc");
+	if (inputEl.textContent!="")
+	{
+	    var flag = document.activeElement == inputEl;
+	    inputEl.textContent=""; // input will eventually be regurgitated by M2
+	    if (flag) inputEl.focus(); // TODO: maybe only erase in certain states
+	    if (inputEl.parentElement==shell[0]) {
+		shell[0].insertBefore(document.createElement("br"),inputEl);
+		// sadly, chrome refuses focus on empty text node *at start of line*
+		// current workaround: extra invisible blank...
+		var lame=document.createElement("span"); lame.innerHTML="&#8203;"; shell[0].insertBefore(lame,inputEl);
+	    }
+	}
       if (!htmlSec) createSpan("M2Text"); // for very first time
       //	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
       var txt=msg.split(htmlComment);
@@ -420,15 +430,12 @@ module.exports = function() {
 		    shell[0].appendChild(inputEl); // move it back
 		    if (flag) inputEl.focus();
 		}
-		// remove the final \n and highlight
+		// remove the final \n (actually, that's useless -- ignored by browser :/) and highlight
 		htmlSec.innerHTML=Prism.highlight(htmlSec.firstChild.textContent.substring(0,htmlSec.textContent.length-1),Prism.languages.macaulay2);
 		//htmlSec.textContent=htmlSec.textContent.substring(0,htmlSec.textContent.length-1);
 		htmlSec.classList.add("M2PastInput");
 		htmlSec.addEventListener("click",codeInputAction);
 		htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
-		// reintroduce a line break
-		//		shell[0].insertBefore(document.createTextNode("\n"),inputEl);
-		shell[0].insertBefore(document.createElement("br"),inputEl);
 		if (i==0) { // manually start new section
 		    mathJaxState="<!--txt-->";
 		    createSpan("M2Text");
@@ -495,7 +502,7 @@ module.exports = function() {
 		if (mathJaxState=="\\(") texCode+=txt[i];
 		else if ((mathJaxState=="<!--html-->")||(mathJaxState=="<!--out-->")) htmlSec.innerHTML=htmlCode+=txt[i];
 		else { // all other states are raw text
-		   // don't rewrite htmlSec.textContent+=txt[i] directly though -- because of multi-line input
+		    // don't rewrite htmlSec.textContent+=txt[i] directly though -- because of multi-line input
 		    if (htmlSec.firstChild)
 			htmlSec.firstChild.textContent+=txt[i];
 		    else
