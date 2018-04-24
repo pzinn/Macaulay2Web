@@ -405,22 +405,13 @@ module.exports = function() {
 	//      msg = msg.replace(/\r/g, "\n");
       msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
 	msg = msg.replace(/file:\/\/\/.*\/Macaulay2Doc/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2/Macaulay2Doc");
-	var ii:number=inputEl.textContent.lastIndexOf("\n"); // TODO: better
-	if (ii>=0) // some input has been sent...
-	{
-	    var flag = document.activeElement == inputEl;
-	    inputEl.textContent=inputEl.textContent.substring(ii+1,inputEl.textContent.length); // ... it will eventually be regurgitated by M2
-	    if (flag) inputEl.focus();
-	    if (inputEl.parentElement==shell[0]) {
-		shell[0].insertBefore(document.createElement("br"),inputEl);
-		// sadly, chrome refuses focus on empty text node *at start of line*
-		// current workaround: extra invisible blank...
-		var lame=document.createElement("span"); lame.innerHTML="&#8203;"; shell[0].insertBefore(lame,inputEl);
-	    }
-	}
       if (!htmlSec) createSpan("M2Text"); // for very first time
       //	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
-      var txt=msg.split(htmlComment);
+
+	var ii:number = inputEl.textContent.lastIndexOf("\n");
+	if (ii>=0) inputEl.textContent=inputEl.textContent.substring(ii+1,inputEl.textContent.length); // erase past sent input (a bit rough -- may also be e.g. copy/pasted stuff, in which case it gets deleted as well)
+
+	var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
 	{
 //	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
@@ -431,8 +422,8 @@ module.exports = function() {
 		    shell[0].appendChild(inputEl); // move it back
 		    if (flag) inputEl.focus();
 		}
-		// remove the final \n (actually, that's useless -- ignored by browser :/) and highlight
-		htmlSec.innerHTML=Prism.highlight(htmlSec.firstChild.textContent.substring(0,htmlSec.textContent.length-1),Prism.languages.macaulay2);
+		// highlight
+		htmlSec.innerHTML=Prism.highlight(htmlSec.firstChild.textContent,Prism.languages.macaulay2);
 		//htmlSec.textContent=htmlSec.textContent.substring(0,htmlSec.textContent.length-1);
 		htmlSec.classList.add("M2PastInput");
 		htmlSec.addEventListener("click",codeInputAction);
@@ -492,6 +483,12 @@ module.exports = function() {
 		if ((mathJaxState=="<!--inp-->")||(mathJaxState=="<!--con-->")) {
 		    var ii=txt[i].indexOf("\n");
 		    if (ii>=0) {
+			if (mathJaxState=="<!--inp-->") {
+			    shell[0].insertBefore(document.createElement("br"),inputEl);
+			    // sadly, chrome refuses focus on empty text node *at start of line*
+			    // current workaround: extra invisible blank...
+			    var lame=document.createElement("span"); lame.innerHTML="&#8203;"; shell[0].insertBefore(lame,inputEl);
+			}
 			mathJaxState="<!--inpend-->";
 			if (ii<txt[i].length-1) {
 			    // need to do some surgery: what's after the \n is some <!--txt--> stuff
