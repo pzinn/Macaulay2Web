@@ -30,11 +30,12 @@ declare const katex;
 declare const Prism;
 declare const M2symbols;
 
-function dehtml(s) {
+function dehtml(s) { // these are all the substitutions performed by M2
     s=s.replace(/&amp;/g,"&");
     s=s.replace(/&lt;/g,"<");
     s=s.replace(/&gt;/g,">");
     s=s.replace(/&quot;/g,"\"");
+    s=s.replace(/&bsol;/g,"\\");
     return s;
 }
 
@@ -398,9 +399,8 @@ module.exports = function() {
         }
       }
 */
-//	msgDirty = msgDirty.replace(/\u0008 \u0008/g,""); // we're removing the backspaces that have been possibly sent by the tab hack
 
-      let msg: string = msgDirty.replace(/\u0007/, "");
+      let msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
       msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	//      msg = msg.replace(/\r/g, "\n");
       msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
