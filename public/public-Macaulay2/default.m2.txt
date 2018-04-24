@@ -24,12 +24,8 @@ viewHelp "determinant"
   B = QQ[x_1..x_6]
   C = ZZ/101[vars(0..12)]
 ---------------
--- something fun
 
-R=ZZ[x]; expression x
-x/(1+oo) -- repeat at will
-
--- something fun #2
+-- something fun #1
 restart
 load "~/m2/Gfx/Gfx.m2"
 
@@ -51,4 +47,16 @@ R=QQ[x_red,x_green,x_blue]
 describe R
 x_red^2-x_green^2
 factor oo
+
+-- something fun #2
+R=ZZ[x]; expression x
+x/(1+oo) -- repeat at will
+
+-- something fun #3
+restart
+load "~/m2/color/color.m2"
+R:"red" = QQ[x:"green"]
+oo_0^3-1
+
+
 
