@@ -207,8 +207,9 @@ module.exports = function() {
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  if (msg.length>0) {
 	      shell.trigger("addToHistory",msg);
+	      inputEl.textContent=msg+"\u21B5"; // insert a cute return symbol; will be there only briefly
+;
 	      if (msg[msg.length-1] != "\n") msg+="\n";
-	      inputEl.textContent=msg;
 	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",msg);
 	      if (flag2) placeCaretAtEnd(inputEl);
 	      // sanitize input
@@ -408,8 +409,8 @@ module.exports = function() {
       if (!htmlSec) createSpan("M2Text"); // for very first time
       //	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
 
-	var ii:number = inputEl.textContent.lastIndexOf("\n");
-	if (ii>=0) inputEl.textContent=inputEl.textContent.substring(ii+1,inputEl.textContent.length); // erase past sent input (a bit rough -- may also be e.g. copy/pasted stuff, in which case it gets deleted as well)
+	var ii:number = inputEl.textContent.lastIndexOf("\u21B5");
+	if (ii>=0) inputEl.textContent=inputEl.textContent.substring(ii+1,inputEl.textContent.length); // erase past sent input
 
 	var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
@@ -424,7 +425,6 @@ module.exports = function() {
 		}
 		// highlight
 		htmlSec.innerHTML=Prism.highlight(htmlSec.firstChild.textContent,Prism.languages.macaulay2);
-		//htmlSec.textContent=htmlSec.textContent.substring(0,htmlSec.textContent.length-1);
 		htmlSec.classList.add("M2PastInput");
 		htmlSec.addEventListener("click",codeInputAction);
 		htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
