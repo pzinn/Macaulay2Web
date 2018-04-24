@@ -405,11 +405,12 @@ module.exports = function() {
 	//      msg = msg.replace(/\r/g, "\n");
       msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
 	msg = msg.replace(/file:\/\/\/.*\/Macaulay2Doc/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2/Macaulay2Doc");
-	if (inputEl.textContent!="")
+	var ii:number=inputEl.textContent.lastIndexOf("\n"); // TODO: better
+	if (ii>=0) // some input has been sent...
 	{
 	    var flag = document.activeElement == inputEl;
-	    inputEl.textContent=""; // input will eventually be regurgitated by M2
-	    if (flag) inputEl.focus(); // TODO: maybe only erase in certain states
+	    inputEl.textContent=inputEl.textContent.substring(ii+1,inputEl.textContent.length); // ... it will eventually be regurgitated by M2
+	    if (flag) inputEl.focus();
 	    if (inputEl.parentElement==shell[0]) {
 		shell[0].insertBefore(document.createElement("br"),inputEl);
 		// sadly, chrome refuses focus on empty text node *at start of line*
