@@ -93,7 +93,8 @@ module.exports = function() {
       const editor = editorArea;
       var cmdHistory: any = []; // History of commands for shell-like arrow navigation
       cmdHistory.index = 0;
-      var inputEl; // the input HTML element at the bottom of the shell. note that inputEl should always have *one text node*
+      var inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
+      var inputContainer; // HTML element that contains inputSpan, only there to work around annoying chrome bug
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax/katex related stuff
       var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html, etc
@@ -104,17 +105,22 @@ module.exports = function() {
 
       const inputElCreate = function() {
 	  // (re)create the input area
-	  if (inputEl) inputEl.parentElement.removeChild(inputEl);
-	  inputEl = document.createElement("span");
-	  inputEl.contentEditable = true; // inputEl.setAttribute("contentEditable",true);
-	  inputEl.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
-	  inputEl.autocapitalize = "off";
-	  inputEl.autocorrect = "off";
-	  inputEl.autocomplete = "off";
-	  inputEl.classList.add("M2Input");
-	  inputEl.classList.add("M2CurrentInput");
-	  shell[0].appendChild(inputEl);
-	  inputEl.focus();
+	  if (inputContainer) inputContainer.parentElement.removeChild(inputContainer);
+	  inputContainer = document.createElement("span");
+	  // sadly, chrome refuses focus on empty text node *at start of line*
+	  // current workaround: extra invisible blank...
+	  var lame=document.createElement("span"); lame.innerHTML="&#8203;"; inputContainer.appendChild(lame);
+	  inputSpan = document.createElement("span");
+	  inputSpan.contentEditable = true; // inputSpan.setAttribute("contentEditable",true);
+	  inputSpan.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
+	  inputSpan.autocapitalize = "off";
+	  inputSpan.autocorrect = "off";
+	  inputSpan.autocomplete = "off";
+	  inputSpan.classList.add("M2Input");
+	  inputSpan.classList.add("M2CurrentInput");
+	  inputContainer.appendChild(inputSpan);
+	  shell[0].appendChild(inputContainer);
+	  inputSpan.focus();
       }
 
       inputElCreate();
@@ -129,20 +135,20 @@ module.exports = function() {
 	      if (cmdHistory.index < cmdHistory.length) {
 		  cmdHistory.index++;
 		  if (cmdHistory.index === cmdHistory.length) {
-		      inputEl.textContent=cmdHistory.current;
+		      inputSpan.textContent=cmdHistory.current;
 		  } else {
-		      inputEl.textContent=cmdHistory[cmdHistory.index];
+		      inputSpan.textContent=cmdHistory[cmdHistory.index];
 		  }
 	      }
 	  }
 	  else if ((e.keyCode === keys.arrowUp) && (cmdHistory.index > 0)) { // UP
 	      if (cmdHistory.index === cmdHistory.length) {
-		  cmdHistory.current = inputEl.textContent;
+		  cmdHistory.current = inputSpan.textContent;
 	      }
 	      cmdHistory.index--;
-	      inputEl.textContent=cmdHistory[cmdHistory.index];
+	      inputSpan.textContent=cmdHistory[cmdHistory.index];
 	  }
-	  placeCaretAtEnd(inputEl);
+	  placeCaretAtEnd(inputSpan);
     scrollDown(shell);
       };
       
@@ -150,8 +156,8 @@ module.exports = function() {
 	  // will only trigger if selection is empty
 	  if (window.getSelection().isCollapsed)
 	  {
-	      inputEl.textContent = this.textContent;
-	      placeCaretAtEnd(inputEl);
+	      inputSpan.textContent = this.textContent;
+	      placeCaretAtEnd(inputSpan);
 	      scrollDown(shell);
 	  }
       };
@@ -183,13 +189,13 @@ module.exports = function() {
       function removeAutoComplete(flag) { // flag means insert the selection or not
 	  if (autoComplete)
 	  {
-	      var pos=inputEl.textContent.length;
-	      inputEl.textContent+=autoComplete.lastChild.textContent;
+	      var pos=inputSpan.textContent.length;
+	      inputSpan.textContent+=autoComplete.lastChild.textContent;
 	      var el;
 	      if (flag&&(el=document.getElementById("autocomplete-selection")))
-		  addToEl(inputEl,pos,el.textContent+" ");
+		  addToEl(inputSpan,pos,el.textContent+" ");
 	      else
-		  addToEl(inputEl,pos,autoComplete.word);
+		  addToEl(inputSpan,pos,autoComplete.word);
 	      autoComplete.parentElement.removeChild(autoComplete); autoComplete=null;
 	  }
       }
@@ -204,10 +210,10 @@ module.exports = function() {
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  if (msg.length>0) {
 	      shell.trigger("addToHistory",msg);
-	      inputEl.textContent=msg+"\u21B5"; // insert a cute return symbol; will be there only briefly
+	      inputSpan.textContent=msg+"\u21B5"; // insert a cute return symbol; will be there only briefly
 	      if (msg[msg.length-1] != "\n") msg+="\n";
 	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",msg);
-	      if (flag2) placeCaretAtEnd(inputEl);
+	      if (flag2) placeCaretAtEnd(inputSpan);
 	      // sanitize input
 	      var clean = "";
 	      for (var i=0; i<msg.length; i++) {
@@ -242,16 +248,16 @@ module.exports = function() {
     });
 
       shell.bind('paste',function(e) {
-	  placeCaretAtEnd(inputEl,true);
+	  placeCaretAtEnd(inputSpan,true);
       });
 
-      shell.click(function(e) { if (window.getSelection().isCollapsed) placeCaretAtEnd(inputEl,true) });
+      shell.click(function(e) { if (window.getSelection().isCollapsed) placeCaretAtEnd(inputSpan,true) });
 
     // If something is entered, change to end of textarea, if at wrong position.
       shell.keydown(function(e: KeyboardEvent) {
 	  removeAutoComplete(false); // remove autocomplete menu if open
       if (e.keyCode === keys.enter) {
-	  const msg=inputEl.textContent;
+	  const msg=inputSpan.textContent;
 	  shell.trigger("postMessage",[msg,true,true]);
 	  scrollDown(shell);
 	  return false; // no crappy <div></div> added
@@ -269,7 +275,7 @@ module.exports = function() {
       if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
         return;
       }
-      var pos = placeCaretAtEnd(inputEl,true);
+      var pos = placeCaretAtEnd(inputSpan,true);
 
 	  /*
       if (e.ctrlKey && e.keyCode === keys.cKey) {
@@ -279,7 +285,7 @@ module.exports = function() {
 
 	  // auto-completion code
 	  if (e.keyCode === keys.tab) {
-	      var msg = inputEl.textContent;
+	      var msg = inputSpan.textContent;
 	      var i=pos-1;
 	      while ((i>=0)&&(((msg[i]>="A")&&(msg[i]<="Z"))||((msg[i]>="a")&&(msg[i]<="z")))) i--; // would be faster with regex
 	      var word = msg.substring(i+1,pos);
@@ -291,7 +297,7 @@ module.exports = function() {
 		  while ((k<M2symbols.length)&&(M2symbols[k].substring(0,word.length)==word)) k++;
 		  if (k>j) {
 		      if (k==j+1) { // yay, one solution
-			  addToEl(inputEl,pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
+			  addToEl(inputSpan,pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
 		      }
 		      else { // more interesting: several solutions
 			  // obvious implementation would've been datalist + input; sadly, the events generated by the input are 200% erratic, so can't use
@@ -313,9 +319,9 @@ module.exports = function() {
 			      tabMenu.appendChild(opt);
 			  }
 			  autoComplete.appendChild(tabMenu);
-			  autoComplete.appendChild(document.createTextNode(inputEl.textContent.substring(pos,inputEl.textContent.length)));
-			  inputEl.textContent=inputEl.textContent.substring(0,i+1);
-			  inputEl.parentElement.appendChild(autoComplete);
+			  autoComplete.appendChild(document.createTextNode(inputSpan.textContent.substring(pos,inputSpan.textContent.length)));
+			  inputSpan.textContent=inputSpan.textContent.substring(0,i+1);
+			  inputContainer.parentElement.appendChild(autoComplete);
 			  tabMenu.addEventListener("click", function(e) {
 				  removeAutoComplete(true);
 				  e.preventDefault();
@@ -379,7 +385,7 @@ module.exports = function() {
 	      }
 	      if (className.indexOf("M2Html")>=0) htmlCode=""; // need to keep track of innerHTML because html tags may get broken
 	  }
-	  shell[0].insertBefore(htmlSec,inputEl);
+	  shell[0].insertBefore(htmlSec,inputContainer);
       }
 
     shell.on("onmessage", function(e, msgDirty) {
@@ -405,8 +411,8 @@ module.exports = function() {
       if (!htmlSec) createSpan("M2Text"); // for very first time
       //	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
 
-	var ii:number = inputEl.textContent.lastIndexOf("\u21B5");
-	if (ii>=0) inputEl.textContent=inputEl.textContent.substring(ii+1,inputEl.textContent.length); // erase past sent input
+	var ii:number = inputSpan.textContent.lastIndexOf("\u21B5");
+	if (ii>=0) inputSpan.textContent=inputSpan.textContent.substring(ii+1,inputSpan.textContent.length); // erase past sent input
 
 	var txt=msg.split(htmlComment);
       for (var i=0; i<txt.length; i+=2)
@@ -414,10 +420,10 @@ module.exports = function() {
 //	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
 	    // if we are at the end of an input section
 	    if ((mathJaxState=="<!--inpend-->")&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!="<!--con-->")))) {
-		if (inputEl.parentElement != shell[0]) { // if we moved the input because of multi-line
-		    var flag = document.activeElement == inputEl;
-		    shell[0].appendChild(inputEl); // move it back
-		    if (flag) inputEl.focus();
+		if (inputContainer.parentElement != shell[0]) { // if we moved the input because of multi-line
+		    var flag = document.activeElement == inputSpan;
+		    shell[0].appendChild(inputContainer); // move it back
+		    if (flag) inputSpan.focus();
 		}
 		// highlight
 		htmlSec.innerHTML=Prism.highlight(htmlSec.firstChild.textContent,Prism.languages.macaulay2);
@@ -463,10 +469,10 @@ module.exports = function() {
 		    createSpan("M2Input");
 		}
 		else if (mathJaxState=="<!--con-->") { // continuation of input section
-		    if (inputEl.parentElement == shell[0]) {
-			var flag = document.activeElement == inputEl;
-			htmlSec.appendChild(inputEl); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
-			if (flag) inputEl.focus();
+		    if (inputContainer.parentElement == shell[0]) {
+			var flag = document.activeElement == inputSpan;
+			htmlSec.appendChild(inputContainer); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
+			if (flag) inputSpan.focus();
 		    }
 		}
 		else { // ordinary text (error messages, prompts, etc)
@@ -479,7 +485,7 @@ module.exports = function() {
 		    var ii=txt[i].indexOf("\n");
 		    if (ii>=0) {
 			if (mathJaxState=="<!--inp-->") {
-			    shell[0].insertBefore(document.createElement("br"),inputEl);
+			    shell[0].insertBefore(document.createElement("br"),inputContainer);
 			}
 			mathJaxState="<!--inpend-->";
 			if (ii<txt[i].length-1) {
@@ -500,9 +506,6 @@ module.exports = function() {
 		}
 	    }
 	}
-	// sadly, chrome refuses focus on empty text node *at start of line*
-	// current workaround: extra invisible blank...
-	var lame=document.createElement("span"); lame.innerHTML="&#8203;"; inputEl.parentElement.insertBefore(lame,inputEl);
 	scrollDown(shell);
     });
 
@@ -511,7 +514,7 @@ module.exports = function() {
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  inputElCreate(); // recreate the input area
 //	  shell[0].insertBefore(document.createTextNode("\n"),inputEl);
-	  shell[0].insertBefore(document.createElement("br"),inputEl);
+	  shell[0].insertBefore(document.createElement("br"),inputContainer);
 	  mathJaxState = "<!--txt-->";
 	  htmlSec=null;
     });
