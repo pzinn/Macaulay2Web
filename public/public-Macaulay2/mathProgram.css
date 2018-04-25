@@ -196,6 +196,7 @@ code, codeblock, .M2PastInput:hover, .M2HtmlOutput:hover {
     box-shadow: 1px 1px 2px #006000;
     text-decoration: none;
     cursor: pointer;
+    border-radius: 5px;
 }
 
 .M2-hidden::after {
