@@ -185,14 +185,11 @@ module.exports = function() {
 	  {
 	      var pos=inputEl.textContent.length;
 	      inputEl.textContent+=autoComplete.lastChild.textContent;
-	      if (flag) {
-		  var el=document.getElementById("autocomplete-selection");
-		  if (el)
-		      addToEl(inputEl,pos,el.textContent+" ");
-		  else
-		      addToEl(inputEl,pos,autoComplete.word);
-	      }
-	      else addToEl(inputEl,pos,autoComplete.word);
+	      var el;
+	      if (flag&&(el=document.getElementById("autocomplete-selection")))
+		  addToEl(inputEl,pos,el.textContent+" ");
+	      else
+		  addToEl(inputEl,pos,autoComplete.word);
 	      autoComplete.parentElement.removeChild(autoComplete); autoComplete=null;
 	  }
       }
