@@ -403,3 +403,14 @@ a.submenuItem {
     vertical-align: middle;
 }
 
+/* svg stuff */
+
+svg.M2Svg {
+    vertical-align: middle;
+    position: relative;
+    display: inline;
+    fill: black;
+    stroke: black;
+    fill-opacity: 1;
+    stroke-opacity: 1;
+}
