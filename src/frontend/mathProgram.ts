@@ -14,6 +14,8 @@ let socket: Socket;
 let serverDisconnect = false;
 const dialogPolyfill = require("dialog-polyfill");
 const shell = require("./shell-emulator")();
+const scrollDown = require("scroll-down");
+
 import * as $ from "jquery";
 
 const getSelected = function (){ // could almost just trigger the paste event, except for when there's no selection and final \n...
@@ -71,6 +73,7 @@ const attachMinMaxBtnActions = function() {
     dialog.appendChild(output);
     maxCtrl.insertBefore(zoomBtns, downsize);
     dialog.showModal();
+      scrollDown($("#M2Out"));
   });
   downsize.addEventListener("click", function() {
     const dialog: any = document.getElementById("fullScreenOutput");
@@ -80,6 +83,7 @@ const attachMinMaxBtnActions = function() {
     oldPosition.appendChild(output);
     ctrl.insertBefore(zoomBtns, maximize);
     dialog.close();
+      scrollDown($("#M2Out"));
   });
 };
 
