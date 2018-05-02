@@ -220,8 +220,9 @@ module.exports = function() {
 	      var clean = "";
 	      for (var i=0; i<msg.length; i++) {
 		  var c = msg.charCodeAt(i);
-		  if (c<128) clean+=msg.charAt(i); // a bit too inclusive
-		  else if (symbols[c]) clean+=symbols[c];
+		  if ((c<128)||(symbols[c])) clean+=msg.charAt(i); // a bit too inclusive
+/*		  if (c<128) clean+=msg.charAt(i); // a bit too inclusive
+		  else if (symbols[c]) clean+=symbols[c];*/
 	      }
 	      postRawMessage(clean, socket);
 	  }
@@ -294,12 +295,13 @@ module.exports = function() {
 		      inputSpan.textContent=inputSpan.textContent.substring(0,pos)+inputSpan.textContent.substring(esc+1,inputSpan.textContent.length);
 		  }
 		  var sss="";
-		  for (var ss in symbols) {
-		      if (symbols[ss].startsWith(s)) {
-			  sss=String.fromCharCode(+ss);
-			  break;
+		  if (s.length>0)
+		      for (var ss in symbols) {
+			  if (symbols[ss].startsWith(s)) {
+			      sss=String.fromCharCode(+ss);
+			      break;
+			  }
 		      }
-		  }
 		  addToEl(inputSpan,pos,sss);
 	      }
 	      return false;
