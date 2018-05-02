@@ -414,3 +414,7 @@ svg.M2Svg {
     fill-opacity: 1;
     stroke-opacity: 1;
 }
+
+.katex .fbox {
+    border-style: dotted; /* probably temporary */
+}

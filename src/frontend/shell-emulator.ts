@@ -7,17 +7,18 @@
 /* eslint "max-len": "off" */
 const keys = {
     // The keys 37, 38, 39 and 40 are the arrow keys.
-  arrowUp: 38,
-  arrowDown: 40,
-  arrowLeft: 37,
-  arrowRight: 39,
-  cKey: 67,
-  zKey: 90,
-  ctrlKeyCode: 17,
-  metaKeyCodes: [224, 17, 91, 93],
-  backspace: 8,
-  tab: 9,
-  enter: 13,
+    arrowUp: 38,
+    arrowDown: 40,
+    arrowLeft: 37,
+    arrowRight: 39,
+    cKey: 67,
+    zKey: 90,
+    ctrlKeyCode: 17,
+    metaKeyCodes: [224, 17, 91, 93],
+    backspace: 8,
+    tab: 9,
+    enter: 13,
+    escape: 27,
   ctrlc: "\x03",
 };
 
@@ -201,10 +202,11 @@ module.exports = function() {
       }
 
       const symbols = {
-	  0x3B1:"alpha",0x3B2:"beta",0x3B3:"gamma",0x3B4:"delta",0x3B5:"epsilon",0x3B6:"zeta",0x3B7:"eta",0x3B8:"theta",0x3B9:"iota",0x3BA:"kappa",0x3BB:"lambda",0x3BC:"mu",0x3BD:"nu",0x3BE:"xi",0x3C0:"pi",0x3C1:"rho",0x3C3:"sigma",0x3C2:"varsigma",0x3C4:"tau",0x3C5:"upsilon",0x3C6:"phi",0x3C7:"chi",0x3C8:"psi",0x3C9:"omega",
-	  0x393:"Gamma",0x394:"Delta",0x398:"Theta",0x39B:"Lambda",0x39E:"Xi",0x3A0:"Pi",0x3A3:"Sigma",0x3A5:"Upsilon",0x3A6:"Phi",0x3A8:"Psi",0x3A9:"Omega",
+	  0x3B1:"alpha",0x3B2:"beta",0x3B3:"gamma",0x3B4:"delta",0x3B5:"epsilon",0x3B6:"zeta",0x3B7:"eta",0x3B8:"theta",0x3B9:"iota",0x3BA:"kappa",0x3BB:"lambda",0x3BC:"mu",0x3BD:"nu",0x3BE:"xi",0x3BF:"omicron",0x3C0:"pi",0x3C1:"rho",0x3C3:"sigma",0x3C2:"varsigma",0x3C4:"tau",0x3C5:"upsilon",0x3C6:"phi",0x3C7:"chi",0x3C8:"psi",0x3C9:"omega",
+	  0x391:"Alpha",0x392:"Beta",0x393:"Gamma",0x394:"Delta",0x395:"Epsilon",0x396:"Zeta",0x397:"Eta",0x398:"Theta",0x399:"Iota",0x39A:"Kappa",0x39B:"Lambda",0x39C:"Mu",0x39D:"Nu",0x39E:"Xi",0x39F:"Omicron",0x3A0:"Pi",0x3A1:"Rho",0x3A3:"Sigma",0x3A4:"Tau",0x3A5:"Upsilon",0x3A6:"Phi",0x3A7:"Chi",0x3A8:"Psi",0x3A9:"Omega",
 	  0x2102:"CC",0x210D:"HH",0x2115:"NN",0x2119:"PP",0x211A:"QQ",0x211D:"RR",0x2124:"ZZ"
       }; // partial support for unicode symbols
+      var reverseSymbols=new Object; for (var s in symbols) reverseSymbols[symbols[s]]=s;
 
       shell.on("postMessage", function(e,msg,flag1,flag2) { // send input, adding \n if necessary
 	  removeAutoComplete(false); // remove autocomplete menu if open
@@ -277,6 +279,33 @@ module.exports = function() {
       }
       var pos = placeCaretAtEnd(inputSpan,true);
 
+	  if (e.keyCode === keys.escape) {
+	      var esc = inputSpan.textContent.indexOf("\u250B");
+	      if (esc<0)
+		  addToEl(inputSpan,pos,"\u250B");
+	      else {
+		  var s;
+		  if (esc<pos) {
+		      s = inputSpan.textContent.substring(esc+1,pos);
+		      inputSpan.textContent=inputSpan.textContent.substring(0,esc)+inputSpan.textContent.substring(pos,inputSpan.textContent.length);
+		      pos=esc;
+		  } else {
+		      s = inputSpan.textContent.substring(pos,esc);
+		      inputSpan.textContent=inputSpan.textContent.substring(0,pos)+inputSpan.textContent.substring(esc+1,inputSpan.textContent.length);
+		  }
+		  var sss="";
+		  for (var ss in symbols) {
+		      if (symbols[ss].startsWith(s)) {
+			  sss=String.fromCharCode(+ss);
+			  break;
+		      }
+		  }
+		  addToEl(inputSpan,pos,sss);
+	      }
+	      return false;
+	  }
+	  
+	  
 	  /*
       if (e.ctrlKey && e.keyCode === keys.cKey) {
         interrupt(socket);
