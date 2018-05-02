@@ -117,6 +117,7 @@ body {
 }
 
 .M2Html pre {
+    display: inline;
     margin: 0px;
     font-family: KaTeX_Typewriter;
     font-size: 1.21em;
@@ -413,4 +414,8 @@ svg.M2Svg {
     stroke: black;
     fill-opacity: 1;
     stroke-opacity: 1;
+}
+
+.katex .fbox {
+    border-style: dotted; /* probably temporary */
 }
