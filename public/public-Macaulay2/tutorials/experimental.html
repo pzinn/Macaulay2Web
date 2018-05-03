@@ -7,14 +7,14 @@
   <div>
     <h4>Degrees rings</h4>
 
-    <p>Monoids/polynomial rings have a new option <tt>DegreesRing</tt> which allows to specify the ring of degrees:
+    <p>Monoids/polynomial rings have a new option \(\verb|DegreesRing|\) which allows to specify the ring of degrees:
     <code>R=QQ[x,y,DegreesRing=>ZZ[t,u,v,Inverses=>true]]</code></p>
-    <p>The degrees ring must have <tt>Inverses=>true</tt> and base ring <tt>ZZ</tt>. One can then use monomials in the degrees ring to define degrees:<br/>
+    <p>The degrees ring must have \(\verb|Inverses=>true|\) and base ring \(\verb|ZZ|\). One can then use monomials in the degrees ring to define degrees:<br/>
     <code>W=ZZ[H,A_0..A_9,Inverses=>true];</code><br/>
       <code>R=QQ[w_0..w_9,DegreesRing=>W,Degrees=>apply(10,i->H*A_i)]</code><br/>
       <code>poincare ideal(w_3,w_5)</code>
     </p>
-    <p>Another degrees ring can be defined with the option <tt>AddDegreesRing</tt>; it must have base ring <tt>ZZ</tt>. Similarly, degrees can then be defined using degree 1 polynomials in it:<br/>
+    <p>Another degrees ring can be defined with the option \(\verb|AddDegreesRing|\); it must have base ring \(\verb|ZZ|\). Similarly, degrees can then be defined using degree 1 polynomials in it:<br/>
     <code>W=ZZ[h,a_0..a_9];</code><br/>
       <code>R=QQ[w_0..w_9,AddDegreesRing=>W,Degrees=>apply(10,i->h+a_i)]</code><br/>
       <code>multidegree ideal(w_3,w_5)</code>
@@ -26,7 +26,7 @@
   <div>
     <h4>Factorized polynomial rings</h4>
 
-    <p>The keyword <tt>fact</tt> produces a new polynomial ring from an old one, which only differs in that the polynomials are internally stored and displayed in a factorized form:<br/>
+    <p>The keyword \(\verb|fact|\) produces a new polynomial ring from an old one, which only differs in that the polynomials are internally stored and displayed in a factorized form:<br/>
       <code>R=fact(QQ[x,y,z]); x^2-y^2</code>      
     </p>
     <p>In the case of Laurent polynomials, the option "DegreeZero" factors out the leading monomial:<br/>
