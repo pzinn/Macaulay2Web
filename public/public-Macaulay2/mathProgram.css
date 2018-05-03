@@ -119,7 +119,7 @@ body {
 .M2Html pre {
     display: inline;
     margin: 0px;
-    font-family: KaTeX_Typewriter;
+    font-family: KaTeX_Typewriter, monospace;
     font-size: 1.21em;
 }
 
