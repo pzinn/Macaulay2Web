@@ -206,7 +206,7 @@ module.exports = function() {
 	  0x391:"Alpha",0x392:"Beta",0x393:"Gamma",0x394:"Delta",0x395:"Epsilon",0x396:"Zeta",0x397:"Eta",0x398:"Theta",0x399:"Iota",0x39A:"Kappa",0x39B:"Lambda",0x39C:"Mu",0x39D:"Nu",0x39E:"Xi",0x39F:"Omicron",0x3A0:"Pi",0x3A1:"Rho",0x3A3:"Sigma",0x3A4:"Tau",0x3A5:"Upsilon",0x3A6:"Phi",0x3A7:"Chi",0x3A8:"Psi",0x3A9:"Omega",
 	  0x2102:"CC",0x210D:"HH",0x2115:"NN",0x2119:"PP",0x211A:"QQ",0x211D:"RR",0x2124:"ZZ"
       }; // partial support for unicode symbols
-      var reverseSymbols=new Object; for (var s in symbols) reverseSymbols[symbols[s]]=s;
+//      var reverseSymbols=new Object; for (var s in symbols) reverseSymbols[symbols[s]]=s;
 
       shell.on("postMessage", function(e,msg,flag1,flag2) { // send input, adding \n if necessary
 	  removeAutoComplete(false); // remove autocomplete menu if open
