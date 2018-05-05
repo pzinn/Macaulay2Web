@@ -107,6 +107,7 @@ body {
 }
 
 .M2Html .single pre { /* "single" is the class name used by M2 documentation. pre is used for code example */
+    display: block;
     border-style: solid;
     border-width: 1px;
     margin: 4px;
