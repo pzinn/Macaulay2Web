@@ -417,6 +417,10 @@ svg.M2Svg {
     stroke-opacity: 1;
 }
 
+svg.M2Svg path {
+    stroke: black;
+}
+
 .katex .fbox {
     border-style: dotted; /* probably temporary */
 }

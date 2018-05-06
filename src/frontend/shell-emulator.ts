@@ -99,11 +99,13 @@ module.exports = function() {
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax/katex related stuff
       var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html, etc
-      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|<\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. should allow <script> to have arguments TODO
+      //      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|<\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. should allow <script> to have arguments TODO
+      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|&lt;script>|<\/script>|&lt;\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. TEMP. see what happens this way. note that htmlLiteral only encodes <, not > (!?!). but now we can't use <script> in any text
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
       var jsCode=""; // saves the current script
       var htmlSec; // html element of current output section
+      var preTexState,preJsState;
 
       const inputElCreate = function() {
 	  // (re)create the input area
@@ -470,6 +472,8 @@ module.exports = function() {
 	    if (i>0) {
 		var oldState = mathJaxState;
 		mathJaxState=txt[i-1];
+		if (mathJaxState=="&lt;script>") mathJaxState="<script>";
+		else if (mathJaxState=="&lt;/script>") mathJaxState="</script>"; // TEMP
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    createSpan("M2Html");
 		}
@@ -477,8 +481,10 @@ module.exports = function() {
 		    createSpan("M2Html M2HtmlOutput");
 		}
 		else if (mathJaxState=="\\(") { // tex section beginning. should always be in a html section
-		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->"))
+		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->")) {
+			preTexState=oldState;
 			texCode="";
+		    }
 		    else {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
 			mathJaxState=oldState;
@@ -489,8 +495,7 @@ module.exports = function() {
 			texCode=dehtml(texCode); // needed for MathJax compatibility
 			htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
 			//htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode,  {macros: {"\\frac" : "\\left( #1 \\middle)\\middle/\\middle( #2 \\right)"}});
-
-			mathJaxState="<!--html-->"; // back to ordinary HTML -- actually, could be outputHTML, but do we care? TODO
+			mathJaxState=preTexState;
 		    }
 		    else {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
@@ -498,8 +503,10 @@ module.exports = function() {
 		    }
 		}
 		else if (mathJaxState=="<script>") { // script section beginning. should always be in a html section
-		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->"))
+		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->")||(oldState=="\\(")) {
+			preJsState=oldState;
 			jsCode="";
+		    }
 		    else {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
 			mathJaxState=oldState;
@@ -508,9 +515,9 @@ module.exports = function() {
 		else if (mathJaxState=="</script>") { // script section ending
 		    if (oldState=="<script>") {
 			var scr = document.createElement('script');
-			scr.text = jsCode;
+			scr.text = dehtml(jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
 			document.head.appendChild(scr);
-			mathJaxState="<!--html-->"; // back to ordinary HTML -- actually, could be outputHTML, but do we care? TODO
+			mathJaxState=preJsState;
 		    }
 		    else {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
