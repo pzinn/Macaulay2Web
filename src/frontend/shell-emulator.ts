@@ -99,9 +99,10 @@ module.exports = function() {
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax/katex related stuff
       var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html, etc
-      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\))/; // the hope is, these <!--*--> sequences are never used in M2
+      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|<\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. should allow <script> to have arguments TODO
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
+      var jsCode=""; // saves the current script
       var htmlSec; // html element of current output section
 
       const inputElCreate = function() {
@@ -479,21 +480,41 @@ module.exports = function() {
 		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->"))
 			texCode="";
 		    else {
+			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
 			mathJaxState=oldState;
-			txt[i]="\\("+txt[i]; // if not, treat as ordinary text
 		    }
 		}
 		else if (mathJaxState=="\\)") { // tex section ending
 		    if (oldState=="\\(") { // we're not allowing for complicated nested things yet. TODO???
-			texCode=dehtml(texCode);
+			texCode=dehtml(texCode); // needed for MathJax compatibility
 			htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
 			//htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode,  {macros: {"\\frac" : "\\left( #1 \\middle)\\middle/\\middle( #2 \\right)"}});
 
 			mathJaxState="<!--html-->"; // back to ordinary HTML -- actually, could be outputHTML, but do we care? TODO
 		    }
 		    else {
+			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
 			mathJaxState=oldState;
-			txt[i]="\\)"+txt[i]; // if not, treat as ordinary text
+		    }
+		}
+		else if (mathJaxState=="<script>") { // script section beginning. should always be in a html section
+		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->"))
+			jsCode="";
+		    else {
+			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
+			mathJaxState=oldState;
+		    }
+		}
+		else if (mathJaxState=="</script>") { // script section ending
+		    if (oldState=="<script>") {
+			var scr = document.createElement('script');
+			scr.text = jsCode;
+			document.head.appendChild(scr);
+			mathJaxState="<!--html-->"; // back to ordinary HTML -- actually, could be outputHTML, but do we care? TODO
+		    }
+		    else {
+			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
+			mathJaxState=oldState;
 		    }
 		}
 		else if (mathJaxState=="<!--inp-->") { // input section: a bit special (ends at first \n)
@@ -527,6 +548,7 @@ module.exports = function() {
 		}
 
 		if (mathJaxState=="\\(") texCode+=txt[i];
+		else if (mathJaxState=="<script>") jsCode+=txt[i];
 		else if ((mathJaxState=="<!--html-->")||(mathJaxState=="<!--out-->")) htmlSec.innerHTML=htmlCode+=txt[i];
 		else { // all other states are raw text
 		    // don't rewrite htmlSec.textContent+=txt[i] directly though -- because of multi-line input
