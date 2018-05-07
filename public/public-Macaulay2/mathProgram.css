@@ -424,3 +424,93 @@ svg.M2Svg path {
 .katex .fbox {
     border-style: dotted; /* probably temporary */
 }
+
+.M2HtmlOutput input {
+    visibility: hidden;
+}
+
+.M2HtmlOutput:hover input {
+    visibility: visible;
+}
+
+/*customised range*/ input[type="range"].range 
+{ 
+     cursor: pointer;
+     -webkit-appearance: none;
+     z-index: 200;
+     width: 90%;
+     border: 1px solid #e6e6e6; 
+     background-color: #e6e6e6; 
+     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#e6e6e6), to(#d2d2d2)); 
+     background-image: -webkit-linear-gradient(right, #e6e6e6, #d2d2d2); 
+     background-image: -moz-linear-gradient(right, #e6e6e6, #d2d2d2); 
+     background-image: -ms-linear-gradient(right, #e6e6e6, #d2d2d2); 
+     background-image: -o-linear-gradient(right, #e6e6e6, #d2d2d2); 
+}
+
+/*customised range when focusing on input */ input[type="range"].range:focus
+{
+     border: 0 !imporant; 
+     outline: none !important; 
+}
+
+/*customised range slider icon*/ input[type="range"].range::-webkit-slider-thumb 
+{
+     -webkit-appearance: none; 
+     width: 10px; 
+     height: 10px; 
+background-color: #555; 
+     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#4DDBFF), to(#00CCFF)); 
+     background-image: -webkit-linear-gradient(right, #4DDBFF, #00CCFF); 
+     background-image: -moz-linear-gradient(right, #4DDBFF, #00CCFF); 
+     background-image: -ms-linear-gradient(right, #4DDBFF, #00CCFF); 
+     background-image: -o-linear-gradient(right, #4DDBFF, #00CCFF); 
+}
+
+/*setting round corners to the range */ input[type="range"].round {
+     -webkit-border-radius: 20px; 
+     -moz-border-radius: 20px; 
+     border-radius: 20px; 
+}
+
+/*setting round corners to the range slider icon*/ input[type="range"].round::-webkit-slider-thumb {
+     -webkit-border-radius: 5px;
+     -moz-border-radius: 5px;
+     -o-border-radius: 5px;
+}
+
+/* set range from 0 - 1 horizontal as by default */ .horizontal-lowest-first
+{
+     -webkit-transform:rotate(0deg);
+     -moz-transform:rotate(0deg);
+     -o-transform:rotate(0deg);
+     -ms-transform:rotate(0deg);
+     transform:rotate(0deg);
+}
+
+/* set range from 1 - 0 horizontal (highest first) */ .horizontal-highest-first
+{
+     -webkit-transform:rotate(180deg);
+     -moz-transform:rotate(180deg);
+     -o-transform:rotate(180deg);
+     -ms-transform:rotate(180deg);
+     transform:rotate(180deg);
+}
+
+/* set range from 0 - 1 vertically (lowest on top) */ .vertical-lowest-first
+{
+     -webkit-transform:rotate(90deg);
+     -moz-transform:rotate(90deg);
+     -o-transform:rotate(90deg);
+     -ms-transform:rotate(90deg);
+     transform:rotate(90deg);
+}
+
+/* set range from 1 - 0 vertically (highest on top) */ .vertical-highest-first
+{
+     -webkit-transform:rotate(270deg);
+     -moz-transform:rotate(270deg);
+     -o-transform:rotate(270deg);
+     -ms-transform:rotate(270deg);
+     transform:rotate(270deg);
+}
