@@ -6,7 +6,6 @@
 /* eslint-env browser */
 /* eslint "max-len": "off" */
 const keys = {
-    // The keys 37, 38, 39 and 40 are the arrow keys.
     arrowUp: 38,
     arrowDown: 40,
     arrowLeft: 37,
@@ -25,7 +24,7 @@ const keys = {
 import {Socket} from "./mathProgram";
 const unicodeBell = "\u0007";
 //const setCaretPosition = require("set-caret-position");
-const scrollDown = require("scroll-down");
+//const scrollDown = require("scroll-down");
 //const getSelected = require("get-selected-text");
 declare const katex;
 declare const Prism;
@@ -44,6 +43,11 @@ function dehtml(s) { // these are all the substitutions performed by M2
 - in chrome, anchor*=base* = start, extent*=focus* = end. *node = the DOM element itself
 - in firefox, anchor* = start, focus* = end.              *node = the text node inside the dom element
 */
+
+function scrollDownLeft(element) {
+    element.scrollTop(element[0].scrollHeight);
+    element.scrollLeft(0);
+};
 
 function addToEl(el,pos,s) { // insert into a pure text element
     var msg=el.textContent;
@@ -153,7 +157,7 @@ module.exports = function() {
 	      inputSpan.textContent=cmdHistory[cmdHistory.index];
 	  }
 	  placeCaretAtEnd(inputSpan);
-    scrollDown(shell);
+    scrollDownLeft(shell);
       };
       
       const codeInputAction = function(e) {
@@ -162,7 +166,7 @@ module.exports = function() {
 	  {
 	      inputSpan.textContent = this.textContent;
 	      placeCaretAtEnd(inputSpan);
-	      scrollDown(shell);
+	      scrollDownLeft(shell);
 	  }
       };
 
@@ -235,7 +239,7 @@ module.exports = function() {
       if (typeof msg !== "undefined") {
         if (editor !== undefined) {
 	    editor[0].appendChild(document.createTextNode(msg));
-          scrollDown(editor);
+          scrollDownLeft(editor);
         }
       }
     });
@@ -265,7 +269,7 @@ module.exports = function() {
       if (e.keyCode === keys.enter) {
 	  const msg=inputSpan.textContent;
 	  shell.trigger("postMessage",[msg,true,true]);
-	  scrollDown(shell);
+	  scrollDownLeft(shell);
 	  return false; // no crappy <div></div> added
       }
 
@@ -399,7 +403,7 @@ module.exports = function() {
 			      }
 			  });
 			  tabMenu.focus();
-//			  scrollDown(shell); // not to the bottom: input should still be visible
+//			  scrollDownLeft(shell); // not to the bottom: input should still be visible
 		      }
 		}
 	    }
@@ -566,7 +570,7 @@ module.exports = function() {
 		}
 	    }
 	}
-	scrollDown(shell);
+	scrollDownLeft(shell);
     });
 
       shell.on("reset", function() {
