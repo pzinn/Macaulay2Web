@@ -6,7 +6,6 @@
 /* eslint-env browser */
 /* eslint "max-len": "off" */
 const keys = {
-    // The keys 37, 38, 39 and 40 are the arrow keys.
     arrowUp: 38,
     arrowDown: 40,
     arrowLeft: 37,
@@ -25,7 +24,7 @@ const keys = {
 import {Socket} from "./mathProgram";
 const unicodeBell = "\u0007";
 //const setCaretPosition = require("set-caret-position");
-const scrollDown = require("scroll-down");
+//const scrollDown = require("scroll-down");
 //const getSelected = require("get-selected-text");
 declare const katex;
 declare const Prism;
@@ -44,6 +43,11 @@ function dehtml(s) { // these are all the substitutions performed by M2
 - in chrome, anchor*=base* = start, extent*=focus* = end. *node = the DOM element itself
 - in firefox, anchor* = start, focus* = end.              *node = the text node inside the dom element
 */
+
+function scrollDownLeft(element) {
+    element.scrollTop(element[0].scrollHeight);
+    element.scrollLeft(0);
+};
 
 function addToEl(el,pos,s) { // insert into a pure text element
     var msg=el.textContent;
@@ -99,11 +103,13 @@ module.exports = function() {
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax/katex related stuff
       var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html, etc
-      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|<\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. should allow <script> to have arguments TODO
+      //      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|<\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. should allow <script> to have arguments TODO
+      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|&lt;script>|<\/script>|&lt;\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. TEMP. see what happens this way. note that htmlLiteral only encodes <, not > (!?!). but now we can't use <script> in any text
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
       var jsCode=""; // saves the current script
       var htmlSec; // html element of current output section
+      var preTexState,preJsState;
 
       const inputElCreate = function() {
 	  // (re)create the input area
@@ -151,7 +157,7 @@ module.exports = function() {
 	      inputSpan.textContent=cmdHistory[cmdHistory.index];
 	  }
 	  placeCaretAtEnd(inputSpan);
-    scrollDown(shell);
+    scrollDownLeft(shell);
       };
       
       const codeInputAction = function(e) {
@@ -160,7 +166,7 @@ module.exports = function() {
 	  {
 	      inputSpan.textContent = this.textContent;
 	      placeCaretAtEnd(inputSpan);
-	      scrollDown(shell);
+	      scrollDownLeft(shell);
 	  }
       };
 
@@ -233,7 +239,7 @@ module.exports = function() {
       if (typeof msg !== "undefined") {
         if (editor !== undefined) {
 	    editor[0].appendChild(document.createTextNode(msg));
-          scrollDown(editor);
+          scrollDownLeft(editor);
         }
       }
     });
@@ -263,7 +269,7 @@ module.exports = function() {
       if (e.keyCode === keys.enter) {
 	  const msg=inputSpan.textContent;
 	  shell.trigger("postMessage",[msg,true,true]);
-	  scrollDown(shell);
+	  scrollDownLeft(shell);
 	  return false; // no crappy <div></div> added
       }
 
@@ -397,7 +403,7 @@ module.exports = function() {
 			      }
 			  });
 			  tabMenu.focus();
-//			  scrollDown(shell); // not to the bottom: input should still be visible
+//			  scrollDownLeft(shell); // not to the bottom: input should still be visible
 		      }
 		}
 	    }
@@ -470,6 +476,8 @@ module.exports = function() {
 	    if (i>0) {
 		var oldState = mathJaxState;
 		mathJaxState=txt[i-1];
+		if (mathJaxState=="&lt;script>") mathJaxState="<script>";
+		else if (mathJaxState=="&lt;/script>") mathJaxState="</script>"; // TEMP
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    createSpan("M2Html");
 		}
@@ -477,8 +485,10 @@ module.exports = function() {
 		    createSpan("M2Html M2HtmlOutput");
 		}
 		else if (mathJaxState=="\\(") { // tex section beginning. should always be in a html section
-		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->"))
+		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->")) {
+			preTexState=oldState;
 			texCode="";
+		    }
 		    else {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
 			mathJaxState=oldState;
@@ -489,8 +499,7 @@ module.exports = function() {
 			texCode=dehtml(texCode); // needed for MathJax compatibility
 			htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode);
 			//htmlSec.innerHTML=htmlCode+=katex.renderToString(texCode,  {macros: {"\\frac" : "\\left( #1 \\middle)\\middle/\\middle( #2 \\right)"}});
-
-			mathJaxState="<!--html-->"; // back to ordinary HTML -- actually, could be outputHTML, but do we care? TODO
+			mathJaxState=preTexState;
 		    }
 		    else {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
@@ -498,8 +507,10 @@ module.exports = function() {
 		    }
 		}
 		else if (mathJaxState=="<script>") { // script section beginning. should always be in a html section
-		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->"))
+		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->")||(oldState=="\\(")) {
+			preJsState=oldState;
 			jsCode="";
+		    }
 		    else {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
 			mathJaxState=oldState;
@@ -508,9 +519,9 @@ module.exports = function() {
 		else if (mathJaxState=="</script>") { // script section ending
 		    if (oldState=="<script>") {
 			var scr = document.createElement('script');
-			scr.text = jsCode;
+			scr.text = dehtml(jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
 			document.head.appendChild(scr);
-			mathJaxState="<!--html-->"; // back to ordinary HTML -- actually, could be outputHTML, but do we care? TODO
+			mathJaxState=preJsState;
 		    }
 		    else {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
@@ -559,7 +570,7 @@ module.exports = function() {
 		}
 	    }
 	}
-	scrollDown(shell);
+	scrollDownLeft(shell);
     });
 
       shell.on("reset", function() {
