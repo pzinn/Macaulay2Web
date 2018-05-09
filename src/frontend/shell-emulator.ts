@@ -103,8 +103,8 @@ module.exports = function() {
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax/katex related stuff
       var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html, etc
-      //      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|<\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. should allow <script> to have arguments TODO
-      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|&lt;script>|<\/script>|&lt;\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. TEMP. see what happens this way. note that htmlLiteral only encodes <, not > (!?!). but now we can't use <script> in any text
+      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|<\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. should allow <script> to have arguments TODO
+      //var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|&lt;script>|<\/script>|&lt;\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. TEMP. see what happens this way. note that htmlLiteral only encodes <, not > (!?!). but now we can't use <script> in any text
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
       var jsCode=""; // saves the current script
