@@ -103,11 +103,11 @@ module.exports = function() {
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax/katex related stuff
       var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html, etc
-      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|<\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. should allow <script> to have arguments TODO
+      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\))/; // the hope is, these <!--*--> sequences are never used in M2
       //var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|&lt;script>|<\/script>|&lt;\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. TEMP. see what happens this way. note that htmlLiteral only encodes <, not > (!?!). but now we can't use <script> in any text
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
-      var jsCode=""; // saves the current script
+//      var jsCode=""; // saves the current script
       var htmlSec; // html element of current output section
       var preTexState,preJsState;
 
@@ -476,8 +476,7 @@ module.exports = function() {
 	    if (i>0) {
 		var oldState = mathJaxState;
 		mathJaxState=txt[i-1];
-		if (mathJaxState=="&lt;script>") mathJaxState="<script>";
-		else if (mathJaxState=="&lt;/script>") mathJaxState="</script>"; // TEMP
+//		if (mathJaxState=="&lt;script>") mathJaxState="<script>"; else if (mathJaxState=="&lt;/script>") mathJaxState="</script>"; // TEMP
 		if (mathJaxState=="<!--html-->") { // html section beginning
 		    createSpan("M2Html");
 		}
@@ -506,7 +505,7 @@ module.exports = function() {
 			mathJaxState=oldState;
 		    }
 		}
-		else if (mathJaxState=="<script>") { // script section beginning. should always be in a html section
+/*		else if (mathJaxState=="<script>") { // script section beginning. should always be in a html section
 		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->")||(oldState=="\\(")) {
 			preJsState=oldState;
 			jsCode="";
@@ -527,7 +526,7 @@ module.exports = function() {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
 			mathJaxState=oldState;
 		    }
-		}
+		}*/
 		else if (mathJaxState=="<!--inp-->") { // input section: a bit special (ends at first \n)
 		    createSpan("M2Input");
 		}
@@ -559,7 +558,7 @@ module.exports = function() {
 		}
 
 		if (mathJaxState=="\\(") texCode+=txt[i];
-		else if (mathJaxState=="<script>") jsCode+=txt[i];
+//		else if (mathJaxState=="<script>") jsCode+=txt[i];
 		else if ((mathJaxState=="<!--html-->")||(mathJaxState=="<!--out-->")) htmlSec.innerHTML=htmlCode+=txt[i];
 		else { // all other states are raw text
 		    // don't rewrite htmlSec.textContent+=txt[i] directly though -- because of multi-line input

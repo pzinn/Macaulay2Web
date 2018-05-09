@@ -33,9 +33,11 @@ load "~/m2/Gfx/Gfx.m2"
 vertices={(-137.638,0.,26.2866),(137.638,0.,-26.2866),(-42.5325,-130.902,26.2866),(-42.5325,130.902,26.2866),(111.352,-80.9017,26.2866),(111.352,80.9017,26.2866),(-26.2866,-80.9017,111.352),(-26.2866,80.9017,111.352),(-68.8191,-50.,-111.352),(-68.8191,50.,-111.352),(68.8191,-50.,111.352),(68.8191,50.,111.352),(85.0651,0.,-111.352),(-111.352,-80.9017,-26.2866),(-111.352,80.9017,-26.2866),(-85.0651,0.,111.352),(26.2866,-80.9017,-111.352),(26.2866,80.9017,-111.352),(42.5325,-130.902,-26.2866),(42.5325,130.902,-26.2866)};
 faces={{14,9,8,13,0},{1,5,11,10,4},{4,10,6,2,18},{10,11,7,15,6},{11,5,19,3,7},{5,1,12,17,19},{1,4,18,16,12},{3,19,17,9,14},{17,12,16,8,9},{16,18,2,13,8},{2,6,15,0,13},{15,7,3,14,0}};
 centers=apply(faces,f->sum(f,i->toList vertices#i)); cols=apply(centers,x->0.25*x+{128,128,128});
-dodecahedron=apply(#faces,i->GfxPath3d{flatten {"M",between("L",apply(faces#i,j->vertices#j)),"Z"},"fill"=>"rgb("|toString(round cols#i#0)|","|toString(round cols#i#1)|","|toString(round cols#i#2)|")"});
-gfx3d(dodecahedron,"fill-opacity"=>0.8,GfxRotationMatrix=>matrix{{0.996796,-0.0538897,0.0591},{0.0573326,0.996658,-0.0581949},{-0.0557663,0.0613968,0.996554}})
-
+dodecahedron=apply(#faces,i->GfxPath{flatten {"M",between("L",apply(faces#i,j->vertices#j)),"Z"},"fill"=>"rgb("|toString(round cols#i#0)|","|toString(round cols#i#1)|","|toString(round cols#i#2)|")"});
+d1=gfx(dodecahedron,"fill-opacity"=>0.65,GfxMatrix=>matrix{{0.996796,-0.0538897,0.0591},{0.0573326,0.996658,-0.0581949},{-0.0557663,0.0613968,0.996554}})
+d2=gfxTranslate(gfx(dodecahedron,GfxMatrix=>matrix{{0.998878,-0.00273033,-0.047274},{0.0019735,0.999869,-0.0160487},{0.0473116,0.0159374,0.998753}}),(300,0,0));
+gfx(d1,d2,GfxRange=>{(-400,-400,-100),(400,400,100)},GfxPerspective=>1000,GfxHeight=>20)
+    
 -- or
 rgb={"red","green","blue"};
 scan(rgb, x -> (value x <- GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>0.8,GfxHeight=>0.8}))
