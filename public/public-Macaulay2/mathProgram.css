@@ -425,14 +425,17 @@ svg.M2Svg path {
     border-style: dotted; /* probably temporary */
 }
 
-.M2HtmlOutput input.range {
+.M2HtmlOutput .gfx3d {
     visibility: hidden;
 }
 
-.M2HtmlOutput:hover input.range {
+.M2HtmlOutput:hover .gfx3d {
     visibility: visible;
 }
 
+.M2HtmlOutput button[data-toggle].gfx3d {
+    background: rgba(0,0,0,0.2);
+}
 
 input[type="range"].vertical {
     height: calc(100% - 20px);
