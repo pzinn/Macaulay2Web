@@ -31,11 +31,11 @@ declare const Prism;
 declare const M2symbols;
 
 function dehtml(s) { // these are all the substitutions performed by M2
-    s=s.replace(/&amp;/g,"&");
+    s=s.replace(/&bsol;/g,"\\");
     s=s.replace(/&lt;/g,"<");
     s=s.replace(/&gt;/g,">");
     s=s.replace(/&quot;/g,"\"");
-    s=s.replace(/&bsol;/g,"\\");
+    s=s.replace(/&amp;/g,"&"); // do this one last
     return s;
 }
 
