@@ -405,45 +405,7 @@ a.submenuItem {
     vertical-align: middle;
 }
 
-/* svg stuff */
-
-svg.M2Svg {
-    vertical-align: middle;
-    position: relative;
-    display: inline;
-    fill: black;
-    stroke: black;
-    fill-opacity: 1;
-    stroke-opacity: 1;
-}
-
-svg.M2Svg path {
-    stroke: black;
-}
-
 .katex .fbox {
     border-style: dotted; /* probably temporary */
 }
 
-.M2HtmlOutput .gfx3d {
-    visibility: hidden;
-}
-
-.M2HtmlOutput:hover .gfx3d {
-    visibility: visible;
-}
-
-.M2HtmlOutput button[data-toggle].gfx3d {
-    background: rgba(0,0,0,0.2);
-}
-
-input[type="range"].vertical {
-    height: calc(100% - 20px);
-    width: 10px;
-    -webkit-appearance: slider-vertical;
-}
-
-input[type="range"].horizontal {
-    width: calc(100% - 20px);
-    height: 10px;
-}
