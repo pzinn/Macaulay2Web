@@ -1,5 +1,13 @@
 import {AuthOption} from "../lib/enums";
 
+const mathJaxTagsArray = [1, 2, 3, 4, 5].map((x) => String.fromCharCode(x));
+const [mathJaxTextTag,        // indicates what follows is pure text; default mode
+       mathJaxHtmlTag,        // indicates what follows is HTML
+       mathJaxOutputTag,      // it's html but it's output
+       mathJaxInputTag,       // it's text but it's input
+       mathJaxInputContdTag] // text, continuation of input
+      = mathJaxTagsArray;
+
 const options = {
   cookieName: "tryM2",
   authentication: AuthOption.none,
@@ -10,7 +18,7 @@ const options = {
     MATH_PROGRAM_COMMAND: "export PATH=~/bin:$PATH; export WWWBROWSER=open; M2-experimental -e \"printWidth=0; topLevelMode = MathJax\"",
     port: "8003",
       // tslint:disable-next-line:max-line-length
-      resumeString: "Type <!--html--><span class=\"M2PastInput\" onclick=\"document.getElementsByClassName('M2CurrentInput')[0].textContent=this.textContent\">listUserSymbols</span><!--txt--> to print the list of existing symbols.\n\ni* : <!--inp-->",
+      resumeString: "Type " + mathJaxHtmlTag + "<span class=\"M2PastInput\" onclick=\"document.getElementsByClassName('M2CurrentInput')[0].textContent=this.textContent\">listUserSymbols</span>" + mathJaxTextTag + " to print the list of existing symbols.\n\ni* : " + mathJaxInputTag,
   },
   startInstance: {
     host: "127.0.0.1",
