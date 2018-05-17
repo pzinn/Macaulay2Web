@@ -34,9 +34,9 @@ vertices={vector{-137.638,0.,26.2866},vector{137.638,0.,-26.2866},vector{-42.532
 faces={{14,9,8,13,0},{1,5,11,10,4},{4,10,6,2,18},{10,11,7,15,6},{11,5,19,3,7},{5,1,12,17,19},{1,4,18,16,12},{3,19,17,9,14},{17,12,16,8,9},{16,18,2,13,8},{2,6,15,0,13},{15,7,3,14,0}};
 centers=apply(faces,f->1/5*sum(f,i->vertices#i));
 steps=30;
-dodecasplit=apply(faces,centers,(f,c)->GfxPolygon(apply(f,j->vertices#j),
+dodecasplit=apply(faces,centers,(f,c)->GfxPolygon{apply(f,j->vertices#j),
 	GfxAutoMatrix=>apply(steps,j->gfxRotation(2*pi/5/steps*4*min(j/steps,1-j/steps),c,c)*gfxTranslation(0.075*sin(2*pi*j/steps)*c)),
-	"fill"=>concatenate("rgb(",toString(134+round 1.2*c_0),",",toString(134+round 1.2*c_1),",",toString(134+round 1.2*c_2),")")));
+	"fill"=>concatenate("rgb(",toString(134+round(1.2*c_0)),",",toString(134+round(1.2*c_1)),",",toString(134+round(1.2*c_2)),")")});
 d=gfx(dodecasplit,"fill-opacity"=>0.65,GfxAutoMatrix=>gfxRotation(0.02,[1,2,3]),GfxRange=>{vector{-200,-200},vector{200,200}});
 d1=gfx(d,GfxMatrix=>gfxTranslation[200,0,0]); -- using alternate syntax of Array instead of Vector
 d2=gfx(d,GfxMatrix=>gfxTranslation[-200,0,0]);
@@ -44,7 +44,7 @@ gfx(d1,d2,GfxRange=>{vector{-400,-400},vector{400,400}},GfxHeight=>25)
 
 -- or
 rgb={"red","green","blue"};
-scan(rgb, x -> (value x <- GfxCircle("fill"=>x,"stroke"=>"black",GfxWidth=>0.8,GfxHeight=>0.8)))
+scan(rgb, x -> (value x <- GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>0.8,GfxHeight=>0.8}))
 value\rgb
 R=QQ[x_red,x_green,x_blue]
 describe R
