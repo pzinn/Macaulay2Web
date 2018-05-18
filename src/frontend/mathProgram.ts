@@ -228,7 +228,7 @@ const attachCloseDialogBtns = function() {
 
 const socketOnDisconnect = function(msg) {
   console.log("We got disconnected. " + msg);
-  $("#M2Out").trigger("onmessage", "<!--txt--> Sorry, your session was disconnected" +
+  $("#M2Out").trigger("onmessage", "Sorry, your session was disconnected" +
       " by the server.\n\nPlease click the reset button to reconnect.\n\n");
   serverDisconnect = true;
   // Could use the following to automatically reload. Probably too invasive,
