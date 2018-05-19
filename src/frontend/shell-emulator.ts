@@ -426,6 +426,11 @@ module.exports = function() {
 	      }
 	      if (className.indexOf("M2Html")>=0) htmlCode=""; // need to keep track of innerHTML because html tags may get broken
 	  }
+	  if (inputContainer.parentElement != shell[0]) { // if we moved the input because of multi-line
+	      var flag = document.activeElement == inputSpan; // (should only happen exceptionally that we end up here)
+	      shell[0].appendChild(inputContainer); // move it back
+	      if (flag) inputSpan.focus();
+	  }
 	  shell[0].insertBefore(htmlSec,inputContainer);
       }
 

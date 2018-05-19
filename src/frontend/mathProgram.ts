@@ -229,7 +229,7 @@ const attachCloseDialogBtns = function() {
 
 const socketOnDisconnect = function(msg) {
     console.log("We got disconnected. " + msg);
-    $("#M2Out").trigger("onmessage", tags.mathJaxTextTag + 
+    $("#M2Out").trigger("onmessage", tags.mathJaxTextTag +
 			"Sorry, your session was disconnected" +
 			" by the server.\n\nPlease click the reset button to reconnect.\n\n");
   serverDisconnect = true;
