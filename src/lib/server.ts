@@ -307,7 +307,7 @@ const initializeServer = function() {
 
   const prefix: string = staticFolder + "-" + serverConfig.MATH_PROGRAM + "/";
   const getList: reader.GetListFunction = reader.tutorialReader(prefix, fs);
-  const admin = require("./admin")(clients, serverConfig.MATH_PROGRAM);
+  const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM);
   app.use(favicon(staticFolder + "-" +
       serverConfig.MATH_PROGRAM + "/favicon.ico"));
   app.use(SocketIOFileUpload.router);
