@@ -17,6 +17,7 @@ const shell = require("./shell-emulator")();
 const scrollDown = require("scroll-down");
 
 import * as $ from "jquery";
+import * as tags from "./tags";
 
 const getSelected = function (){ // could almost just trigger the paste event, except for when there's no selection and final \n...
     var sel=window.getSelection();
@@ -227,9 +228,10 @@ const attachCloseDialogBtns = function() {
 };
 
 const socketOnDisconnect = function(msg) {
-  console.log("We got disconnected. " + msg);
-  $("#M2Out").trigger("onmessage", "Sorry, your session was disconnected" +
-      " by the server.\n\nPlease click the reset button to reconnect.\n\n");
+    console.log("We got disconnected. " + msg);
+    $("#M2Out").trigger("onmessage", tags.mathJaxTextTag + 
+			"Sorry, your session was disconnected" +
+			" by the server.\n\nPlease click the reset button to reconnect.\n\n");
   serverDisconnect = true;
   // Could use the following to automatically reload. Probably too invasive,
   // might kill results.
