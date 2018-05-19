@@ -455,7 +455,7 @@ module.exports = function() {
       msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	//      msg = msg.replace(/\r/g, "\n");
       msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
-	msg = msg.replace(/file:\/\/\/[^"]+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2");
+	msg = msg.replace(/file:\/\/\/[^"']+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2");
       if (!htmlSec) createSpan("M2Text"); // for very first time
       //	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
 
