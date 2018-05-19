@@ -25,9 +25,6 @@ import {Socket} from "./mathProgram";
 import * as tags from "./tags";
 
 const unicodeBell = "\u0007";
-//const setCaretPosition = require("set-caret-position");
-//const scrollDown = require("scroll-down");
-//const getSelected = require("get-selected-text");
 declare const katex;
 declare const Prism;
 declare const M2symbols;
@@ -450,9 +447,10 @@ module.exports = function() {
 */
 
       let msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
-      msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	//      msg = msg.replace(/\r/g, "\n");
-      msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
+	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully
+	msg = msg.replace(/\r\n/g, "\n"); // that's right...
+	msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
 	msg = msg.replace(/file:\/\/\/[^"']+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2");
       if (!htmlSec) createSpan("M2Text"); // for very first time
       //	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
