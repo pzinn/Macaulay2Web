@@ -22,10 +22,9 @@ const keys = {
 };
 
 import {Socket} from "./mathProgram";
+import * as tags from "./tags";
+
 const unicodeBell = "\u0007";
-//const setCaretPosition = require("set-caret-position");
-//const scrollDown = require("scroll-down");
-//const getSelected = require("get-selected-text");
 declare const katex;
 declare const Prism;
 declare const M2symbols;
@@ -102,14 +101,15 @@ module.exports = function() {
       var inputContainer; // HTML element that contains inputSpan, only there to work around annoying chrome bug
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax/katex related stuff
-      var mathJaxState = "<!--txt-->"; // txt = normal output, html = ordinary html, etc
-      var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\))/; // the hope is, these <!--*--> sequences are never used in M2
-      //var htmlComment= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|&lt;script>|<\/script>|&lt;\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. TEMP. see what happens this way. note that htmlLiteral only encodes <, not > (!?!). but now we can't use <script> in any text
+      var mathJaxState = tags.mathJaxTextTag;
+      var mathJaxTags = new RegExp("(" + tags.mathJaxTagsArray.join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
+      // var mathJaxTags= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|&lt;script>|<\/script>|&lt;\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. TEMP. see what happens this way. note that htmlLiteral only encodes <, not > (!?!). but now we can't use <script> in any text
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
 //      var jsCode=""; // saves the current script
       var htmlSec; // html element of current output section
-      var preTexState,preJsState;
+      var preTexState;
+//      var preJsState;
 
       const inputElCreate = function() {
 	  // (re)create the input area
@@ -423,6 +423,11 @@ module.exports = function() {
 	      }
 	      if (className.indexOf("M2Html")>=0) htmlCode=""; // need to keep track of innerHTML because html tags may get broken
 	  }
+	  if (inputContainer.parentElement != shell[0]) { // if we moved the input because of multi-line
+	      var flag = document.activeElement == inputSpan; // (should only happen exceptionally that we end up here)
+	      shell[0].appendChild(inputContainer); // move it back
+	      if (flag) inputSpan.focus();
+	  }
 	  shell[0].insertBefore(htmlSec,inputContainer);
       }
 
@@ -442,22 +447,23 @@ module.exports = function() {
 */
 
       let msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
-      msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	//      msg = msg.replace(/\r/g, "\n");
-      msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
-	msg = msg.replace(/file:\/\/\/.*\/Macaulay2Doc/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2/Macaulay2Doc");
+	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully
+	msg = msg.replace(/\r\n/g, "\n"); // that's right...
+	msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
+	msg = msg.replace(/file:\/\/\/[^"']+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2");
       if (!htmlSec) createSpan("M2Text"); // for very first time
       //	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
 
 	var ii:number = inputSpan.textContent.lastIndexOf("\u21B5");
 	if (ii>=0) inputSpan.textContent=inputSpan.textContent.substring(ii+1,inputSpan.textContent.length); // erase past sent input
 
-	var txt=msg.split(htmlComment);
+	var txt=msg.split(mathJaxTags);
       for (var i=0; i<txt.length; i+=2)
 	{
 //	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
 	    // if we are at the end of an input section
-	    if ((mathJaxState=="<!--inpend-->")&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!="<!--con-->")))) {
+	    if ((mathJaxState==tags.mathJaxInputEndTag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=tags.mathJaxInputContdTag)))) {
 		if (inputContainer.parentElement != shell[0]) { // if we moved the input because of multi-line
 		    var flag = document.activeElement == inputSpan;
 		    shell[0].appendChild(inputContainer); // move it back
@@ -469,7 +475,7 @@ module.exports = function() {
 		htmlSec.addEventListener("click",codeInputAction);
 		htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
 		if (i==0) { // manually start new section
-		    mathJaxState="<!--txt-->";
+		    mathJaxState=tags.mathJaxTextTag;
 		    createSpan("M2Text");
 		}
 	    }
@@ -477,14 +483,14 @@ module.exports = function() {
 		var oldState = mathJaxState;
 		mathJaxState=txt[i-1];
 //		if (mathJaxState=="&lt;script>") mathJaxState="<script>"; else if (mathJaxState=="&lt;/script>") mathJaxState="</script>"; // TEMP
-		if (mathJaxState=="<!--html-->") { // html section beginning
+		if (mathJaxState==tags.mathJaxHtmlTag) { // html section beginning
 		    createSpan("M2Html");
 		}
-		else if (mathJaxState=="<!--out-->") { // pretty much the same
+		else if (mathJaxState==tags.mathJaxOutputTag) { // pretty much the same
 		    createSpan("M2Html M2HtmlOutput");
 		}
 		else if (mathJaxState=="\\(") { // tex section beginning. should always be in a html section
-		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->")) {
+		    if ((oldState==tags.mathJaxHtmlTag)||(oldState==tags.mathJaxOutputTag)) {
 			preTexState=oldState;
 			texCode="";
 		    }
@@ -506,7 +512,7 @@ module.exports = function() {
 		    }
 		}
 /*		else if (mathJaxState=="<script>") { // script section beginning. should always be in a html section
-		    if ((oldState=="<!--html-->")||(oldState=="<!--out-->")||(oldState=="\\(")) {
+		    if ((oldState==tags.mathJaxHtmlTag)||(oldState==tags.mathJaxOutputTag)||(oldState=="\\(")) {
 			preJsState=oldState;
 			jsCode="";
 		    }
@@ -527,10 +533,10 @@ module.exports = function() {
 			mathJaxState=oldState;
 		    }
 		}*/
-		else if (mathJaxState=="<!--inp-->") { // input section: a bit special (ends at first \n)
+		else if (mathJaxState==tags.mathJaxInputTag) { // input section: a bit special (ends at first \n)
 		    createSpan("M2Input");
 		}
-		else if (mathJaxState=="<!--con-->") { // continuation of input section
+		else if (mathJaxState==tags.mathJaxInputContdTag) { // continuation of input section
 		    if (inputContainer.parentElement == shell[0]) {
 			var flag = document.activeElement == inputSpan;
 			htmlSec.appendChild(inputContainer); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
@@ -543,23 +549,23 @@ module.exports = function() {
 	    }
 	    if (txt[i].length>0) {
 		// for next round, check if we're nearing the end of an input section
-		if ((mathJaxState=="<!--inp-->")||(mathJaxState=="<!--con-->")) {
+		if ((mathJaxState==tags.mathJaxInputTag)||(mathJaxState==tags.mathJaxInputContdTag)) {
 		    var ii=txt[i].indexOf("\n");
 		    if (ii>=0) {
-			if (mathJaxState=="<!--inp-->") {
+			if (mathJaxState==tags.mathJaxInputTag) {
 			    shell[0].insertBefore(document.createElement("br"),inputContainer);
 			}
-			mathJaxState="<!--inpend-->";
+			mathJaxState=tags.mathJaxInputEndTag;
 			if (ii<txt[i].length-1) {
-			    // need to do some surgery: what's after the \n is some <!--txt--> stuff
-			    txt.splice(i,1,txt[i].substring(0,ii+1),"<!--txt-->",txt[i].substring(ii+1,txt[i].length));
+			    // need to do some surgery: what's after the \n is some [text tag] stuff
+			    txt.splice(i,1,txt[i].substring(0,ii+1),tags.mathJaxTextTag,txt[i].substring(ii+1,txt[i].length));
 			}
 		    }
 		}
 
 		if (mathJaxState=="\\(") texCode+=txt[i];
 //		else if (mathJaxState=="<script>") jsCode+=txt[i];
-		else if ((mathJaxState=="<!--html-->")||(mathJaxState=="<!--out-->")) htmlSec.innerHTML=htmlCode+=txt[i];
+		else if ((mathJaxState==tags.mathJaxHtmlTag)||(mathJaxState==tags.mathJaxOutputTag)) htmlSec.innerHTML=htmlCode+=txt[i];
 		else { // all other states are raw text
 		    // don't rewrite htmlSec.textContent+=txt[i] directly though -- because of multi-line input
 		    if (htmlSec.firstChild)
@@ -578,7 +584,7 @@ module.exports = function() {
 	  inputElCreate(); // recreate the input area
 //	  shell[0].insertBefore(document.createTextNode("\n"),inputEl);
 	  shell[0].insertBefore(document.createElement("br"),inputContainer);
-	  mathJaxState = "<!--txt-->";
+	  mathJaxState = tags.mathJaxTextTag;
 	  htmlSec=null;
     });
   };
