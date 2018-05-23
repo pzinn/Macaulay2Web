@@ -402,6 +402,13 @@ module.exports = function() {
       });
 
       const createSpan = function(className?) {
+	  var anc;
+	  if (htmlSec) anc = htmlSec.parentElement; else anc = shell[0];
+	  if (inputSpan.parentElement == htmlSec) { // if we moved the input because of multi-line
+	      var flag = document.activeElement == inputSpan; // (should only happen exceptionally that we end up here)
+	      anc.appendChild(inputSpan); // move it back
+	      if (flag) inputSpan.focus();
+	  }
 	  htmlSec=document.createElement('span');
 	  if (className) {
 	      htmlSec.className=className;
@@ -413,12 +420,7 @@ module.exports = function() {
 	      }
 	      if (className.indexOf("M2Html")>=0) htmlCode=""; // need to keep track of innerHTML because html tags may get broken
 	  }
-	  if (inputSpan.parentElement != shell[0]) { // if we moved the input because of multi-line
-	      var flag = document.activeElement == inputSpan; // (should only happen exceptionally that we end up here)
-	      shell[0].appendChild(inputSpan); // move it back
-	      if (flag) inputSpan.focus();
-	  }
-	  shell[0].insertBefore(htmlSec,inputSpan);
+	  anc.insertBefore(htmlSec,inputSpan);
       }
 
     shell.on("onmessage", function(e, msgDirty) {
@@ -454,14 +456,14 @@ module.exports = function() {
 	    // if we are at the end of an input section
 	    if ((mathJaxState==tags.mathJaxInputEndTag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=tags.mathJaxInputContdTag)))) {
 		var flag = document.activeElement == inputSpan;
-		shell[0].appendChild(inputSpan); // move back input element to outside
+		htmlSec.parentElement.appendChild(inputSpan); // move back input element to outside htmlSec
+		htmlSec.parentElement.insertBefore(document.createElement("br"),inputSpan);
 		if (flag) inputSpan.focus();
 		// highlight
 		htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
 		htmlSec.classList.add("M2PastInput");
 		htmlSec.addEventListener("click",codeInputAction);
 		htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
-		shell[0].insertBefore(document.createElement("br"),inputSpan);
 		if (i==0) { // manually start new section
 		    mathJaxState=tags.mathJaxTextTag;
 		    createSpan("M2Text");
