@@ -114,9 +114,6 @@ module.exports = function() {
 	  // (re)create the input area
 	  if (inputContainer) inputContainer.parentElement.removeChild(inputContainer);
 	  inputContainer = document.createElement("span");
-	  // sadly, chrome refuses focus on empty text node *at start of line*
-	  // current workaround: extra invisible blank...
-	  var lame=document.createElement("span"); lame.innerHTML="&#8203;"; inputContainer.appendChild(lame);
 	  inputSpan = document.createElement("span");
 	  inputSpan.contentEditable = true; // inputSpan.setAttribute("contentEditable",true);
 	  inputSpan.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
@@ -459,16 +456,15 @@ module.exports = function() {
 //	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
 	    // if we are at the end of an input section
 	    if ((mathJaxState==tags.mathJaxInputEndTag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=tags.mathJaxInputContdTag)))) {
-		if (inputContainer.parentElement != shell[0]) { // if we moved the input because of multi-line
-		    var flag = document.activeElement == inputSpan;
-		    shell[0].appendChild(inputContainer); // move it back
-		    if (flag) inputSpan.focus();
-		}
+		var flag = document.activeElement == inputSpan;
+		shell[0].appendChild(inputContainer); // move back input element to outside
+		if (flag) inputSpan.focus();
 		// highlight
-		htmlSec.innerHTML=Prism.highlight(htmlSec.firstChild.textContent,Prism.languages.macaulay2);
+		htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
 		htmlSec.classList.add("M2PastInput");
 		htmlSec.addEventListener("click",codeInputAction);
 		htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
+		shell[0].insertBefore(document.createElement("br"),inputContainer);
 		if (i==0) { // manually start new section
 		    mathJaxState=tags.mathJaxTextTag;
 		    createSpan("M2Text");
@@ -523,13 +519,12 @@ module.exports = function() {
 		}
 		else if (mathJaxState==tags.mathJaxInputTag) { // input section: a bit special (ends at first \n)
 		    createSpan("M2Input");
+		    var flag = document.activeElement == inputSpan;
+		    htmlSec.appendChild(inputContainer); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
+		    if (flag) inputSpan.focus();
 		}
 		else if (mathJaxState==tags.mathJaxInputContdTag) { // continuation of input section
-		    if (inputContainer.parentElement == shell[0]) {
-			var flag = document.activeElement == inputSpan;
-			htmlSec.appendChild(inputContainer); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
-			if (flag) inputSpan.focus();
-		    }
+		    // nothing to do
 		}
 		else { // ordinary text (error messages, prompts, etc)
 		    createSpan("M2Text");
@@ -540,9 +535,6 @@ module.exports = function() {
 		if ((mathJaxState==tags.mathJaxInputTag)||(mathJaxState==tags.mathJaxInputContdTag)) {
 		    var ii=txt[i].indexOf("\n");
 		    if (ii>=0) {
-			if (mathJaxState==tags.mathJaxInputTag) {
-			    shell[0].insertBefore(document.createElement("br"),inputContainer);
-			}
 			mathJaxState=tags.mathJaxInputEndTag;
 			if (ii<txt[i].length-1) {
 			    // need to do some surgery: what's after the \n is some [text tag] stuff
@@ -554,13 +546,11 @@ module.exports = function() {
 		if (mathJaxState=="\\(") texCode+=txt[i];
 		else if (mathJaxState==tags.mathJaxScriptTag) jsCode+=txt[i];
 		else if ((mathJaxState==tags.mathJaxHtmlTag)||(mathJaxState==tags.mathJaxOutputTag)) htmlSec.innerHTML=htmlCode+=txt[i];
-		else { // all other states are raw text
-		    // don't rewrite htmlSec.textContent+=txt[i] directly though -- because of multi-line input
-		    if (htmlSec.firstChild)
-			htmlSec.firstChild.textContent+=txt[i];
+		else // all other states are raw text
+		    if (inputContainer.parentElement == htmlSec)
+			htmlSec.insertBefore(document.createTextNode(txt[i]),inputContainer); // don't rewrite htmlSec.textContent+=txt[i] in case of input
 		    else
-			htmlSec.appendChild(document.createTextNode(txt[i]));
-		}
+			htmlSec.textContent+=txt[i];
 	    }
 	}
 	scrollDownLeft(shell);
