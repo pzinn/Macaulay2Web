@@ -103,13 +103,12 @@ module.exports = function() {
       // mathJax/katex related stuff
       var mathJaxState = tags.mathJaxTextTag;
       var mathJaxTags = new RegExp("(" + tags.mathJaxTagsArray.join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
-      // var mathJaxTags= /(<!--txt-->|<!--inp-->|<!--con-->|<!--html-->|<!--out-->|\\\(|\\\)|<script>|&lt;script>|<\/script>|&lt;\/script>)/; // the hope is, these <!--*--> sequences are never used in M2. TEMP. see what happens this way. note that htmlLiteral only encodes <, not > (!?!). but now we can't use <script> in any text
       var htmlCode=""; // saves the current html code to avoid rewriting
       var texCode=""; // saves the current TeX code
-//      var jsCode=""; // saves the current script
+      var jsCode=""; // saves the current script
       var htmlSec; // html element of current output section
       var preTexState;
-//      var preJsState;
+      var preJsState;
 
       const inputElCreate = function() {
 	  // (re)create the input area
@@ -211,26 +210,24 @@ module.exports = function() {
       const symbols = {
 	  0x3B1:"alpha",0x3B2:"beta",0x3B3:"gamma",0x3B4:"delta",0x3B5:"epsilon",0x3B6:"zeta",0x3B7:"eta",0x3B8:"theta",0x3B9:"iota",0x3BA:"kappa",0x3BB:"lambda",0x3BC:"mu",0x3BD:"nu",0x3BE:"xi",0x3BF:"omicron",0x3C0:"pi",0x3C1:"rho",0x3C3:"sigma",0x3C4:"tau",0x3C5:"upsilon",0x3C6:"phi",0x3C7:"chi",0x3C8:"psi",0x3C9:"omega",
 	  0x391:"Alpha",0x392:"Beta",0x393:"Gamma",0x394:"Delta",0x395:"Epsilon",0x396:"Zeta",0x397:"Eta",0x398:"Theta",0x399:"Iota",0x39A:"Kappa",0x39B:"Lambda",0x39C:"Mu",0x39D:"Nu",0x39E:"Xi",0x39F:"Omicron",0x3A0:"Pi",0x3A1:"Rho",0x3A3:"Sigma",0x3A4:"Tau",0x3A5:"Upsilon",0x3A6:"Phi",0x3A7:"Chi",0x3A8:"Psi",0x3A9:"Omega",
-	  0x2102:"CC",0x210D:"HH",0x2115:"NN",0x2119:"PP",0x211A:"QQ",0x211D:"RR",0x2124:"ZZ"
+	  0x2102:"CC",0x210D:"HH",0x2115:"NN",0x2119:"PP",0x211A:"QQ",0x211D:"RR",0x2124:"ZZ",
+	  0x0A:"\n"
       }; // partial support for unicode symbols
-//      var reverseSymbols=new Object; for (var s in symbols) reverseSymbols[symbols[s]]=s;
 
       shell.on("postMessage", function(e,msg,flag1,flag2) { // send input, adding \n if necessary
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  if (msg.length>0) {
 	      shell.trigger("addToHistory",msg);
 	      inputSpan.textContent=msg+"\u21B5"; // insert a cute return symbol; will be there only briefly
-	      if (msg[msg.length-1] != "\n") msg+="\n";
-	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",msg);
 	      if (flag2) placeCaretAtEnd(inputSpan);
 	      // sanitize input
 	      var clean = "";
 	      for (var i=0; i<msg.length; i++) {
 		  var c = msg.charCodeAt(i);
-		  if ((c<128)||(symbols[c])) clean+=msg.charAt(i); // a bit too inclusive
-/*		  if (c<128) clean+=msg.charAt(i); // a bit too inclusive
-		  else if (symbols[c]) clean+=symbols[c];*/
+		  if (((c>=32)&&(c<128))||(symbols[c])) clean+=msg.charAt(i); // a bit too restrictive?
 	      }
+	      if (clean[clean.length-1] != "\n") clean+="\n";
+	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",clean);
 	      postRawMessage(clean, socket);
 	  }
       });
@@ -403,7 +400,6 @@ module.exports = function() {
 			      }
 			  });
 			  tabMenu.focus();
-//			  scrollDownLeft(shell); // not to the bottom: input should still be visible
 		      }
 		}
 	    }
@@ -447,7 +443,6 @@ module.exports = function() {
 */
 
       let msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
-	//      msg = msg.replace(/\r/g, "\n");
 	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully
 	msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
@@ -482,7 +477,6 @@ module.exports = function() {
 	    if (i>0) {
 		var oldState = mathJaxState;
 		mathJaxState=txt[i-1];
-//		if (mathJaxState=="&lt;script>") mathJaxState="<script>"; else if (mathJaxState=="&lt;/script>") mathJaxState="</script>"; // TEMP
 		if (mathJaxState==tags.mathJaxHtmlTag) { // html section beginning
 		    createSpan("M2Html");
 		}
@@ -511,18 +505,12 @@ module.exports = function() {
 			mathJaxState=oldState;
 		    }
 		}
-/*		else if (mathJaxState=="<script>") { // script section beginning. should always be in a html section
-		    if ((oldState==tags.mathJaxHtmlTag)||(oldState==tags.mathJaxOutputTag)||(oldState=="\\(")) {
+		else if (mathJaxState==tags.mathJaxScriptTag) { // script section beginning
 			preJsState=oldState;
 			jsCode="";
-		    }
-		    else {
-			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
-			mathJaxState=oldState;
-		    }
 		}
-		else if (mathJaxState=="</script>") { // script section ending
-		    if (oldState=="<script>") {
+		else if (mathJaxState==tags.mathJaxEndScriptTag) { // script section ending
+		    if (oldState==tags.mathJaxScriptTag) {
 			var scr = document.createElement('script');
 			scr.text = dehtml(jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
 			document.head.appendChild(scr);
@@ -532,7 +520,7 @@ module.exports = function() {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
 			mathJaxState=oldState;
 		    }
-		}*/
+		}
 		else if (mathJaxState==tags.mathJaxInputTag) { // input section: a bit special (ends at first \n)
 		    createSpan("M2Input");
 		}
@@ -564,7 +552,7 @@ module.exports = function() {
 		}
 
 		if (mathJaxState=="\\(") texCode+=txt[i];
-//		else if (mathJaxState=="<script>") jsCode+=txt[i];
+		else if (mathJaxState==tags.mathJaxScriptTag) jsCode+=txt[i];
 		else if ((mathJaxState==tags.mathJaxHtmlTag)||(mathJaxState==tags.mathJaxOutputTag)) htmlSec.innerHTML=htmlCode+=txt[i];
 		else { // all other states are raw text
 		    // don't rewrite htmlSec.textContent+=txt[i] directly though -- because of multi-line input

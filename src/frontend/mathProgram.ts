@@ -253,11 +253,12 @@ const wrapEmitForDisconnect = function(event, msg) {
   return socket;
 };
 
-const displayUrlInNewWindow = function(url) {
+/*const displayUrlInNewWindow = function(url) {
   if (url) {
     window.open(url, "M2 Help");
   }
 };
+*/
 
 const codeClickAction = function() {
     $("#M2Out").trigger("postMessage", [$(this).text(),false,false]);
@@ -313,7 +314,7 @@ const init = function() {
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
   socket.on("image", showImageDialog);
-  socket.on("viewHelp", displayUrlInNewWindow);
+//  socket.on("viewHelp", displayUrlInNewWindow);
 
   const tutorialManager = require("./tutorials")();
   const fetchTutorials = require("./fetchTutorials");
