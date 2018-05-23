@@ -182,12 +182,17 @@ code, codeblock, .M2PastInput:hover, .M2HtmlOutput:hover {
     display: inline-block;
     white-space: normal;
 }
+
+.M2Html-wrapped .katex .base {
+    white-space: normal;
+}
+
 /* except it screws up fraction bars */
-.M2Html-wrapped .mfrac {
+.M2Html-wrapped .katex .mfrac {
     white-space: nowrap;
 }
 /* and anything else that has vertical structure, really */
-.M2Html-wrapped .vlist {
+.M2Html-wrapped .katex .vlist {
     white-space: nowrap;
 }
 

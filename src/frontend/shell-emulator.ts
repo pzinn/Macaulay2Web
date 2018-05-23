@@ -98,7 +98,6 @@ module.exports = function() {
       var cmdHistory: any = []; // History of commands for shell-like arrow navigation
       cmdHistory.index = 0;
       var inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
-      var inputContainer; // HTML element that contains inputSpan, only there to work around annoying chrome bug
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax/katex related stuff
       var mathJaxState = tags.mathJaxTextTag;
@@ -112,8 +111,7 @@ module.exports = function() {
 
       const inputElCreate = function() {
 	  // (re)create the input area
-	  if (inputContainer) inputContainer.parentElement.removeChild(inputContainer);
-	  inputContainer = document.createElement("span");
+	  if (inputSpan) inputSpan.parentElement.removeChild(inputSpan);
 	  inputSpan = document.createElement("span");
 	  inputSpan.contentEditable = true; // inputSpan.setAttribute("contentEditable",true);
 	  inputSpan.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
@@ -122,8 +120,7 @@ module.exports = function() {
 	  inputSpan.autocomplete = "off";
 	  inputSpan.classList.add("M2Input");
 	  inputSpan.classList.add("M2CurrentInput");
-	  inputContainer.appendChild(inputSpan);
-	  shell[0].appendChild(inputContainer);
+	  shell[0].appendChild(inputSpan);
 	  inputSpan.focus();
       }
 
@@ -353,7 +350,7 @@ module.exports = function() {
 			  autoComplete.appendChild(tabMenu);
 			  autoComplete.appendChild(document.createTextNode(inputSpan.textContent.substring(pos,inputSpan.textContent.length)));
 			  inputSpan.textContent=inputSpan.textContent.substring(0,i+1);
-			  inputContainer.parentElement.appendChild(autoComplete);
+			  inputSpan.parentElement.appendChild(autoComplete);
 			  tabMenu.addEventListener("click", function(e) {
 				  removeAutoComplete(true);
 				  e.preventDefault();
@@ -416,12 +413,12 @@ module.exports = function() {
 	      }
 	      if (className.indexOf("M2Html")>=0) htmlCode=""; // need to keep track of innerHTML because html tags may get broken
 	  }
-	  if (inputContainer.parentElement != shell[0]) { // if we moved the input because of multi-line
+	  if (inputSpan.parentElement != shell[0]) { // if we moved the input because of multi-line
 	      var flag = document.activeElement == inputSpan; // (should only happen exceptionally that we end up here)
-	      shell[0].appendChild(inputContainer); // move it back
+	      shell[0].appendChild(inputSpan); // move it back
 	      if (flag) inputSpan.focus();
 	  }
-	  shell[0].insertBefore(htmlSec,inputContainer);
+	  shell[0].insertBefore(htmlSec,inputSpan);
       }
 
     shell.on("onmessage", function(e, msgDirty) {
@@ -457,14 +454,14 @@ module.exports = function() {
 	    // if we are at the end of an input section
 	    if ((mathJaxState==tags.mathJaxInputEndTag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=tags.mathJaxInputContdTag)))) {
 		var flag = document.activeElement == inputSpan;
-		shell[0].appendChild(inputContainer); // move back input element to outside
+		shell[0].appendChild(inputSpan); // move back input element to outside
 		if (flag) inputSpan.focus();
 		// highlight
 		htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
 		htmlSec.classList.add("M2PastInput");
 		htmlSec.addEventListener("click",codeInputAction);
 		htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
-		shell[0].insertBefore(document.createElement("br"),inputContainer);
+		shell[0].insertBefore(document.createElement("br"),inputSpan);
 		if (i==0) { // manually start new section
 		    mathJaxState=tags.mathJaxTextTag;
 		    createSpan("M2Text");
@@ -520,7 +517,7 @@ module.exports = function() {
 		else if (mathJaxState==tags.mathJaxInputTag) { // input section: a bit special (ends at first \n)
 		    createSpan("M2Input");
 		    var flag = document.activeElement == inputSpan;
-		    htmlSec.appendChild(inputContainer); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
+		    htmlSec.appendChild(inputSpan); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
 		    if (flag) inputSpan.focus();
 		}
 		else if (mathJaxState==tags.mathJaxInputContdTag) { // continuation of input section
@@ -547,8 +544,8 @@ module.exports = function() {
 		else if (mathJaxState==tags.mathJaxScriptTag) jsCode+=txt[i];
 		else if ((mathJaxState==tags.mathJaxHtmlTag)||(mathJaxState==tags.mathJaxOutputTag)) htmlSec.innerHTML=htmlCode+=txt[i];
 		else // all other states are raw text
-		    if (inputContainer.parentElement == htmlSec)
-			htmlSec.insertBefore(document.createTextNode(txt[i]),inputContainer); // don't rewrite htmlSec.textContent+=txt[i] in case of input
+		    if (inputSpan.parentElement == htmlSec)
+			htmlSec.insertBefore(document.createTextNode(txt[i]),inputSpan); // don't rewrite htmlSec.textContent+=txt[i] in case of input
 		    else
 			htmlSec.textContent+=txt[i];
 	    }
@@ -560,8 +557,7 @@ module.exports = function() {
 	  console.log("Reset");
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  inputElCreate(); // recreate the input area
-//	  shell[0].insertBefore(document.createTextNode("\n"),inputEl);
-	  shell[0].insertBefore(document.createElement("br"),inputContainer);
+	  shell[0].insertBefore(document.createElement("br"),inputSpan);
 	  mathJaxState = tags.mathJaxTextTag;
 	  htmlSec=null;
     });
