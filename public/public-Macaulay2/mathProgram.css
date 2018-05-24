@@ -176,18 +176,19 @@ code, codeblock, .M2PastInput:hover, .M2HtmlOutput:hover {
     white-space: pre-wrap;
 }
 
-/* that allows katex to wrap */
+/* this allows katex to wrap */
 .M2Html-wrapped .katex {
-    width: 100%;
-    display: inline-block;
     white-space: normal;
 }
 
+/* this allows katex to wrap further than it currently wants to... */
 .M2Html-wrapped .katex .base {
     white-space: normal;
+    width: 100%;
+    display: inline;
 }
 
-/* except it screws up fraction bars */
+/* ...except it screws up fraction bars */
 .M2Html-wrapped .katex .mfrac {
     white-space: nowrap;
 }
