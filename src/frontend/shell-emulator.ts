@@ -100,11 +100,9 @@ module.exports = function() {
       var inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax/katex related stuff
-      var mathJaxState = tags.mathJaxTextTag;
       var mathJaxTags = new RegExp("(" + tags.mathJaxTagsArray.join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
       var htmlSec; // html element of current output section
-      var preTexState;
-      var preJsState;
+      var inputEndFlag = false;
 
       const inputElCreate = function() {
 	  // (re)create the input area
@@ -406,6 +404,15 @@ module.exports = function() {
 	      anc.appendChild(inputSpan); // move it back
 	      if (flag) inputSpan.focus();
 	  }
+	  if (htmlSec.classList.contains("M2Script")) {
+	      htmlSec.text = dehtml(htmlSec.jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
+	      document.head.appendChild(htmlSec); // might as well move to head (or delete, really -- script is useless once run)
+	  }
+	  else if (htmlSec.classList.contains("M2Latex")) {
+	      htmlSec.texCode=dehtml(htmlSec.texCode); // needed for MathJax compatibility
+	      htmlSec.innerHTML=katex.renderToString(htmlSec.texCode);
+	      //htmlSec.innerHTML=htmlSec.saveHTML+=katex.renderToString(htmlSec.texCode,  {macros: {"\\frac" : "\\left( #1 \\middle)\\middle/\\middle( #2 \\right)"}});
+	  }
 	  htmlSec = anc;
       }
       
@@ -422,7 +429,7 @@ module.exports = function() {
 	      }
 	      if (className.indexOf("M2Html")>=0) htmlSec.saveHTML=""; // need to keep track of innerHTML because html tags may get broken
 	  }
-	  if (inputSpan.parentElement==anc) anc.insertBefore(htmlSec,inputSpan); else anc.appendChild(htmlSec); // probably TEMP
+	  if (inputSpan.parentElement==anc) anc.insertBefore(htmlSec,inputSpan); else anc.appendChild(htmlSec);
       }
 
     shell.on("onmessage", function(e, msgDirty) {
@@ -446,7 +453,6 @@ module.exports = function() {
 	msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
 	msg = msg.replace(/file:\/\/\/[^"']+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2");
 	if (!htmlSec) { htmlSec=shell[0]; createHtml("span","M2Text"); } // for the very first time
-      //	console.log("state='"+mathJaxState+"',msg='"+msg+"'");
 
 	var ii:number = inputSpan.textContent.lastIndexOf("\u21B5");
 	if (ii>=0) inputSpan.textContent=inputSpan.textContent.substring(ii+1,inputSpan.textContent.length); // erase past sent input
@@ -454,9 +460,8 @@ module.exports = function() {
 	var txt=msg.split(mathJaxTags);
       for (var i=0; i<txt.length; i+=2)
 	{
-//	    console.log("state='"+mathJaxState+"|"+txt[i-1]+"',txt='"+txt[i]+"'");
 	    // if we are at the end of an input section    
-	    if ((mathJaxState==tags.mathJaxInputEndTag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=tags.mathJaxInputContdTag)))) {
+	    if ((inputEndFlag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=tags.mathJaxInputContdTag)))) {
 		var flag = document.activeElement == inputSpan;
 		htmlSec.parentElement.appendChild(inputSpan); // move back input element to outside htmlSec
 		htmlSec.parentElement.insertBefore(document.createElement("br"),inputSpan);
@@ -467,63 +472,42 @@ module.exports = function() {
 		htmlSec.addEventListener("click",codeInputAction);
 		htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
 		closeHtml();
-		mathJaxState=tags.mathJaxTextTag; // probably temp -- we should use the hierarachical structure rather than states <----
 	    }
+	    inputEndFlag=false; // something's not quite right yet -- rethink this TODO
 	    if (i>0) {
-//		var oldState = mathJaxState;
-		mathJaxState=txt[i-1];
-		if (mathJaxState==tags.mathJaxEndTag) { // end of section
-		    if (htmlSec.classList.contains("M2Script")) { // for now, need to treat script specially. or can move to closeHtml.
-			var scr = htmlSec;
-			htmlSec = htmlSec.parentElement;
-			scr.text = dehtml(scr.jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
-			document.head.appendChild(scr); // might as well move to head (or delete, really -- script is useless once run)
-//			mathJaxState=preJsState; // TEMP
-		    }
-		    else closeHtml();
+		var tag=txt[i-1];
+		if ((tag==tags.mathJaxEndTag)||((tag=="\\)")&&(htmlSec.classList.contains("M2Latex")))) { // end of section
+		    closeHtml();
 		}
-		else if (mathJaxState==tags.mathJaxHtmlTag) { // html section beginning
+		else if (tag==tags.mathJaxHtmlTag) { // html section beginning
 		    createHtml("span","M2Html");
 		}
-		else if (mathJaxState==tags.mathJaxOutputTag) { // pretty much the same
+		else if (tag==tags.mathJaxOutputTag) { // pretty much the same
 		    createHtml("span","M2Html M2HtmlOutput");
 		}
-		else if (mathJaxState=="\\(") { // tex section beginning. should always be wrapped in a html section (really?)
+		else if (tag=="\\(") { // tex section beginning. should always be wrapped in a html section (really?)
 		    if (!htmlSec.classList.contains("M2Text")) {
-//			preTexState=oldState;
 			createHtml("span","M2Latex");
 			htmlSec.texCode="";
 		    }
 		    else {
-			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
-//			mathJaxState=oldState;
+			txt[i]=tag+txt[i]; // if not, treat as ordinary text
 		    }
 		}
-		else if (mathJaxState=="\\)") { // tex section ending
-		    if (htmlSec.classList.contains("M2Latex")) {
-			htmlSec.texCode=dehtml(htmlSec.texCode); // needed for MathJax compatibility
-			htmlSec.innerHTML=katex.renderToString(htmlSec.texCode);
-			//htmlSec.innerHTML=htmlSec.saveHTML+=katex.renderToString(htmlSec.texCode,  {macros: {"\\frac" : "\\left( #1 \\middle)\\middle/\\middle( #2 \\right)"}});
-			closeHtml();
-//			mathJaxState=preTexState;
-		    }
-		    else {
-			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
-//			mathJaxState=oldState;
-		    }
+		else if (tag=="\\)") { // treat as ordinary text
+		    txt[i]=tag+txt[i];
 		}
-		else if (mathJaxState==tags.mathJaxScriptTag) { // script section beginning
+		else if (tag==tags.mathJaxScriptTag) { // script section beginning
 		    createHtml("script","M2Script");
 		    htmlSec.jsCode=""; // can't write directly to text because scripts can only be written once!
-//		    preJsState=oldState;
 		}
-		else if (mathJaxState==tags.mathJaxInputTag) { // input section: a bit special (ends at first \n)
+		else if (tag==tags.mathJaxInputTag) { // input section: a bit special (ends at first \n)
 		    createHtml("span","M2Input");
 		    var flag = document.activeElement == inputSpan;
 		    htmlSec.appendChild(inputSpan); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
 		    if (flag) inputSpan.focus();
 		}
-		else if (mathJaxState==tags.mathJaxInputContdTag) { // continuation of input section
+		else if (tag==tags.mathJaxInputContdTag) { // continuation of input section
 		    // nothing to do
 		}
 		else { // ordinary text (error messages, prompts, etc)
@@ -531,13 +515,12 @@ module.exports = function() {
 		}
 	    }
 	    if (txt[i].length>0) {
-		//		if ((mathJaxState==tags.mathJaxInputTag)||(mathJaxState==tags.mathJaxInputContdTag)) {
 		var l = htmlSec.classList;
 		// for next round, check if we're nearing the end of an input section
 		if (l.contains("M2Input")) {
 		    var ii=txt[i].indexOf("\n");
 		    if (ii>=0) {
-			mathJaxState=tags.mathJaxInputEndTag;
+			inputEndFlag=true;
 			if (ii<txt[i].length-1) {
 			    // need to do some surgery: what's after the \n is some [text tag] stuff
 			    txt.splice(i,1,txt[i].substring(0,ii+1),tags.mathJaxTextTag,txt[i].substring(ii+1,txt[i].length));
@@ -563,7 +546,6 @@ module.exports = function() {
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  inputElCreate(); // recreate the input area
 	  shell[0].insertBefore(document.createElement("br"),inputSpan);
-	  mathJaxState = tags.mathJaxTextTag;
 	  htmlSec=null;
     });
   };
