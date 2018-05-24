@@ -168,18 +168,19 @@ module.exports = function() {
 	  {
 	      if (this.classList.contains("M2Html-wrapped")) {
 		  this.classList.remove("M2Html-wrapped");
+		  var thisel=this; // because of closure, the element will be saved
+		  var anc = thisel.parentElement;
 		  var ph = document.createElement("span");
 		  ph.classList.add("M2-hidden");
-		  var thisel=this; // because of closure, the element will be saved
 		  ph.addEventListener("click", function(e) { // so we can restore it later
-		      shell[0].insertBefore(thisel,ph);
-		      shell[0].removeChild(ph);
+		      anc.insertBefore(thisel,ph);
+		      anc.removeChild(ph);
 		      e.stopPropagation();
 		      return false;
 		  } );
 		  ph.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
-		  shell[0].insertBefore(ph,this);
-		  shell[0].removeChild(this);
+		  anc.insertBefore(ph,this);
+		  anc.removeChild(this);
 	      }
 	      else this.classList.add("M2Html-wrapped");
 	      e.stopPropagation();
