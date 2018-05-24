@@ -90,8 +90,8 @@ body {
 }
 
 .M2CurrentInput:empty {
-    display: block; /* clever workaround for chrome's bug with empty inline-block not having focus */
-    min-width: 2px; /* clever workaround for chrome's bug with empty text node not displaying caret */
+/*    display: block;  clever workaround for chrome's bug with empty inline-block not having focus */
+    min-width: 2px;  /* clever workaround for chrome's bug with empty text node not displaying caret */
 }
 
 .M2Text {

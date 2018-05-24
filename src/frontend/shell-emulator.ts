@@ -447,7 +447,7 @@ module.exports = function() {
       }
 */
 
-      let msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
+	let msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
 	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully
 	msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
@@ -458,7 +458,7 @@ module.exports = function() {
 	if (ii>=0) inputSpan.textContent=inputSpan.textContent.substring(ii+1,inputSpan.textContent.length); // erase past sent input
 
 	var txt=msg.split(mathJaxTags);
-      for (var i=0; i<txt.length; i+=2)
+	for (var i=0; i<txt.length; i+=2)
 	{
 	    // if we are at the end of an input section    
 	    if ((inputEndFlag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=tags.mathJaxInputContdTag)))) {
@@ -485,8 +485,8 @@ module.exports = function() {
 		else if (tag==tags.mathJaxOutputTag) { // pretty much the same
 		    createHtml("span","M2Html M2HtmlOutput");
 		}
-		else if (tag=="\\(") { // tex section beginning. should always be wrapped in a html section (really?)
-		    if (!htmlSec.classList.contains("M2Text")) {
+		else if (tag=="\\(") { // tex section beginning. should always be wrapped in a html section (otherwise one can't type '\(')
+		    if (htmlSec.classList.contains("M2Html")) {
 			createHtml("span","M2Latex");
 			htmlSec.texCode="";
 		    }
@@ -547,11 +547,11 @@ module.exports = function() {
 	  inputElCreate(); // recreate the input area
 	  shell[0].insertBefore(document.createElement("br"),inputSpan);
 	  htmlSec=null;
-    });
+      });
   };
 
-  return {
-    create,
-    interrupt,
-  };
+    return {
+	create,
+	interrupt,
+    };
 };

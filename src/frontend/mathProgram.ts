@@ -231,7 +231,8 @@ const socketOnDisconnect = function(msg) {
     console.log("We got disconnected. " + msg);
     $("#M2Out").trigger("onmessage", tags.mathJaxTextTag +
 			"Sorry, your session was disconnected" +
-			" by the server.\n\nPlease click the reset button to reconnect.\n\n");
+			" by the server.\n\n");
+    $("#M2Out").trigger("reset");
   serverDisconnect = true;
   // Could use the following to automatically reload. Probably too invasive,
   // might kill results.
