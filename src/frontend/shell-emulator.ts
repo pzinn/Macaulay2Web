@@ -467,10 +467,10 @@ module.exports = function() {
 		htmlSec.addEventListener("click",codeInputAction);
 		htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
 		closeHtml();
-		mathJaxState=tags.mathJaxTextTag; // probably temp -- we should use the hierarachical structure rather than states
+		mathJaxState=tags.mathJaxTextTag; // probably temp -- we should use the hierarachical structure rather than states <----
 	    }
 	    if (i>0) {
-		var oldState = mathJaxState;
+//		var oldState = mathJaxState;
 		mathJaxState=txt[i-1];
 		if (mathJaxState==tags.mathJaxEndTag) { // end of section
 		    if (htmlSec.classList.contains("M2Script")) { // for now, need to treat script specially. or can move to closeHtml.
@@ -478,7 +478,7 @@ module.exports = function() {
 			htmlSec = htmlSec.parentElement;
 			scr.text = dehtml(scr.jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
 			document.head.appendChild(scr); // might as well move to head (or delete, really -- script is useless once run)
-			mathJaxState=preJsState; // TEMP
+//			mathJaxState=preJsState; // TEMP
 		    }
 		    else closeHtml();
 		}
@@ -490,13 +490,13 @@ module.exports = function() {
 		}
 		else if (mathJaxState=="\\(") { // tex section beginning. should always be wrapped in a html section (really?)
 		    if (!htmlSec.classList.contains("M2Text")) {
-			preTexState=oldState;
+//			preTexState=oldState;
 			createHtml("span","M2Latex");
 			htmlSec.texCode="";
 		    }
 		    else {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
-			mathJaxState=oldState;
+//			mathJaxState=oldState;
 		    }
 		}
 		else if (mathJaxState=="\\)") { // tex section ending
@@ -505,17 +505,17 @@ module.exports = function() {
 			htmlSec.innerHTML=katex.renderToString(htmlSec.texCode);
 			//htmlSec.innerHTML=htmlSec.saveHTML+=katex.renderToString(htmlSec.texCode,  {macros: {"\\frac" : "\\left( #1 \\middle)\\middle/\\middle( #2 \\right)"}});
 			closeHtml();
-			mathJaxState=preTexState;
+//			mathJaxState=preTexState;
 		    }
 		    else {
 			txt[i]=mathJaxState+txt[i]; // if not, treat as ordinary text
-			mathJaxState=oldState;
+//			mathJaxState=oldState;
 		    }
 		}
 		else if (mathJaxState==tags.mathJaxScriptTag) { // script section beginning
 		    createHtml("script","M2Script");
 		    htmlSec.jsCode=""; // can't write directly to text because scripts can only be written once!
-		    preJsState=oldState;
+//		    preJsState=oldState;
 		}
 		else if (mathJaxState==tags.mathJaxInputTag) { // input section: a bit special (ends at first \n)
 		    createHtml("span","M2Input");
