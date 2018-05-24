@@ -101,7 +101,7 @@ module.exports = function() {
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax/katex related stuff
       var mathJaxTags = new RegExp("(" + tags.mathJaxTagsArray.join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
-      var htmlSec; // html element of current output section
+      var htmlSec=shell[0]; // html element of current output section
       var inputEndFlag = false;
 
       const inputElCreate = function() {
@@ -396,12 +396,12 @@ module.exports = function() {
 	    e.preventDefault();
 	}
       });
-            
+
       const closeHtml = function() {
 	  var anc = htmlSec.parentElement;
 	  if (inputSpan.parentElement == htmlSec) { // if we moved the input because of multi-line
 	      var flag = document.activeElement == inputSpan; // (should only happen exceptionally that we end up here)
-	      anc.appendChild(inputSpan); // move it back
+	      inputSpan.oldParentElement.appendChild(inputSpan); // move it back
 	      if (flag) inputSpan.focus();
 	  }
 	  if (htmlSec.classList.contains("M2Script")) {
@@ -416,6 +416,19 @@ module.exports = function() {
 	  htmlSec = anc;
       }
       
+      const closeInput = function() { // need to treat input specially because no closing tag
+	  htmlSec.parentElement.appendChild(document.createElement("br"));
+	  var flag = document.activeElement == inputSpan;
+	  inputSpan.oldParentElement.appendChild(inputSpan); // move back input element to outside htmlSec		
+	  if (flag) inputSpan.focus();
+	  // highlight
+	  htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
+	  htmlSec.classList.add("M2PastInput");
+	  htmlSec.addEventListener("click",codeInputAction);
+	  htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
+	  closeHtml();
+      }
+            
       const createHtml = function(a, className?) {
 	  var anc = htmlSec;
 	  htmlSec=document.createElement(a);
@@ -452,7 +465,7 @@ module.exports = function() {
 	msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
 	msg = msg.replace(/file:\/\/\/[^"']+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2");
-	if (!htmlSec) { htmlSec=shell[0]; createHtml("span","M2Text"); } // for the very first time
+//	if (!htmlSec) { htmlSec=shell[0]; }
 
 	var ii:number = inputSpan.textContent.lastIndexOf("\u21B5");
 	if (ii>=0) inputSpan.textContent=inputSpan.textContent.substring(ii+1,inputSpan.textContent.length); // erase past sent input
@@ -460,20 +473,11 @@ module.exports = function() {
 	var txt=msg.split(mathJaxTags);
 	for (var i=0; i<txt.length; i+=2)
 	{
-	    // if we are at the end of an input section    
+	    // if we are at the end of an input section
 	    if ((inputEndFlag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=tags.mathJaxInputContdTag)))) {
-		var flag = document.activeElement == inputSpan;
-		htmlSec.parentElement.appendChild(inputSpan); // move back input element to outside htmlSec
-		htmlSec.parentElement.insertBefore(document.createElement("br"),inputSpan);
-		if (flag) inputSpan.focus();
-		// highlight
-		htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
-		htmlSec.classList.add("M2PastInput");
-		htmlSec.addEventListener("click",codeInputAction);
-		htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
-		closeHtml();
+		closeInput();
+		inputEndFlag=false;
 	    }
-	    inputEndFlag=false; // something's not quite right yet -- rethink this TODO
 	    if (i>0) {
 		var tag=txt[i-1];
 		if ((tag==tags.mathJaxEndTag)||((tag=="\\)")&&(htmlSec.classList.contains("M2Latex")))) { // end of section
@@ -504,13 +508,14 @@ module.exports = function() {
 		else if (tag==tags.mathJaxInputTag) { // input section: a bit special (ends at first \n)
 		    createHtml("span","M2Input");
 		    var flag = document.activeElement == inputSpan;
-		    htmlSec.appendChild(inputSpan); // !!! we move the input inside the current span to get proper indentation !!! potentially dangerous (can't rewrite the textContent any more)
+		    inputSpan.oldParentElement=inputSpan.parentElement;
+		    htmlSec.appendChild(inputSpan); // !!! we move the input inside the current span to get proper indentation !!!
 		    if (flag) inputSpan.focus();
 		}
 		else if (tag==tags.mathJaxInputContdTag) { // continuation of input section
-		    // nothing to do
+		    inputEndFlag=false;
 		}
-		else { // ordinary text (error messages, prompts, etc)
+		else { // ordinary text (error messages, prompts, etc) -- not used at the moment
 		    createHtml("span","M2Text");
 		}
 	    }
@@ -520,11 +525,12 @@ module.exports = function() {
 		if (l.contains("M2Input")) {
 		    var ii=txt[i].indexOf("\n");
 		    if (ii>=0) {
-			inputEndFlag=true;
 			if (ii<txt[i].length-1) {
-			    // need to do some surgery: what's after the \n is some [text tag] stuff
-			    txt.splice(i,1,txt[i].substring(0,ii+1),tags.mathJaxTextTag,txt[i].substring(ii+1,txt[i].length));
-			}
+			    // need to do some surgery
+			    htmlSec.insertBefore(document.createTextNode(txt[i].substring(0,ii+1)),inputSpan);
+			    txt[i]=txt[i].substring(ii+1,txt[i].length);
+			    closeInput();
+			} else inputEndFlag=true; // can't tell for sure if it's the end or not, so set a flag to remind us
 		    }
 		}
 
@@ -546,7 +552,7 @@ module.exports = function() {
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  inputElCreate(); // recreate the input area
 	  shell[0].insertBefore(document.createElement("br"),inputSpan);
-	  htmlSec=null;
+	  htmlSec=shell[0];
       });
   };
 

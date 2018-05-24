@@ -105,7 +105,7 @@ const emitReset = function() {
 
 const ClearOut = function(e) {
     var out = document.getElementById("M2Out");
-    while (out.childElementCount>3) out.removeChild(out.firstChild);
+    while (out.childElementCount>1) out.removeChild(out.firstChild);
 }
 
 const attachCtrlBtnActions = function() {
