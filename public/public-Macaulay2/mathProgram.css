@@ -114,7 +114,11 @@ body {
 }
 
 .M2Html ul {
-    line-height: 1.14286;
+    line-height: inherit;
+}
+
+.M2Input ul {
+    line-height: inherit;
 }
 
 .M2Html .single pre { /* "single" is the class name used by M2 documentation. pre is used for code example */
