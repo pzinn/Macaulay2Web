@@ -87,6 +87,16 @@ body {
 
 .M2CurrentInput {
     outline: none;
+    /* what's below is for textarea */
+/*    background: none;
+    resize: none;
+    overflow: hidden;
+    border: none;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    line-height: inherit;*/
 }
 
 .M2CurrentInput:empty {

@@ -104,7 +104,7 @@ module.exports = function() {
       var htmlSec=shell[0]; // html element of current output section
       var inputEndFlag = false;
 
-      const inputElCreate = function() {
+      const createInputEl = function() {
 	  // (re)create the input area
 	  if (inputSpan) inputSpan.parentElement.removeChild(inputSpan);
 	  inputSpan = document.createElement("span");
@@ -119,7 +119,7 @@ module.exports = function() {
 	  inputSpan.focus();
       }
 
-      inputElCreate();
+      createInputEl();
 
       const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
 	  e.preventDefault();
@@ -152,7 +152,9 @@ module.exports = function() {
 	  // will only trigger if selection is empty
 	  if (window.getSelection().isCollapsed)
 	  {
-	      inputSpan.textContent = this.textContent;
+	      var str = this.textContent;
+	      if (str[str.length-1] == "\n") str=str.substring(0,str.length-1); // cleaner this way
+	      inputSpan.textContent = str;
 	      placeCaretAtEnd(inputSpan);
 	      scrollDownLeft(shell);
 	  }
@@ -411,9 +413,13 @@ module.exports = function() {
       
       const closeInput = function() { // need to treat input specially because no closing tag
 	  htmlSec.parentElement.appendChild(document.createElement("br"));
-	  var flag = document.activeElement == inputSpan;
-	  inputSpan.oldParentElement.appendChild(inputSpan); // move back input element to outside htmlSec
-	  if (flag) inputSpan.focus();
+	  if (inputSpan.oldParentElement) {
+	      var flag = document.activeElement == inputSpan;
+	      inputSpan.oldParentElement.appendChild(inputSpan); // move back input element to outside htmlSec
+	      if (flag) inputSpan.focus();
+	      inputSpan.oldParentElement=null;
+	  }
+	  else console.log("input error"); // should never happen but does because of annoying escape sequence garbage bug
 	  // highlight
 	  htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
 	  htmlSec.classList.add("M2PastInput");
@@ -550,7 +556,7 @@ module.exports = function() {
       shell.on("reset", function() {
 	  console.log("Reset");
 	  removeAutoComplete(false); // remove autocomplete menu if open
-	  inputElCreate(); // recreate the input area
+	  createInputEl(); // recreate the input area
 	  shell[0].insertBefore(document.createElement("br"),inputSpan);
 	  htmlSec=shell[0];
       });
