@@ -147,8 +147,8 @@ module.exports = function() {
 	  placeCaretAtEnd(inputSpan);
     scrollDownLeft(shell);
       };
-      
-      const codeInputAction = function(e) {
+
+      const codeInputAction = function() {
 	  // will only trigger if selection is empty
 	  if (window.getSelection().isCollapsed)
 	  {
@@ -160,8 +160,8 @@ module.exports = function() {
 	  }
       };
 
-      const toggleOutput = function(e) {
-	  if (window.getSelection().isCollapsed&&(e.target.tagName!="A"))
+      const toggleOutput = function() {
+	  if (window.getSelection().isCollapsed)
 	  {
 	      if (this.classList.contains("M2Html-wrapped")) {
 		  this.classList.remove("M2Html-wrapped");
@@ -180,8 +180,6 @@ module.exports = function() {
 		  anc.removeChild(this);
 	      }
 	      else this.classList.add("M2Html-wrapped");
-	      e.stopPropagation();
-	      return false;
 	  }
       };
 
@@ -250,7 +248,16 @@ module.exports = function() {
 	  placeCaretAtEnd(inputSpan,true);
       });
 
-      shell.click(function(e) { if (window.getSelection().isCollapsed) placeCaretAtEnd(inputSpan,true) });
+      shell.click(function(e) {
+	  // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
+	  var t=e.target;
+	  while (t!=shell[0]) {
+	      if (t.classList.contains("M2PastInput")) { codeInputAction.call(t); return; }
+	      if (t.classList.contains("M2HtmlOutput")) { toggleOutput.call(t); return; }
+	      t=t.parentElement;
+	  }
+	  if (window.getSelection().isCollapsed) placeCaretAtEnd(inputSpan,true);
+      });
 
     // If something is entered, change to end of textarea, if at wrong position.
       shell.keydown(function(e: KeyboardEvent) {
@@ -422,8 +429,8 @@ module.exports = function() {
 	  else console.log("input error"); // should never happen but does because of annoying escape sequence garbage bug
 	  // highlight
 	  htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
+	  //htmlSec.addEventListener("click",codeInputAction);
 	  htmlSec.classList.add("M2PastInput");
-	  htmlSec.addEventListener("click",codeInputAction);
 	  htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
 	  closeHtml();
       }
@@ -434,7 +441,7 @@ module.exports = function() {
 	  if (className) {
 	      htmlSec.className=className;
 	      if (className.indexOf("M2HtmlOutput")>=0) {
-		  htmlSec.addEventListener("click",toggleOutput);
+//		  htmlSec.addEventListener("click",toggleOutput);
 		  htmlSec.addEventListener("mousedown", function(e) {
 		      if (e.detail>1) e.preventDefault();
 		  });
