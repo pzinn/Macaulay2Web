@@ -399,19 +399,12 @@ module.exports = function() {
 
       const closeHtml = function() {
 	  var anc = htmlSec.parentElement;
-	  if (inputSpan.parentElement == htmlSec) { // if we moved the input because of multi-line
-	      var flag = document.activeElement == inputSpan; // (should only happen exceptionally that we end up here)
-	      inputSpan.oldParentElement.appendChild(inputSpan); // move it back
-	      if (flag) inputSpan.focus();
-	  }
 	  if (htmlSec.classList.contains("M2Script")) {
 	      htmlSec.text = dehtml(htmlSec.jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
 	      document.head.appendChild(htmlSec); // might as well move to head (or delete, really -- script is useless once run)
 	  }
-	  else if (htmlSec.classList.contains("M2Latex")) {
-	      htmlSec.texCode=dehtml(htmlSec.texCode); // needed for MathJax compatibility
-	      htmlSec.innerHTML=katex.renderToString(htmlSec.texCode);
-	      //htmlSec.innerHTML=htmlSec.saveHTML+=katex.renderToString(htmlSec.texCode,  {macros: {"\\frac" : "\\left( #1 \\middle)\\middle/\\middle( #2 \\right)"}});
+	  else if (anc.classList.contains("M2Html")) { // we need to convert to string
+	      anc.innerHTML=anc.saveHTML+=htmlSec.outerHTML;
 	  }
 	  htmlSec = anc;
       }
@@ -419,7 +412,7 @@ module.exports = function() {
       const closeInput = function() { // need to treat input specially because no closing tag
 	  htmlSec.parentElement.appendChild(document.createElement("br"));
 	  var flag = document.activeElement == inputSpan;
-	  inputSpan.oldParentElement.appendChild(inputSpan); // move back input element to outside htmlSec		
+	  inputSpan.oldParentElement.appendChild(inputSpan); // move back input element to outside htmlSec
 	  if (flag) inputSpan.focus();
 	  // highlight
 	  htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
@@ -461,11 +454,10 @@ module.exports = function() {
 */
 
 	let msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
-	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully
+	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully -- though sometimes still misses
 	msg = msg.replace(/\r\n/g, "\n"); // that's right...
-	msg = msg.replace(/\r./g, ""); // fix for the annoying mess of the output, hopefully
+	msg = msg.replace(/\r./g, ""); // remove the line wrapping with repeated last/first character
 	msg = msg.replace(/file:\/\/\/[^"']+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.11/share/doc/Macaulay2");
-//	if (!htmlSec) { htmlSec=shell[0]; }
 
 	var ii:number = inputSpan.textContent.lastIndexOf("\u21B5");
 	if (ii>=0) inputSpan.textContent=inputSpan.textContent.substring(ii+1,inputSpan.textContent.length); // erase past sent input
@@ -480,7 +472,7 @@ module.exports = function() {
 	    }
 	    if (i>0) {
 		var tag=txt[i-1];
-		if ((tag==tags.mathJaxEndTag)||((tag=="\\)")&&(htmlSec.classList.contains("M2Latex")))) { // end of section
+		if (tag==tags.mathJaxEndTag) { // end of section
 		    closeHtml();
 		}
 		else if (tag==tags.mathJaxHtmlTag) { // html section beginning
@@ -491,15 +483,23 @@ module.exports = function() {
 		}
 		else if (tag=="\\(") { // tex section beginning. should always be wrapped in a html section (otherwise one can't type '\(')
 		    if (htmlSec.classList.contains("M2Html")) {
-			createHtml("span","M2Latex");
+			htmlSec.classList.add("M2Latex");
 			htmlSec.texCode="";
 		    }
 		    else {
 			txt[i]=tag+txt[i]; // if not, treat as ordinary text
 		    }
 		}
-		else if (tag=="\\)") { // treat as ordinary text
-		    txt[i]=tag+txt[i];
+		else if (tag=="\\)") {
+		    if (htmlSec.classList.contains("M2Latex")) {
+			htmlSec.classList.remove("M2Latex");
+			htmlSec.texCode=dehtml(htmlSec.texCode); // needed for MathJax compatibility
+			htmlSec.innerHTML=htmlSec.saveHTML+=katex.renderToString(htmlSec.texCode);
+	      //htmlSec.innerHTML=htmlSec.saveHTML+=katex.renderToString(htmlSec.texCode,  {macros: {"\\frac" : "\\left( #1 \\middle)\\middle/\\middle( #2 \\right)"}});
+		    }
+		    else {
+			txt[i]=tag+txt[i]; // treat as ordinary text
+		    }
 		}
 		else if (tag==tags.mathJaxScriptTag) { // script section beginning
 		    createHtml("script","M2Script");
