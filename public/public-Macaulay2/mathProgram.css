@@ -117,10 +117,6 @@ body {
     line-height: inherit;
 }
 
-.M2Input ul {
-    line-height: inherit;
-}
-
 .M2Html .single pre { /* "single" is the class name used by M2 documentation. pre is used for code example */
     display: block;
     border-style: solid;
@@ -268,9 +264,10 @@ code:active, codeblock:active, .M2PastInput:active {
     list-style: none;
     padding: 0px;
     margin: 0px;
-    display: inline-table;
     outline: none;
-/*    line-height: 16px;*/
+    line-height: inherit;
+    display: inline-table; /* for firefox */
+/*    font: inherit; */
 }
 
 #autocomplete-selection {
