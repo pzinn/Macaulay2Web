@@ -412,8 +412,17 @@ module.exports = function() {
 	      htmlSec.text = dehtml(htmlSec.jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
 	      document.head.appendChild(htmlSec); // might as well move to head (or delete, really -- script is useless once run)
 	  }
+	  else if (htmlSec.classList.contains("M2Latex")) {
+	      htmlSec.texCode=dehtml(htmlSec.texCode); // needed for MathJax compatibility. TEMP?
+	      //htmlSec.innerHTML=katex.renderToString(htmlSec.texCode);
+	      // we're not gonna bother updating innerHTML because anc *must* be M2Html
+	      anc.innerHTML=anc.saveHTML+=katex.renderToString(htmlSec.texCode);
+	  }
 	  else if (anc.classList.contains("M2Html")) { // we need to convert to string
 	      anc.innerHTML=anc.saveHTML+=htmlSec.outerHTML;
+	  }
+	  else if (anc.classList.contains("M2Latex")) { // *try* to convert to texcode
+	      anc.texCode+="{\\html{"+(htmlSec.offsetHeight/28)+"}{"+(htmlSec.offsetHeight/28)+"}{"+htmlSec.outerHTML+"}}"; // all kinds of problems here. very much TEMP. TODO
 	  }
 	  htmlSec = anc;
       }
@@ -485,7 +494,7 @@ module.exports = function() {
 	    }
 	    if (i>0) {
 		var tag=txt[i-1];
-		if (tag==tags.mathJaxEndTag) { // end of section
+		if ((tag==tags.mathJaxEndTag)||((tag=="\\)")&&(htmlSec.classList.contains("M2Latex")))) { // end of section
 		    if (htmlSec.classList.contains("M2Input")) closeInput(); // should never happen but does because of annoying escape sequence garbage bug (see also closeInput fix)
 		    closeHtml();
 		}
@@ -497,7 +506,7 @@ module.exports = function() {
 		}
 		else if (tag=="\\(") { // tex section beginning. should always be wrapped in a html section (otherwise one can't type '\(')
 		    if (htmlSec.classList.contains("M2Html")) {
-			htmlSec.classList.add("M2Latex");
+			createHtml("span","M2Latex");
 			htmlSec.texCode="";
 		    }
 		    else {
@@ -505,15 +514,7 @@ module.exports = function() {
 		    }
 		}
 		else if (tag=="\\)") {
-		    if (htmlSec.classList.contains("M2Latex")) {
-			htmlSec.classList.remove("M2Latex");
-			htmlSec.texCode=dehtml(htmlSec.texCode); // needed for MathJax compatibility
-			htmlSec.innerHTML=htmlSec.saveHTML+=katex.renderToString(htmlSec.texCode);
-	      //htmlSec.innerHTML=htmlSec.saveHTML+=katex.renderToString(htmlSec.texCode,  {macros: {"\\frac" : "\\left( #1 \\middle)\\middle/\\middle( #2 \\right)"}});
-		    }
-		    else {
-			txt[i]=tag+txt[i]; // treat as ordinary text
-		    }
+		    txt[i]=tag+txt[i]; // treat as ordinary text
 		}
 		else if (tag==tags.mathJaxScriptTag) { // script section beginning
 		    createHtml("script","M2Script");
@@ -544,6 +545,7 @@ module.exports = function() {
 			    htmlSec.insertBefore(document.createTextNode(txt[i].substring(0,ii+1)),inputSpan);
 			    txt[i]=txt[i].substring(ii+1,txt[i].length);
 			    closeInput();
+			    l=htmlSec.classList;
 			} else inputEndFlag=true; // can't tell for sure if it's the end or not, so set a flag to remind us
 		    }
 		}
