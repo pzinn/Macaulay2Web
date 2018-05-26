@@ -117,7 +117,19 @@ body {
     line-height: inherit;
 }
 
-.M2Html .single pre { /* "single" is the class name used by M2 documentation. pre is used for code example */
+.M2Html pre {
+    display: inline;
+    margin: 0px;
+    font-family: KaTeX_Typewriter, monospace;
+    line-height: 1.2;
+    font-size: 1.21em;
+}
+
+.M2Html pre pre { /* otherwise font size multipliers accumulate */
+    font-size: 1em;
+}
+
+.M2Html .examples td > pre { /* "examples" is the class name used by M2 documentation. <td> <pre> is used for code example */
     display: block;
     border-style: solid;
     border-width: 1px;
@@ -128,16 +140,14 @@ body {
     line-height: 1em;
 }
 
-.M2Html pre {
-    display: inline;
-    margin: 0px;
-    font-family: KaTeX_Typewriter, monospace;
+.M2Html .examples td > pre pre { /* annoying */
     font-size: 1.21em;
 }
 
-.M2Html pre pre {
-    font-size: 1em; /* otherwise font size multipliers accumulate */
+.M2Html .examples td > pre pre pre { /* annoying */
+    font-size: 1em;
 }
+
 
 .M2Html h1 {
     font-size: 2.2em;

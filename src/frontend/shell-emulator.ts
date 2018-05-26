@@ -407,7 +407,6 @@ module.exports = function() {
       });
 
       const closeHtml = function() {
-	  if (htmlSec.classList.contains("M2Input")) closeInput(); // should never happen but does because of annoying escape sequence garbage bug (see also closeInput fix)
 	  var anc = htmlSec.parentElement;
 	  if (htmlSec.classList.contains("M2Script")) {
 	      htmlSec.text = dehtml(htmlSec.jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
@@ -427,7 +426,7 @@ module.exports = function() {
 	      if (flag) inputSpan.focus();
 	      inputSpan.oldParentElement=null;
 	  }
-	  else console.log("input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by closeHtml fix above)
+	  else console.log("input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
 	  // highlight
 	  htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
 	  //htmlSec.addEventListener("click",codeInputAction);
@@ -487,6 +486,7 @@ module.exports = function() {
 	    if (i>0) {
 		var tag=txt[i-1];
 		if (tag==tags.mathJaxEndTag) { // end of section
+		    if (htmlSec.classList.contains("M2Input")) closeInput(); // should never happen but does because of annoying escape sequence garbage bug (see also closeInput fix)
 		    closeHtml();
 		}
 		else if (tag==tags.mathJaxHtmlTag) { // html section beginning
