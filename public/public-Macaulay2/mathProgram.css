@@ -83,6 +83,7 @@ body {
     display: inline-block;
     vertical-align: top;
     white-space: pre;
+    font-family: "Roboto Mono";
 }
 
 .M2CurrentInput {

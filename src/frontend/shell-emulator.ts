@@ -43,6 +43,21 @@ function dehtml(s) { // these are all the substitutions performed by M2
 - in firefox, anchor* = start, focus* = end.              *node = the text node inside the dom element
 */
 
+Object.defineProperty(Element.prototype, 'baselinePosition',
+{
+  get: function() {
+    var fs0 = document.createElement('span');
+    fs0.appendChild(document.createTextNode('X')); fs0.style.fontSize = '0'; fs0.style.visibility = 'hidden';
+    var fs1 = document.createElement('span');
+    fs1.appendChild(document.createTextNode('X'));
+    this.appendChild(fs1); this.appendChild(fs0);
+    var result = fs0.getBoundingClientRect().top - fs1.getBoundingClientRect().top;
+    this.removeChild(fs0); this.removeChild(fs1);
+    return result;
+  },
+  enumerable: true
+});
+
 function scrollDownLeft(element) {
     element.scrollTop(element[0].scrollHeight);
     element.scrollLeft(0);
@@ -413,7 +428,7 @@ module.exports = function() {
 	      document.head.appendChild(htmlSec); // might as well move to head (or delete, really -- script is useless once run)
 	  }
 	  else if (htmlSec.classList.contains("M2Latex")) {
-	      htmlSec.texCode=dehtml(htmlSec.texCode); // needed for MathJax compatibility. TEMP?
+	      htmlSec.texCode=dehtml(htmlSec.texCode); // needed for MathJax compatibility. might remove since now mathJax doesn't encode any more
 	      //htmlSec.innerHTML=katex.renderToString(htmlSec.texCode);
 	      // we're not gonna bother updating innerHTML because anc *must* be M2Html
 	      anc.innerHTML=anc.saveHTML+=katex.renderToString(htmlSec.texCode);
@@ -422,7 +437,9 @@ module.exports = function() {
 	      anc.innerHTML=anc.saveHTML+=htmlSec.outerHTML;
 	  }
 	  else if (anc.classList.contains("M2Latex")) { // *try* to convert to texcode
-	      anc.texCode+="{\\html{"+(htmlSec.offsetHeight/28)+"}{"+(htmlSec.offsetHeight/28)+"}{"+htmlSec.outerHTML+"}}"; // all kinds of problems here. very much TEMP. TODO
+	      var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0]);
+	      var baseline: number = htmlSec.baselinePosition;
+	      anc.texCode+="{\\html{"+(baseline/fontSize)+"}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"}{"+htmlSec.outerHTML+"}}";
 	  }
 	  htmlSec = anc;
       }
