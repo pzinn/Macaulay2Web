@@ -83,14 +83,26 @@ body {
     display: inline-block;
     vertical-align: top;
     white-space: pre;
+    font-family: "Roboto Mono";
 }
 
 .M2CurrentInput {
     outline: none;
+    /* what's below is for textarea */
+/*    background: none;
+    resize: none;
+    overflow: hidden;
+    border: none;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    line-height: inherit;*/
 }
 
 .M2CurrentInput:empty {
-    display: inline; /* clever workaround for chrome's bug with empty inline-block not having focus */
+/*    display: block;  clever workaround for chrome's bug with empty inline-block not having focus */
+    min-width: 2px;  /* clever workaround for chrome's bug with empty text node not displaying caret */
 }
 
 .M2Text {
@@ -103,10 +115,22 @@ body {
 }
 
 .M2Html ul {
-    line-height: 1.14286;
+    line-height: inherit;
 }
 
-.M2Html .single pre { /* "single" is the class name used by M2 documentation. pre is used for code example */
+.M2Html pre {
+    display: inline;
+    margin: 0px;
+    font-family: KaTeX_Typewriter, monospace;
+    line-height: 1.2;
+    font-size: 1.21em;
+}
+
+.M2Html pre pre { /* otherwise font size multipliers accumulate */
+    font-size: 1em;
+}
+
+.M2Html .examples td > pre { /* "examples" is the class name used by M2 documentation. <td> <pre> is used for code example */
     display: block;
     border-style: solid;
     border-width: 1px;
@@ -117,16 +141,14 @@ body {
     line-height: 1em;
 }
 
-.M2Html pre {
-    display: inline;
-    margin: 0px;
-    font-family: KaTeX_Typewriter, monospace;
+.M2Html .examples td > pre pre { /* annoying */
     font-size: 1.21em;
 }
 
-.M2Html pre pre {
-    font-size: 1em; /* otherwise font size multipliers accumulate */
+.M2Html .examples td > pre pre pre { /* annoying */
+    font-size: 1em;
 }
+
 
 .M2Html h1 {
     font-size: 2.2em;
@@ -175,18 +197,24 @@ code, codeblock, .M2PastInput:hover, .M2HtmlOutput:hover {
     white-space: pre-wrap;
 }
 
-/* that allows katex to wrap */
+/* this allows katex to wrap */
 .M2Html-wrapped .katex {
-    width: 100%;
-    display: inline-block;
     white-space: normal;
 }
-/* except it screws up fraction bars */
-.M2Html-wrapped .mfrac {
+
+/* this allows katex to wrap further than it currently wants to... */
+.M2Html-wrapped .katex .base {
+    white-space: normal;
+    width: 100%;
+    display: inline;
+}
+
+/* ...except it screws up fraction bars */
+.M2Html-wrapped .katex .mfrac {
     white-space: nowrap;
 }
 /* and anything else that has vertical structure, really */
-.M2Html-wrapped .vlist {
+.M2Html-wrapped .katex .vlist {
     white-space: nowrap;
 }
 
@@ -247,9 +275,10 @@ code:active, codeblock:active, .M2PastInput:active {
     list-style: none;
     padding: 0px;
     margin: 0px;
-    display: inline-table;
     outline: none;
-/*    line-height: 16px;*/
+    line-height: inherit;
+    display: inline-table; /* for firefox */
+/*    font: inherit; */
 }
 
 #autocomplete-selection {

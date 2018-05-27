@@ -11,7 +11,7 @@ const options = {
     MATH_PROGRAM_COMMAND: "export PATH=~/bin:$PATH; export WWWBROWSER=open; M2 -e \"printWidth=0; topLevelMode = MathJax\"",
     port: "8002",
       // tslint:disable-next-line:max-line-length
-      resumeString: "Type " + tags.mathJaxHtmlTag + "<span class=\"M2PastInput\" onclick=\"document.getElementsByClassName('M2CurrentInput')[0].textContent=this.textContent\">listUserSymbols</span>" + tags.mathJaxTextTag + " to print the list of existing symbols.\n\ni* : " + tags.mathJaxInputTag,
+      resumeString: "Type " + tags.mathJaxHtmlTag + "<span class=\"M2PastInput\" onclick=\"document.getElementsByClassName('M2CurrentInput')[0].textContent=this.textContent\">listUserSymbols</span>" + tags.mathJaxEndTag + " to print the list of existing symbols.\n\ni* : " + tags.mathJaxInputTag,
   },
   startInstance: {
     host: "127.0.0.1",
