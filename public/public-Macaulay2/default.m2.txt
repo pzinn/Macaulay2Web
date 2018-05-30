@@ -38,7 +38,7 @@ steps=30;
 dodecasplit=apply(faces,centers,(f,c)->GfxPolygon{apply(f,j->vertices#j),
 	GfxAutoMatrix=>apply(steps,j->gfxRotation(2*pi/5/steps*4*min(j/steps,1-j/steps),c,c)*gfxTranslation(0.075*sin(2*pi*j/steps)*c)),
 	"fill"=>concatenate("rgb(",toString(134+round(1.2*c_0)),",",toString(134+round(1.2*c_1)),",",toString(134+round(1.2*c_2)),")")});
-d=gfx(dodecasplit,"fill-opacity"=>0.65,GfxAutoMatrix=>gfxRotation(0.02,[1,2,3]),GfxRange=>{vector{-200,-200},vector{200,200}});
+d=gfx(dodecasplit,"fill-opacity"=>0.65,GfxAutoMatrix=>gfxRotation(0.02,[1,2,3]));
 d1=gfx(d,GfxMatrix=>gfxTranslation[200,0,0]); -- using alternate syntax of Array instead of Vector
 d2=gfx(d,GfxMatrix=>gfxTranslation[-200,0,0]);
 gfx(d1,d2,GfxRange=>{vector{-400,-400},vector{400,400}},GfxHeight=>25)
@@ -51,6 +51,11 @@ R=QQ[x_red,x_green,x_blue]
 describe R
 x_red^2-x_green^2
 factor oo
+
+-- or (more serious)
+R=RR[x,y]; P=y^2-(x+1)*(x-1)*(x-2);
+gfxPlot(P,{-2,3},"stroke-width"=>0.05,GfxHeight=>25,"stroke"=>"red")
+
 
 -- something fun #2
 R=ZZ[x]; expression x
