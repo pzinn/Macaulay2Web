@@ -25,11 +25,12 @@ const getSelected = function (){ // could almost just trigger the paste event, e
 	if (sel.isCollapsed) {
 	    (<any>sel).modify("move", "backward", "lineboundary");
 	    (<any>sel).modify("extend", "forward", "lineboundary");
-	    var s=sel.toString();
+	    //	    var s=sel.toString(); // doesn't work in firefox because replaces "\n" with " "
+	    var s=sel.getRangeAt(0).cloneContents().textContent;
 	    (<any>sel).modify("move", "forward", "line");
 	    return s;
 	}
-	else return sel.toString();
+	else return sel.getRangeAt(0).cloneContents().textContent;
     }
     else return "";
 };
