@@ -28,7 +28,7 @@ viewHelp "determinant"
 -- something fun #1
 restart
 loadPackage "Gfx"
-gfx(GfxEllipse{[0,0],90,30,"stroke"=>"none","fill"=>gfxLinearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")},GfxBlur=>0.3},GfxText{[-65,7],"Macaulay2",GfxFontSize=>25,"stroke"=>"black","fill"=>"white"},GfxHeight=>12)
+gfx(GfxEllipse{[0,0],90,30,"stroke"=>"none","fill"=>gfxLinearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")},GfxBlur=>0.3},GfxText{[-65,-7],"Macaulay2",GfxFontSize=>25,"stroke"=>"black","fill"=>"white"},GfxHeight=>12)
 
 -- dodecahedron
 vertices={vector{-137.638,0.,26.2866},vector{137.638,0.,-26.2866},vector{-42.5325,-130.902,26.2866},vector{-42.5325,130.902,26.2866},vector{111.352,-80.9017,26.2866},vector{111.352,80.9017,26.2866},vector{-26.2866,-80.9017,111.352},vector{-26.2866,80.9017,111.352},vector{-68.8191,-50.,-111.352},vector{-68.8191,50.,-111.352},vector{68.8191,-50.,111.352},vector{68.8191,50.,111.352},vector{85.0651,0.,-111.352},vector{-111.352,-80.9017,-26.2866},vector{-111.352,80.9017,-26.2866},vector{-85.0651,0.,111.352},vector{26.2866,-80.9017,-111.352},vector{26.2866,80.9017,-111.352},vector{42.5325,-130.902,-26.2866},vector{42.5325,130.902,-26.2866}};
@@ -45,7 +45,7 @@ gfx(d1,d2,GfxRange=>{vector{-400,-400},vector{400,400}},GfxHeight=>25)
 
 -- or
 rgb={"red","green","blue"};
-scan(rgb, x -> (value x <- GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>0.8,GfxHeight=>0.8}))
+scan(rgb, x -> (value x <- GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>0.8,GfxHeight=>0.8,GfxMargin=>0}))
 value\rgb
 R=QQ[x_red,x_green,x_blue]
 describe R
