@@ -223,7 +223,7 @@ module.exports = function() {
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  if (msg.length>0) {
 	      shell.trigger("addToHistory",msg);
-	      inputSpan.textContent=msg+"\u21B5"; // insert a cute return symbol; will be there only briefly
+	      inputSpan.textContent=msg+"\u21B5"; // insert a cute return symbol; will be there only briefly (normally)
 	      if (flag2) placeCaretAtEnd(inputSpan);
 	      // sanitize input
 	      var clean = "";
@@ -254,7 +254,7 @@ module.exports = function() {
       const input = msg.split("\n");
       for (const line in input) {
         if (input[line].length > 0) {
-          cmdHistory.index = cmdHistory.push(input[line]);
+            cmdHistory.index = cmdHistory.push(input[line].replace(/\u21B5/g,"")); // remove CR symbols
         }
       }
     });
