@@ -41,7 +41,7 @@ dodecasplit=apply(faces,centers,(f,c)->GfxPolygon{apply(f,j->vertices#j),
 d=gfx(dodecasplit,"fill-opacity"=>0.65,GfxAutoMatrix=>gfxRotation(0.02,[1,2,3]));
 d1=gfx(d,GfxMatrix=>gfxTranslation[200,0,0]); -- using alternate syntax of Array instead of Vector
 d2=gfx(d,GfxMatrix=>gfxTranslation[-200,0,0]);
-gfx(d1,d2,GfxRange=>{vector{-400,-400},vector{400,400}},GfxHeight=>25) -- press the 3D button!
+gfx(d1,d2,GfxRange=>{vector{-400,-400},vector{400,400}},GfxHeight=>25,"stroke-width"=>2) -- press the 3D button!
 
 -- or
 rgb={"red","green","blue"};
