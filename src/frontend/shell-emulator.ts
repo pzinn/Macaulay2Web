@@ -435,6 +435,7 @@ module.exports = function() {
 	      catch(err) {
 		  anc.classList.add("M2Error");
 		  anc.innerHTML=anc.saveHTML+=err.message;
+		  console.log(err.message);
 	      }
 	  }
 	  else if (anc.classList.contains("M2Html")) { // we need to convert to string
@@ -456,7 +457,7 @@ module.exports = function() {
 	      if (flag) inputSpan.focus();
 	      inputSpan.oldParentElement=null;
 	  }
-	  else console.log("input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
+	  else console.log("Input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
 	  // highlight
 	  htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
 	  //htmlSec.addEventListener("click",codeInputAction);
