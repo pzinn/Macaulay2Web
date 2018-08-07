@@ -431,7 +431,11 @@ module.exports = function() {
 	      htmlSec.texCode=dehtml(htmlSec.texCode); // needed for MathJax compatibility. might remove since now mathJax doesn't encode any more
 	      //htmlSec.innerHTML=katex.renderToString(htmlSec.texCode);
 	      // we're not gonna bother updating innerHTML because anc *must* be M2Html
-	      anc.innerHTML=anc.saveHTML+=katex.renderToString(htmlSec.texCode);
+	      try { anc.innerHTML=anc.saveHTML+=katex.renderToString(htmlSec.texCode); }
+	      catch(err) {
+		  anc.classList.add("M2Error");
+		  anc.innerHTML=anc.saveHTML+=err.message;
+	      }
 	  }
 	  else if (anc.classList.contains("M2Html")) { // we need to convert to string
 	      anc.innerHTML=anc.saveHTML+=htmlSec.outerHTML;
