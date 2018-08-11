@@ -431,7 +431,12 @@ module.exports = function() {
 	      htmlSec.texCode=dehtml(htmlSec.texCode); // needed for MathJax compatibility. might remove since now mathJax doesn't encode any more
 	      //htmlSec.innerHTML=katex.renderToString(htmlSec.texCode);
 	      // we're not gonna bother updating innerHTML because anc *must* be M2Html
-	      anc.innerHTML=anc.saveHTML+=katex.renderToString(htmlSec.texCode);
+	      try { anc.innerHTML=anc.saveHTML+=katex.renderToString(htmlSec.texCode); }
+	      catch(err) {
+		  anc.classList.add("M2Error");
+		  anc.innerHTML=anc.saveHTML+=err.message;
+		  console.log(err.message);
+	      }
 	  }
 	  else if (anc.classList.contains("M2Html")) { // we need to convert to string
 	      anc.innerHTML=anc.saveHTML+=htmlSec.outerHTML;
@@ -452,7 +457,7 @@ module.exports = function() {
 	      if (flag) inputSpan.focus();
 	      inputSpan.oldParentElement=null;
 	  }
-	  else console.log("input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
+	  else console.log("Input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
 	  // highlight
 	  htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
 	  //htmlSec.addEventListener("click",codeInputAction);

@@ -234,6 +234,10 @@ code, codeblock, .M2PastInput:hover, .M2HtmlOutput:hover {
     color: gray;
 }
 
+.M2Error {
+    color: #C07060;
+}
+
 code, codeblock {
     white-space: pre;
     margin-left: 20px;
