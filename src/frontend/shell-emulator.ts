@@ -501,7 +501,7 @@ module.exports = function() {
 	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully -- though sometimes still misses
 	msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	msg = msg.replace(/\r./g, ""); // remove the line wrapping with repeated last/first character
-	msg = msg.replace(/\"[^"']+\/share\/doc\/Macaulay2/g,"\"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.12/share/doc/Macaulay2");
+	msg = msg.replace(/(?<=["'])[^"']+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.12/share/doc/Macaulay2");
 
 	var ii:number = inputSpan.textContent.lastIndexOf("\u21B5");
 	if (ii>=0) inputSpan.textContent=inputSpan.textContent.substring(ii+1,inputSpan.textContent.length); // erase past sent input
