@@ -63,9 +63,8 @@ x/(1+oo) -- repeat at will
 
 -- something fun #3
 restart
-load "~/m2/color/color.m2"
-R:"red" = QQ[x:"green"]
-x^3-1
-
-
-
+R=QQ[x_1..x_5,y_1..y_5]
+setColor(x,red)
+setColor(y_3,blue)
+setColor(R,"#8866CC")
+vars R
