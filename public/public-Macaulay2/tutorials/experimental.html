@@ -29,8 +29,8 @@
     <p>The keyword \(\verb|fact|\) produces a new polynomial ring from an old one, which only differs in that the polynomials are internally stored and displayed in a factorized form:<br/>
       <code>R=fact(QQ[x,y,z]); x^2-y^2</code>      
     </p>
-    <p>In the case of Laurent polynomials, the option "DegreeZero" factors out the leading monomial:<br/>
-      <code>R=fact(QQ[x,y,z,Inverses=>true],DegreeZero=>true); z^2-y^2</code>
+    <p>In the case of Laurent polynomials, the leading monomial is factored out:<br/>
+      <code>R=fact(QQ[x,y,z,Inverses=>true]); z^2-y^2</code>
     </p>
     <p>It works with fraction fields too:<br/>
       <code>R=frac(fact(QQ[x,y,z])); (x^2-y^2)/(y^3-z^3)</code><br/>
@@ -44,6 +44,9 @@
       <code>R=QQ[X_0..X_99,DegreeRank=>100]; describe degreesRing R</code><br/>
       which means one can compute things like<br/>
       <code>poincare ideal vars R</code>
+    </p>
+    <p>Use \(\verb|fact|\) rather than \(\verb|factor|\) for ring elements:<br/>
+      <code>R=ZZ[a,b,c]; fact(a^3-b^3)</code>
       </p>
   </div>
   <div>
