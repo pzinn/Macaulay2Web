@@ -442,3 +442,7 @@ a.submenuItem {
     border-style: dotted; /* probably temporary */
 }
 
+.Macaulay2:hover::after { /* definitely temporary */
+    content: "M2";
+    position: absolute
+}
