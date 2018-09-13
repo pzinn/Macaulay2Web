@@ -265,12 +265,40 @@ module.exports = function() {
 	  placeCaretAtEnd(inputSpan,true);
       });
 
+      function createM2(x,flag) {
+	  var pre=""; var post=""; var ch="";
+	  if (x.classList.contains("M2Meta"))
+	  {
+	      if (x.dataset.content) { ch = x.dataset.content; if (flag) return ch; }
+	      if (x.dataset.type) {
+		  pre="new " + x.dataset.type + " from { ";
+		  post = " }";
+		  if (x.dataset.type == "BinaryOperation") post+="_{1,0,2}"; // annoying special case of binary ops
+		  else if (x.dataset.type == "Divide") post+="_{1,0}";
+	      }
+	  }
+	  // recurse over children
+	  for (var i=0; i<x.children.length; i++) {
+	      var s=createM2(x.children[i],false);
+	      if (s!="" && ch!="") ch+=",";
+	      ch+=s;
+	  }
+	  return pre + ch + post;
+      }
+      
       shell.click(function(e) {
 	  // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
 	  var t=e.target;
 	  while (t!=shell[0]) {
 	      if (t.classList.contains("M2PastInput")) { codeInputAction.call(t); return; }
-	      if (t.classList.contains("M2HtmlOutput")) { toggleOutput.call(t); return; }
+	      //	      if (t.classList.contains("M2HtmlOutput")) { toggleOutput.call(t); return; }
+	      if (t.classList.contains("M2Meta")) {
+		  // fun!
+		  inputSpan.textContent = createM2(t,true);
+		  placeCaretAtEnd(inputSpan);
+		  scrollDownLeft(shell);
+		  return;
+	      }
 	      t=t.parentElement;
 	  }
 	  if (window.getSelection().isCollapsed) placeCaretAtEnd(inputSpan,true);

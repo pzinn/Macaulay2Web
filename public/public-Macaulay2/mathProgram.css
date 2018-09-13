@@ -181,7 +181,7 @@ body {
     line-height: 1.2;
 }
 
-code, codeblock, .M2PastInput:hover, .M2HtmlOutput:hover {
+code, codeblock, .M2PastInput:hover {
     box-shadow: 1px 1px 2px 0px black;
     text-decoration: none;
     cursor: pointer;
@@ -438,11 +438,14 @@ a.submenuItem {
     vertical-align: middle;
 }
 
-.katex .fbox {
-    border-style: dotted; /* probably temporary */
+
+.M2Type {
+    position: relative;
 }
 
-.Macaulay2:hover::after { /* definitely temporary */
-    content: "M2";
-    position: absolute
+/*
+.M2Type:hover::before {
+    content: "[" attr(title) "]";
+    color: gray;
 }
+*/
