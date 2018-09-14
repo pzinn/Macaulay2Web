@@ -45,7 +45,7 @@ gfx(d1,d2,GfxRange=>{vector{-400,-400},vector{400,400}},GfxHeight=>25,"stroke-wi
 
 -- or
 rgb={"red","green","blue"};
-scan(rgb, x -> (value x <- GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>0.8,GfxHeight=>0.8,GfxMargin=>0}))
+scan(rgb, x -> globalAssign(value x, GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>0.8,GfxHeight=>0.8,GfxMargin=>0}))
 value\rgb
 R=QQ[x_red,x_green,x_blue]
 describe R
