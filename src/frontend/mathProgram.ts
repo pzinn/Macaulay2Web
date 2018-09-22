@@ -187,9 +187,9 @@ const showUploadSuccessDialog = function(event) {
   const filename = event.file.name;
   // console.log("File uploaded successfully!" + filename);
   const successSentence = filename +
-      " has been uploaded and you can use it by loading it into your " +
-      mathProgramName + " session.";
-  document.getElementById("uploadSuccessDialogContent").innerText =
+      // tslint:disable-next-line:max-line-length
+	" has been uploaded and you can use with <span class=\"M2PastInput\" onclick=\"document.getElementsByClassName('M2CurrentInput')[0].textContent=this.textContent; document.getElementById('uploadSuccessDialog').close(); document.getElementsByClassName('M2CurrentInput')[0].focus()\">load \"" + filename +"\"</span>.";
+  document.getElementById("uploadSuccessDialogContent").innerHTML =
       successSentence;
   dialog.showModal();
 };
