@@ -239,51 +239,81 @@ module.exports = function() {
 	  }
       });
 
-    shell.on("addToEditor", function(e, msg) { // add command to editor area
-      if (typeof msg !== "undefined") {
-        if (editor !== undefined) {
-	    editor[0].appendChild(document.createTextNode(msg));
-          scrollDownLeft(editor);
-        }
-      }
-    });
+      shell.on("addToEditor", function(e, msg) { // add command to editor area
+	  if (typeof msg !== "undefined") {
+              if (editor !== undefined) {
+		  editor[0].appendChild(document.createTextNode(msg));
+		  scrollDownLeft(editor);
+              }
+	  }
+      });
 
-    shell.on("addToHistory", function(e, msg) {
-        // This function will track the messages, i.e. such that arrow up and
-        // down work, but it will not put the msg in the editor textarea. We
-        // need this if someone uses the shift+enter functionality in the
-        // editor area, because we do not want to track these messages.
-      const input = msg.split("\n");
-      for (const line in input) {
-        if (input[line].length > 0) {
-            cmdHistory.index = cmdHistory.push(input[line].replace(/\u21B5/g,"")); // remove CR symbols
-        }
+      shell.on("addToHistory", function(e, msg) {
+          // This function will track the messages, i.e. such that arrow up and
+          // down work, but it will not put the msg in the editor textarea. We
+          // need this if someone uses the shift+enter functionality in the
+          // editor area, because we do not want to track these messages.
+	  const input = msg.split("\n");
+	  for (const line in input) {
+              if (input[line].length > 0) {
+		  cmdHistory.index = cmdHistory.push(input[line].replace(/\u21B5/g,"")); // remove CR symbols
+              }
       }
-    });
+      });
 
       shell.bind('paste',function(e) {
 	  placeCaretAtEnd(inputSpan,true);
       });
 
-      function createM2(x,flag) {
-	  var pre=""; var post=""; var ch="";
-	  if (x.classList.contains("M2Meta"))
-	  {
-	      if (x.dataset.content) { ch = x.dataset.content; if (flag) return ch; }
-	      if (x.dataset.type) {
-		  pre="new " + x.dataset.type + " from { ";
-		  post = " }";
-		  if (x.dataset.type == "BinaryOperation") post+="_{1,0,2}"; // annoying special case of binary ops
-		  else if (x.dataset.type == "Divide") post+="_{1,0}";
+      //      var transpose = m => m[0].map((col, i) => m.map(row => row[i]));
+      var mytranspose = m => m[0].map((col, i) => { var a = m.map(row => row[i]); (a as any).type="katexlist"; return a; });
+      function stringM2(x) {
+	  if (typeof x === "string") return x;
+	  var s="", pre="", post="";
+	  if (x.type !== undefined)  {
+	      if (x.type !== "katexlist") pre="new " + x.type + " from ";
+	  }
+	  if ((x.type === "MatrixExpression")||(x.type === "Table")) {
+	      if ((x.length>0)&&(x[0].type === "katexlist")) // is that the right condition?
+	      {
+		  x = mytranspose(x);
+		  pre+="{ "; // the whole suppression of {} thing might be killed once I get rid of the annoying matrixexpression/table nesting
+		  post=" }";
 	      }
 	  }
+	  else {
+	      pre+="{ ";
+	      post=" }";
+	  }
+	  if (x.type === "BinaryOperation") x=[x[1],x[0],x[2]];
+	  else if (x.type === "Divide") x=[x[1],x[0]];
+	  for (var i=0; i<x.length; i++) {
+	      if (i>0) s+=",";
+	      s+=stringM2(x[i]);
+	  }
+	  return pre+s+post;
+      }
+
+      function createM2(x,flag,vlistflag) {
+	  var a=[];
+	  if (x.classList.contains("M2Meta"))
+	  {
+	      if (x.dataset.content) {
+		  if (flag) return x.dataset.content; // flag probably TEMP?
+		  else a.push(x.dataset.content);
+	      }
+	      if (x.dataset.type) (a as any).type=x.dataset.type;
+	  }
+	  if (vlistflag && x.classList.contains("vlist-t")) (a as any).type="katexlist"; // special case
 	  // recurse over children
 	  for (var i=0; i<x.children.length; i++) {
-	      var s=createM2(x.children[i],false);
-	      if (s!="" && ch!="") ch+=",";
-	      ch+=s;
+	      var s=createM2(x.children[i],false,
+			     (!x.classList.contains("M2Meta")&&vlistflag)
+			     ||x.dataset.type==="MatrixExpression"||x.dataset.type==="Table");
+	      if ((typeof s === "string")||(s.type !== undefined)) a.push(s);
+	      else Array.prototype.push.apply(a,s);
 	  }
-	  return pre + ch + post;
+	  return a;
       }
       
       shell.click(function(e) {
@@ -294,7 +324,8 @@ module.exports = function() {
 	      //	      if (t.classList.contains("M2HtmlOutput")) { toggleOutput.call(t); return; }
 	      if (t.classList.contains("M2Meta")) {
 		  // fun!
-		  inputSpan.textContent = createM2(t,true);
+		  var temp=createM2(t,true,false);
+		  inputSpan.textContent = stringM2(temp);
 		  placeCaretAtEnd(inputSpan);
 		  scrollDownLeft(shell);
 		  return;
