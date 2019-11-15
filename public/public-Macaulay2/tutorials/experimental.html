@@ -75,9 +75,19 @@ altfrac R_3</codeblock>
   </div>
   <div>
     <h4>Building a matrix out of indexed variables</h4>
-    If a ring with a set of 2-index variables has been defined, one can invoke \(\verb|genericMatrix|\) directly:<br/>
-    <code>R=ZZ[x_(1,1)..x_(2,3)]; genericMatrix x</code><br/>
-    Note that the matrix has rows/columns indexed in the usual way, contrary to the typical behavior \(\verb|genericMatrix(R,3,2)|\).
+    <p>
+      If a ring with a set of 2-index variables has been defined, one can invoke \(\verb|genericMatrix|\) directly:<br/>
+      <code>R=ZZ[x_(1,1)..x_(2,3)]; genericMatrix x</code><br/>
+      Note that the matrix has rows/columns indexed in the usual way, contrary to the typical behavior \(\verb|genericMatrix(R,3,2)|\).
+    </p>
+    <p>
+      Missing variables are set to zero:<br/>
+      <code>R=QQ[apply(1..5,i->y_(i,i))]; genericMatrix y</code><br/>
+    </p>
+    <p>Similar commands \(\verb|genericSkewMatrix|\), \(\verb|genericSymmetricMatrix|\), \(\verb|genericUpperMatrix|\), \(\verb|genericLowerMatrix|\), \(\verb|genericVector|\) exist:<br/>
+      <code>R=QQ[z_(1,1)..z_(3,3)]; genericLowerMatrix z</code><br/>
+      <code>R=QQ[v_1..v_5]; genericVector v</code><br/>
+    </p>    
   </div>
 </body>
   
