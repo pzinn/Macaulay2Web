@@ -73,5 +73,11 @@
 altfrac R_3</codeblock>
     </p>
   </div>
+  <div>
+    <h4>Building a matrix out of indexed variables</h4>
+    If a ring with a set of 2-index variables has been defined, one can invoke \(\verb|genericMatrix|\) directly:<br/>
+    <code>R=ZZ[x_(1,1)..x_(2,3)]; genericMatrix x</code><br/>
+    Note that the matrix has rows/columns indexed in the usual way, contrary to the typical behavior \(\verb|genericMatrix(R,3,2)|\).
+  </div>
 </body>
   
