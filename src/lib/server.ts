@@ -24,6 +24,8 @@ const io: SocketIO.Server = ioModule(http);
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
 
+import { AddressInfo } from 'net'
+
 import path = require("path");
 let getClientIdFromSocket;
 let serverConfig = {
@@ -447,7 +449,7 @@ const listen = function() {
   });
 
   const listener = http.listen(serverConfig.port);
-  logExceptOnTest("Server running on " + listener.address().port);
+    logExceptOnTest("Server running on " + (listener.address() as AddressInfo).port);
   return listener;
 };
 
