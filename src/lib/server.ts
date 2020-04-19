@@ -10,6 +10,7 @@ import {InstanceManager} from "./instanceManager";
 import {LocalContainerManager} from "./LocalContainerManager";
 import {SshDockerContainers} from "./sshDockerContainers";
 import {SudoDockerContainers} from "./sudoDockerContainers";
+import { AddressInfo } from "net"
 
 import * as reader from "./tutorialReader";
 
@@ -24,7 +25,6 @@ const io: SocketIO.Server = ioModule(http);
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
 
-import { AddressInfo } from 'net'
 
 import path = require("path");
 let getClientIdFromSocket;
