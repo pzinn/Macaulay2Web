@@ -8,11 +8,11 @@ const accordion = require("./accordion")();
 
 interface Lesson {
     title: string;
-    html: JQuery<HTMLElement>;
+    html: HTMLElement;
 }
 
 interface Tutorial {
-    title: JQuery<HTMLElement>; // <h4> html element
+    title: HTMLElement; // <h4> html element
     current: number;
     lessons: Lesson[];
 }
