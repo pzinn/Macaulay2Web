@@ -5,7 +5,6 @@
 declare var renderMathInElement;
 declare var Prism;
 const accordion = require("./accordion")();
-//import * as $ from "jquery";
 
 interface Lesson {
     title: string;
@@ -35,7 +34,7 @@ const loadLesson = function(tutorialid: number, lessonid: number) {
     const title = tutorials[tutorialNr].title.innerHTML;
     const lesson = document.getElementById("lesson");
     lesson.innerHTML="<h3>" + title + "</h3>"+lessonContent; // crude way to strip title of its class
-    //$("#lesson").scrollTop(0); // scroll to the top of a new lesson // TODO
+    lesson.scrollTop=0;
     //  MathJax.Hub.Queue(["Typeset", MathJax.Hub, "#lesson"]);
     // the next line colorized the tutorials
     // $("code").each(function() { this.innerHTML=Prism.highlight(this.textContent,Prism.languages.macaulay2)});
@@ -75,6 +74,7 @@ const showLesson = function(e) {
     console.log("Showing lesson. " + lessonIdNr + " / " + tutorialIdNr);
     loadLessonIfChanged(tutorialIdNr, lessonIdNr);
     document.getElementById("lessonTabTitle").click();
+    return false;
 };
 
 const switchLesson = function(incr: number): void {
@@ -133,7 +133,6 @@ const makeTutorialsList = function(tutorialNames) {
   }).then(function(data) {
       accordion.makeAccordion(data,showLesson);
     tutorials = data;
-//    $(".menuTitle").on("click", {lessonIdNr: "0"}, showLesson);
     loadLessonIfChanged(tutorialNr, lessonNr);
   }).catch(function(error) {
     console.log("Error in makeTutorialList: " + error);
