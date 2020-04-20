@@ -322,7 +322,7 @@ const init = function() {
   const fetchTutorials = require("./fetchTutorials");
   fetchTutorials(tutorialManager.makeTutorialsList);
   $("#uptutorial").on("change", tutorialManager.uploadTutorial);
-  $(document).on("click", ".submenuItem", tutorialManager.showLesson);
+//  $(document).on("click", ".submenuItem", tutorialManager.showLesson);
 
   attachTutorialNavBtnActions(tutorialManager.switchLesson);
   attachMinMaxBtnActions();

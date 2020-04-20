@@ -1,5 +1,4 @@
 /* global fetch */
-import * as $ from "jquery";
 
 const cssClasses = {
   titleSymbolClass: "material-icons titleSymbol",
@@ -14,22 +13,18 @@ const cssClasses = {
   submenuHref: "submenuItem",
 };
 
-$.fn.extend({
-  toggleText(text) {
-    return this.each(function() {
-      const current = $(this).text();
-      const replacement = text.replace(current, "");
-      $(this).text(replacement);
-    });
-  },
-});
+const toggleText = function(el,text) {
+    el.innerHTML=text.replace(el.innerHTML,"");
+}
 
 const doUptutorialClick = function() {
-  $("#uptutorial").val("");
-  $("#uptutorial").click();
+    const uptute=document.getElementById("uptutorial") as HTMLInputElement;
+    uptute.value="";
+    uptute.click();
 };
 
-const scrollDownUntilTutorialVisible = function() {
+const scrollDownUntilTutorialVisible = function(el) {
+    /*
   const y = $(this).position().top;
   const height = parseInt($("#home").css("height"), 10);
   const totalHeight = parseInt($(this).css("height"), 10) + 50;
@@ -39,104 +34,103 @@ const scrollDownUntilTutorialVisible = function() {
       scrollTop: ($("#home").scrollTop() + scroll),
     }, 400);
   }
+    */
+    //TODO
 };
 
-const appendTutorialToAccordion = function(tmptitle, lessons, index) {
-  const title = tmptitle.clone();
-  title.wrapInner("<a href='#' class='" + cssClasses.titleHref +
-          "' tutorialid=" + index + "/>")
-      .addClass(cssClasses.title)
-      .prepend(
-          '<i class="' + cssClasses.titleSymbolClass + '">' +
-          cssClasses.titleSymbolActive + "</i>")
-      .hover(function() {
-        $(this).toggleClass(cssClasses.titleHover);
-      })
-      .click(function() {
-          ($(this).toggleClass(cssClasses.titleToggleClass)
-           .find("> .titleSymbol") as any).toggleText(
-            cssClasses.titleSymbolActive + " " +
-            cssClasses.titleSymbolInactive).end()
-            .next().slideToggle(scrollDownUntilTutorialVisible);
-          return false;
-      })
-      .next();
-  const div = $("<div>");
-  let content = "<ul>";
-  for (let j = 0; j < lessons.length; j++) {
-    content = content +
-        '<li class="' + cssClasses.innerListItem + '"><a href="#" class="' +
-        cssClasses.submenuHref + '" tutorialid=' + index +
-        " lessonid=" + j + ">  " + lessons[j].title + "</a></li>";
-  }
-  content += "</ul>";
-  if (index > 0) {
-    div.append(content).addClass(
-        cssClasses.content)
-        .hide();
-  } else {
-    // Expand the first tutorial:
-    title.toggleClass(
-        cssClasses.titleToggleClass)
-        .find("> .titleSymbol").toggleText(
-        cssClasses.titleSymbolActive + " " + cssClasses.titleSymbolInactive);
-    div.append(content).addClass(
-        cssClasses.content);
-  }
-  $("#loadTutorialMenu").before(title);
-  $("#loadTutorialMenu").before(div);
-};
+const appendTutorialToAccordion = function(tmptitle, lessons, index, showLesson) {
+    const title = document.createElement("h3");
+    title.className = cssClasses.title;
+    const icon = document.createElement("i");
+    icon.innerHTML = cssClasses.titleSymbolActive;
+    icon.className = cssClasses.titleSymbolClass;
+    tmptitle.className = cssClasses.titleHref;
+    tmptitle.setAttribute("data-tutorial",index);
+    title.appendChild(icon);
+    title.appendChild(tmptitle);
+    tmptitle.onclick=showLesson;
+
+    var div=document.createElement("div");
+    div.style.height="0px";
+    div.style.overflow="hidden";
+    div.style.transition="height 0.5s";
+
+    title.onclick = function(e) {
+	//        title.classList.toggle(cssClasses.titleToggleClass);
+	toggleText(title.firstElementChild,cssClasses.titleSymbolActive + " " +cssClasses.titleSymbolInactive);
+	div.style.height= div.style.height == "0px" ? (div.firstElementChild.clientHeight+30)+"px" : "0px";
+	scrollDownUntilTutorialVisible(div);
+    }
+    const ul=document.createElement("ul");
+    var li,a;
+    for (let j = 0; j < lessons.length; j++) {
+	li=document.createElement("li");
+	li.className = cssClasses.innerListItem;
+	a=document.createElement("a");
+	a.href="#";
+	a.className = cssClasses.submenuHref;
+	a.innerHTML = lessons[j].title;
+	a.setAttribute("data-lesson",j);
+	a.setAttribute("data-tutorial",index);
+	a.onclick = showLesson;
+	li.appendChild(a);
+	ul.appendChild(li);
+    }
+    div.appendChild(ul);
+    var el = document.getElementById("accordion");
+    var lastel = document.getElementById("loadTutorialMenu");
+    el.insertBefore(title,lastel);
+    el.insertBefore(div,lastel);
+}
 
 const appendLoadTutorialTitleToAccordion = function() {
-  const title = $("<h3>");
-  title.prop("id", "loadTutorialMenu");
-  title.addClass(
-      cssClasses.title);
-  $("#accordion").append(title);
+    const title = document.createElement("h3");
+    title.id="loadTutorialMenu";
+    title.className=cssClasses.title;
+    document.getElementById("accordion").appendChild(title);
 };
 
 const appendInstructionsToAccordion = function() {
-  const instructions = $("<div>");
+  const instructions = document.createElement("div");
 
   fetch("uploadTutorialHelp.txt", {
     credentials: "same-origin",
   }).then(function(response) {
     return response.text();
   }).then(function(content) {
-    instructions.append(content);
+    instructions.innerHTML=content;
   }).catch(function(error) {
     console.log("loading /uploadTutorialHelp.txt failed: " + error);
   });
-  instructions.prop("id", "loadTutorialInstructions");
-  instructions.addClass(
-      cssClasses.content).hide();
-  $("#accordion").append(instructions);
+  instructions.id="loadTutorialInstructions";
+    instructions.className=cssClasses.content;
+    instructions.style.display="none";
+    document.getElementById("accordion").appendChild(instructions);
 };
 
 const addExpandLoadTutorialInstructionsButton = function() {
-  const expandButton = $("<i>");
-  expandButton.addClass(cssClasses.titleSymbolClass);
-  expandButton.text(cssClasses.titleSymbolActive);
-  expandButton.click(function() {
-    const title = $("#loadTutorialMenu");
-    const instructions = $("#loadTutorialInstructions");
-    (expandButton as any).toggleText(cssClasses.titleSymbolInactive + " " +
-        cssClasses.titleSymbolActive);
-    title.toggleClass(
-        cssClasses.titleToggleClass);
-    instructions.slideToggle(scrollDownUntilTutorialVisible);
-  });
-  $("#loadTutorialMenu").append(expandButton);
+  const expandButton = document.createElement("i");
+  expandButton.className=cssClasses.titleSymbolClass;
+  expandButton.innerHTML=cssClasses.titleSymbolActive;
+  expandButton.onclick = function() {
+      const title = document.getElementById("loadTutorialMenu");
+      const instructions = document.getElementById("loadTutorialInstructions");
+      toggleText(expandButton,cssClasses.titleSymbolInactive + " " + cssClasses.titleSymbolActive);
+//      title.classList.toggle(cssClasses.titleToggleClass);
+      instructions.style.display=instructions.style.display == "" ? "none" : ""; // TODO: smooth animation
+      scrollDownUntilTutorialVisible(instructions);
+  };
+  document.getElementById("loadTutorialMenu").appendChild(expandButton);
 };
 
 const addLoadTutorialButton = function() {
-  const loadTutorialButton = $("<a>");
-  loadTutorialButton.prop("id", "loadTutorialButton");
-  loadTutorialButton.html("Load Your Own Tutorial");
+  const loadTutorialButton = document.createElement("a");
+    loadTutorialButton.id="loadTutorialButton";
+    loadTutorialButton.innerHTML="Load Your Own Tutorial";
   // loadTutorialButton has no tutorial attached, that can be loaded on click.
-  loadTutorialButton.addClass(cssClasses.titleHref.replace("menuTitle", ""));
-  $("#loadTutorialMenu").append(loadTutorialButton);
-  $("#loadTutorialButton").click(doUptutorialClick);
+    loadTutorialButton.className=cssClasses.titleHref.replace("menuTitle", "");
+    document.getElementById("loadTutorialMenu").appendChild(loadTutorialButton);
+    document.getElementById("loadTutorialButton").onclick=doUptutorialClick;
 };
 
 const appendLoadTutorialMenuToAccordion = function() {
@@ -146,14 +140,13 @@ const appendLoadTutorialMenuToAccordion = function() {
   addLoadTutorialButton();
 };
 
-const makeAccordion = function(tutorials) {
-  $("#home").append("<div id=\"accordion\"></div>");
-  appendLoadTutorialMenuToAccordion();
-  for (let i = 0; i < tutorials.length; i++) {
-    const title = tutorials[i].title; // this is an <h3>
-    const lessons = tutorials[i].lessons;
-    appendTutorialToAccordion(title, lessons, i);
-  }
+const makeAccordion = function(tutorials, showLesson) {
+    var accel = document.createElement("div");
+    accel.id="accordion";
+    document.getElementById("home").appendChild(accel);
+    appendLoadTutorialMenuToAccordion();
+    for (let i = 0; i < tutorials.length; i++)
+	appendTutorialToAccordion(tutorials[i].title, tutorials[i].lessons, i, showLesson);
 };
 
 const removeTutorial = function(title, div, button) {
@@ -165,13 +158,13 @@ const removeTutorial = function(title, div, button) {
 };
 
 const insertDeleteButtonAtLastTutorial = function(tutorialMenu) {
-  const lastTitle = tutorialMenu.prev().prev();
-  const lastDiv = tutorialMenu.prev();
-  const deleteButton = $("<i>");
-  deleteButton.addClass("material-icons icon-with-action saveDialogClose");
-  deleteButton.text("close");
-  lastTitle.append(deleteButton);
-  deleteButton.click(removeTutorial(lastTitle, lastDiv, deleteButton));
+  const lastDiv = tutorialMenu.previousElementSibling;
+  const lastTitle = lastDiv.previousElementSibling;
+  const deleteButton = document.createElement("i");
+  deleteButton.className="material-icons icon-with-action saveDialogClose";
+  deleteButton.innerHTML="close";
+  lastTitle.appendChild(deleteButton);
+    deleteButton.onclick= removeTutorial(lastTitle, lastDiv, deleteButton);
 };
 
 module.exports = function() {

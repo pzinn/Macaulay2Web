@@ -5,7 +5,7 @@
 declare var renderMathInElement;
 declare var Prism;
 const accordion = require("./accordion")();
-import * as $ from "jquery";
+//import * as $ from "jquery";
 
 interface Lesson {
     title: string;
@@ -31,16 +31,16 @@ const loadLesson = function(tutorialid: number, lessonid: number) {
   if (lessonid >= 0 && lessonid < tutorials[tutorialNr].lessons.length) {
     lessonNr = lessonid;
   }
-  const lessonContent = tutorials[tutorialNr].lessons[lessonNr]
-      .html;
-  const title = tutorials[tutorialNr].title.text();
-  $("#lesson").html(lessonContent).prepend("<h3>" + title + "</h3>");
-  $("#lesson").scrollTop(0); // scroll to the top of a new lesson
+    const lessonContent = tutorials[tutorialNr].lessons[lessonNr].html;
+    const title = tutorials[tutorialNr].title.innerHTML;
+    const lesson = document.getElementById("lesson");
+    lesson.innerHTML="<h3>" + title + "</h3>"+lessonContent; // crude way to strip title of its class
+    //$("#lesson").scrollTop(0); // scroll to the top of a new lesson // TODO
     //  MathJax.Hub.Queue(["Typeset", MathJax.Hub, "#lesson"]);
     // the next line colorized the tutorials
     // $("code").each(function() { this.innerHTML=Prism.highlight(this.textContent,Prism.languages.macaulay2)});
 
-    renderMathInElement(document.getElementById("lesson"),{
+    renderMathInElement(lesson,{
 	delimiters: [
 	    {left: "$$", right: "$$", display: true},
 	    {left: "\\[", right: "\\]", display: true},
@@ -68,21 +68,13 @@ const loadLessonIfChanged = function(tutorialid: number, lessonid: number): void
 };
 
 const showLesson = function(e) {
-  let lessonId;
-  let lessonIdNr;
-  console.log("Showing lesson. " + $(this).toString());
-  console.log("Showing lesson. " + $(this).attr("tutorialid"));
-  const tutorialId = $(this).attr("tutorialid");
-  const tutorialIdNr = parseInt(tutorialId.match(/\d/g) as any, 10);
-  if (e.data && e.data.lessonIdNr) {
-    lessonIdNr = parseInt(e.data.lessonIdNr, 10);
-  } else { // Get number from link attribute
-    lessonId = $(this).attr("lessonid");
-    lessonIdNr = parseInt(lessonId.match(/\d/g), 10);
-  }
-  loadLessonIfChanged(tutorialIdNr, lessonIdNr);
-  document.getElementById("lessonTabTitle").click();
-  return false;
+    e.stopPropagation();
+    const el = (e.target || e.srcElement) as HTMLElement;
+    const lessonIdNr = +el.getAttribute("data-lesson"); // default should be 0
+    const tutorialIdNr = +el.getAttribute("data-tutorial");
+    console.log("Showing lesson. " + lessonIdNr + " / " + tutorialIdNr);
+    loadLessonIfChanged(tutorialIdNr, lessonIdNr);
+    document.getElementById("lessonTabTitle").click();
 };
 
 const switchLesson = function(incr: number): void {
@@ -102,20 +94,20 @@ const markdownToTutorial = function(theMD: string) {
 };
 
 const enrichTutorialWithHtml = function(theHtml) {
-    let result;
-    const theLessons = [];
-    const tutorial = $("<div>").html(theHtml);
-    $("div", tutorial).each(function() {
-        theLessons.push({
-            title: $("h4:first", $(this)).text(),
-            html: $(this),
-        });
-    });
-    result = { // class Tutorial
-        title: $("<h3>").append($("title", tutorial).text()),
-        current: 0,
-        lessons: theLessons,
-    };
+    let result = { lessons: [], current: 0, title: document.createElement("h3") };
+    const tutorial = document.createElement("div");
+    tutorial.innerHTML=theHtml;
+    var children=tutorial.children;
+    for (var i=0; i<children.length; i++) {
+	if (children[i].tagName=="TITLE") {
+	    result.title.innerHTML=children[i].innerHTML;
+	}
+	else if (children[i].tagName=="DIV")
+            result.lessons.push({
+		title: children[i].firstElementChild.innerHTML,
+		html: children[i].innerHTML
+            });
+    }
     return result;
 };
 
@@ -139,9 +131,9 @@ const makeTutorialsList = function(tutorialNames) {
   ).then(function(rawTutorials) {
     return rawTutorials.map(enrichTutorialWithHtml);
   }).then(function(data) {
-    accordion.makeAccordion(data);
+      accordion.makeAccordion(data,showLesson);
     tutorials = data;
-    $(".menuTitle").on("click", {lessonIdNr: "0"}, showLesson);
+//    $(".menuTitle").on("click", {lessonIdNr: "0"}, showLesson);
     loadLessonIfChanged(tutorialNr, lessonNr);
   }).catch(function(error) {
     console.log("Error in makeTutorialList: " + error);
@@ -231,7 +223,7 @@ const uploadTutorial = function() {
         const title = newTutorial.title; // this is an <h3>
         const lessons = newTutorial.lessons;
         accordion.appendTutorialToAccordion(title, lessons, lastIndex);
-        accordion.insertDeleteButtonAtLastTutorial($("#loadTutorialMenu"));
+        accordion.insertDeleteButtonAtLastTutorial(document.getElementById("loadTutorialMenu"));
     };
     return false;
 };

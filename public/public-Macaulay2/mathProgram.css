@@ -442,3 +442,6 @@ a.submenuItem {
     border-style: dotted; /* probably temporary */
 }
 
+#accordion h3:hover {
+    background-color: #8080FF;
+}
