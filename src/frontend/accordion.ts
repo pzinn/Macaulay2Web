@@ -25,7 +25,7 @@ const doUptutorialClick = function(e) {
     return false;
 };
 
-const appendTutorialToAccordion = function(tmptitle, blurb, lessons, index, showLesson) {
+const appendTutorialToAccordion = function(tmptitle, blurb, lessons, index, showLesson, deleteButton = false) {
     const title = tmptitle.cloneNode(false);
     title.className = cssClasses.title;
     const icon = document.createElement("i");
@@ -39,6 +39,13 @@ const appendTutorialToAccordion = function(tmptitle, blurb, lessons, index, show
     titlea.innerHTML=tmptitle.innerHTML;
     title.appendChild(icon);
     title.appendChild(titlea);
+    if (deleteButton) {
+	const deleteButton = document.createElement("i");
+	deleteButton.className="material-icons icon-with-action saveDialogClose";
+	deleteButton.innerHTML="close";
+	deleteButton.onclick = removeTutorial(title);
+	title.appendChild(deleteButton);
+    }
 
     var div=document.createElement("div");
     div.style.height="0px";
@@ -98,29 +105,18 @@ const makeAccordion = function(tutorials, showLesson) {
     appendLoadTutorialMenuToAccordion();
 };
 
-const removeTutorial = function(title, div) {
-  return function() {
-    div.remove();
-    title.remove();
-  };
+const removeTutorial = function(title) {
+    return function(e) {
+	e.stopPropagation();
+	const div = title.nextElementSibling;
+	div.remove();
+	title.remove();
+    };
 };
-
-const insertDeleteButtonAtLastTutorial = function(tutorialMenu) {
-  const lastDiv = tutorialMenu.previousElementSibling;
-  const lastTitle = lastDiv.previousElementSibling;
-  const deleteButton = document.createElement("i");
-  deleteButton.className="material-icons icon-with-action saveDialogClose";
-  deleteButton.innerHTML="close";
-  lastTitle.appendChild(deleteButton);
-    deleteButton.onclick= removeTutorial(lastTitle, lastDiv);
-};
-
-
 
 module.exports = function() {
   return {
     appendTutorialToAccordion,
-    makeAccordion,
-    insertDeleteButtonAtLastTutorial,
+    makeAccordion
   };
 };

@@ -221,8 +221,7 @@ const uploadTutorial = function() {
         const lastIndex = tutorials.length - 1;
         const title = newTutorial.title; // this is an <h3>
         const lessons = newTutorial.lessons;
-        accordion.appendTutorialToAccordion(title, "", lessons, lastIndex, showLesson);
-        accordion.insertDeleteButtonAtLastTutorial(document.getElementById("loadTutorialMenu"));
+        accordion.appendTutorialToAccordion(title, "", lessons, lastIndex, showLesson, true); // last arg = delete button
     };
     return false;
 };
