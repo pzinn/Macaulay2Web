@@ -197,13 +197,14 @@ our fork of this repository before sending a pull request.
 ### server
 * main file:
 `dist/index.js`
-produced by tsc:
-```./node_modules/.bin/tsc w/ config file tsconfig.json```
+produced by `tsc`:
+```./node_modules/.bin/tsc
+```
 from `src/index.ts`
 * other files:
-`dist/lib/*.js dist/startupConfigs/*.js`
+`dist/lib/*.js` `dist/startupConfigs/*.js`
 from
-`src/lib/*.ts src/startupConfigs/*.ts`
+`src/lib/*.ts` `src/startupConfigs/*.ts`
 
 ### client
 * main file:
@@ -213,6 +214,7 @@ called by
 `public/public-Macaulay2/index.html`
 * other files:
 `dist/frontend/*.js`
-produced by tsc:
-```./node_modules/.bin/tsc -p src/frontend```
+produced by `tsc`:
+```./node_modules/.bin/tsc -p src/frontend
+```
 from `src/frontend/*.ts`
