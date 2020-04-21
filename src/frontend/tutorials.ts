@@ -211,7 +211,7 @@ const markdownToHtml = function(markdownText) {
 const uploadTutorial = function() {
     const files = this.files;
     const file = files[0];
-    console.log("file name: " + file);
+    console.log("file name: " + file.name);
     const reader = new FileReader();
     reader.readAsText(file);
     reader.onload = function(event: any) {

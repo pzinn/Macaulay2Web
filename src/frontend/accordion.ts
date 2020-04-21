@@ -25,6 +25,22 @@ const doUptutorialClick = function(e) {
     return false;
 };
 
+function totalHeight(element) {
+    const height = element.offsetHeight,
+        style = window.getComputedStyle(element)
+
+    return ['top', 'bottom']
+        .map(side => parseInt(style[`margin-${side}`]))
+        .reduce((total, side) => total + side, height)
+}
+
+const childrenTotalHeight = function(element) {
+    var height=0;
+    for (var i=0; i<element.children.length; i++)
+	height+=totalHeight(element.children[i]);
+    return height;
+}
+
 const appendTutorialToAccordion = function(tmptitle, blurb, lessons, index, showLesson, deleteButton = false) {
     const title = tmptitle.cloneNode(false);
     title.className = cssClasses.title;
@@ -39,24 +55,31 @@ const appendTutorialToAccordion = function(tmptitle, blurb, lessons, index, show
     titlea.innerHTML=tmptitle.innerHTML;
     title.appendChild(icon);
     title.appendChild(titlea);
+
+    var div=document.createElement("div");
+    div.innerHTML=blurb;
+    div.insertBefore(title,div.firstChild);
+    var h=0;
+    div.style.height=h+"px";
+    setTimeout(function() {
+	h=totalHeight(title)+5;
+	div.style.height=h+"px";
+    },1)
+    div.style.overflow="hidden";
+    div.style.transition="height 0.5s";
+
     if (deleteButton) {
 	const deleteButton = document.createElement("i");
 	deleteButton.className="material-icons icon-with-action saveDialogClose";
 	deleteButton.innerHTML="close";
-	deleteButton.onclick = removeTutorial(title);
+	deleteButton.onclick = removeTutorial(div);
 	title.appendChild(deleteButton);
     }
-
-    var div=document.createElement("div");
-    div.style.height="0px";
-    div.style.overflow="hidden";
-    div.style.transition="height 0.5s";
-    div.innerHTML = blurb;
 
     title.onclick = function(e) {
 	//        title.classList.toggle(cssClasses.titleToggleClass);
 	toggleText(title.firstElementChild,cssClasses.titleSymbolActive + " " +cssClasses.titleSymbolInactive);
-	div.style.height= div.style.height == "0px" ? (div.firstElementChild.clientHeight+30)+"px" : "0px";
+	div.style.height= (div.style.height == h+"px" ? childrenTotalHeight(div) : h ) + "px";
 //	div.scrollIntoView(); // too brutal
     }
     const ul=document.createElement("ul");
@@ -77,8 +100,9 @@ const appendTutorialToAccordion = function(tmptitle, blurb, lessons, index, show
     div.appendChild(ul);
     const el = document.getElementById("accordion");
     const lastel = document.getElementById("loadTutorialMenu");
-    el.insertBefore(title,lastel);
+//    el.insertBefore(title,lastel);
     el.insertBefore(div,lastel);
+    return div;
 }
 
 const appendLoadTutorialMenuToAccordion = function() {
@@ -87,10 +111,9 @@ const appendLoadTutorialMenuToAccordion = function() {
   }).then(function(response) {
     return response.text();
   }).then(function(content) {
-      const title=document.createElement("h3");
-      title.innerHTML="Load Your Own Tutorial";
-      title.id="loadTutorialMenu";
-      appendTutorialToAccordion(title,content,[],-1,doUptutorialClick);
+      const title = document.createElement("h3");
+      title.innerHTML = "Load Your Own Tutorial";
+      appendTutorialToAccordion(title,content,[],-1,doUptutorialClick).id="loadTutorialMenu";
   }).catch(function(error) {
     console.log("loading /uploadTutorialHelp.txt failed: " + error);
   });
@@ -105,12 +128,10 @@ const makeAccordion = function(tutorials, showLesson) {
     appendLoadTutorialMenuToAccordion();
 };
 
-const removeTutorial = function(title) {
+const removeTutorial = function(el) {
     return function(e) {
 	e.stopPropagation();
-	const div = title.nextElementSibling;
-	div.remove();
-	title.remove();
+	el.remove();
     };
 };
 
