@@ -138,7 +138,7 @@ module.exports = function() {
 
       createInputEl();
 
-      const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
+      const upDownArrowKeyHandling = function(e: KeyboardEvent) {
 	  e.preventDefault();
 	  if (cmdHistory.length === 0) {
               // Maybe we did nothing so far.
@@ -289,7 +289,7 @@ module.exports = function() {
       }
 
       if ((e.keyCode === keys.arrowUp) || (e.keyCode === keys.arrowDown)) {
-          upDownArrowKeyHandling(shell, e);
+          upDownArrowKeyHandling(e);
 	  return;
       }
 
@@ -328,8 +328,7 @@ module.exports = function() {
 	      }
 	      return false;
 	  }
-	  
-	  
+
 	  /*
       if (e.ctrlKey && e.keyCode === keys.cKey) {
         interrupt(socket);
@@ -379,7 +378,7 @@ module.exports = function() {
 				  removeAutoComplete(true);
 				  e.preventDefault();
 				  e.stopPropagation();
-				  return false;			      
+			          return false;
 			  });
 			  tabMenu.addEventListener("keydown", function(e) {
 			      if (e.keyCode === keys.enter) {
@@ -452,8 +451,8 @@ module.exports = function() {
 	  }
 	  htmlSec = anc;
       }
-      
-      const closeInput = function() { // need to treat input specially because no closing tag
+
+	const closeInput = function() { // need to treat input specially because no closing tag
 	  htmlSec.parentElement.appendChild(document.createElement("br"));
 	  if (inputSpan.oldParentElement) {
 	      var flag = document.activeElement == inputSpan;
@@ -469,8 +468,8 @@ module.exports = function() {
 //	  htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
 	  closeHtml();
       }
-            
-      const createHtml = function(a, className?) {
+
+	const createHtml = function(a, className?) {
 	  var anc = htmlSec;
 	  htmlSec=document.createElement(a);
 	  if (className) {
@@ -495,7 +494,7 @@ module.exports = function() {
 	// seems a bit brutal. what if there's more stuff in there? TODO
 	/*
       if (msgDirty.indexOf("Session resumed.") > -1) {
-        if (mathProgramOutput.length > 0) { 
+        if (mathProgramOutput.length > 0) {
         return;
         }
       }
