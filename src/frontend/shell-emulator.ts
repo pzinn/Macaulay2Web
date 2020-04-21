@@ -272,21 +272,13 @@ module.exports = function() {
 	  var s="", pre="", post="";
 	  if (x.type !== undefined)  {
 	      if (x.type !== "katexlist") pre="new " + x.type + " from ";
-	  }
-	  if ((x.type === "MatrixExpression")||(x.type === "Table")) {
-	      if ((x.length>0)&&(x[0].type === "katexlist")) // is that the right condition?
-	      {
-		  x = mytranspose(x);
-		  pre+="{ "; // the whole suppression of {} thing might be killed once I get rid of the annoying matrixexpression/table nesting
-		  post=" }";
-	      }
-	  }
-	  else {
 	      pre+="{ ";
 	      post=" }";
 	  }
-	  if (x.type === "BinaryOperation") x=[x[1],x[0],x[2]];
+	  if ((x.type === "MatrixExpression")||(x.type === "Table")) x = mytranspose(x);
+	  else if (x.type === "BinaryOperation") x=[x[1],x[0],x[2]];
 	  else if (x.type === "Divide") x=[x[1],x[0]];
+	  else if ((x.type === "Subscript")&&(x.length>2)) { var a=x.slice(1); (a as any).type="Sequence"; x=[x[0],a]; };
 	  for (var i=0; i<x.length; i++) {
 	      if (i>0) s+=",";
 	      s+=stringM2(x[i]);
@@ -294,13 +286,14 @@ module.exports = function() {
 	  return pre+s+post;
       }
 
-      function createM2(x,flag,vlistflag) {
+      function createM2(x,flag,vlistflag) { // reproduces a first approximation of the expression tree of M2
 	  var a=[];
 	  if (x.classList.contains("M2Meta"))
 	  {
 	      if (x.dataset.content) {
-		  if (flag) return x.dataset.content; // flag probably TEMP?
-		  else a.push(x.dataset.content);
+//		  if (flag) return x.dataset.content; // flag probably TEMP?
+//		  else
+		      a.push(x.dataset.content);
 	      }
 	      if (x.dataset.type) (a as any).type=x.dataset.type;
 	  }
@@ -310,7 +303,7 @@ module.exports = function() {
 	      var s=createM2(x.children[i],false,
 			     (!x.classList.contains("M2Meta")&&vlistflag)
 			     ||x.dataset.type==="MatrixExpression"||x.dataset.type==="Table");
-	      if ((typeof s === "string")||(s.type !== undefined)) a.push(s);
+	      if ((typeof s === "string")||((s as any).type !== undefined)) a.push(s);
 	      else Array.prototype.push.apply(a,s);
 	  }
 	  return a;
