@@ -211,7 +211,7 @@ from
 * main file:
 `public/public-common/index.js`
 produced by `webpack` from `public-source/index.js`
-called by
+and called by
 `public/public-Macaulay2/index.html`
 * other files:
 `dist/frontend/*.js`

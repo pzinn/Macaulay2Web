@@ -17,7 +17,8 @@ const toggleText = function(el,text) {
     el.innerHTML=text.replace(el.innerHTML,"");
 }
 
-const doUptutorialClick = function() {
+const doUptutorialClick = function(e) {
+    e.stopPropagation();
     const uptute=document.getElementById("uptutorial") as HTMLInputElement;
     uptute.value="";
     uptute.click();
@@ -25,7 +26,7 @@ const doUptutorialClick = function() {
 };
 
 const appendTutorialToAccordion = function(tmptitle, blurb, lessons, index, showLesson) {
-    const title = document.createElement("h3");
+    const title = tmptitle.cloneNode(false);
     title.className = cssClasses.title;
     const icon = document.createElement("i");
     icon.innerHTML = cssClasses.titleSymbolActive;
@@ -35,7 +36,7 @@ const appendTutorialToAccordion = function(tmptitle, blurb, lessons, index, show
     if (index>=0) titlea.setAttribute("data-tutorial",index);
     titlea.onclick=showLesson;
     titlea.href="#";
-    titlea.innerHTML=tmptitle;
+    titlea.innerHTML=tmptitle.innerHTML;
     title.appendChild(icon);
     title.appendChild(titlea);
 
@@ -68,8 +69,9 @@ const appendTutorialToAccordion = function(tmptitle, blurb, lessons, index, show
     }
     div.appendChild(ul);
     const el = document.getElementById("accordion");
-    el.appendChild(title);
-    el.appendChild(div);
+    const lastel = document.getElementById("loadTutorialMenu");
+    el.insertBefore(title,lastel);
+    el.insertBefore(div,lastel);
 }
 
 const appendLoadTutorialMenuToAccordion = function() {
@@ -78,7 +80,10 @@ const appendLoadTutorialMenuToAccordion = function() {
   }).then(function(response) {
     return response.text();
   }).then(function(content) {
-    appendTutorialToAccordion("Load Your Own Tutorial",content,[],-1,doUptutorialClick);
+      const title=document.createElement("h3");
+      title.innerHTML="Load Your Own Tutorial";
+      title.id="loadTutorialMenu";
+      appendTutorialToAccordion(title,content,[],-1,doUptutorialClick);
   }).catch(function(error) {
     console.log("loading /uploadTutorialHelp.txt failed: " + error);
   });
@@ -89,13 +94,12 @@ const makeAccordion = function(tutorials, showLesson) {
     accel.id="accordion";
     document.getElementById("home").appendChild(accel);
     for (let i = 0; i < tutorials.length; i++)
-	appendTutorialToAccordion(tutorials[i].title.innerHTML, "",tutorials[i].lessons, i, showLesson);
+	appendTutorialToAccordion(tutorials[i].title, "",tutorials[i].lessons, i, showLesson);
     appendLoadTutorialMenuToAccordion();
 };
 
-const removeTutorial = function(title, div, button) {
+const removeTutorial = function(title, div) {
   return function() {
-    button.remove();
     div.remove();
     title.remove();
   };
@@ -108,8 +112,10 @@ const insertDeleteButtonAtLastTutorial = function(tutorialMenu) {
   deleteButton.className="material-icons icon-with-action saveDialogClose";
   deleteButton.innerHTML="close";
   lastTitle.appendChild(deleteButton);
-    deleteButton.onclick= removeTutorial(lastTitle, lastDiv, deleteButton);
+    deleteButton.onclick= removeTutorial(lastTitle, lastDiv);
 };
+
+
 
 module.exports = function() {
   return {

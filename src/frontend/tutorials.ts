@@ -216,12 +216,12 @@ const uploadTutorial = function() {
     reader.readAsText(file);
     reader.onload = function(event: any) {
         const txt = event.target.result;
-        tutorials.push(markdownToTutorial(txt));
+        const newTutorial = markdownToTutorial(txt);
+        tutorials.push(newTutorial);
         const lastIndex = tutorials.length - 1;
-        const newTutorial = tutorials[lastIndex];
         const title = newTutorial.title; // this is an <h3>
         const lessons = newTutorial.lessons;
-        accordion.appendTutorialToAccordion(title, lessons, lastIndex);
+        accordion.appendTutorialToAccordion(title, "", lessons, lastIndex, showLesson);
         accordion.insertDeleteButtonAtLastTutorial(document.getElementById("loadTutorialMenu"));
     };
     return false;

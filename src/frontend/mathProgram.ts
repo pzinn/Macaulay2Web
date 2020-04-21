@@ -316,13 +316,11 @@ const init = function() {
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
   socket.on("image", showImageDialog);
-//  socket.on("viewHelp", displayUrlInNewWindow);
 
   const tutorialManager = require("./tutorials")();
   const fetchTutorials = require("./fetchTutorials");
   fetchTutorials(tutorialManager.makeTutorialsList);
   $("#uptutorial").on("change", tutorialManager.uploadTutorial);
-//  $(document).on("click", ".submenuItem", tutorialManager.showLesson);
 
   attachTutorialNavBtnActions(tutorialManager.switchLesson);
   attachMinMaxBtnActions();
