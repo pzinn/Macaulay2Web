@@ -16,8 +16,9 @@ const dialogPolyfill = require("dialog-polyfill");
 const shell = require("./shell-emulator")();
 const scrollDown = require("scroll-down");
 
-import * as $ from "jquery";
 import * as tags from "./tags";
+
+var myshell;
 
 const getSelected = function (){ // could almost just trigger the paste event, except for when there's no selection and final \n...
     var sel=window.getSelection();
@@ -38,7 +39,7 @@ const getSelected = function (){ // could almost just trigger the paste event, e
 const editorEvaluate = function() {
     var msg = getSelected();
     if (msg != "")
-	$("#M2Out").trigger("postMessage", [msg, false, false]);
+	myshell.postMessage(msg, false, false); // TODO: FIX
   };
 
 const editorKeypress = function(e) {
@@ -47,7 +48,7 @@ const editorKeypress = function(e) {
 	  e.preventDefault();
 	  var msg = getSelected();
 	  if (msg != "")
-	      $("#M2Out").trigger("postMessage", [msg, false, true]);
+	      myshell.postMessage(msg, false, true); // TODO: fix
       }
     /*
     if (!prismInvoked) {
@@ -59,6 +60,11 @@ const editorKeypress = function(e) {
 	}, 1000 );
     };
 */
+};
+
+function scrollDownLeft(element) {
+    element.scrollTop=element.scrollHeight;
+    element.scrollLeft=0;
 };
 
 const attachMinMaxBtnActions = function() {
@@ -75,7 +81,7 @@ const attachMinMaxBtnActions = function() {
     dialog.appendChild(output);
     maxCtrl.insertBefore(zoomBtns, downsize);
     dialog.showModal();
-      scrollDown($("#M2Out"));
+      scrollDownLeft(document.getElementById("M2Out"));
   });
   downsize.addEventListener("click", function() {
     const dialog: any = document.getElementById("fullScreenOutput");
@@ -85,22 +91,22 @@ const attachMinMaxBtnActions = function() {
     oldPosition.appendChild(output);
     ctrl.insertBefore(zoomBtns, maximize);
     dialog.close();
-      scrollDown($("#M2Out"));
+      scrollDownLeft(document.getElementById("M2Out"));
   });
 };
 
 const attachTutorialNavBtnActions = function(switchLesson) {
-  $("#previousBtn").click(function() {
+  document.getElementById("previousBtn").onclick = function() {
     switchLesson(-1);
-  });
+  };
 
-  $("#nextBtn").click(function() {
+  document.getElementById("nextBtn").onclick = function() {
     switchLesson(1);
-  });
+  };
 };
 
 const emitReset = function() {
-  $("#M2Out").trigger("reset");
+    myshell.reset(); // TODO: FIX
   socket.emit("reset");
 };
 
@@ -110,13 +116,13 @@ const ClearOut = function(e) {
 }
 
 const attachCtrlBtnActions = function() {
-    $("#sendBtn").click(editorEvaluate);
-    $("#resetBtn").click(emitReset);
-    $("#interruptBtn").click(shell.interrupt(socket));
-    $("#saveBtn").click(saveFile);
-    $("#loadBtn").click(loadFile);
-    $("#hiliteBtn").click(hilite);
-    $("#clearBtn").click(ClearOut);
+    document.getElementById("sendBtn").onclick = editorEvaluate;
+    document.getElementById("resetBtn").onclick = emitReset;
+    document.getElementById("interruptBtn").onclick = shell.interrupt(socket);
+    document.getElementById("saveBtn").onclick=saveFile;
+    document.getElementById("loadBtn").onclick=loadFile;
+    document.getElementById("hiliteBtn").onclick=hilite;
+    document.getElementById("clearBtn").onclick=ClearOut;
 };
 
 var fileName = "default.m2";
@@ -138,7 +144,7 @@ const loadFileProcess = function(event) {
 	    // var textFromFileLoaded = e.target.result;
 	    var textFromFileLoaded = fileReader.result;
             //$("#M2In").text(textFromFileLoaded);
-	    $("#M2In").html(Prism.highlight(textFromFileLoaded,Prism.languages.macaulay2));
+	    document.getElementById("M2In").innerHTML=Prism.highlight(textFromFileLoaded,Prism.languages.macaulay2);
 	    document.getElementById("editorTitle").click();
 	};
 	fileReader.readAsText(fileToLoad, "UTF-8");
@@ -160,10 +166,10 @@ const removeBR = function() { // for firefox only: remove <br> in the editor and
 }
 
 const saveFile = function() {
-    const input = $("#M2In");
+    const input = document.getElementById("M2In");
     removeBR();
     const inputLink = "data:application/octet-stream," +
-	encodeURIComponent(input.text() as string);
+	encodeURIComponent(input.textContent as string);
     var inputParagraph = document.createElement("a");
     inputParagraph.setAttribute("href", inputLink);
     inputParagraph.setAttribute("download", fileName); // reuses the last loaded file name
@@ -174,7 +180,7 @@ const saveFile = function() {
 
 const hilite = function(event) {
     removeBR();
-    $("#M2In").html(Prism.highlight($("#M2In").text(),Prism.languages.macaulay2));
+    document.getElementById("M2In").innerHTML=Prism.highlight(document.getElementById("M2In").textContent,Prism.languages.macaulay2);
 }
 
 const showUploadSuccessDialog = function(event) {
@@ -230,10 +236,10 @@ const attachCloseDialogBtns = function() {
 
 const socketOnDisconnect = function(msg) {
     console.log("We got disconnected. " + msg);
-    $("#M2Out").trigger("onmessage", tags.mathJaxTextTag +
+    myshell.onmessage(tags.mathJaxTextTag +
 			"Sorry, your session was disconnected" +
-			" by the server.\n\n");
-    $("#M2Out").trigger("reset");
+			" by the server.\n\n"); // TODO fix
+    myshell.reset(); // TODO fix
   serverDisconnect = true;
   // Could use the following to automatically reload. Probably too invasive,
   // might kill results.
@@ -264,12 +270,12 @@ const wrapEmitForDisconnect = function(event, msg) {
 
 const codeClickAction = function(e) {
     if (e.target.tagName.substring(0,4)=="CODE")
-	$("#M2Out").trigger("postMessage", [e.target.textContent,false,false]);
+	myshell.postMessage(e.target.textContent,false,false); // TODO fix
 };
 
 
 const openTabCloseDrawer = function(event) {
-  const panelId = $(this).attr("href");
+  const panelId = this.href;
   // show tab panel
   document.getElementById(panelId).click();
   // close drawer menu
@@ -287,7 +293,7 @@ const openAboutTab = function(event) {
 
 const socketOnMessage = function(msg) {
   if (msg !== "") {
-    $("#M2Out").trigger("onmessage", msg);
+      myshell.onmessage(msg); // TODO fix
   }
 };
 
@@ -336,7 +342,7 @@ const init = function() {
   // $("#M2In").text(DefaultText);
   // $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
 
-  shell.create($("#M2Out"), $("#M2In"), socket);
+  myshell = new shell.Shell(document.getElementById("M2Out"), document.getElementById("M2In"), socket);
 
   document.getElementById("M2In").onkeypress=editorKeypress;
 
