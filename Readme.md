@@ -117,7 +117,7 @@ This gives you an (unsecured!) Macaulay2 terminal emulator at [http://localhost:
 That means users can access and modify your private data through Macaulay2's `get` command. Make sure you do not
 allow web access to your machine to other users on the same network, i.e., make sure your laptop's firewall is on.
 The port may be different, check the console output where you started the server for
- `Server runnign on [port]`.
+ `Server running on [port]`.
 
 ### Scaling Up (Advanced)
 
@@ -192,3 +192,27 @@ npm run twoMachines ## Docker containers on different machine than server
 We use [Travis Ci](https://travis-ci.org) to check our builds. We recommend signing up for Travis Ci and enabling
 our fork of this repository before sending a pull request.
 [![Build Status](https://travis-ci.org/fhinkel/InteractiveShell.svg?branch=master)](https://travis-ci.org/fhinkel/InteractiveShell)
+
+## file structure:
+### server
+* main file:
+`dist/index.js`
+produced by tsc:
+```./node_modules/.bin/tsc w/ config file tsconfig.json```
+from `src/index.ts`
+* other files:
+`dist/lib/*.js dist/startupConfigs/*.js`
+from
+`src/lib/*.ts src/startupConfigs/*.ts`
+
+### client
+* main file:
+`public/public-common/index.js`
+produced by `webpack` from `public-source/index.js`
+called by
+`public/public-Macaulay2/index.html`
+* other files:
+`dist/frontend/*.js`
+produced by tsc:
+```./node_modules/.bin/tsc -p src/frontend```
+from `src/frontend/*.ts`
