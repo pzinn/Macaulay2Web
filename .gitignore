@@ -1,4 +1,4 @@
-src/dist
+dist
 public/public-common/index.js
 public/users.htpasswd
 public/public-Macaulay2/user*

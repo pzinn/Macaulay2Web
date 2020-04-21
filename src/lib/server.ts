@@ -37,7 +37,7 @@ let serverConfig = {
   CONTAINERS : undefined,
 };
 let options;
-const staticFolder = path.join(__dirname, "../../../public/public");
+const staticFolder = path.join(__dirname, "../../public/public");
 
 const logExceptOnTest = function(msg: string): void {
   if (process.env.NODE_ENV !== "test") {

@@ -25,7 +25,7 @@ function usage() : void {
   console.log("Usage: index.js {Macaulay2|Singular} {local|docker|ssh}");
 }
 
-// Dirname is src/dist.
+// Dirname is dist.
 import p = require("path"); // eslint-disable-line  no-undef
 const path = p.join(__dirname, "/startupConfigs/"); // eslint-disable-line  no-undef
 

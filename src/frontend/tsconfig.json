@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
-    "outDir": "../dist/frontend",
+    "outDir": "../../dist/frontend",
     "sourceMap": true, 
       "lib": ["es7", "dom"]
   },
