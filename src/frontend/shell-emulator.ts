@@ -59,8 +59,8 @@ Object.defineProperty(Element.prototype, 'baselinePosition',
 });
 
 function scrollDownLeft(element) {
-    element.scrollTop(element[0].scrollHeight);
-    element.scrollLeft(0);
+    element.scrollTop=element.scrollHeight;
+    element.scrollLeft=0;
 };
 
 function addToEl(el,pos,s) { // insert into a pure text element
@@ -108,15 +108,17 @@ const interrupt = function(socket: Socket) {
 };
 
 module.exports = function() {
-  const create = function(shell, editorArea, socket: Socket) {
-      const editor = editorArea;
+    const Shell = function(shellArea, socket: Socket, editorArea = null) { // Shell is an old-style javascript oop constructor
+	const obj = this; // yeah, lame TODO improve this
+	const editor = editorArea;
+	const shell = shellArea;
+	var htmlSec = shell;
       var cmdHistory: any = []; // History of commands for shell-like arrow navigation
       cmdHistory.index = 0;
-      var inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
+      var inputSpan; // the input HTML element at the bottom of the shellel. note that inputSpan should always have *one text node*
       var autoComplete=null; // autocomplete HTML element (when tab is pressed)
       // mathJax/katex related stuff
       var mathJaxTags = new RegExp("(" + tags.mathJaxTagsArray.join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
-      var htmlSec=shell[0]; // html element of current output section
       var inputEndFlag = false;
 
       const createInputEl = function() {
@@ -130,13 +132,13 @@ module.exports = function() {
 	  inputSpan.autocomplete = "off";
 	  inputSpan.classList.add("M2Input");
 	  inputSpan.classList.add("M2CurrentInput");
-	  shell[0].appendChild(inputSpan);
+	  shell.appendChild(inputSpan);
 	  inputSpan.focus();
       }
 
       createInputEl();
 
-      const upDownArrowKeyHandling = function(shell, e: KeyboardEvent) {
+      const upDownArrowKeyHandling = function(e: KeyboardEvent) {
 	  e.preventDefault();
 	  if (cmdHistory.length === 0) {
               // Maybe we did nothing so far.
@@ -221,10 +223,10 @@ module.exports = function() {
 	  0x0A:"\n"
       }; // partial support for unicode symbols
 
-      shell.on("postMessage", function(e,msg,flag1,flag2) { // send input, adding \n if necessary
+      obj.postMessage = function(msg,flag1,flag2) { // send input, adding \n if necessary
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  if (msg.length>0) {
-	      shell.trigger("addToHistory",msg);
+	      obj.addToHistory(msg);
 	      inputSpan.textContent=msg+"\u21B5"; // insert a cute return symbol; will be there only briefly (normally)
 	      if (flag2) placeCaretAtEnd(inputSpan);
 	      // sanitize input
@@ -234,36 +236,36 @@ module.exports = function() {
 		  if (((c>=32)&&(c<128))||(symbols[c])) clean+=msg.charAt(i); // a bit too restrictive?
 	      }
 	      if (clean[clean.length-1] != "\n") clean+="\n";
-	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) shell.trigger("addToEditor",clean);
+	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) obj.addToEditor(clean);
 	      postRawMessage(clean, socket);
 	  }
-      });
+      };
 
-      shell.on("addToEditor", function(e, msg) { // add command to editor area
-	  if (typeof msg !== "undefined") {
-              if (editor !== undefined) {
-		  editor[0].appendChild(document.createTextNode(msg));
-		  scrollDownLeft(editor);
-              }
-	  }
-      });
-
-      shell.on("addToHistory", function(e, msg) {
-          // This function will track the messages, i.e. such that arrow up and
-          // down work, but it will not put the msg in the editor textarea. We
-          // need this if someone uses the shift+enter functionality in the
-          // editor area, because we do not want to track these messages.
-	  const input = msg.split("\n");
-	  for (const line in input) {
-              if (input[line].length > 0) {
-		  cmdHistory.index = cmdHistory.push(input[line].replace(/\u21B5/g,"")); // remove CR symbols
-              }
+    obj.addToEditor = function(msg) { // add command to editor area
+      if (typeof msg !== "undefined") {
+        if (editor !== null) {
+	    editor.appendChild(document.createTextNode(msg));
+          scrollDownLeft(editor);
+        }
       }
-      });
+    };
 
-      shell.bind('paste',function(e) {
+    obj.addToHistory = function(msg) {
+        // This function will track the messages, i.e. such that arrow up and
+        // down work, but it will not put the msg in the editor textarea. We
+        // need this if someone uses the shift+enter functionality in the
+        // editor area, because we do not want to track these messages.
+      const input = msg.split("\n");
+      for (const line in input) {
+        if (input[line].length > 0) {
+            cmdHistory.index = cmdHistory.push(input[line].replace(/\u21B5/g,"")); // remove CR symbols
+        }
+      }
+    };
+
+      shell.onpaste = function(e) {
 	  placeCaretAtEnd(inputSpan,true);
-      });
+      };
 
       //      var transpose = m => m[0].map((col, i) => m.map(row => row[i]));
       var mytranspose = m => m[0].map((col, i) => { var a = m.map(row => row[i]); (a as any).type="katexlist"; return a; });
@@ -309,10 +311,10 @@ module.exports = function() {
 	  return a;
       }
       
-      shell.click(function(e) {
+      shell.onclick = function(e) {
 	  // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
 	  var t=e.target;
-	  while (t!=shell[0]) {
+	  while (t!=shell) {
 	      if (t.classList.contains("M2PastInput")) { codeInputAction.call(t); return; }
 	      //	      if (t.classList.contains("M2HtmlOutput")) { toggleOutput.call(t); return; }
 	      if (t.classList.contains("M2Meta")) {
@@ -326,20 +328,20 @@ module.exports = function() {
 	      t=t.parentElement;
 	  }
 	  if (window.getSelection().isCollapsed) placeCaretAtEnd(inputSpan,true);
-      });
+      };
 
-    // If something is entered, change to end of textarea, if at wrong position.
-      shell.keydown(function(e: KeyboardEvent) {
+      // If something is entered, change to end of textarea, if at wrong position.
+      shell.onkeydown = function(e: KeyboardEvent) {
 	  removeAutoComplete(false); // remove autocomplete menu if open
       if (e.keyCode === keys.enter) {
 	  const msg=inputSpan.textContent;
-	  shell.trigger("postMessage",[msg,true,true]);
+	  obj.postMessage(msg,true,true);
 	  scrollDownLeft(shell);
 	  return false; // no crappy <div></div> added
       }
 
       if ((e.keyCode === keys.arrowUp) || (e.keyCode === keys.arrowDown)) {
-          upDownArrowKeyHandling(shell, e);
+          upDownArrowKeyHandling(e);
 	  return;
       }
 
@@ -378,8 +380,7 @@ module.exports = function() {
 	      }
 	      return false;
 	  }
-	  
-	  
+
 	  /*
       if (e.ctrlKey && e.keyCode === keys.cKey) {
         interrupt(socket);
@@ -429,7 +430,7 @@ module.exports = function() {
 				  removeAutoComplete(true);
 				  e.preventDefault();
 				  e.stopPropagation();
-				  return false;			      
+			          return false;
 			  });
 			  tabMenu.addEventListener("keydown", function(e) {
 			      if (e.keyCode === keys.enter) {
@@ -473,7 +474,7 @@ module.exports = function() {
 	    }
 	    e.preventDefault();
 	}
-      });
+      };
 
       const closeHtml = function() {
 	  var anc = htmlSec.parentElement;
@@ -502,8 +503,8 @@ module.exports = function() {
 	  }
 	  htmlSec = anc;
       }
-      
-      const closeInput = function() { // need to treat input specially because no closing tag
+
+	const closeInput = function() { // need to treat input specially because no closing tag
 	  htmlSec.parentElement.appendChild(document.createElement("br"));
 	  if (inputSpan.oldParentElement) {
 	      var flag = document.activeElement == inputSpan;
@@ -519,8 +520,8 @@ module.exports = function() {
 //	  htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
 	  closeHtml();
       }
-            
-      const createHtml = function(a, className?) {
+
+	const createHtml = function(a, className?) {
 	  var anc = htmlSec;
 	  htmlSec=document.createElement(a);
 	  if (className) {
@@ -536,7 +537,7 @@ module.exports = function() {
 	  if (inputSpan.parentElement==anc) anc.insertBefore(htmlSec,inputSpan); else anc.appendChild(htmlSec);
       }
 
-    shell.on("onmessage", function(e, msgDirty) {
+    obj.onmessage = function(msgDirty) {
       if (msgDirty === unicodeBell) {
         return;
       }
@@ -545,7 +546,7 @@ module.exports = function() {
 	// seems a bit brutal. what if there's more stuff in there? TODO
 	/*
       if (msgDirty.indexOf("Session resumed.") > -1) {
-        if (mathProgramOutput.length > 0) { 
+        if (mathProgramOutput.length > 0) {
         return;
         }
       }
@@ -637,19 +638,19 @@ module.exports = function() {
 	    }
 	}
 	scrollDownLeft(shell);
-    });
+    };
 
-      shell.on("reset", function() {
+      obj.reset = function() {
 	  console.log("Reset");
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  createInputEl(); // recreate the input area
-	  shell[0].insertBefore(document.createElement("br"),inputSpan);
-	  htmlSec=shell[0];
-      });
-  };
+	  shell.insertBefore(document.createElement("br"),inputSpan);
+	  htmlSec=shell;
+      };
+    };
 
     return {
-	create,
-	interrupt,
+	Shell,
+	interrupt
     };
 };
