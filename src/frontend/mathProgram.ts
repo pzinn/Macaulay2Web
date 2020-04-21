@@ -342,7 +342,7 @@ const init = function() {
   // $("#M2In").text(DefaultText);
   // $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
 
-  myshell = new shell.Shell(document.getElementById("M2Out"), document.getElementById("M2In"), socket);
+    myshell = new shell.Shell(document.getElementById("M2Out"), socket, document.getElementById("M2In"));
 
   document.getElementById("M2In").onkeypress=editorKeypress;
 

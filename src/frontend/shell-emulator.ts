@@ -108,7 +108,7 @@ const interrupt = function(socket: Socket) {
 };
 
 module.exports = function() {
-    const Shell = function(shellArea, editorArea, socket: Socket) { // Shell is an old-style javascript oop constructor
+    const Shell = function(shellArea, socket: Socket, editorArea = null) { // Shell is an old-style javascript oop constructor
 	const obj = this; // yeah, lame TODO improve this
 	const editor = editorArea;
 	const shell = shellArea;
@@ -243,8 +243,8 @@ module.exports = function() {
 
     obj.addToEditor = function(msg) { // add command to editor area
       if (typeof msg !== "undefined") {
-        if (editor !== undefined) {
-	    editor[0].appendChild(document.createTextNode(msg));
+        if (editor !== null) {
+	    editor.appendChild(document.createTextNode(msg));
           scrollDownLeft(editor);
         }
       }
