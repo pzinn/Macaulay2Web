@@ -193,12 +193,13 @@ We use [Travis Ci](https://travis-ci.org) to check our builds. We recommend sign
 our fork of this repository before sending a pull request.
 [![Build Status](https://travis-ci.org/fhinkel/InteractiveShell.svg?branch=master)](https://travis-ci.org/fhinkel/InteractiveShell)
 
-## file structure:
-### server
+## File structure:
+### Server
 * main file:
 `dist/index.js`
 produced by `tsc`:
-```./node_modules/.bin/tsc
+```bash
+./node_modules/.bin/tsc
 ```
 from `src/index.ts`
 * other files:
@@ -206,7 +207,7 @@ from `src/index.ts`
 from
 `src/lib/*.ts` `src/startupConfigs/*.ts`
 
-### client
+### Client
 * main file:
 `public/public-common/index.js`
 produced by `webpack` from `public-source/index.js`
@@ -215,6 +216,7 @@ called by
 * other files:
 `dist/frontend/*.js`
 produced by `tsc`:
-```./node_modules/.bin/tsc -p src/frontend
+```bash
+./node_modules/.bin/tsc -p src/frontend
 ```
 from `src/frontend/*.ts`
