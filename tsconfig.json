@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "outDir": "src/dist",
+    "outDir": "dist",
     "sourceMap": true, 
     "lib": ["es7"],
     "types" : ["node", "express", "mocha", "socket.io", "ssh2"]

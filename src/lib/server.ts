@@ -10,6 +10,7 @@ import {InstanceManager} from "./instanceManager";
 import {LocalContainerManager} from "./LocalContainerManager";
 import {SshDockerContainers} from "./sshDockerContainers";
 import {SudoDockerContainers} from "./sudoDockerContainers";
+import { AddressInfo } from "net"
 
 import * as reader from "./tutorialReader";
 
@@ -24,6 +25,7 @@ const io: SocketIO.Server = ioModule(http);
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
 
+
 import path = require("path");
 let getClientIdFromSocket;
 let serverConfig = {
@@ -35,7 +37,7 @@ let serverConfig = {
   CONTAINERS : undefined,
 };
 let options;
-const staticFolder = path.join(__dirname, "../../../public/public");
+const staticFolder = path.join(__dirname, "../../public/public");
 
 const logExceptOnTest = function(msg: string): void {
   if (process.env.NODE_ENV !== "test") {
@@ -447,7 +449,7 @@ const listen = function() {
   });
 
   const listener = http.listen(serverConfig.port);
-  logExceptOnTest("Server running on " + listener.address().port);
+    logExceptOnTest("Server running on " + (listener.address() as AddressInfo).port);
   return listener;
 };
 

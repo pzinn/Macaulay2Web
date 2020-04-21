@@ -24,8 +24,12 @@ viewHelp "determinant"
   B = QQ[x_1..x_6]
   C = ZZ/101[vars(0..12)]
 ---------------
+-- something fun
 
--- something fun #1
+R=ZZ[x]; expression x
+x/(1+oo) -- repeat at will
+
+-- something fun #2
 restart
 loadPackage "Gfx"
 gfx(GfxEllipse{[0,0],90,30,"stroke"=>"none","fill"=>gfxLinearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")},GfxBlur=>0.3},GfxText{[-65,-7],"Macaulay2",GfxFontSize=>25,"stroke"=>"black","fill"=>"white"},GfxHeight=>12)
@@ -55,7 +59,6 @@ factor oo
 -- or (more serious)
 R=RR[x,y]; P=y^2-(x+1)*(x-1)*(x-2);
 gfxPlot(P,{-2,3},"stroke-width"=>0.05,GfxHeight=>25,"stroke"=>"red")
-
 
 -- something fun #2
 R=ZZ[x]; expression x

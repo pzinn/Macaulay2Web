@@ -262,8 +262,9 @@ const wrapEmitForDisconnect = function(event, msg) {
 };
 */
 
-const codeClickAction = function() {
-    $("#M2Out").trigger("postMessage", [$(this).text(),false,false]);
+const codeClickAction = function(e) {
+    if (e.target.tagName.substring(0,4)=="CODE")
+	$("#M2Out").trigger("postMessage", [e.target.textContent,false,false]);
 };
 
 
@@ -301,6 +302,11 @@ const socketOnError = function(type) {
   };
 };
 
+const assignClick = function(lst, f) {
+    for (var i=0; i<lst.length; i++)
+	lst[i].onclick=f;
+}
+
 const init = function() {
   const zoom = require("./zooming");
   zoom.attachZoomButtons("M2Out", "M2OutZoomIn", "M2OutResetZoom",
@@ -316,13 +322,11 @@ const init = function() {
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
   socket.on("image", showImageDialog);
-//  socket.on("viewHelp", displayUrlInNewWindow);
 
   const tutorialManager = require("./tutorials")();
   const fetchTutorials = require("./fetchTutorials");
   fetchTutorials(tutorialManager.makeTutorialsList);
-  $("#uptutorial").on("change", tutorialManager.uploadTutorial);
-  $(document).on("click", ".submenuItem", tutorialManager.showLesson);
+  document.getElementById("uptutorial").onchange=tutorialManager.uploadTutorial;
 
   attachTutorialNavBtnActions(tutorialManager.switchLesson);
   attachMinMaxBtnActions();
@@ -334,7 +338,7 @@ const init = function() {
 
   shell.create($("#M2Out"), $("#M2In"), socket);
 
-  $("#M2In").keypress(editorKeypress);
+  document.getElementById("M2In").onkeypress=editorKeypress;
 
     
   const siofu = new SocketIOFileUpload(socket);
@@ -342,11 +346,9 @@ const init = function() {
       false);
   siofu.addEventListener("complete", showUploadSuccessDialog);
 
-  $(document).on("click", "code", codeClickAction);
-  $(document).on("click", "codeblock", codeClickAction);
-  $(document).on("click", ".tabPanelActivator", openTabCloseDrawer);
-  $(document).on("click", "#about", openAboutTab);
-
+    document.getElementById("content").onclick=codeClickAction;
+    assignClick(document.getElementsByClassName("tabPanelActivator"), openTabCloseDrawer);
+    document.getElementById("about").onclick = openAboutTab;
 };
 
 module.exports = function() {

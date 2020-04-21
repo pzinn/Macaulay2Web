@@ -449,3 +449,8 @@ a.submenuItem {
     color: gray;
 }
 */
+
+#accordion h3:hover {
+    background-color: #8080FF;
+}
+
