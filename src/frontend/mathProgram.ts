@@ -95,19 +95,9 @@ const attachMinMaxBtnActions = function() {
   });
 };
 
-const attachTutorialNavBtnActions = function(switchLesson) {
-  document.getElementById("previousBtn").onclick = function() {
-    switchLesson(-1);
-  };
-
-  document.getElementById("nextBtn").onclick = function() {
-    switchLesson(1);
-  };
-};
-
 const emitReset = function() {
-    myshell.reset(); // TODO: FIX
-  socket.emit("reset");
+    myshell.reset();
+    socket.emit("reset");
 };
 
 const ClearOut = function(e) {
@@ -238,8 +228,8 @@ const socketOnDisconnect = function(msg) {
     console.log("We got disconnected. " + msg);
     myshell.onmessage(tags.mathJaxTextTag +
 			"Sorry, your session was disconnected" +
-			" by the server.\n\n"); // TODO fix
-    myshell.reset(); // TODO fix
+			" by the server.\n\n");
+    myshell.reset();
   serverDisconnect = true;
   // Could use the following to automatically reload. Probably too invasive,
   // might kill results.
@@ -270,7 +260,7 @@ const wrapEmitForDisconnect = function(event, msg) {
 
 const codeClickAction = function(e) {
     if (e.target.tagName.substring(0,4)=="CODE")
-	myshell.postMessage(e.target.textContent,false,false); // TODO fix
+	myshell.postMessage(e.target.textContent,false,false);
 };
 
 
@@ -293,7 +283,7 @@ const openAboutTab = function(event) {
 
 const socketOnMessage = function(msg) {
   if (msg !== "") {
-      myshell.onmessage(msg); // TODO fix
+      myshell.onmessage(msg);
   }
 };
 
@@ -334,7 +324,6 @@ const init = function() {
   fetchTutorials(tutorialManager.makeTutorialsList);
   document.getElementById("uptutorial").onchange=tutorialManager.uploadTutorial;
 
-  attachTutorialNavBtnActions(tutorialManager.switchLesson);
   attachMinMaxBtnActions();
   attachCtrlBtnActions();
   attachCloseDialogBtns();
