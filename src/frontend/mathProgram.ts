@@ -13,8 +13,8 @@ export {Socket};
 let socket: Socket;
 let serverDisconnect = false;
 const dialogPolyfill = require("dialog-polyfill");
-const shell = require("./shell-emulator")();
-const scrollDown = require("scroll-down");
+const shell = require("./shell-emulator");
+const scrollDownLeft = require("./scroll-down-left");
 
 import * as tags from "./tags";
 
@@ -62,11 +62,6 @@ const editorKeypress = function(e) {
 */
 };
 
-function scrollDownLeft(element) {
-    element.scrollTop=element.scrollHeight;
-    element.scrollLeft=0;
-};
-
 const attachMinMaxBtnActions = function() {
   const maximize = document.getElementById("maximizeOutput");
   const downsize = document.getElementById("downsizeOutput");
@@ -81,7 +76,7 @@ const attachMinMaxBtnActions = function() {
     dialog.appendChild(output);
     maxCtrl.insertBefore(zoomBtns, downsize);
     dialog.showModal();
-      scrollDownLeft(document.getElementById("M2Out"));
+    scrollDownLeft(document.getElementById("M2Out"));
   });
   downsize.addEventListener("click", function() {
     const dialog: any = document.getElementById("fullScreenOutput");
@@ -91,7 +86,7 @@ const attachMinMaxBtnActions = function() {
     oldPosition.appendChild(output);
     ctrl.insertBefore(zoomBtns, maximize);
     dialog.close();
-      scrollDownLeft(document.getElementById("M2Out"));
+    scrollDownLeft(document.getElementById("M2Out"));
   });
 };
 
