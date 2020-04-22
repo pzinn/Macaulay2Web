@@ -9,6 +9,8 @@ const options = {
     MATH_PROGRAM: "Macaulay2",
       // tslint:disable-next-line:max-line-length
     MATH_PROGRAM_COMMAND: "export PATH=~/bin:$PATH; export WWWBROWSER=open; M2-experimental -e \"printWidth=0; topLevelMode = WebApp\"",
+      // bit of a hack: we assume there's a ~/bin/open
+      // that takes care of forming a proper <script> to open a new URL
     port: "8003",
       // tslint:disable-next-line:max-line-length
       resumeString: "Type " + tags.mathJaxHtmlTag + "<span class=\"M2PastInput\" onclick=\"document.getElementsByClassName('M2CurrentInput')[0].textContent=this.textContent\">listUserSymbols</span>" + tags.mathJaxEndTag + " to print the list of existing symbols.\n\ni* : " + tags.mathJaxInputTag,

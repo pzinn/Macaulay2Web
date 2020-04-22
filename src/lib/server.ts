@@ -241,6 +241,7 @@ const sendDataToClient = function(client: Client) {
     }
     updateLastActiveTime(client);
     const pathPrefix: string = staticFolder + "-" + serverConfig.MATH_PROGRAM;
+      /*
     const specialUrlEmitter = require("./specialUrlEmitter")(
       pathPrefix,
       sshCredentials,
@@ -257,7 +258,8 @@ const sendDataToClient = function(client: Client) {
         userSpecificPath(client),
       );
       return;
-    }
+      }
+*/
     emitDataViaClientSockets(client, SocketEvent.result, data);
   };
 };
