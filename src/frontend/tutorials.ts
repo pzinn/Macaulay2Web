@@ -23,6 +23,30 @@ let tutorials: any[] = [];
 let firstLoadFlag: boolean = true; // true until we show tutorial for the first time.
 // Needed because we need to load lesson 0
 
+const attachTutorialNavBtnActions = function() {
+    const previousBtn = document.getElementById("previousBtn") as HTMLButtonElement;
+    const nextBtn = document.getElementById("nextBtn") as HTMLButtonElement;
+    if (lessonNr>0) {
+	previousBtn.disabled=false;
+	previousBtn.onclick = function() {
+	    loadLesson(tutorialNr,lessonNr-1);
+	};
+    } else {
+	previousBtn.disabled=true;
+	previousBtn.onclick=null;
+    }
+    if (lessonNr<tutorials[tutorialNr].lessons.length-1) {
+	nextBtn.disabled=false;
+	nextBtn.onclick = function() {
+	    loadLesson(tutorialNr,lessonNr+1);
+	};
+    } else {
+	nextBtn.disabled=true;
+	nextBtn.onclick=null;
+    }
+};
+
+
 const loadLesson = function(tutorialid: number, lessonid: number) {
   if (tutorialid >= 0 && tutorialid < tutorials.length) {
     tutorialNr = tutorialid;
@@ -33,7 +57,7 @@ const loadLesson = function(tutorialid: number, lessonid: number) {
     const lessonContent = tutorials[tutorialNr].lessons[lessonNr].html;
     const title = tutorials[tutorialNr].title.innerHTML;
     const lesson = document.getElementById("lesson");
-    lesson.innerHTML="<h3>" + title + "</h3>"+lessonContent; // crude way to strip title of its class
+    lesson.innerHTML="<h3>" + title + "</h3>"+lessonContent;
     lesson.scrollTop=0;
     //  MathJax.Hub.Queue(["Typeset", MathJax.Hub, "#lesson"]);
     // the next line colorized the tutorials
@@ -46,15 +70,16 @@ const loadLesson = function(tutorialid: number, lessonid: number) {
 	    {left: "$", right: "$", display: false},
 	    {left: "\\(", right: "\\)", display: false}
 	],
-  macros: {
-      "\\PP": "{\\mathbb{P}}",
-      "\\ZZ": "{\\mathbb{Z}}",
-      "\\QQ": "{\\mathbb{Q}}",
-      "\\RR": "{\\mathbb{R}}",
-      "\\CC": "{\\mathbb{C}}",
-      "\\mac": "\\textsf{Macaulay2}", // can't use italic because KaTeX doesn't know about italic correction
-      "\\bold": "{\\bf #1}"
-  }});
+	macros: {
+	    "\\PP": "{\\mathbb{P}}",
+	    "\\ZZ": "{\\mathbb{Z}}",
+	    "\\QQ": "{\\mathbb{Q}}",
+	    "\\RR": "{\\mathbb{R}}",
+	    "\\CC": "{\\mathbb{C}}",
+	    "\\mac": "\\textsf{Macaulay2}", // can't use italic because KaTeX doesn't know about italic correction
+	    "\\bold": "{\\bf #1}"
+	}});
+    attachTutorialNavBtnActions();
 };
 
 const loadLessonIfChanged = function(tutorialid: number, lessonid: number): void {
@@ -75,11 +100,6 @@ const showLesson = function(e) {
     loadLessonIfChanged(tutorialIdNr, lessonIdNr);
     document.getElementById("lessonTabTitle").click();
     return false;
-};
-
-const switchLesson = function(incr: number): void {
-  // console.log("Current lessonNr " + lessonNr);
-  loadLessonIfChanged(tutorialNr, lessonNr + incr);
 };
 
 const markdownToTutorial = function(theMD: string) {
@@ -231,7 +251,6 @@ module.exports = function() {
     showLesson,
     tutorials,
     uploadTutorial,
-    switchLesson,
     makeTutorialsList,
   };
 };
