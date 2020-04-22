@@ -199,9 +199,9 @@ our fork of this repository before sending a pull request.
 `dist/index.js`
 produced by `tsc`:
 ```bash
-./node_modules/.bin/tsc
+npx tsc
 ```
-from `src/index.ts`
+(or `./node_modules/.bin/tsc`) from `src/index.ts`
 * other files:
 `dist/lib/*.js` `dist/startupConfigs/*.js`
 from
@@ -217,6 +217,6 @@ and called by
 `dist/frontend/*.js`
 produced by `tsc`:
 ```bash
-./node_modules/.bin/tsc -p src/frontend
+npx tsc -p src/frontend
 ```
 from `src/frontend/*.ts`
