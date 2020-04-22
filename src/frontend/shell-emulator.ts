@@ -24,6 +24,8 @@ const keys = {
 import {Socket} from "./mathProgram";
 import * as tags from "./tags";
 
+const scrollDownLeft = require("./scroll-down-left");
+
 const unicodeBell = "\u0007";
 declare const katex;
 declare const Prism;
@@ -57,11 +59,6 @@ Object.defineProperty(Element.prototype, 'baselinePosition',
   },
   enumerable: true
 });
-
-function scrollDownLeft(element) {
-    element.scrollTop=element.scrollHeight;
-    element.scrollLeft=0;
-};
 
 function addToEl(el,pos,s) { // insert into a pure text element
     var msg=el.textContent;
@@ -107,7 +104,6 @@ const interrupt = function(socket: Socket) {
   };
 };
 
-module.exports = function() {
     const Shell = function(shellArea, socket: Socket, editorArea = null) { // Shell is an old-style javascript oop constructor
 	const obj = this; // yeah, lame TODO improve this
 	const editor = editorArea;
@@ -597,8 +593,7 @@ module.exports = function() {
       };
     };
 
-    return {
+module.exports = {
 	Shell,
 	interrupt
-    };
 };
