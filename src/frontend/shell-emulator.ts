@@ -139,7 +139,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
               // Maybe we did nothing so far.
 	      return;
 	  }
-	  if (e.keyCode === keys.arrowDown) { // DOWN
+	  if (e.key == "ArrowDown") {
 	      if (cmdHistory.index < cmdHistory.length) {
 		  cmdHistory.index++;
 		  if (cmdHistory.index === cmdHistory.length) {
@@ -149,7 +149,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		  }
 	      }
 	  }
-	  else if ((e.keyCode === keys.arrowUp) && (cmdHistory.index > 0)) { // UP
+	  else if ((e.key == "ArrowUp") && (cmdHistory.index > 0)) { // UP
 	      if (cmdHistory.index === cmdHistory.length) {
 		  cmdHistory.current = inputSpan.textContent;
 	      }
@@ -278,145 +278,143 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
       };
 
       // If something is entered, change to end of textarea, if at wrong position.
-      shell.onkeydown = function(e: KeyboardEvent) {
-	  removeAutoComplete(false); // remove autocomplete menu if open
-      if (e.keyCode === keys.enter) {
-	  let msg = inputSpan.textContent;
-	  const loc = msg.lastIndexOf(returnSymbol);
-	  if (loc >= 0) msg = msg.substring(loc+1); // there may be lag causing an accumulation of old requests thankfully followed by return symbol
-	  obj.postMessage(msg,editorToggle&&(editorToggle.checked),true);
-	  scrollDownLeft(shell);
-	  return false; // no crappy <div></div> added
-      }
+    shell.onkeydown = function(e: KeyboardEvent) {
+	removeAutoComplete(false); // remove autocomplete menu if open
+	if (e.key == "Enter") {
+	    let msg = inputSpan.textContent;
+	    const loc = msg.lastIndexOf(returnSymbol);
+	    if (loc >= 0) msg = msg.substring(loc+1); // there may be lag causing an accumulation of old requests thankfully followed by return symbol
+	    obj.postMessage(msg,editorToggle&&(editorToggle.checked),true);
+	    scrollDownLeft(shell);
+	    return false; // no crappy <div></div> added
+	}
 
-      if ((e.keyCode === keys.arrowUp) || (e.keyCode === keys.arrowDown)) {
-          upDownArrowKeyHandling(e);
-	  return;
-      }
+	if ((e.key == "ArrowDown") || (e.key == "ArrowUp")) {
+            upDownArrowKeyHandling(e);
+	    return;
+	}
 
-	  if (e.ctrlKey || (e.keyCode === keys.ctrlKeyCode)) { // do not jump to bottom on Ctrl
-        return;
-      }
+	if (e.key == "Control") { // do not jump to bottom on Ctrl
+            return;
+	}
+
+	if ((e.key == "Backspace")&&(inputSpan.textContent[inputSpan.textContent.length-1]==returnSymbol)) e.preventDefault();
+	// do not backspace beyond previous sent input
+
         // for MAC OS
-      if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
-        return;
-      }
-      var pos = placeCaretAtEnd(inputSpan,true);
+	if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
+            return;
+	}
+	var pos = placeCaretAtEnd(inputSpan,true);
 
-	  if (e.keyCode === keys.escape) {
-	      var esc = inputSpan.textContent.indexOf("\u250B");
-	      if (esc<0)
-		  addToEl(inputSpan,pos,"\u250B");
-	      else {
-		  var s;
-		  if (esc<pos) {
-		      s = inputSpan.textContent.substring(esc+1,pos);
-		      inputSpan.textContent=inputSpan.textContent.substring(0,esc)+inputSpan.textContent.substring(pos,inputSpan.textContent.length);
-		      pos=esc;
-		  } else {
-		      s = inputSpan.textContent.substring(pos,esc);
-		      inputSpan.textContent=inputSpan.textContent.substring(0,pos)+inputSpan.textContent.substring(esc+1,inputSpan.textContent.length);
-		  }
-		  var sss="";
-		  if (s.length>0)
-		      for (var ss in symbols) {
-			  if (symbols[ss].startsWith(s)) {
-			      sss=String.fromCharCode(+ss);
-			      break;
-			  }
-		      }
-		  addToEl(inputSpan,pos,sss);
-	      }
-	      return false;
-	  }
+	if (e.key == "escape") {
+	    var esc = inputSpan.textContent.indexOf("\u250B");
+	    if (esc<0)
+		addToEl(inputSpan,pos,"\u250B");
+	    else {
+		var s;
+		if (esc<pos) {
+		    s = inputSpan.textContent.substring(esc+1,pos);
+		    inputSpan.textContent=inputSpan.textContent.substring(0,esc)+inputSpan.textContent.substring(pos,inputSpan.textContent.length);
+		    pos=esc;
+		} else {
+		    s = inputSpan.textContent.substring(pos,esc);
+		    inputSpan.textContent=inputSpan.textContent.substring(0,pos)+inputSpan.textContent.substring(esc+1,inputSpan.textContent.length);
+		}
+		var sss="";
+		if (s.length>0)
+		    for (var ss in symbols) {
+			if (symbols[ss].startsWith(s)) {
+			    sss=String.fromCharCode(+ss);
+			    break;
+			}
+		    }
+		addToEl(inputSpan,pos,sss);
+	    }
+	    return false;
+	}
 
-	  /*
-      if (e.ctrlKey && e.keyCode === keys.cKey) {
-        interrupt(socket);
-      }
-	  */ // for now CTRL-C is usual "copy"
-
-	  // auto-completion code
-	  if (e.keyCode === keys.tab) {
-	      var msg = inputSpan.textContent;
-	      var i=pos-1;
-	      while ((i>=0)&&(((msg[i]>="A")&&(msg[i]<="Z"))||((msg[i]>="a")&&(msg[i]<="z")))) i--; // would be faster with regex
-	      var word = msg.substring(i+1,pos);
-	      // find all M2symbols starting with last word of msg
-	      var j=0;
-	      while ((j<M2symbols.length)&&(M2symbols[j]<word)) j++;
-	      if (j<M2symbols.length) {
-		  var k=j;
-		  while ((k<M2symbols.length)&&(M2symbols[k].substring(0,word.length)==word)) k++;
-		  if (k>j) {
-		      if (k==j+1) { // yay, one solution
-			  addToEl(inputSpan,pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
-		      }
-		      else { // more interesting: several solutions
-			  // obvious implementation would've been datalist + input; sadly, the events generated by the input are 200% erratic, so can't use
-			  autoComplete = document.createElement("span");
-			  autoComplete.classList.add("autocomplete");
-			  autoComplete.dataset.word=word;
-			  var tabMenu = document.createElement("ul");
-			  tabMenu.setAttribute("tabindex","0"); // hack
-			  for (var l=j; l<k; l++)
-			  {
-			      var opt = document.createElement("li");
-			      opt.textContent=M2symbols[l];
-			      opt.addEventListener("mouseover", function() {
-				  var el=document.getElementById("autocomplete-selection");
-				  if (el) el.removeAttribute("id");
-				  this.id="autocomplete-selection";
-			      });
-			      tabMenu.appendChild(opt);
-			  }
-			  autoCompleteSelection=tabMenu.firstElementChild;
-			  autoCompleteSelection.classList.add("autocomplete-selection");
-			  autoComplete.appendChild(tabMenu);
-			  autoComplete.appendChild(document.createTextNode(inputSpan.textContent.substring(pos,inputSpan.textContent.length)));
-			  inputSpan.textContent=inputSpan.textContent.substring(0,i+1);
-			  inputSpan.parentElement.appendChild(autoComplete);
-			  tabMenu.addEventListener("click", function(e) {
-				  removeAutoComplete(true);
-				  e.preventDefault();
-				  e.stopPropagation();
-			          return false;
-			  });
-			  tabMenu.addEventListener("keydown", function(e) {
-			      if (e.keyCode === keys.enter) {
-				  removeAutoComplete(true);
-				  e.preventDefault();
-				  e.stopPropagation();
-				  return false; // probably overkill
-			      }
-			      if (e.keyCode === keys.arrowDown) {
-				  if (autoCompleteSelection!=this.lastElementChild) {
-				      autoCompleteSelection.classList.remove("autocomplete-selection");
-				      autoCompleteSelection=autoCompleteSelection.nextElementSibling;
-				      autoCompleteSelection.classList.add("autocomplete-selection");
-				  }
-				  e.preventDefault();
-				  e.stopPropagation();
-				  return false; // probably overkill
-			      }
-			      if (e.keyCode === keys.arrowUp) {
-				  if (autoCompleteSelection!=this.firstElementChild) {
-				      autoCompleteSelection.classList.remove("autocomplete-selection");
-				      autoCompleteSelection=autoCompleteSelection.previousElementSibling;
-				      autoCompleteSelection.classList.add("autocomplete-selection");
-				  }
-				  e.preventDefault();
-				  e.stopPropagation();
-				  return false; // probably overkill
-			      }
-			  });
-			  tabMenu.focus();
-		      }
+	// auto-completion code
+	if (e.key == "Tab") {
+	    var msg = inputSpan.textContent;
+	    var i=pos-1;
+	    while ((i>=0)&&(((msg[i]>="A")&&(msg[i]<="Z"))||((msg[i]>="a")&&(msg[i]<="z")))) i--; // would be faster with regex
+	    var word = msg.substring(i+1,pos);
+	    // find all M2symbols starting with last word of msg
+	    var j=0;
+	    while ((j<M2symbols.length)&&(M2symbols[j]<word)) j++;
+	    if (j<M2symbols.length) {
+		var k=j;
+		while ((k<M2symbols.length)&&(M2symbols[k].substring(0,word.length)==word)) k++;
+		if (k>j) {
+		    if (k==j+1) { // yay, one solution
+			addToEl(inputSpan,pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
+		    }
+		    else { // more interesting: several solutions
+			// obvious implementation would've been datalist + input; sadly, the events generated by the input are 200% erratic, so can't use
+			autoComplete = document.createElement("span");
+			autoComplete.classList.add("autocomplete");
+			autoComplete.dataset.word=word;
+			var tabMenu = document.createElement("ul");
+			tabMenu.setAttribute("tabindex","0"); // hack
+			for (var l=j; l<k; l++)
+			{
+			    var opt = document.createElement("li");
+			    opt.textContent=M2symbols[l];
+			    opt.addEventListener("mouseover", function() {
+				var el=document.getElementById("autocomplete-selection");
+				if (el) el.removeAttribute("id");
+				this.id="autocomplete-selection";
+			    });
+			    tabMenu.appendChild(opt);
+			}
+			autoCompleteSelection=tabMenu.firstElementChild;
+			autoCompleteSelection.classList.add("autocomplete-selection");
+			autoComplete.appendChild(tabMenu);
+			autoComplete.appendChild(document.createTextNode(inputSpan.textContent.substring(pos,inputSpan.textContent.length)));
+			inputSpan.textContent=inputSpan.textContent.substring(0,i+1);
+			inputSpan.parentElement.appendChild(autoComplete);
+			tabMenu.addEventListener("click", function(e) {
+			    removeAutoComplete(true);
+			    e.preventDefault();
+			    e.stopPropagation();
+			    return false;
+			});
+			tabMenu.addEventListener("keydown", function(e) {
+			    if (e.key === "Enter") {
+				removeAutoComplete(true);
+				e.preventDefault();
+				e.stopPropagation();
+				return false; // probably overkill
+			    }
+			    if (e.key == "ArrowDown") {
+				if (autoCompleteSelection!=this.lastElementChild) {
+				    autoCompleteSelection.classList.remove("autocomplete-selection");
+				    autoCompleteSelection=autoCompleteSelection.nextElementSibling;
+				    autoCompleteSelection.classList.add("autocomplete-selection");
+				}
+				e.preventDefault();
+				e.stopPropagation();
+				return false; // probably overkill
+			    }
+			    if (e.key == "ArrowUp") {
+				if (autoCompleteSelection!=this.firstElementChild) {
+				    autoCompleteSelection.classList.remove("autocomplete-selection");
+				    autoCompleteSelection=autoCompleteSelection.previousElementSibling;
+				    autoCompleteSelection.classList.add("autocomplete-selection");
+				}
+				e.preventDefault();
+				e.stopPropagation();
+				return false; // probably overkill
+			    }
+			});
+			tabMenu.focus();
+		    }
 		}
 	    }
 	    e.preventDefault();
 	}
-      };
+    };
 
       const closeHtml = function() {
 	  var anc = htmlSec.parentElement;
