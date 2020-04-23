@@ -293,6 +293,11 @@ const unhandled = function(request, response) {
   response.end();
 };
 
+const getHelp = function(req, res, next) {
+    console.log("redirecting help");
+    res.redirect(301, 'http://www2.macaulay2.com/Macaulay2/doc/Macaulay2-1.12/share/doc/Macaulay2'+req.path);
+}
+
 const initializeServer = function() {
   const favicon = require("serve-favicon");
   const serveStatic = require("serve-static");
@@ -320,6 +325,7 @@ const initializeServer = function() {
   app.use(expressWinston.logger(loggerSettings));
   app.use("/admin", admin.stats);
   app.use("/getListOfTutorials", getList);
+    app.use("\*/share/doc/Macaulay2",getHelp);
   app.use(unhandled);
 };
 
