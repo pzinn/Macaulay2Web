@@ -5,21 +5,6 @@
 // * interrupt
 /* eslint-env browser */
 /* eslint "max-len": "off" */
-const keys = {
-    arrowUp: 38,
-    arrowDown: 40,
-    arrowLeft: 37,
-    arrowRight: 39,
-    cKey: 67,
-    zKey: 90,
-    ctrlKeyCode: 17,
-    metaKeyCodes: [224, 17, 91, 93],
-    backspace: 8,
-    tab: 9,
-    enter: 13,
-    escape: 27,
-  ctrlc: "\x03",
-};
 
 import {Socket} from "./mathProgram";
 
@@ -96,7 +81,7 @@ const postRawMessage = function(msg: string, socket: Socket) {
 
 const interrupt = function(socket: Socket) {
   return function() {
-    postRawMessage(keys.ctrlc, socket);
+    postRawMessage("\x03", socket);
   };
 };
 
@@ -294,17 +279,13 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    return;
 	}
 
-	if (e.key == "Control") { // do not jump to bottom on Ctrl
+	if (e.ctrlKey || e.metaKey) { // do not jump to bottom on Ctrl or Command combos
             return;
 	}
 
 	if ((e.key == "Backspace")&&(inputSpan.textContent[inputSpan.textContent.length-1]==returnSymbol)) e.preventDefault();
 	// do not backspace beyond previous sent input
 
-        // for MAC OS
-	if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
-            return;
-	}
 	var pos = placeCaretAtEnd(inputSpan,true);
 
 	if (e.key == "escape") {

@@ -314,9 +314,12 @@ const initializeServer = function() {
   const expressWinston = require("express-winston");
 
     const mathJaxTagsRegExp = new RegExp("(" + Object.values(mathJaxTags).join("|") + ")","g");
+    const prettyTags = {};
+    const temp = Object.entries(mathJaxTags);
+    for (const a of temp) prettyTags[a[1] as any]="\u001b[32m<"+a[0]+">\u001b[39m";
 
     const myFormat = winston.format.printf((info)=>{
-	const msg = info.message.replace(mathJaxTagsRegExp, function(match,token) { return "\u001b[32m<"+Object.keys(mathJaxTags)[Object.values(mathJaxTags).indexOf(token)]+">\u001b[39m"; });
+	const msg = info.message.replace(mathJaxTagsRegExp, function(match,token) { return prettyTags[token]; });
 	return `\u001b[34m${info.cat} to ${info.id}\u001b[39m\n${msg}`;
     });
 
