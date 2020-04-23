@@ -66,7 +66,7 @@ function addToEl(el,pos,s) { // insert into a pure text element
     // put the caret where it should be
     el.focus();
     var sel=window.getSelection();
-    sel.collapse(el.firstChild,pos+s.length); // remember inputEl can only contain one (text) node. or should we relax this? anyway at this stage we rewrote its textContent
+    sel.collapse(el.firstChild,pos+s.length); // remember inputSpan can only contain one (text) node. or should we relax this? anyway at this stage we rewrote its textContent
 }
 
 function placeCaretAtEnd(el,flag?) { // flag means only do it if not already in input. returns position
@@ -74,7 +74,7 @@ function placeCaretAtEnd(el,flag?) { // flag means only do it if not already in 
     {
 	el.focus();
 /*	var range = document.createRange();
-	range.selectNodeContents(inputEl);
+	range.selectNodeContents(inputSpan);
 	range.collapse(false);
 	var sel = window.getSelection();
 	sel.removeAllRanges();
@@ -104,22 +104,25 @@ const interrupt = function(socket: Socket) {
   };
 };
 
-    const Shell = function(shellArea, socket: Socket, editorArea = null) { // Shell is an old-style javascript oop constructor
-	const obj = this; // yeah, lame TODO improve this
-	const editor = editorArea;
-	const shell = shellArea;
-	var htmlSec = shell;
-      var cmdHistory: any = []; // History of commands for shell-like arrow navigation
-      cmdHistory.index = 0;
-      var inputSpan; // the input HTML element at the bottom of the shellel. note that inputSpan should always have *one text node*
-      var autoComplete=null; // autocomplete HTML element (when tab is pressed)
-      // mathJax/katex related stuff
-      var mathJaxTags = new RegExp("(" + tags.mathJaxTagsArray.join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
-      var inputEndFlag = false;
+//const Shell = function(shellElement: HTMLElement, socket: Socket, editorElement: HTMLElement, editorToggleElement: HTMLInputElement) {
+const Shell = function(shellElement, socket: Socket, editorElement, editorToggleElement: HTMLInputElement) {
+    // Shell is an old-style javascript oop constructor
+    const obj = this; // for nested functions with their own 'this'. or one could use bind but simpler this way
+    const editor = editorElement;
+    const shell = shellElement;
+    const editorToggle = editorToggleElement;
+    var htmlSec = shell; // the section containing the current input (right below)
+    var inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
+    var cmdHistory: any = []; // History of commands for shell-like arrow navigation
+    cmdHistory.index = 0;
+    var autoComplete=null; // autocomplete HTML element (when tab is pressed)
+    // mathJax/katex related stuff
+    var mathJaxTags = new RegExp("(" + tags.mathJaxTagsArray.join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
+    var inputEndFlag = false;
 
       const createInputEl = function() {
 	  // (re)create the input area
-	  if (inputSpan) inputSpan.parentElement.removeChild(inputSpan);
+	  if (inputSpan) inputSpan.remove(); // parentElement.removeChild(inputSpan);
 	  inputSpan = document.createElement("span");
 	  inputSpan.contentEditable = true; // inputSpan.setAttribute("contentEditable",true);
 	  inputSpan.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
@@ -219,20 +222,23 @@ const interrupt = function(socket: Socket) {
 	  0x0A:"\n"
       }; // partial support for unicode symbols
 
+    const returnSymbol="\u21B5";
+
       obj.postMessage = function(msg,flag1,flag2) { // send input, adding \n if necessary
 	  removeAutoComplete(false); // remove autocomplete menu if open
-	  if (msg.length>0) {
-	      obj.addToHistory(msg);
-	      inputSpan.textContent=msg+"\u21B5"; // insert a cute return symbol; will be there only briefly (normally)
+	  // sanitize input
+	  var clean = "";
+	  for (var i=0; i<msg.length; i++) {
+	      var c = msg.charCodeAt(i);
+	      if (((c>=32)&&(c<128))||(symbols[c])) clean+=msg.charAt(i); // a bit too restrictive?
+	  }
+	  if (clean.length>0) {
+	      obj.addToHistory(clean);
+	      inputSpan.textContent=clean+returnSymbol; // insert a cute return symbol; will be there only briefly (normally)
+	      // we could instead empty the field: inputSpan.textContent="";
 	      if (flag2) placeCaretAtEnd(inputSpan);
-	      // sanitize input
-	      var clean = "";
-	      for (var i=0; i<msg.length; i++) {
-		  var c = msg.charCodeAt(i);
-		  if (((c>=32)&&(c<128))||(symbols[c])) clean+=msg.charAt(i); // a bit too restrictive?
-	      }
 	      if (clean[clean.length-1] != "\n") clean+="\n";
-	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) obj.addToEditor(clean);
+	      if (flag1) obj.addToEditor(clean);
 	      postRawMessage(clean, socket);
 	  }
       };
@@ -278,8 +284,10 @@ const interrupt = function(socket: Socket) {
       shell.onkeydown = function(e: KeyboardEvent) {
 	  removeAutoComplete(false); // remove autocomplete menu if open
       if (e.keyCode === keys.enter) {
-	  const msg=inputSpan.textContent;
-	  obj.postMessage(msg,true,true);
+	  let msg = inputSpan.textContent;
+	  const loc = msg.lastIndexOf(returnSymbol);
+	  if (loc >= 0) msg = msg.substring(loc+1); // there may be lag causing an accumulation of old requests thankfully followed by return symbol
+	  obj.postMessage(msg,editorToggle.checked,true);
 	  scrollDownLeft(shell);
 	  return false; // no crappy <div></div> added
       }
@@ -591,7 +599,7 @@ const interrupt = function(socket: Socket) {
 	  shell.insertBefore(document.createElement("br"),inputSpan);
 	  htmlSec=shell;
       };
-    };
+};
 
 module.exports = {
 	Shell,
