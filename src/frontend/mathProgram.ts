@@ -1,5 +1,6 @@
 /* global SocketIOFileUpload, mathProgramName, DefaultText */
 /* eslint-env browser */
+"use strict";
 
 declare var mathProgramName: string;
 declare var DefaultText: string;

@@ -104,13 +104,12 @@ const interrupt = function(socket: Socket) {
   };
 };
 
-//const Shell = function(shellElement: HTMLElement, socket: Socket, editorElement: HTMLElement, editorToggleElement: HTMLInputElement) {
-const Shell = function(shellElement, socket: Socket, editorElement, editorToggleElement: HTMLInputElement) {
+//const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, editorToggle: HTMLInputElement) {
+const Shell = function(shell, socket: Socket, editor, editorToggle: HTMLInputElement) {
     // Shell is an old-style javascript oop constructor
+    // we're using arguments as private variables, cf
+    // https://stackoverflow.com/questions/18099129/javascript-using-arguments-for-closure-bad-or-good
     const obj = this; // for nested functions with their own 'this'. or one could use bind but simpler this way
-    const editor = editorElement;
-    const shell = shellElement;
-    const editorToggle = editorToggleElement;
     var htmlSec = shell; // the section containing the current input (right below)
     var inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
     var cmdHistory: any = []; // History of commands for shell-like arrow navigation
@@ -271,7 +270,7 @@ const Shell = function(shellElement, socket: Socket, editorElement, editorToggle
 
       shell.onclick = function(e) {
 	  // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
-	  var t=e.target;
+	  var t=e.target as HTMLElement;
 	  while (t!=shell) {
 	      if (t.classList.contains("M2PastInput")) { codeInputAction.call(t); return; }
 	      if (t.classList.contains("M2HtmlOutput")) { toggleOutput.call(t); return; }
