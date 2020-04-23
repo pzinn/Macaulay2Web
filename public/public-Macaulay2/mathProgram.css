@@ -285,7 +285,7 @@ code:active, codeblock:active, .M2PastInput:active {
 /*    font: inherit; */
 }
 
-#autocomplete-selection {
+.autocomplete-selection {
     background-color: rgb(255,110,64);
     cursor: pointer;
 }
