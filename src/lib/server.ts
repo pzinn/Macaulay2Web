@@ -10,7 +10,7 @@ import {InstanceManager} from "./instanceManager";
 import {LocalContainerManager} from "./LocalContainerManager";
 import {SshDockerContainers} from "./sshDockerContainers";
 import {SudoDockerContainers} from "./sudoDockerContainers";
-import { AddressInfo } from "net"
+import { AddressInfo } from "net";
 
 import * as reader from "./tutorialReader";
 
@@ -38,6 +38,7 @@ let serverConfig = {
 };
 let options;
 const staticFolder = path.join(__dirname, "../../public/public");
+let myLogger;
 
 const logExceptOnTest = function(msg: string): void {
   if (process.env.NODE_ENV !== "test") {
@@ -259,7 +260,13 @@ const sendDataToClient = function(client: Client) {
       );
       return;
       }
-*/
+      */
+      myLogger.log({
+	  level: 'info',
+	  message: data,
+	  cat: 'output',
+	  id: client.id
+      });
     emitDataViaClientSockets(client, SocketEvent.result, data);
   };
 };
@@ -295,8 +302,9 @@ const unhandled = function(request, response) {
 
 const getHelp = function(req, res, next) {
     console.log("redirecting help");
-    res.redirect(301, 'http://www2.macaulay2.com/Macaulay2/doc/Macaulay2-1.12/share/doc/Macaulay2'+req.path);
+    res.redirect(301, 'http://www2.macaulay2.com/Macaulay2/doc/Macaulay2/share/doc/Macaulay2'+req.path);
 }
+
 
 const initializeServer = function() {
   const favicon = require("serve-favicon");
@@ -304,13 +312,30 @@ const initializeServer = function() {
   const winston = require("winston");
   const expressWinston = require("express-winston");
 
+    const myFormat = winston.format.printf((info)=>{
+	// perhaps some coding according to tags
+	// 	return `\u001b[34m${info.cat} to ${info.id}\u001b[39m\n${info.message}`;
+	return `${info.cat} to ${info.id}\n${info.message}`;
+    });
+
+
+  myLogger=winston.createLogger({ // custom logger (as opposed to express winston)
+      level: 'info',
+      format: myFormat,
+	transports: [
+	    new winston.transports.File({
+		filename: "winston.log"
+	    })
+	],
+  });
+
   const loggerSettings = {
     transports: [
       new winston.transports.Console({
         level: "error",
         json: true,
         colorize: true,
-      }),
+      })
     ],
   };
 
@@ -325,7 +350,7 @@ const initializeServer = function() {
   app.use(expressWinston.logger(loggerSettings));
   app.use("/admin", admin.stats);
   app.use("/getListOfTutorials", getList);
-    app.use("\*/share/doc/Macaulay2",getHelp);
+  app.use("\*/share/doc/Macaulay2",getHelp);
   app.use(unhandled);
 };
 
