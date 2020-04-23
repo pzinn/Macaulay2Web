@@ -25,6 +25,7 @@ const io: SocketIO.Server = ioModule(http);
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
 
+const mathJaxTags = require("../frontend/tags");
 
 import path = require("path");
 let getClientIdFromSocket;
@@ -312,10 +313,11 @@ const initializeServer = function() {
   const winston = require("winston");
   const expressWinston = require("express-winston");
 
+    const mathJaxTagsRegExp = new RegExp("(" + Object.values(mathJaxTags).join("|") + ")","g");
+
     const myFormat = winston.format.printf((info)=>{
-	// perhaps some coding according to tags
-	// 	return `\u001b[34m${info.cat} to ${info.id}\u001b[39m\n${info.message}`;
-	return `${info.cat} to ${info.id}\n${info.message}`;
+	const msg = info.message.replace(mathJaxTagsRegExp, function(match,token) { return "\u001b[32m<"+Object.keys(mathJaxTags)[Object.values(mathJaxTags).indexOf(token)]+">\u001b[39m"; });
+	return `\u001b[34m${info.cat} to ${info.id}\u001b[39m\n${msg}`;
     });
 
 

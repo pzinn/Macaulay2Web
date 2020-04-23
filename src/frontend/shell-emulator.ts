@@ -113,7 +113,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     var autoComplete=null; // autocomplete HTML element (when tab is pressed)
     var autoCompleteSelection=null; // the currently selected element in the autocomplete list
     // mathJax/katex related stuff
-    var mathJaxTagsRegExp = new RegExp("(" + Object.values(mathJaxTags).join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
+    const mathJaxTagsRegExp = new RegExp("(" + Object.values(mathJaxTags).join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
     var inputEndFlag = false;
 
       const createInputEl = function() {
