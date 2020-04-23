@@ -17,7 +17,7 @@ const dialogPolyfill = require("dialog-polyfill");
 const shell = require("./shell-emulator");
 const scrollDownLeft = require("./scroll-down-left");
 
-import * as tags from "./tags";
+const mathJaxTags = require("../frontend/tags");
 
 var myshell;
 
@@ -222,11 +222,11 @@ const attachCloseDialogBtns = function() {
 
 const socketOnDisconnect = function(msg) {
     console.log("We got disconnected. " + msg);
-    myshell.onmessage(tags.mathJaxTextTag +
+    myshell.onmessage(mathJaxTags.Text +
 			"Sorry, your session was disconnected" +
 			" by the server.\n\n");
     myshell.reset();
-  serverDisconnect = true;
+    serverDisconnect = true;
   // Could use the following to automatically reload. Probably too invasive,
   // might kill results.
   // location.reload();

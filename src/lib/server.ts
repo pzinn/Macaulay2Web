@@ -10,7 +10,7 @@ import {InstanceManager} from "./instanceManager";
 import {LocalContainerManager} from "./LocalContainerManager";
 import {SshDockerContainers} from "./sshDockerContainers";
 import {SudoDockerContainers} from "./sudoDockerContainers";
-import { AddressInfo } from "net"
+import { AddressInfo } from "net";
 
 import * as reader from "./tutorialReader";
 
@@ -25,6 +25,7 @@ const io: SocketIO.Server = ioModule(http);
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
 
+const mathJaxTags = require("../frontend/tags");
 
 import path = require("path");
 let getClientIdFromSocket;
@@ -38,6 +39,7 @@ let serverConfig = {
 };
 let options;
 const staticFolder = path.join(__dirname, "../../public/public");
+let myLogger;
 
 const logExceptOnTest = function(msg: string): void {
   if (process.env.NODE_ENV !== "test") {
@@ -259,7 +261,13 @@ const sendDataToClient = function(client: Client) {
       );
       return;
       }
-*/
+      */
+      myLogger.log({
+	  level: 'info',
+	  message: data,
+	  cat: 'output',
+	  id: client.id
+      });
     emitDataViaClientSockets(client, SocketEvent.result, data);
   };
 };
@@ -293,11 +301,38 @@ const unhandled = function(request, response) {
   response.end();
 };
 
+const getHelp = function(req, res, next) {
+    console.log("redirecting help");
+    res.redirect(301, 'http://www2.macaulay2.com/Macaulay2/doc/Macaulay2/share/doc/Macaulay2'+req.path);
+}
+
+
 const initializeServer = function() {
   const favicon = require("serve-favicon");
   const serveStatic = require("serve-static");
   const winston = require("winston");
   const expressWinston = require("express-winston");
+
+    const mathJaxTagsRegExp = new RegExp("(" + Object.values(mathJaxTags).join("|") + ")","g");
+    const prettyTags = {};
+    const temp = Object.entries(mathJaxTags);
+    for (const a of temp) prettyTags[a[1] as any]="\u001b[32m<"+a[0]+">\u001b[39m";
+
+    const myFormat = winston.format.printf((info)=>{
+	const msg = info.message.replace(mathJaxTagsRegExp, function(match,token) { return prettyTags[token]; });
+	return `\u001b[34m${info.cat} to ${info.id}\u001b[39m\n${msg}`;
+    });
+
+
+  myLogger=winston.createLogger({ // custom logger (as opposed to express winston)
+      level: 'info',
+      format: myFormat,
+	transports: [
+	    new winston.transports.File({
+		filename: "winston.log"
+	    })
+	],
+  });
 
   const loggerSettings = {
     transports: [
@@ -305,7 +340,7 @@ const initializeServer = function() {
         level: "error",
         json: true,
         colorize: true,
-      }),
+      })
     ],
   };
 
@@ -320,6 +355,7 @@ const initializeServer = function() {
   app.use(expressWinston.logger(loggerSettings));
   app.use("/admin", admin.stats);
   app.use("/getListOfTutorials", getList);
+  app.use("\*/share/doc/Macaulay2",getHelp);
   app.use(unhandled);
 };
 

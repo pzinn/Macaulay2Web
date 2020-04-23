@@ -5,25 +5,10 @@
 // * interrupt
 /* eslint-env browser */
 /* eslint "max-len": "off" */
-const keys = {
-    arrowUp: 38,
-    arrowDown: 40,
-    arrowLeft: 37,
-    arrowRight: 39,
-    cKey: 67,
-    zKey: 90,
-    ctrlKeyCode: 17,
-    metaKeyCodes: [224, 17, 91, 93],
-    backspace: 8,
-    tab: 9,
-    enter: 13,
-    escape: 27,
-  ctrlc: "\x03",
-};
 
 import {Socket} from "./mathProgram";
-import * as tags from "./tags";
 
+const mathJaxTags = require("../frontend/tags");
 const scrollDownLeft = require("./scroll-down-left");
 
 const unicodeBell = "\u0007";
@@ -96,7 +81,7 @@ const postRawMessage = function(msg: string, socket: Socket) {
 
 const interrupt = function(socket: Socket) {
   return function() {
-    postRawMessage(keys.ctrlc, socket);
+    postRawMessage("\x03", socket);
   };
 };
 
@@ -113,7 +98,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     var autoComplete=null; // autocomplete HTML element (when tab is pressed)
     var autoCompleteSelection=null; // the currently selected element in the autocomplete list
     // mathJax/katex related stuff
-    var mathJaxTags = new RegExp("(" + tags.mathJaxTagsArray.join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
+    const mathJaxTagsRegExp = new RegExp("(" + Object.values(mathJaxTags).join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
     var inputEndFlag = false;
 
       const createInputEl = function() {
@@ -346,17 +331,13 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    return;
 	}
 
-	if (e.key == "Control") { // do not jump to bottom on Ctrl
+	if (e.ctrlKey || e.metaKey) { // do not jump to bottom on Ctrl or Command combos
             return;
 	}
 
 	if ((e.key == "Backspace")&&(inputSpan.textContent[inputSpan.textContent.length-1]==returnSymbol)) e.preventDefault();
 	// do not backspace beyond previous sent input
 
-        // for MAC OS
-	if ((e.metaKey && e.keyCode === keys.cKey) || (keys.metaKeyCodes.indexOf(e.keyCode) > -1)) { // do not jump to bottom on Command+C or on Command
-            return;
-	}
 	var pos = placeCaretAtEnd(inputSpan,true);
 
 	if (e.key == "escape") {
@@ -553,24 +534,24 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	var ii:number = inputSpan.textContent.lastIndexOf("\u21B5");
 	if (ii>=0) inputSpan.textContent=inputSpan.textContent.substring(ii+1,inputSpan.textContent.length); // erase past sent input
 
-	var txt=msg.split(mathJaxTags);
+	var txt=msg.split(mathJaxTagsRegExp);
 	for (var i=0; i<txt.length; i+=2)
 	{
 	    // if we are at the end of an input section
-	    if ((inputEndFlag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=tags.mathJaxInputContdTag)))) {
+	    if ((inputEndFlag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=mathJaxTags.InputContd)))) {
 		closeInput();
 		inputEndFlag=false;
 	    }
 	    if (i>0) {
 		var tag=txt[i-1];
-		if ((tag==tags.mathJaxEndTag)||((tag=="\\)")&&(htmlSec.classList.contains("M2Latex")))) { // end of section
+		if ((tag==mathJaxTags.End)||((tag=="\\)")&&(htmlSec.classList.contains("M2Latex")))) { // end of section
 		    if (htmlSec.classList.contains("M2Input")) closeInput(); // should never happen but does because of annoying escape sequence garbage bug (see also closeInput fix)
 		    closeHtml();
 		}
-		else if (tag==tags.mathJaxHtmlTag) { // html section beginning
+		else if (tag==mathJaxTags.Html) { // html section beginning
 		    createHtml("span","M2Html");
 		}
-		else if (tag==tags.mathJaxOutputTag) { // pretty much the same
+		else if (tag==mathJaxTags.Output) { // pretty much the same
 		    createHtml("span","M2Html M2HtmlOutput");
 		}
 		else if (tag=="\\(") { // tex section beginning. should always be wrapped in a html section (otherwise one can't type '\(')
@@ -585,18 +566,18 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		else if (tag=="\\)") {
 		    txt[i]=tag+txt[i]; // treat as ordinary text
 		}
-		else if (tag==tags.mathJaxScriptTag) { // script section beginning
+		else if (tag==mathJaxTags.Script) { // script section beginning
 		    createHtml("script","M2Script");
 		    htmlSec.dataset.jsCode=""; // can't write directly to text because scripts can only be written once!
 		}
-		else if (tag==tags.mathJaxInputTag) { // input section: a bit special (ends at first \n)
+		else if (tag==mathJaxTags.Input) { // input section: a bit special (ends at first \n)
 		    createHtml("span","M2Input");
 		    var flag = document.activeElement == inputSpan;
 		    inputSpan.oldParentElement=inputSpan.parentElement;
 		    htmlSec.appendChild(inputSpan); // !!! we move the input inside the current span to get proper indentation !!!
 		    if (flag) inputSpan.focus();
 		}
-		else if (tag==tags.mathJaxInputContdTag) { // continuation of input section
+		else if (tag==mathJaxTags.InputContd) { // continuation of input section
 		    inputEndFlag=false;
 		}
 		else { // ordinary text (error messages, prompts, etc) -- not used at the moment
