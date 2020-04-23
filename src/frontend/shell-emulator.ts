@@ -45,20 +45,16 @@ function dehtml(s) { // these are all the substitutions performed by M2
 - in firefox, anchor* = start, focus* = end.              *node = the text node inside the dom element
 */
 
-Object.defineProperty(Element.prototype, 'baselinePosition',
-{
-  get: function() {
-    var fs0 = document.createElement('span');
+function baselinePosition(el) {
+    const fs0 = document.createElement('span');
     fs0.appendChild(document.createTextNode('X')); fs0.style.fontSize = '0'; fs0.style.visibility = 'hidden';
-    var fs1 = document.createElement('span');
+    const fs1 = document.createElement('span');
     fs1.appendChild(document.createTextNode('X'));
-    this.appendChild(fs1); this.appendChild(fs0);
-    var result = fs0.getBoundingClientRect().top - fs1.getBoundingClientRect().top;
-    this.removeChild(fs0); this.removeChild(fs1);
+    el.appendChild(fs1); el.appendChild(fs0);
+    const result = fs0.getBoundingClientRect().top - fs1.getBoundingClientRect().top;
+    el.removeChild(fs0); el.removeChild(fs1);
     return result;
-  },
-  enumerable: true
-});
+}
 
 function addToEl(el,pos,s) { // insert into a pure text element
     var msg=el.textContent;
@@ -66,7 +62,7 @@ function addToEl(el,pos,s) { // insert into a pure text element
     // put the caret where it should be
     el.focus();
     var sel=window.getSelection();
-    sel.collapse(el.firstChild,pos+s.length); // remember inputEl can only contain one (text) node. or should we relax this? anyway at this stage we rewrote its textContent
+    sel.collapse(el.firstChild,pos+s.length); // remember inputSpan can only contain one (text) node. or should we relax this? anyway at this stage we rewrote its textContent
 }
 
 function placeCaretAtEnd(el,flag?) { // flag means only do it if not already in input. returns position
@@ -74,7 +70,7 @@ function placeCaretAtEnd(el,flag?) { // flag means only do it if not already in 
     {
 	el.focus();
 /*	var range = document.createRange();
-	range.selectNodeContents(inputEl);
+	range.selectNodeContents(inputSpan);
 	range.collapse(false);
 	var sel = window.getSelection();
 	sel.removeAllRanges();
@@ -104,22 +100,25 @@ const interrupt = function(socket: Socket) {
   };
 };
 
-    const Shell = function(shellArea, socket: Socket, editorArea = null) { // Shell is an old-style javascript oop constructor
-	const obj = this; // yeah, lame TODO improve this
-	const editor = editorArea;
-	const shell = shellArea;
-	var htmlSec = shell;
-      var cmdHistory: any = []; // History of commands for shell-like arrow navigation
-      cmdHistory.index = 0;
-      var inputSpan; // the input HTML element at the bottom of the shellel. note that inputSpan should always have *one text node*
-      var autoComplete=null; // autocomplete HTML element (when tab is pressed)
-      // mathJax/katex related stuff
-      var mathJaxTags = new RegExp("(" + tags.mathJaxTagsArray.join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
-      var inputEndFlag = false;
+//const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, editorToggle: HTMLInputElement) {
+const Shell = function(shell, socket: Socket, editor, editorToggle: HTMLInputElement) {
+    // Shell is an old-style javascript oop constructor
+    // we're using arguments as private variables, cf
+    // https://stackoverflow.com/questions/18099129/javascript-using-arguments-for-closure-bad-or-good
+    const obj = this; // for nested functions with their own 'this'. or one could use bind but simpler this way
+    var htmlSec = shell; // the section containing the current input (right below)
+    var inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
+    var cmdHistory: any = []; // History of commands for shell-like arrow navigation
+    cmdHistory.index = 0;
+    var autoComplete=null; // autocomplete HTML element (when tab is pressed)
+    var autoCompleteSelection=null; // the currently selected element in the autocomplete list
+    // mathJax/katex related stuff
+    var mathJaxTags = new RegExp("(" + tags.mathJaxTagsArray.join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
+    var inputEndFlag = false;
 
       const createInputEl = function() {
 	  // (re)create the input area
-	  if (inputSpan) inputSpan.parentElement.removeChild(inputSpan);
+	  if (inputSpan) inputSpan.remove(); // parentElement.removeChild(inputSpan);
 	  inputSpan = document.createElement("span");
 	  inputSpan.contentEditable = true; // inputSpan.setAttribute("contentEditable",true);
 	  inputSpan.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
@@ -202,11 +201,11 @@ const interrupt = function(socket: Socket) {
 	      var pos=inputSpan.textContent.length;
 	      inputSpan.textContent+=autoComplete.lastChild.textContent;
 	      var el;
-	      if (flag&&(el=document.getElementById("autocomplete-selection")))
-		  addToEl(inputSpan,pos,el.textContent+" ");
+	      if (flag&&autoCompleteSelection)
+		  addToEl(inputSpan,pos,autoCompleteSelection.textContent+" ");
 	      else
-		  addToEl(inputSpan,pos,autoComplete.word);
-	      autoComplete.parentElement.removeChild(autoComplete); autoComplete=null;
+		  addToEl(inputSpan,pos,autoComplete.getAttribute("data-word"));
+	      autoComplete.remove(); autoComplete=autoCompleteSelection=null;
 	  }
       }
 
@@ -219,20 +218,24 @@ const interrupt = function(socket: Socket) {
 	  0x0A:"\n"
       }; // partial support for unicode symbols
 
+    const returnSymbol="\u21B5";
+
       obj.postMessage = function(msg,flag1,flag2) { // send input, adding \n if necessary
 	  removeAutoComplete(false); // remove autocomplete menu if open
-	  if (msg.length>0) {
-	      obj.addToHistory(msg);
-	      inputSpan.textContent=msg+"\u21B5"; // insert a cute return symbol; will be there only briefly (normally)
+	  // sanitize input
+	  var clean = "";
+	  for (var i=0; i<msg.length; i++) {
+	      var c = msg.charCodeAt(i);
+	      if (((c>=32)&&(c<128))||(symbols[c])) clean+=msg.charAt(i); // a bit too restrictive?
+	  }
+	  if (clean.length>0) {
+	      obj.addToHistory(clean);
+	      inputSpan.textContent=clean+returnSymbol; // insert a cute return symbol; will be there only briefly (normally)
+	      // we could instead empty the field: inputSpan.textContent="";
+	      scrollDownLeft(shell);
 	      if (flag2) placeCaretAtEnd(inputSpan);
-	      // sanitize input
-	      var clean = "";
-	      for (var i=0; i<msg.length; i++) {
-		  var c = msg.charCodeAt(i);
-		  if (((c>=32)&&(c<128))||(symbols[c])) clean+=msg.charAt(i); // a bit too restrictive?
-	      }
 	      if (clean[clean.length-1] != "\n") clean+="\n";
-	      if (flag1&&((<any>document.getElementById("editorToggle")).checked)) obj.addToEditor(clean);
+	      if (flag1) obj.addToEditor(clean);
 	      postRawMessage(clean, socket);
 	  }
       };
@@ -309,7 +312,7 @@ const interrupt = function(socket: Socket) {
       
       shell.onclick = function(e) {
 	  // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
-	  var t=e.target;
+	  var t=e.target as HTMLElement;
 	  while (t!=shell) {
 	      if (t.classList.contains("M2PastInput")) { codeInputAction.call(t); return; }
 	      //	      if (t.classList.contains("M2HtmlOutput")) { toggleOutput.call(t); return; }
@@ -330,8 +333,10 @@ const interrupt = function(socket: Socket) {
       shell.onkeydown = function(e: KeyboardEvent) {
 	  removeAutoComplete(false); // remove autocomplete menu if open
       if (e.keyCode === keys.enter) {
-	  const msg=inputSpan.textContent;
-	  obj.postMessage(msg,true,true);
+	  let msg = inputSpan.textContent;
+	  const loc = msg.lastIndexOf(returnSymbol);
+	  if (loc >= 0) msg = msg.substring(loc+1); // there may be lag causing an accumulation of old requests thankfully followed by return symbol
+	  obj.postMessage(msg,editorToggle.checked,true);
 	  scrollDownLeft(shell);
 	  return false; // no crappy <div></div> added
       }
@@ -403,14 +408,13 @@ const interrupt = function(socket: Socket) {
 			  // obvious implementation would've been datalist + input; sadly, the events generated by the input are 200% erratic, so can't use
 			  autoComplete = document.createElement("span");
 			  autoComplete.classList.add("autocomplete");
-			  autoComplete.word=word;
+			  autoComplete.setAttribute("data-word",word);
 			  var tabMenu = document.createElement("ul");
 			  tabMenu.setAttribute("tabindex","0"); // hack
 			  for (var l=j; l<k; l++)
 			  {
 			      var opt = document.createElement("li");
 			      opt.textContent=M2symbols[l];
-			      if (l==j) opt.id="autocomplete-selection";
 			      opt.addEventListener("mouseover", function() {
 				  var el=document.getElementById("autocomplete-selection");
 				  if (el) el.removeAttribute("id");
@@ -418,6 +422,8 @@ const interrupt = function(socket: Socket) {
 			      });
 			      tabMenu.appendChild(opt);
 			  }
+			  autoCompleteSelection=tabMenu.firstElementChild;
+			  autoCompleteSelection.classList.add("autocomplete-selection");
 			  autoComplete.appendChild(tabMenu);
 			  autoComplete.appendChild(document.createTextNode(inputSpan.textContent.substring(pos,inputSpan.textContent.length)));
 			  inputSpan.textContent=inputSpan.textContent.substring(0,i+1);
@@ -436,28 +442,20 @@ const interrupt = function(socket: Socket) {
 				  return false; // probably overkill
 			      }
 			      if (e.keyCode === keys.arrowDown) {
-				  var el=document.getElementById("autocomplete-selection");
-				  if (el) {
-				      if (el!=this.lastElementChild) {
-					  el.id="";
-					  el.nextElementSibling.id="autocomplete-selection";
-				      }
-				  } else {
-				      this.firstElementChild.id="autocomplete-selection";
+				  if (autoCompleteSelection!=this.lastElementChild) {
+				      autoCompleteSelection.classList.remove("autocomplete-selection");
+				      autoCompleteSelection=autoCompleteSelection.nextElementSibling;
+				      autoCompleteSelection.classList.add("autocomplete-selection");
 				  }
 				  e.preventDefault();
 				  e.stopPropagation();
 				  return false; // probably overkill
 			      }
 			      if (e.keyCode === keys.arrowUp) {
-				  var el=document.getElementById("autocomplete-selection");
-				  if (el) {
-				      if (el!=this.firstElementChild) {
-					  el.id="";
-					  el.previousElementSibling.id="autocomplete-selection";
-				      }
-				  } else {
-				      this.lastElementChild.id="autocomplete-selection";
+				  if (autoCompleteSelection!=this.firstElementChild) {
+				      autoCompleteSelection.classList.remove("autocomplete-selection");
+				      autoCompleteSelection=autoCompleteSelection.previousElementSibling;
+				      autoCompleteSelection.classList.add("autocomplete-selection");
 				  }
 				  e.preventDefault();
 				  e.stopPropagation();
@@ -494,7 +492,7 @@ const interrupt = function(socket: Socket) {
 	  }
 	  else if (anc.classList.contains("M2Latex")) { // *try* to convert to texcode
 	      var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0]);
-	      var baseline: number = htmlSec.baselinePosition;
+	      var baseline: number = baselinePosition(htmlSec);
 	      anc.texCode+="{\\html{"+(baseline/fontSize)+"}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"}{"+htmlSec.outerHTML+"}}";
 	  }
 	  htmlSec = anc;
@@ -643,7 +641,7 @@ const interrupt = function(socket: Socket) {
 	  shell.insertBefore(document.createElement("br"),inputSpan);
 	  htmlSec=shell;
       };
-    };
+};
 
 module.exports = {
 	Shell,

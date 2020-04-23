@@ -1,5 +1,6 @@
 /* global SocketIOFileUpload, mathProgramName, DefaultText */
 /* eslint-env browser */
+"use strict";
 
 declare var mathProgramName: string;
 declare var DefaultText: string;
@@ -39,7 +40,7 @@ const getSelected = function (){ // could almost just trigger the paste event, e
 const editorEvaluate = function() {
     var msg = getSelected();
     if (msg != "")
-	myshell.postMessage(msg, false, false); // TODO: FIX
+	myshell.postMessage(msg, false, false);
   };
 
 const editorKeypress = function(e) {
@@ -48,7 +49,7 @@ const editorKeypress = function(e) {
 	  e.preventDefault();
 	  var msg = getSelected();
 	  if (msg != "")
-	      myshell.postMessage(msg, false, true); // TODO: fix
+	      myshell.postMessage(msg, false, true);
       }
     /*
     if (!prismInvoked) {
@@ -326,7 +327,7 @@ const init = function() {
   // $("#M2In").text(DefaultText);
   // $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
 
-    myshell = new shell.Shell(document.getElementById("M2Out"), socket, document.getElementById("M2In"));
+    myshell = new shell.Shell(document.getElementById("M2Out"), socket, document.getElementById("M2In"), document.getElementById("editorToggle"));
 
   document.getElementById("M2In").onkeypress=editorKeypress;
 
