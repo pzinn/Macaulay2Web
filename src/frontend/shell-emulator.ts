@@ -50,17 +50,12 @@ function addToEl(el,pos,s) { // insert into a pure text element
     sel.collapse(el.firstChild,pos+s.length); // remember inputSpan can only contain one (text) node. or should we relax this? anyway at this stage we rewrote its textContent
 }
 
+
+// the next 2 functions require el to have a single text node!
 function placeCaretAtEnd(el,flag?) { // flag means only do it if not already in input. returns position
     if ((!flag)||(document.activeElement!=el))
     {
 	el.focus();
-/*	var range = document.createRange();
-	range.selectNodeContents(inputSpan);
-	range.collapse(false);
-	var sel = window.getSelection();
-	sel.removeAllRanges();
-	sel.addRange(range);
-*/
 	var sel = window.getSelection();
 	if (el.childNodes.length>0)
 	{
@@ -71,28 +66,36 @@ function placeCaretAtEnd(el,flag?) { // flag means only do it if not already in 
 	}
 	else return 0;
     }
-    else return window.getSelection().focusOffset; // correct only if one text node TODO think about this
+    else return window.getSelection().focusOffset;
 }
 
-const postRawMessage = function(msg: string, socket: Socket) {
-  socket.emit("input", msg);
-  return true;
+const attachEl = function(el,container) { // move an HTML element (with single text node) while preserving focus/caret
+    var flag = document.activeElement == el;
+    var offset = window.getSelection().focusOffset;
+    container.appendChild(el);
+    if (flag) {
+	el.focus();
+	if (el.childNodes.length>0) { // and hopefully 1
+	    var range = document.createRange();
+	    var sel = window.getSelection();
+	    range.setStart(el.lastChild, offset);
+	    range.collapse(true);
+		sel.removeAllRanges();
+	    sel.addRange(range);
+	}
+    }
 };
 
-const interrupt = function(socket: Socket) {
-  return function() {
-    postRawMessage("\x03", socket);
-  };
-};
 
-//const Shell = function(shell, socket: Socket, editor, editorToggle: HTMLInputElement) {
+
 const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, editorToggle?: HTMLInputElement) {
     // Shell is an old-style javascript oop constructor
     // we're using arguments as private variables, cf
     // https://stackoverflow.com/questions/18099129/javascript-using-arguments-for-closure-bad-or-good
     const obj = this; // for nested functions with their own 'this'. or one could use bind but simpler this way
-    var htmlSec = shell; // the section containing the current input (right below)
+    var htmlSec; // the current place in shell where new stuff gets written
     var inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
+    var procInputSpan=null; // temporary span containing currently processed input
     var cmdHistory: any = []; // History of commands for shell-like arrow navigation
     cmdHistory.index = 0;
     var autoComplete=null; // autocomplete HTML element (when tab is pressed)
@@ -104,7 +107,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
       const createInputEl = function() {
 	  // (re)create the input area
 	  if (inputSpan) inputSpan.remove(); // parentElement.removeChild(inputSpan);
-	  inputSpan = document.createElement("span");
+	  inputSpan = document.createElement("span"); // interesting idea but creates tons of problems
+	  //inputSpan = document.createElement("input");
 	  inputSpan.contentEditable = true; // inputSpan.setAttribute("contentEditable",true);
 	  inputSpan.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
 	  inputSpan.autocapitalize = "off";
@@ -114,6 +118,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	  inputSpan.classList.add("M2CurrentInput");
 	  shell.appendChild(inputSpan);
 	  inputSpan.focus();
+	  htmlSec=shell;
       }
 
       createInputEl();
@@ -180,7 +185,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	  }
       };
 
-      function removeAutoComplete(flag) { // flag means insert the selection or not
+      const removeAutoComplete = function(flag) { // flag means insert the selection or not
 	  if (autoComplete)
 	  {
 	      var pos=inputSpan.textContent.length;
@@ -205,23 +210,37 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 
     const returnSymbol="\u21B5";
 
-      obj.postMessage = function(msg,flag1,flag2) { // send input, adding \n if necessary
-	  removeAutoComplete(false); // remove autocomplete menu if open
+    const postRawMessage = function(msg: string) {
+	socket.emit("input", msg);
+    };
+
+    const sanitizeInput = function(msg: string) {
 	  // sanitize input
 	  var clean = "";
 	  for (var i=0; i<msg.length; i++) {
 	      var c = msg.charCodeAt(i);
 	      if (((c>=32)&&(c<128))||(symbols[c])) clean+=msg.charAt(i); // a bit too restrictive?
 	  }
+	return clean;
+    }
+
+    obj.postMessage = function(msg,flag1,flag2) { // send input, adding \n if necessary
+	  removeAutoComplete(false); // remove autocomplete menu if open
+	  var clean = sanitizeInput(msg);
 	  if (clean.length>0) {
 	      obj.addToHistory(clean);
-	      inputSpan.textContent=clean+returnSymbol; // insert a cute return symbol; will be there only briefly (normally)
-	      // we could instead empty the field: inputSpan.textContent="";
+	      if (procInputSpan === null) {
+		  procInputSpan = document.createElement("span");
+		  procInputSpan.classList.add("M2Input");
+		  inputSpan.parentElement.insertBefore(procInputSpan,inputSpan);
+	      }
+	      procInputSpan.textContent+=clean+returnSymbol;
+	      inputSpan.textContent="";
 	      scrollDownLeft(shell);
 	      if (flag2) placeCaretAtEnd(inputSpan);
 	      if (clean[clean.length-1] != "\n") clean+="\n";
 	      if (flag1) obj.addToEditor(clean);
-	      postRawMessage(clean, socket);
+	      postRawMessage(clean);
 	  }
       };
 
@@ -242,7 +261,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
       const input = msg.split("\n");
       for (const line in input) {
         if (input[line].length > 0) {
-            cmdHistory.index = cmdHistory.push(input[line].replace(/\u21B5/g,"")); // remove CR symbols
+            cmdHistory.index = cmdHistory.push(input[line]);
         }
       }
     };
@@ -318,12 +337,9 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     shell.onkeydown = function(e: KeyboardEvent) {
 	removeAutoComplete(false); // remove autocomplete menu if open
 	if (e.key == "Enter") {
-	    let msg = inputSpan.textContent;
-	    const loc = msg.lastIndexOf(returnSymbol);
-	    if (loc >= 0) msg = msg.substring(loc+1); // there may be lag causing an accumulation of old requests thankfully followed by return symbol
-	    obj.postMessage(msg,editorToggle&&(editorToggle.checked),true);
-	    scrollDownLeft(shell);
-	    return false; // no crappy <div></div> added
+	    obj.postMessage(inputSpan.textContent,editorToggle&&(editorToggle.checked),true);
+	    e.preventDefault(); // no crappy <div></div> added
+	    return false;
 	}
 
 	if ((e.key == "ArrowDown") || (e.key == "ArrowUp")) {
@@ -335,12 +351,9 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
             return;
 	}
 
-	if ((e.key == "Backspace")&&(inputSpan.textContent[inputSpan.textContent.length-1]==returnSymbol)) e.preventDefault();
-	// do not backspace beyond previous sent input
-
 	var pos = placeCaretAtEnd(inputSpan,true);
 
-	if (e.key == "escape") {
+	if (e.key == "Escape") {
 	    var esc = inputSpan.textContent.indexOf("\u250B");
 	    if (esc<0)
 		addToEl(inputSpan,pos,"\u250B");
@@ -384,7 +397,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 			addToEl(inputSpan,pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
 		    }
 		    else { // more interesting: several solutions
-			// obvious implementation would've been datalist + input; sadly, the events generated by the input are 200% erratic, so can't use
+			// obvious implementation would've been datalist + input;
+			// sadly, the events generated by the input are 200% erratic, so can't use
 			autoComplete = document.createElement("span");
 			autoComplete.classList.add("autocomplete");
 			autoComplete.dataset.word=word;
@@ -449,7 +463,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	}
     };
 
-      const closeHtml = function() {
+	const closeHtml = function() {
 	  var anc = htmlSec.parentElement;
 	  if (htmlSec.classList.contains("M2Script")) {
 	      (htmlSec as HTMLScriptElement).text = dehtml(htmlSec.dataset.jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
@@ -480,9 +494,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	const closeInput = function() { // need to treat input specially because no closing tag
 	  htmlSec.parentElement.appendChild(document.createElement("br"));
 	  if (inputSpan.oldParentElement) {
-	      var flag = document.activeElement == inputSpan;
-	      inputSpan.oldParentElement.appendChild(inputSpan); // move back input element to outside htmlSec
-	      if (flag) inputSpan.focus();
+	      attachEl(inputSpan,inputSpan.oldParentElement); // move back input element to outside htmlSec
 	      inputSpan.oldParentElement=null;
 	  }
 	  else console.log("Input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
@@ -529,10 +541,12 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully -- though sometimes still misses
 	msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	msg = msg.replace(/\r./g, ""); // remove the line wrapping with repeated last/first character
-//	msg = msg.replace(/(?<=["'])[^"']+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.12/share/doc/Macaulay2"); // disabled since firefox can't deal with this regex. instead, delegated to a binary wrapper "open" to treat the url then turn it into a <script>
+//	msg = msg.replace(/(?<=["'])[^"']+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.12/share/doc/Macaulay2"); // disabled since firefox can't deal with this regex. instead, server does a redirect
 
-	var ii:number = inputSpan.textContent.lastIndexOf("\u21B5");
-	if (ii>=0) inputSpan.textContent=inputSpan.textContent.substring(ii+1,inputSpan.textContent.length); // erase past sent input
+	if (procInputSpan!==null) {
+	    procInputSpan.remove();
+	    procInputSpan=null;
+	}
 
 	var txt=msg.split(mathJaxTagsRegExp);
 	for (var i=0; i<txt.length; i+=2)
@@ -572,10 +586,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		}
 		else if (tag==mathJaxTags.Input) { // input section: a bit special (ends at first \n)
 		    createHtml("span","M2Input");
-		    var flag = document.activeElement == inputSpan;
 		    inputSpan.oldParentElement=inputSpan.parentElement;
-		    htmlSec.appendChild(inputSpan); // !!! we move the input inside the current span to get proper indentation !!!
-		    if (flag) inputSpan.focus();
+		    attachEl(inputSpan,htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
 		}
 		else if (tag==mathJaxTags.InputContd) { // continuation of input section
 		    inputEndFlag=false;
@@ -618,11 +630,16 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	  removeAutoComplete(false); // remove autocomplete menu if open
 	  createInputEl(); // recreate the input area
 	  shell.insertBefore(document.createElement("br"),inputSpan);
-	  htmlSec=shell;
       };
+
+    obj.interrupt = function() {
+	removeAutoComplete(false); // remove autocomplete menu if open
+	inputSpan.textContent="";
+	postRawMessage("\x03");
+    };
 };
 
+
 module.exports = {
-	Shell,
-	interrupt
+	Shell
 };
