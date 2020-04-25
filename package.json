@@ -57,7 +57,7 @@
     "debug-start": "npm run tsc && webpack --config webpack.debug-config.js && npm start",
     "basic": "npm run build && npm start M2 docker",
     "local": "npm run build && npm start M2 local",
-    "debug-local": "npm run tsc && webpack --config webpack.debug-config.js && npm start M2 local",
+    "debug": "npm run tsc && webpack --config webpack.debug-config.js && npm start M2 local",
     "twoMachines": "npm run build && npm start M2 ssh",
     "twoMachines_forever": "npm run build && forever start -l $HOME/webm2.logs/forever.log -o $HOME/webm2.logs/out.log -e $HOME/webm2.logs/err.log --append dist/index.js M2 ssh",
     "start_singular": "npm run build && npm start singular docker",

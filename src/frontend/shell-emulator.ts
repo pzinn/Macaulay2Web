@@ -50,17 +50,12 @@ function addToEl(el,pos,s) { // insert into a pure text element
     sel.collapse(el.firstChild,pos+s.length); // remember inputSpan can only contain one (text) node. or should we relax this? anyway at this stage we rewrote its textContent
 }
 
+
+// the next 2 functions require el to have a single text node!
 function placeCaretAtEnd(el,flag?) { // flag means only do it if not already in input. returns position
     if ((!flag)||(document.activeElement!=el))
     {
 	el.focus();
-/*	var range = document.createRange();
-	range.selectNodeContents(inputSpan);
-	range.collapse(false);
-	var sel = window.getSelection();
-	sel.removeAllRanges();
-	sel.addRange(range);
-*/
 	var sel = window.getSelection();
 	if (el.childNodes.length>0)
 	{
@@ -71,15 +66,34 @@ function placeCaretAtEnd(el,flag?) { // flag means only do it if not already in 
 	}
 	else return 0;
     }
-    else return window.getSelection().focusOffset; // correct only if one text node TODO think about this
+    else return window.getSelection().focusOffset;
 }
+
+const attachEl = function(el,container) { // move an HTML element (with single text node) while preserving focus/caret
+    var flag = document.activeElement == el;
+    var offset = window.getSelection().focusOffset;
+    container.appendChild(el);
+    if (flag) {
+	el.focus();
+	if (el.childNodes.length>0) { // and hopefully 1
+	    var range = document.createRange();
+	    var sel = window.getSelection();
+	    range.setStart(el.lastChild, offset);
+	    range.collapse(true);
+		sel.removeAllRanges();
+	    sel.addRange(range);
+	}
+    }
+};
+
+
 
 const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, editorToggle?: HTMLInputElement) {
     // Shell is an old-style javascript oop constructor
     // we're using arguments as private variables, cf
     // https://stackoverflow.com/questions/18099129/javascript-using-arguments-for-closure-bad-or-good
     const obj = this; // for nested functions with their own 'this'. or one could use bind but simpler this way
-    var htmlSec; // the section containing the current input (right below)
+    var htmlSec; // the current place in shell where new stuff gets written
     var inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
     var procInputSpan=null; // temporary span containing currently processed input
     var cmdHistory: any = []; // History of commands for shell-like arrow navigation
@@ -93,7 +107,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
       const createInputEl = function() {
 	  // (re)create the input area
 	  if (inputSpan) inputSpan.remove(); // parentElement.removeChild(inputSpan);
-	  inputSpan = document.createElement("span");
+	  inputSpan = document.createElement("span"); // interesting idea but creates tons of problems
+	  //inputSpan = document.createElement("input");
 	  inputSpan.contentEditable = true; // inputSpan.setAttribute("contentEditable",true);
 	  inputSpan.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
 	  inputSpan.autocapitalize = "off";
@@ -246,7 +261,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
       const input = msg.split("\n");
       for (const line in input) {
         if (input[line].length > 0) {
-            cmdHistory.index = cmdHistory.push(input[line].replace(/\u21B5/g,"")); // remove CR symbols
+            cmdHistory.index = cmdHistory.push(input[line]);
         }
       }
     };
@@ -396,7 +411,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	}
     };
 
-      const closeHtml = function() {
+	const closeHtml = function() {
 	  var anc = htmlSec.parentElement;
 	  if (htmlSec.classList.contains("M2Script")) {
 	      (htmlSec as HTMLScriptElement).text = dehtml(htmlSec.dataset.jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
@@ -427,9 +442,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	const closeInput = function() { // need to treat input specially because no closing tag
 	  htmlSec.parentElement.appendChild(document.createElement("br"));
 	  if (inputSpan.oldParentElement) {
-	      var flag = document.activeElement == inputSpan;
-	      inputSpan.oldParentElement.appendChild(inputSpan); // move back input element to outside htmlSec
-	      if (flag) inputSpan.focus();
+	      attachEl(inputSpan,inputSpan.oldParentElement); // move back input element to outside htmlSec
 	      inputSpan.oldParentElement=null;
 	  }
 	  else console.log("Input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
@@ -521,10 +534,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		}
 		else if (tag==mathJaxTags.Input) { // input section: a bit special (ends at first \n)
 		    createHtml("span","M2Input");
-		    var flag = document.activeElement == inputSpan;
 		    inputSpan.oldParentElement=inputSpan.parentElement;
-		    htmlSec.appendChild(inputSpan); // !!! we move the input inside the current span to get proper indentation !!!
-		    if (flag) inputSpan.focus();
+		    attachEl(inputSpan,htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
 		}
 		else if (tag==mathJaxTags.InputContd) { // continuation of input section
 		    inputEndFlag=false;
