@@ -194,9 +194,15 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 
     const returnSymbol="\u21B5";
 
-    const postRawMessage = function(msg: string) {
+    const postRawInput = function(msg: string) {
 	socket.emit("input", msg);
     };
+
+    const postInput = function(msg) {
+	obj.addToHistory(msg);
+	if (msg[msg.length-1] != "\n") msg+="\n";
+	postRawInput(msg);
+    }
 
     const sanitizeInput = function(msg: string) {
 	  // sanitize input
@@ -208,20 +214,16 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	return clean;
     }
 
-    obj.postMessage = function(msg,flag1,flag2) { // send input, adding \n if necessary
-	  removeAutoComplete(false); // remove autocomplete menu if open
-	  var clean = sanitizeInput(msg);
-	  if (clean.length>0) {
-	      obj.addToHistory(clean);
-	      inputSpan.textContent=clean+returnSymbol; // insert a cute return symbol; will be there only briefly (normally)
-	      // we could instead empty the field: inputSpan.textContent="";
-	      scrollDownLeft(shell);
-	      if (flag2) placeCaretAtEnd(inputSpan);
-	      if (clean[clean.length-1] != "\n") clean+="\n";
-	      if (flag1) obj.addToEditor(clean);
-	      postRawMessage(clean);
-	  }
-      };
+    obj.postMessage = function(msg,flag) { // send input, adding \n if necessary
+	removeAutoComplete(false); // remove autocomplete menu if open
+	scrollDownLeft(shell);
+	var clean = sanitizeInput(msg);
+	if (clean.length>0) {
+	    inputSpan.textContent=clean+returnSymbol; // insert a cute return symbol; will be there only briefly (normally)
+	    postInput(clean);
+	    if (flag) placeCaretAtEnd(inputSpan);
+	}
+    };
 
     obj.addToEditor = function(msg) { // add command to editor area
       if (typeof msg !== "undefined") {
@@ -264,11 +266,18 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     shell.onkeydown = function(e: KeyboardEvent) {
 	removeAutoComplete(false); // remove autocomplete menu if open
 	if (e.key == "Enter") {
+	    scrollDownLeft(shell);
 	    let msg = inputSpan.textContent;
 	    const loc = msg.lastIndexOf(returnSymbol);
 	    if (loc >= 0) msg = msg.substring(loc+1); // there may be lag causing an accumulation of old requests thankfully followed by return symbol
-	    obj.postMessage(msg,editorToggle&&(editorToggle.checked),true);
-	    scrollDownLeft(shell);
+	    var clean = sanitizeInput(msg);
+	    if (clean.length>0) {
+		inputSpan.textContent+=returnSymbol;
+		placeCaretAtEnd(inputSpan);
+		obj.addToHistory(clean);
+		obj.addToEditor(clean);
+		postInput(clean);
+	    }
 	    return false; // no crappy <div></div> added
 	}
 
@@ -571,7 +580,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     obj.interrupt = function() {
 	removeAutoComplete(false); // remove autocomplete menu if open
 	inputSpan.textContent="";
-	postRawMessage("\x03");
+	postRawInput("\x03");
     };
 };
 

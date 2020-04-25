@@ -40,7 +40,7 @@ const getSelected = function (){ // could almost just trigger the paste event, e
 const editorEvaluate = function() {
     var msg = getSelected();
     if (msg != "")
-	myshell.postMessage(msg, false, false);
+	myshell.postMessage(msg, false);
   };
 
 const editorKeypress = function(e) {
@@ -49,7 +49,7 @@ const editorKeypress = function(e) {
 	  e.preventDefault();
 	  var msg = getSelected();
 	  if (msg != "")
-	      myshell.postMessage(msg, false, true);
+	      myshell.postMessage(msg, true);
       }
     /*
     if (!prismInvoked) {
@@ -256,7 +256,7 @@ const wrapEmitForDisconnect = function(event, msg) {
 
 const codeClickAction = function(e) {
     if (e.target.tagName.substring(0,4)=="CODE")
-	myshell.postMessage(e.target.textContent,false,false);
+	myshell.postMessage(e.target.textContent,false);
 };
 
 
