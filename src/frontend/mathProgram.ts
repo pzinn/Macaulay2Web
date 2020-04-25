@@ -104,7 +104,7 @@ const ClearOut = function(e) {
 const attachCtrlBtnActions = function() {
     document.getElementById("sendBtn").onclick = editorEvaluate;
     document.getElementById("resetBtn").onclick = emitReset;
-    document.getElementById("interruptBtn").onclick = shell.interrupt(socket);
+    document.getElementById("interruptBtn").onclick = myshell.interrupt;
     document.getElementById("saveBtn").onclick=saveFile;
     document.getElementById("loadBtn").onclick=loadFile;
     document.getElementById("hiliteBtn").onclick=hilite;
@@ -320,14 +320,14 @@ const init = function() {
   fetchTutorials(tutorialManager.makeTutorialsList);
   document.getElementById("uptutorial").onchange=tutorialManager.uploadTutorial;
 
+  myshell = new shell.Shell(document.getElementById("M2Out"), socket, document.getElementById("M2In"), document.getElementById("editorToggle"));
+
   attachMinMaxBtnActions();
   attachCtrlBtnActions();
   attachCloseDialogBtns();
 
   // $("#M2In").text(DefaultText);
   // $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
-
-  myshell = new shell.Shell(document.getElementById("M2Out"), socket, document.getElementById("M2In"), document.getElementById("editorToggle"));
 
   document.getElementById("M2In").onkeypress=editorKeypress;
 
