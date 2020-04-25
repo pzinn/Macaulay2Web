@@ -198,15 +198,19 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	socket.emit("input", msg);
     };
 
-    
-      obj.postMessage = function(msg,flag1,flag2) { // send input, adding \n if necessary
-	  removeAutoComplete(false); // remove autocomplete menu if open
+    const sanitizeInput = function(msg: string) {
 	  // sanitize input
 	  var clean = "";
 	  for (var i=0; i<msg.length; i++) {
 	      var c = msg.charCodeAt(i);
 	      if (((c>=32)&&(c<128))||(symbols[c])) clean+=msg.charAt(i); // a bit too restrictive?
 	  }
+	return clean;
+    }
+
+    obj.postMessage = function(msg,flag1,flag2) { // send input, adding \n if necessary
+	  removeAutoComplete(false); // remove autocomplete menu if open
+	  var clean = sanitizeInput(msg);
 	  if (clean.length>0) {
 	      obj.addToHistory(clean);
 	      inputSpan.textContent=clean+returnSymbol; // insert a cute return symbol; will be there only briefly (normally)
@@ -282,7 +286,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 
 	var pos = placeCaretAtEnd(inputSpan,true);
 
-	if (e.key == "escape") {
+	if (e.key == "Escape") {
 	    var esc = inputSpan.textContent.indexOf("\u250B");
 	    if (esc<0)
 		addToEl(inputSpan,pos,"\u250B");
