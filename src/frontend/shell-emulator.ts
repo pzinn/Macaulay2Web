@@ -290,10 +290,15 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
             return;
 	}
 
-	if ((e.key == "Backspace")&&(inputSpan.textContent[inputSpan.textContent.length-1]==returnSymbol)) e.preventDefault();
+	var pos = placeCaretAtEnd(inputSpan,true);
+
+	var minpos=inputSpan.textContent.lastIndexOf(returnSymbol)+1;
+
+	if ((e.key == "Backspace")&&(pos<=minpos)) e.preventDefault();
 	// do not backspace beyond previous sent input
 
-	var pos = placeCaretAtEnd(inputSpan,true);
+	if (pos<minpos) placeCaretAtEnd(inputSpan);
+	// in fact, don't do anything beyond previous sent input
 
 	if (e.key == "Escape") {
 	    var esc = inputSpan.textContent.indexOf("\u250B");
