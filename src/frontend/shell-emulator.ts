@@ -227,12 +227,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     };
 
     obj.addToHistory = function(msg) {
-        // This function will track the messages, i.e. such that arrow up and
-        // down work, but it will not put the msg in the editor textarea. We
-        // need this if someone uses the shift+enter functionality in the
-        // editor area, because we do not want to track these messages.
-      const input = msg.split("\n");
-      for (const line in input) {
+	const input = msg.split("\n");
+	for (var line=0; line<input.length; line++) {
         if (input[line].length > 0) {
             cmdHistory.index = cmdHistory.push(input[line]);
         }
@@ -437,7 +433,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	  else if (anc.classList.contains("M2Html")) { // we need to convert to string
 	      anc.innerHTML=anc.dataset.saveHTML+=htmlSec.outerHTML;
 	  }
-	  else if (anc.classList.contains("M2Latex")) { // *try* to convert to texcode
+	  else if (anc.classList.contains("M2Latex")) { // *try* to convert to texcode TEMP gotta replace this with more serious?
 	      var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0]);
 	      var baseline: number = baselinePosition(htmlSec);
 	      anc.dataset.texCode+="{\\html{"+(baseline/fontSize)+"}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"}{"+htmlSec.outerHTML+"}}";
