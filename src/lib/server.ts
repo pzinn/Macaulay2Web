@@ -316,7 +316,8 @@ const initializeServer = function() {
     const webAppTagsRegExp = new RegExp("(" + Object.values(webAppTags).join("|") + ")","g");
     const prettyTags = {};
     const temp = Object.entries(webAppTags);
-    for (const a of temp) prettyTags[a[1] as any]="\u001b[32m<"+a[0]+">\u001b[39m";
+    //    for (const a of temp) prettyTags[a[1] as any]="\u001b[32m<"+a[0]+">\u001b[39m";
+        for (const a of temp) prettyTags[a[1] as any]="<"+a[0]+">";
 
     const myFormat = winston.format.printf((info)=>{
 	const msg = info.message.replace(webAppTagsRegExp, function(match,token) { return prettyTags[token]; });

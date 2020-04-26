@@ -21,7 +21,7 @@ const mathJaxTags = require("../frontend/tags");
 
 var myshell;
 
-const getSelected = function (){ // could almost just trigger the paste event, except for when there's no selection and final \n...
+const getSelected = function () { // similar to trigger the paste event (except for when there's no selection and final \n) (which one cna't manually, see below)
     var sel=window.getSelection();
     if (document.getElementById("M2In").contains(sel.focusNode)) { // only if we're inside the editor
 	if (sel.isCollapsed) {
@@ -30,7 +30,7 @@ const getSelected = function (){ // could almost just trigger the paste event, e
 	    //	    var s=sel.toString(); // doesn't work in firefox because replaces "\n" with " "
 	    var s=sel.getRangeAt(0).cloneContents().textContent;
 	    (<any>sel).modify("move", "forward", "line");
-	    return s;
+	    return s+"\n";
 	}
 	else return sel.getRangeAt(0).cloneContents().textContent;
     }
@@ -38,9 +38,16 @@ const getSelected = function (){ // could almost just trigger the paste event, e
 };
 
 const editorEvaluate = function() {
-    var msg = getSelected();
-    if (msg != "")
-	myshell.postMessage(msg, false, false);
+    const msg = getSelected();
+    myshell.postMessage(msg, false, false);
+    /*
+    var dataTrans = new DataTransfer();
+    dataTrans.setData("text/plain",msg);
+    var event = new ClipboardEvent('paste',{clipboardData: dataTrans});
+    document.getElementById("M2Out").dispatchEvent(event);
+    */
+    // sadly, doesn't work -- cf https://www.w3.org/TR/clipboard-apis/
+    // "A synthetic paste event can be manually constructed and dispatched, but it will not affect the contents of the document."
   };
 
 const editorKeypress = function(e) {
@@ -48,8 +55,7 @@ const editorKeypress = function(e) {
       if (e.which === 13 && e.shiftKey) {
 	  e.preventDefault();
 	  var msg = getSelected();
-	  if (msg != "")
-	      myshell.postMessage(msg, false, true);
+	  myshell.postMessage(msg, false, true);
       }
     /*
     if (!prismInvoked) {
