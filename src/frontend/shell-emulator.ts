@@ -8,7 +8,7 @@
 
 import {Socket} from "./mathProgram";
 
-const mathJaxTags = require("../frontend/tags");
+const webAppTags = require("../frontend/tags");
 const scrollDownLeft = require("./scroll-down-left");
 
 const unicodeBell = "\u0007";
@@ -47,7 +47,7 @@ function addToEl(el,pos,s) { // insert into a pure text element
     // put the caret where it should be
     el.focus();
     var sel=window.getSelection();
-    sel.collapse(el.firstChild,pos+s.length); // remember inputSpan can only contain one (text) node. or should we relax this? anyway at this stage we rewrote its textContent
+    sel.collapse(el.firstChild,pos+s.length); // remember inputSpan can only contain one (text) node
 }
 
 
@@ -101,14 +101,14 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     var autoComplete=null; // autocomplete HTML element (when tab is pressed)
     var autoCompleteSelection=null; // the currently selected element in the autocomplete list
     // mathJax/katex related stuff
-    const mathJaxTagsRegExp = new RegExp("(" + Object.values(mathJaxTags).join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
+    const webAppTagsRegExp = new RegExp("(" + Object.values(webAppTags).join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
     var inputEndFlag = false;
 
       const createInputEl = function() {
 	  // (re)create the input area
 	  if (inputSpan) inputSpan.remove(); // parentElement.removeChild(inputSpan);
-	  inputSpan = document.createElement("span"); // interesting idea but creates tons of problems
-	  //inputSpan = document.createElement("input");
+	  inputSpan = document.createElement("span");
+	  //inputSpan = document.createElement("input"); // interesting idea but creates tons of problems
 	  inputSpan.contentEditable = true; // inputSpan.setAttribute("contentEditable",true);
 	  inputSpan.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
 	  inputSpan.autocapitalize = "off";
@@ -147,7 +147,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	      inputSpan.textContent=cmdHistory[cmdHistory.index];
 	  }
 	  placeCaretAtEnd(inputSpan);
-    scrollDownLeft(shell);
+	  scrollDownLeft(shell);
       };
 
       const codeInputAction = function() {
@@ -496,24 +496,24 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    procInputSpan=null;
 	}
 
-	var txt=msg.split(mathJaxTagsRegExp);
+	var txt=msg.split(webAppTagsRegExp);
 	for (var i=0; i<txt.length; i+=2)
 	{
 	    // if we are at the end of an input section
-	    if ((inputEndFlag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=mathJaxTags.InputContd)))) {
+	    if ((inputEndFlag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=webAppTags.InputContd)))) {
 		closeInput();
 		inputEndFlag=false;
 	    }
 	    if (i>0) {
 		var tag=txt[i-1];
-		if ((tag==mathJaxTags.End)||((tag=="\\)")&&(htmlSec.classList.contains("M2Latex")))) { // end of section
+		if ((tag==webAppTags.End)||((tag=="\\)")&&(htmlSec.classList.contains("M2Latex")))) { // end of section
 		    if (htmlSec.classList.contains("M2Input")) closeInput(); // should never happen but does because of annoying escape sequence garbage bug (see also closeInput fix)
 		    closeHtml();
 		}
-		else if (tag==mathJaxTags.Html) { // html section beginning
+		else if (tag==webAppTags.Html) { // html section beginning
 		    createHtml("span","M2Html");
 		}
-		else if (tag==mathJaxTags.Output) { // pretty much the same
+		else if (tag==webAppTags.Output) { // pretty much the same
 		    createHtml("span","M2Html M2HtmlOutput");
 		}
 		else if (tag=="\\(") { // tex section beginning. should always be wrapped in a html section (otherwise one can't type '\(')
@@ -528,16 +528,16 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		else if (tag=="\\)") {
 		    txt[i]=tag+txt[i]; // treat as ordinary text
 		}
-		else if (tag==mathJaxTags.Script) { // script section beginning
+		else if (tag==webAppTags.Script) { // script section beginning
 		    createHtml("script","M2Script");
 		    htmlSec.dataset.jsCode=""; // can't write directly to text because scripts can only be written once!
 		}
-		else if (tag==mathJaxTags.Input) { // input section: a bit special (ends at first \n)
+		else if (tag==webAppTags.Input) { // input section: a bit special (ends at first \n)
 		    createHtml("span","M2Input");
 		    inputSpan.oldParentElement=inputSpan.parentElement;
 		    attachEl(inputSpan,htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
 		}
-		else if (tag==mathJaxTags.InputContd) { // continuation of input section
+		else if (tag==webAppTags.InputContd) { // continuation of input section
 		    inputEndFlag=false;
 		}
 		else { // ordinary text (error messages, prompts, etc) -- not used at the moment
