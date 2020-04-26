@@ -101,54 +101,27 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     var autoComplete=null; // autocomplete HTML element (when tab is pressed)
     var autoCompleteSelection=null; // the currently selected element in the autocomplete list
     // mathJax/katex related stuff
-    const webAppTagsRegExp = new RegExp("(" + Object.values(webAppTags).join("|") + "|\\\\\\(|\\\\\\))"); // ridiculous # of \
+    const webAppTagsRegExp = new RegExp("(" + Object.values(webAppTags).join("|") + ")");
     var inputEndFlag = false;
 
-      const createInputEl = function() {
-	  // (re)create the input area
-	  if (inputSpan) inputSpan.remove(); // parentElement.removeChild(inputSpan);
-	  inputSpan = document.createElement("span");
-	  //inputSpan = document.createElement("input"); // interesting idea but creates tons of problems
-	  inputSpan.contentEditable = true; // inputSpan.setAttribute("contentEditable",true);
-	  inputSpan.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
-	  inputSpan.autocapitalize = "off";
-	  inputSpan.autocorrect = "off";
-	  inputSpan.autocomplete = "off";
-	  inputSpan.classList.add("M2Input");
-	  inputSpan.classList.add("M2CurrentInput");
-	  shell.appendChild(inputSpan);
-	  inputSpan.focus();
-	  htmlSec=shell;
-      }
+    const createInputEl = function() {
+	// (re)create the input area
+	if (inputSpan) inputSpan.remove(); // parentElement.removeChild(inputSpan);
+	inputSpan = document.createElement("span");
+	//inputSpan = document.createElement("input"); // interesting idea but creates tons of problems
+	inputSpan.contentEditable = true; // inputSpan.setAttribute("contentEditable",true);
+	inputSpan.spellcheck = false; // sadly this or any of the following attributes are not recognized in contenteditable :(
+	inputSpan.autocapitalize = "off";
+	inputSpan.autocorrect = "off";
+	inputSpan.autocomplete = "off";
+	inputSpan.classList.add("M2Input");
+	inputSpan.classList.add("M2CurrentInput");
+	shell.appendChild(inputSpan);
+	inputSpan.focus();
+	htmlSec=shell;
+    }
 
-      createInputEl();
-
-      const upDownArrowKeyHandling = function(e: KeyboardEvent) {
-	  e.preventDefault();
-	  if (cmdHistory.length === 0) {
-              // Maybe we did nothing so far.
-	      return;
-	  }
-	  if (e.key == "ArrowDown") {
-	      if (cmdHistory.index < cmdHistory.length) {
-		  cmdHistory.index++;
-		  if (cmdHistory.index === cmdHistory.length) {
-		      inputSpan.textContent=cmdHistory.current;
-		  } else {
-		      inputSpan.textContent=cmdHistory[cmdHistory.index];
-		  }
-	      }
-	  }
-	  else if ((e.key == "ArrowUp") && (cmdHistory.index > 0)) { // UP
-	      if (cmdHistory.index === cmdHistory.length) {
-		  cmdHistory.current = inputSpan.textContent;
-	      }
-	      cmdHistory.index--;
-	      inputSpan.textContent=cmdHistory[cmdHistory.index];
-	  }
-	  placeCaretAtEnd(inputSpan);
-	  scrollDownLeft(shell);
-      };
+    createInputEl();
 
       const codeInputAction = function() {
 	  // will only trigger if selection is empty
@@ -266,6 +239,133 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
       }
     };
 
+    const downArrowKeyHandling = function() {
+	if (cmdHistory.index < cmdHistory.length) {
+	    cmdHistory.index++;
+	    if (cmdHistory.index === cmdHistory.length) {
+		inputSpan.textContent=cmdHistory.current;
+	    } else {
+		inputSpan.textContent=cmdHistory[cmdHistory.index];
+	    }
+	}
+    };
+
+    const upArrowKeyHandling = function() {
+	if (cmdHistory.index > 0) {
+	    if (cmdHistory.index === cmdHistory.length) {
+		cmdHistory.current = inputSpan.textContent;
+	    }
+	    cmdHistory.index--;
+	    inputSpan.textContent=cmdHistory[cmdHistory.index];
+	}
+    };
+
+    const escapeKeyHandling = function(pos) {
+	var esc = inputSpan.textContent.indexOf("\u250B");
+	if (esc<0)
+	    addToEl(inputSpan,pos,"\u250B");
+	else {
+	    var s;
+	    if (esc<pos) {
+		s = inputSpan.textContent.substring(esc+1,pos);
+		inputSpan.textContent=inputSpan.textContent.substring(0,esc)+inputSpan.textContent.substring(pos,inputSpan.textContent.length);
+		pos=esc;
+	    } else {
+		s = inputSpan.textContent.substring(pos,esc);
+		inputSpan.textContent=inputSpan.textContent.substring(0,pos)+inputSpan.textContent.substring(esc+1,inputSpan.textContent.length);
+	    }
+	    var sss="";
+	    if (s.length>0)
+		for (var ss in symbols) {
+		    if (symbols[ss].startsWith(s)) {
+			sss=String.fromCharCode(+ss);
+			break;
+		    }
+		}
+	    addToEl(inputSpan,pos,sss);
+	}
+    };
+
+    const tabKeyHandling = function(pos) {
+	var msg = inputSpan.textContent;
+	var i=pos-1;
+	while ((i>=0)&&(((msg[i]>="A")&&(msg[i]<="Z"))||((msg[i]>="a")&&(msg[i]<="z")))) i--; // would be faster with regex
+	var word = msg.substring(i+1,pos);
+	// find all M2symbols starting with last word of msg
+	var j=0;
+	while ((j<M2symbols.length)&&(M2symbols[j]<word)) j++;
+	if (j<M2symbols.length) {
+	    var k=j;
+	    while ((k<M2symbols.length)&&(M2symbols[k].substring(0,word.length)==word)) k++;
+	    if (k>j) {
+		if (k==j+1) { // yay, one solution
+		    addToEl(inputSpan,pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
+		}
+		else { // more interesting: several solutions
+		    // obvious implementation would've been datalist + input;
+		    // sadly, the events generated by the input are 200% erratic, so can't use
+		    autoComplete = document.createElement("span");
+		    autoComplete.classList.add("autocomplete");
+		    autoComplete.dataset.word=word;
+		    var tabMenu = document.createElement("ul");
+		    tabMenu.setAttribute("tabindex","0"); // hack
+		    for (var l=j; l<k; l++)
+		    {
+			var opt = document.createElement("li");
+			opt.textContent=M2symbols[l];
+			opt.addEventListener("mouseover", function() {
+			    var el=document.getElementById("autocomplete-selection");
+			    if (el) el.removeAttribute("id");
+			    this.id="autocomplete-selection";
+			});
+			tabMenu.appendChild(opt);
+		    }
+		    autoCompleteSelection=tabMenu.firstElementChild;
+		    autoCompleteSelection.classList.add("autocomplete-selection");
+		    autoComplete.appendChild(tabMenu);
+		    autoComplete.appendChild(document.createTextNode(inputSpan.textContent.substring(pos,inputSpan.textContent.length)));
+		    inputSpan.textContent=inputSpan.textContent.substring(0,i+1);
+		    inputSpan.parentElement.appendChild(autoComplete);
+		    tabMenu.addEventListener("click", function(e) {
+			removeAutoComplete(true);
+			e.preventDefault();
+			e.stopPropagation();
+			return false;
+		    });
+		    tabMenu.addEventListener("keydown", function(e) {
+			if (e.key === "Enter") {
+			    removeAutoComplete(true);
+			    e.preventDefault();
+			    e.stopPropagation();
+			    return false; // probably overkill
+			}
+			if (e.key == "ArrowDown") {
+			    if (autoCompleteSelection!=this.lastElementChild) {
+				autoCompleteSelection.classList.remove("autocomplete-selection");
+				autoCompleteSelection=autoCompleteSelection.nextElementSibling;
+				autoCompleteSelection.classList.add("autocomplete-selection");
+			    }
+			    e.preventDefault();
+			    e.stopPropagation();
+			    return false; // probably overkill
+			}
+			if (e.key == "ArrowUp") {
+			    if (autoCompleteSelection!=this.firstElementChild) {
+				autoCompleteSelection.classList.remove("autocomplete-selection");
+				autoCompleteSelection=autoCompleteSelection.previousElementSibling;
+				autoCompleteSelection.classList.add("autocomplete-selection");
+			    }
+			    e.preventDefault();
+			    e.stopPropagation();
+			    return false; // probably overkill
+			}
+		    });
+		    tabMenu.focus();
+		}
+	    }
+	}
+    };
+
       shell.onpaste = function(e) {
 	  placeCaretAtEnd(inputSpan,true);
       };
@@ -281,7 +381,6 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	  if (window.getSelection().isCollapsed) placeCaretAtEnd(inputSpan,true);
       };
 
-      // If something is entered, change to end of textarea, if at wrong position.
     shell.onkeydown = function(e: KeyboardEvent) {
 	removeAutoComplete(false); // remove autocomplete menu if open
 	if (e.key == "Enter") {
@@ -291,7 +390,10 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	}
 
 	if ((e.key == "ArrowDown") || (e.key == "ArrowUp")) {
-            upDownArrowKeyHandling(e);
+            if (e.key == "ArrowDown") downArrowKeyHandling(); else upArrowKeyHandling();
+	    e.preventDefault();
+	    placeCaretAtEnd(inputSpan);
+	    scrollDownLeft(shell);
 	    return;
 	}
 
@@ -302,112 +404,16 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	var pos = placeCaretAtEnd(inputSpan,true);
 
 	if (e.key == "Escape") {
-	    var esc = inputSpan.textContent.indexOf("\u250B");
-	    if (esc<0)
-		addToEl(inputSpan,pos,"\u250B");
-	    else {
-		var s;
-		if (esc<pos) {
-		    s = inputSpan.textContent.substring(esc+1,pos);
-		    inputSpan.textContent=inputSpan.textContent.substring(0,esc)+inputSpan.textContent.substring(pos,inputSpan.textContent.length);
-		    pos=esc;
-		} else {
-		    s = inputSpan.textContent.substring(pos,esc);
-		    inputSpan.textContent=inputSpan.textContent.substring(0,pos)+inputSpan.textContent.substring(esc+1,inputSpan.textContent.length);
-		}
-		var sss="";
-		if (s.length>0)
-		    for (var ss in symbols) {
-			if (symbols[ss].startsWith(s)) {
-			    sss=String.fromCharCode(+ss);
-			    break;
-			}
-		    }
-		addToEl(inputSpan,pos,sss);
-	    }
-	    return false;
+	    escapeKeyHandling(pos);
+	    e.preventDefault();
+	    return;
 	}
 
 	// auto-completion code
 	if (e.key == "Tab") {
-	    var msg = inputSpan.textContent;
-	    var i=pos-1;
-	    while ((i>=0)&&(((msg[i]>="A")&&(msg[i]<="Z"))||((msg[i]>="a")&&(msg[i]<="z")))) i--; // would be faster with regex
-	    var word = msg.substring(i+1,pos);
-	    // find all M2symbols starting with last word of msg
-	    var j=0;
-	    while ((j<M2symbols.length)&&(M2symbols[j]<word)) j++;
-	    if (j<M2symbols.length) {
-		var k=j;
-		while ((k<M2symbols.length)&&(M2symbols[k].substring(0,word.length)==word)) k++;
-		if (k>j) {
-		    if (k==j+1) { // yay, one solution
-			addToEl(inputSpan,pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
-		    }
-		    else { // more interesting: several solutions
-			// obvious implementation would've been datalist + input;
-			// sadly, the events generated by the input are 200% erratic, so can't use
-			autoComplete = document.createElement("span");
-			autoComplete.classList.add("autocomplete");
-			autoComplete.dataset.word=word;
-			var tabMenu = document.createElement("ul");
-			tabMenu.setAttribute("tabindex","0"); // hack
-			for (var l=j; l<k; l++)
-			{
-			    var opt = document.createElement("li");
-			    opt.textContent=M2symbols[l];
-			    opt.addEventListener("mouseover", function() {
-				var el=document.getElementById("autocomplete-selection");
-				if (el) el.removeAttribute("id");
-				this.id="autocomplete-selection";
-			    });
-			    tabMenu.appendChild(opt);
-			}
-			autoCompleteSelection=tabMenu.firstElementChild;
-			autoCompleteSelection.classList.add("autocomplete-selection");
-			autoComplete.appendChild(tabMenu);
-			autoComplete.appendChild(document.createTextNode(inputSpan.textContent.substring(pos,inputSpan.textContent.length)));
-			inputSpan.textContent=inputSpan.textContent.substring(0,i+1);
-			inputSpan.parentElement.appendChild(autoComplete);
-			tabMenu.addEventListener("click", function(e) {
-			    removeAutoComplete(true);
-			    e.preventDefault();
-			    e.stopPropagation();
-			    return false;
-			});
-			tabMenu.addEventListener("keydown", function(e) {
-			    if (e.key === "Enter") {
-				removeAutoComplete(true);
-				e.preventDefault();
-				e.stopPropagation();
-				return false; // probably overkill
-			    }
-			    if (e.key == "ArrowDown") {
-				if (autoCompleteSelection!=this.lastElementChild) {
-				    autoCompleteSelection.classList.remove("autocomplete-selection");
-				    autoCompleteSelection=autoCompleteSelection.nextElementSibling;
-				    autoCompleteSelection.classList.add("autocomplete-selection");
-				}
-				e.preventDefault();
-				e.stopPropagation();
-				return false; // probably overkill
-			    }
-			    if (e.key == "ArrowUp") {
-				if (autoCompleteSelection!=this.firstElementChild) {
-				    autoCompleteSelection.classList.remove("autocomplete-selection");
-				    autoCompleteSelection=autoCompleteSelection.previousElementSibling;
-				    autoCompleteSelection.classList.add("autocomplete-selection");
-				}
-				e.preventDefault();
-				e.stopPropagation();
-				return false; // probably overkill
-			    }
-			});
-			tabMenu.focus();
-		    }
-		}
-	    }
+	    tabKeyHandling(pos);
 	    e.preventDefault();
+	    return;
 	}
     };
 
@@ -468,7 +474,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	      if (className.indexOf("M2Html")>=0) htmlSec.dataset.saveHTML=""; // need to keep track of innerHTML because html tags may get broken
 	  }
 	  if (inputSpan.parentElement==anc) anc.insertBefore(htmlSec,inputSpan); else anc.appendChild(htmlSec);
-      }
+	}
 
     obj.onmessage = function(msgDirty) {
       if (msgDirty === unicodeBell) {
@@ -506,7 +512,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    }
 	    if (i>0) {
 		var tag=txt[i-1];
-		if ((tag==webAppTags.End)||((tag=="\\)")&&(htmlSec.classList.contains("M2Latex")))) { // end of section
+		if (tag==webAppTags.End) { // end of section
 		    if (htmlSec.classList.contains("M2Input")) closeInput(); // should never happen but does because of annoying escape sequence garbage bug (see also closeInput fix)
 		    closeHtml();
 		}
@@ -516,17 +522,9 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		else if (tag==webAppTags.Output) { // pretty much the same
 		    createHtml("span","M2Html M2HtmlOutput");
 		}
-		else if (tag=="\\(") { // tex section beginning. should always be wrapped in a html section (otherwise one can't type '\(')
-		    if (htmlSec.classList.contains("M2Html")) {
-			createHtml("span","M2Latex");
-			htmlSec.dataset.texCode="";
-		    }
-		    else {
-			txt[i]=tag+txt[i]; // if not, treat as ordinary text
-		    }
-		}
-		else if (tag=="\\)") {
-		    txt[i]=tag+txt[i]; // treat as ordinary text
+		else if (tag==webAppTags.Tex) { // tex section beginning.
+		    createHtml("span","M2Latex");
+		    htmlSec.dataset.texCode="";
 		}
 		else if (tag==webAppTags.Script) { // script section beginning
 		    createHtml("script","M2Script");
@@ -534,7 +532,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		}
 		else if (tag==webAppTags.Input) { // input section: a bit special (ends at first \n)
 		    createHtml("span","M2Input");
-		    inputSpan.oldParentElement=inputSpan.parentElement;
+		    inputSpan.oldParentElement=inputSpan.parentElement; // TODO FIX not standard & not great
 		    attachEl(inputSpan,htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
 		}
 		else if (tag==webAppTags.InputContd) { // continuation of input section
@@ -585,7 +583,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	inputSpan.textContent="";
 	postRawMessage("\x03");
     };
-};
+    };
 
 
 module.exports = {

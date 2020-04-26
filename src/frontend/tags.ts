@@ -5,7 +5,8 @@ const webAppTagCodes = {
     "Input":      20,      // it's text but it's input
     "InputContd": 28,      // text, continuation of input
     "Script":     29,      // script
-    "Text":       30      // indicates what follows is pure text; default mode. not used at the moment
+    "Text":       30,      // indicates what follows is pure text; default mode. not used at the moment
+    "Tex":        31       // TeX
 }
 /*
 const webAppTags = Object.fromEntries(Object.entries(webAppTagCodes).map(
