@@ -443,6 +443,7 @@ const socketResetAction = function(client: Client) {
     checkClientSanity(client).then(function() {
       if (client.channel) {
         killMathProgram(client.channel, client.id);
+	spawnMathProgramInSecureContainer(client);
       }
       sanitizeClient(client);
     });
