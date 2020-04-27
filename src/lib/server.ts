@@ -422,6 +422,8 @@ const checkClientSanity = function(client: Client) {
       logClient(client.id, "Not accepting events.");
       reject();
     }
+  }).catch(()=>{
+      // empty
   });
 };
 
