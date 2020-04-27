@@ -95,14 +95,16 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     const obj = this; // for nested functions with their own 'this'. or one could use bind but simpler this way
     var htmlSec; // the current place in shell where new stuff gets written
     var inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
-    var procInputSpan=null; // temporary span containing currently processed input
     var cmdHistory: any = []; // History of commands for shell-like arrow navigation
     cmdHistory.index = 0;
     var autoComplete=null; // autocomplete HTML element (when tab is pressed)
     var autoCompleteSelection=null; // the currently selected element in the autocomplete list
     // mathJax/katex related stuff
     const webAppTagsRegExp = new RegExp("(" + Object.values(webAppTags).join("|") + ")");
+    // input is a bit messy...
     var inputEndFlag = false;
+    var procInputSpan=null; // temporary span containing currently processed input
+    var inputSpanParentElement=[]; // temporary link(s) to parent element when input span moved out of it
 
     const createInputEl = function() {
 	// (re)create the input area
@@ -119,6 +121,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	shell.appendChild(inputSpan);
 	inputSpan.focus();
 	htmlSec=shell;
+	inputSpanParentElement=[];
     }
 
     createInputEl();
@@ -148,7 +151,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		      anc.insertBefore(thisel,ph);
 		      anc.removeChild(ph);
 		      e.stopPropagation();
-		      return false;
+		      return;
 		  } );
 		  ph.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
 		  anc.insertBefore(ph,this);
@@ -326,14 +329,14 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 			removeAutoComplete(true);
 			e.preventDefault();
 			e.stopPropagation();
-			return false;
+			return;
 		    });
 		    tabMenu.addEventListener("keydown", function(e) {
 			if (e.key === "Enter") {
 			    removeAutoComplete(true);
 			    e.preventDefault();
 			    e.stopPropagation();
-			    return false; // probably overkill
+			    return;
 			}
 			if (e.key == "ArrowDown") {
 			    if (autoCompleteSelection!=this.lastElementChild) {
@@ -343,7 +346,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 			    }
 			    e.preventDefault();
 			    e.stopPropagation();
-			    return false; // probably overkill
+			    return;
 			}
 			if (e.key == "ArrowUp") {
 			    if (autoCompleteSelection!=this.firstElementChild) {
@@ -353,7 +356,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 			    }
 			    e.preventDefault();
 			    e.stopPropagation();
-			    return false; // probably overkill
+			    return;
 			}
 		    });
 		    tabMenu.focus();
@@ -382,7 +385,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	if (e.key == "Enter") {
 	    obj.postMessage(inputSpan.textContent,editorToggle&&(editorToggle.checked),true);
 	    e.preventDefault(); // no crappy <div></div> added
-	    return false;
+	    return;
 	}
 
 	if ((e.key == "ArrowDown") || (e.key == "ArrowUp")) {
@@ -416,7 +419,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	const closeHtml = function() {
 	  var anc = htmlSec.parentElement;
 	  if (htmlSec.classList.contains("M2Script")) {
-	      (htmlSec as HTMLScriptElement).text = dehtml(htmlSec.dataset.jsCode); // TEMP? need to think carefully. or should it depend whether we're inside a \( or not?
+	      //(htmlSec as HTMLScriptElement).text = dehtml(htmlSec.dataset.jsCode); // should we dehtml? need to think carefully. or should it depend whether we're inside TeX or not?
+	      (htmlSec as HTMLScriptElement).text = htmlSec.dataset.jsCode;
 	      document.head.appendChild(htmlSec); // might as well move to head (or delete, really -- script is useless once run)
 	  }
 	  else if (htmlSec.classList.contains("M2Latex")) {
@@ -443,10 +447,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 
 	const closeInput = function() { // need to treat input specially because no closing tag
 	  htmlSec.parentElement.appendChild(document.createElement("br"));
-	  if (inputSpan.oldParentElement) {
-	      attachEl(inputSpan,inputSpan.oldParentElement); // move back input element to outside htmlSec
-	      inputSpan.oldParentElement=null;
-	  }
+	    if (inputSpanParentElement.length > 0)
+		attachEl(inputSpan,inputSpanParentElement.pop()); // move back input element to outside htmlSec
 	  else console.log("Input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
 	  // highlight
 	  htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
@@ -528,7 +530,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		}
 		else if (tag==webAppTags.Input) { // input section: a bit special (ends at first \n)
 		    createHtml("span","M2Input");
-		    inputSpan.oldParentElement=inputSpan.parentElement; // TODO FIX not standard & not great
+		    inputSpanParentElement.push(inputSpan.parentElement); // not great
 		    attachEl(inputSpan,htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
 		}
 		else if (tag==webAppTags.InputContd) { // continuation of input section

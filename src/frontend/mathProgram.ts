@@ -39,7 +39,7 @@ const getSelected = function () { // similar to trigger the paste event (except 
 
 const editorEvaluate = function() {
     const msg = getSelected();
-    myshell.postMessage(msg, false, true);
+    myshell.postMessage(msg, false, false); // important not to move the pointer so can move to next line
     /*
     const input = msg.split("\n");
     for (var line=0; line<input.length; line++) {
