@@ -427,7 +427,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 //	      htmlSec.dataset.texCode=dehtml(htmlSec.dataset.texCode); // needed for MathJax compatibility. might remove since now mathJax doesn't encode any more
 	      //htmlSec.innerHTML=katex.renderToString(htmlSec.dataset.texCode);
 	      // we're not gonna bother updating innerHTML because anc *must* be M2Html
-	      try { anc.innerHTML=anc.dataset.saveHTML+=katex.renderToString(htmlSec.dataset.texCode); }
+	      try { anc.innerHTML=anc.dataset.saveHTML+=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } ); }
 	      catch(err) {
 		  anc.classList.add("M2Error");
 		  anc.innerHTML=anc.dataset.saveHTML+=err.message;
