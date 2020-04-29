@@ -80,13 +80,32 @@ body {
 /* various sections inside #M2Out */
 
 .M2Input {
+    position: relative;
     display: inline-block;
     vertical-align: top;
     white-space: pre;
     font-family: "Roboto Mono";
 }
 
+.M2CurrentInput[data-highlight]::after {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    color: #50A000;
+    text-shadow: 0px 0px 5px #70E000;
+    content: attr(data-highlight);
+}
+
+.M2CurrentInput[data-highlight-error]::after {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    color: red;
+    content: attr(data-highlight-error);
+}
+
 .M2CurrentInput {
+    position: static;
     outline: none;
     /* what's below is for textarea */
 /*    background: none;
