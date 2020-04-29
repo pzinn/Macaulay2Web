@@ -41,48 +41,35 @@ function baselinePosition(el) {
     return result;
 }
 
-function addToEl(el,pos,s) { // insert into a pure text element
-    var msg=el.textContent;
+// the next 4 functions require el to have a single text node!
+const placeCaret = function (el,pos) {
+    if (el.childNodes.length == 1) {
+	var sel=window.getSelection();
+	sel.collapse(el.lastChild,pos);
+    }
+    else if (el.childNodes.length > 1) console.log("placeCaret: not a single node!");
+}
+const addToEl = function(el,pos,s) { // insert into a pure text element and move care to end of insertion
+    const msg=el.textContent;
     el.textContent = msg.substring(0,pos)+s+msg.substring(pos,msg.length);
     // put the caret where it should be
     el.focus();
-    var sel=window.getSelection();
-    sel.collapse(el.firstChild,pos+s.length); // remember inputSpan can only contain one (text) node
+    placeCaret(el,pos+s.length);
 }
-
-
-// the next 2 functions require el to have a single text node!
-function placeCaretAtEnd(el,flag?) { // flag means only do it if not already in input. returns position
+const placeCaretAtEnd = function(el,flag?) { // flag means only do it if not already in input. returns position
     if ((!flag)||(document.activeElement!=el))
     {
 	el.focus();
-	var sel = window.getSelection();
-	if (el.childNodes.length>0)
-	{
-	    var node = el.lastChild;
-	    var len = node.textContent.length;
-	    sel.collapse(node,len);
-	    return len;
-	}
-	else return 0;
+	placeCaret(el,el.textContent.length);
     }
-    else return window.getSelection().focusOffset;
 }
-
 const attachEl = function(el,container) { // move an HTML element (with single text node) while preserving focus/caret
-    var flag = document.activeElement == el;
-    var offset = window.getSelection().focusOffset;
+    const flag = document.activeElement == el;
+    const offset = flag ? window.getSelection().focusOffset : 0;
     container.appendChild(el);
     if (flag) {
 	el.focus();
-	if (el.childNodes.length>0) { // and hopefully 1
-	    var range = document.createRange();
-	    var sel = window.getSelection();
-	    range.setStart(el.lastChild, offset);
-	    range.collapse(true);
-		sel.removeAllRanges();
-	    sel.addRange(range);
-	}
+	placeCaret(el,offset);
     }
 };
 
@@ -487,17 +474,20 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
             return;
 	}
 
-	var pos = placeCaretAtEnd(inputSpan,true);
+	placeCaretAtEnd(inputSpan,true);
+	var pos = window.getSelection().focusOffset;
 
 	if (closingDelimiters.indexOf(e.key) >=0 ) closingDelimiterHandling(pos, e.key);
 	else if (openingDelimiters.indexOf(e.key) >=0 ) openingDelimiterHandling(pos, e.key);
 	else if (e.key == "Escape") {
+	    scrollDownLeft(shell);
 	    escapeKeyHandling(pos);
 	    e.preventDefault();
 	    return;
 	}
 	// auto-completion code
 	else if (e.key == "Tab") {
+	    scrollDownLeft(shell);
 	    tabKeyHandling(pos);
 	    e.preventDefault();
 	    return;
@@ -580,8 +570,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 */
 
 	let msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
-	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully -- though sometimes still misses
-	msg = msg.replace(/\r\n/g, "\n"); // that's right...
+//	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully -- though sometimes still misses
+//	msg = msg.replace(/\r\n/g, "\n"); // that's right...
 	msg = msg.replace(/\r./g, ""); // remove the line wrapping with repeated last/first character
 //	msg = msg.replace(/(?<=["'])[^"']+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.12/share/doc/Macaulay2"); // disabled since firefox can't deal with this regex. instead, server does a redirect
 
