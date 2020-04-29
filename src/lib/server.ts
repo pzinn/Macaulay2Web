@@ -422,6 +422,8 @@ const checkClientSanity = function(client: Client) {
       logClient(client.id, "Not accepting events.");
       reject();
     }
+  }).catch(()=>{
+      // empty
   });
 };
 
@@ -443,6 +445,7 @@ const socketResetAction = function(client: Client) {
     checkClientSanity(client).then(function() {
       if (client.channel) {
         killMathProgram(client.channel, client.id);
+	spawnMathProgramInSecureContainer(client);
       }
       sanitizeClient(client);
     });
