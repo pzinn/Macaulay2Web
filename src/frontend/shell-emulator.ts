@@ -175,6 +175,11 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	  }
       }
 
+    const removeDelimiterHighlight = function() {
+	inputSpan.removeAttribute("data-highlight");
+	inputSpan.removeAttribute("data-highlight-error");
+    }
+
       const symbols = {
 	  0x391:"Alpha",0x392:"Beta",0x393:"Gamma",0x394:"Delta",0x395:"Epsilon",0x396:"Zeta",0x397:"Eta",0x398:"Theta",0x399:"Iota",0x39a:"Kappa",0x39b:"Lambda",0x39c:"Mu",0x39d:"Nu",0x39e:"Xi",0x39f:"Omicron",0x3a0:"Pi",0x3a1:"Rho",0x3a3:"Sigma",0x3a4:"Tau",0x3a5:"Upsilon",0x3a6:"Phi",0x3a7:"Chi",0x3a8:"Psi",0x3a9:"Omega",0x3b1:"alpha",0x3b2:"beta",0x3b3:"gamma",0x3b4:"delta",0x3f5:"epsilon",0x3b6:"zeta",0x3b7:"eta",0x3b8:"theta",0x3b9:"iota",0x3ba:"kappa",0x3bb:"lambda",0x3bc:"mu",0x3bd:"nu",0x3be:"xi",0x3bf:"omicron",0x3c0:"pi",0x3c1:"rho",0x3c3:"sigma",0x3c4:"tau",0x3c5:"upsilon",0x3d5:"phi",0x3c7:"chi",0x3c8:"psi",0x3c9:"omega",0x3b5:"varepsilon",0x3d1:"vartheta",0x3d6:"varpi",0x3f1:"varrho",0x3c2:"varsigma",0x3c6:"varphi",
 	  0x2135:"aleph",0x2136:"beth",0x2138:"daleth",0x2137:"gimel",
@@ -201,11 +206,12 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     }
 
     obj.postMessage = function(msg,flag1,flag2) { // send input, adding \n if necessary
-	  removeAutoComplete(false); // remove autocomplete menu if open
-	  var clean = sanitizeInput(msg);
+	removeAutoComplete(false); // remove autocomplete menu if open
+	removeDelimiterHighlight();
+	var clean = sanitizeInput(msg);
 	  if (clean.length>0) {
 	      obj.addToHistory(clean);
-	      if (procInputSpan === null) {
+	      if (procInputSpan === null) { // it'd be nicer to use ::before on inputSpan but sadly caret issues... cf https://stackoverflow.com/questions/60843694/cursor-position-in-an-editable-div-with-a-before-pseudo-element
 		  procInputSpan = document.createElement("span");
 		  procInputSpan.classList.add("M2Input");
 		  inputSpan.parentElement.insertBefore(procInputSpan,inputSpan);
@@ -365,6 +371,86 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	}
     };
 
+    const openingDelimiters = "([{\"";
+    const closingDelimiters = ")]}\"";
+
+    // the " handing is a bit messed up
+
+    const closingDelimiterHandling = function(pos, closing) {
+	if (inputSpan.parentElement != htmlSec) return; // only happens in transitional state in which case highlighting deactivated
+	if ((pos>0)&&(inputSpan.textContent[pos-1]=="\\")) return; // \) does not trigger highlighting
+	const index = closingDelimiters.indexOf(closing);
+	if (index<0) return;
+	removeDelimiterHighlight();
+	const opening = openingDelimiters[index];
+	const len = htmlSec.textContent.length - inputSpan.textContent.length + pos; // eww
+	const input = htmlSec.textContent.substring(0, len);
+	var highlight = input.replace(/./g," "); // only newlines left
+	var i,j;
+	var depth = []; for (i=0; i<openingDelimiters.length; i++) depth.push( i==index ? 1 : 0 );
+	i=len;
+	while ((i>0)&&(depth[index]>0)) {
+	    i--;
+	    if ((i==0)||(input[i-1]!="\\")) {
+		j=openingDelimiters.indexOf(input[i]);
+		if (j>=0) {
+		    if (openingDelimiters[j]==closingDelimiters[j]) {
+			depth[j]=1-depth[j];
+		    } else {
+			depth[j]--;
+			if (depth[j]<0) break;
+		    }
+		} else {
+		    j=closingDelimiters.indexOf(input[i]);
+		    if (j>=0) depth[j]++;
+		}
+	    }
+	}
+	if (depth.every( val => val == 0)) {
+	    inputSpan.dataset.highlight = highlight.substring(0,i)+opening+highlight.substring(i+1)+closing;
+	    setTimeout( function() { inputSpan.removeAttribute("data-highlight"); }, 1000);
+	} else if (closing!=opening) { // the " could've been an opening. in doubt, abstain
+	    inputSpan.dataset.highlightError = highlight+closing;
+	    setTimeout( function() { inputSpan.removeAttribute("data-highlight-error"); }, 1000);
+	}
+    }
+
+    const openingDelimiterHandling = function(pos, opening) {
+	if (inputSpan.parentElement != htmlSec) return; // only happens in transitional state in which case highlighting deactivated
+	if ((pos>0)&&(inputSpan.textContent[pos-1]=="\\")) return; // \) does not trigger highlighting
+	const index = openingDelimiters.indexOf(opening);
+	if (index<0) return;
+	removeDelimiterHighlight();
+	const closing = closingDelimiters[index];
+	const len = htmlSec.textContent.length - inputSpan.textContent.length + pos; // eww
+	const input = htmlSec.textContent; // we don't truncate
+	var highlight = input.replace(/./g," "); // only newlines left
+	var i,j;
+	var depth = []; for (i=0; i<openingDelimiters.length; i++) depth.push( i==index ? 1 : 0 );
+	i=len;
+	while ((i<input.length-1)&&(depth[index]>0)) {
+	    i++;
+	    if ((i==0)||(input[i-1]!="\\")) {
+		j=closingDelimiters.indexOf(input[i]);
+		if (j>=0) {
+		    if (openingDelimiters[j]==closingDelimiters[j]) {
+			depth[j]=1-depth[j];
+		    } else {
+			depth[j]--;
+			if (depth[j]<0) break;
+		    }
+		} else {
+		    j=openingDelimiters.indexOf(input[i]);
+		    if (j>=0) depth[j]++;
+		}
+	    }
+	}
+	if (depth.every( val => val == 0)) {
+	    inputSpan.dataset.highlight = highlight.substring(0,len)+opening+highlight.substring(len+1)+closing;
+	    setTimeout( function() { inputSpan.removeAttribute("data-highlight"); }, 1000);
+	} // we never throw an error on an opening delimiter -- it's assumed more input is coming 
+    }
+
       shell.onpaste = function(e) {
 	  placeCaretAtEnd(inputSpan,true);
       };
@@ -382,6 +468,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 
     shell.onkeydown = function(e: KeyboardEvent) {
 	removeAutoComplete(false); // remove autocomplete menu if open
+	removeDelimiterHighlight();
 	if (e.key == "Enter") {
 	    obj.postMessage(inputSpan.textContent,editorToggle&&(editorToggle.checked),true);
 	    e.preventDefault(); // no crappy <div></div> added
@@ -402,14 +489,15 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 
 	var pos = placeCaretAtEnd(inputSpan,true);
 
-	if (e.key == "Escape") {
+	if (closingDelimiters.indexOf(e.key) >=0 ) closingDelimiterHandling(pos, e.key);
+	else if (openingDelimiters.indexOf(e.key) >=0 ) openingDelimiterHandling(pos, e.key);
+	else if (e.key == "Escape") {
 	    escapeKeyHandling(pos);
 	    e.preventDefault();
 	    return;
 	}
-
 	// auto-completion code
-	if (e.key == "Tab") {
+	else if (e.key == "Tab") {
 	    tabKeyHandling(pos);
 	    e.preventDefault();
 	    return;
@@ -581,6 +669,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     obj.interrupt = function() {
 	removeAutoComplete(false); // remove autocomplete menu if open
 	inputSpan.textContent="";
+	removeDelimiterHighlight();
 	postRawMessage("\x03");
     };
     };
