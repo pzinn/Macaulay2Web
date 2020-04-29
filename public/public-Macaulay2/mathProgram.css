@@ -91,7 +91,8 @@ body {
     position: absolute;
     top: 0px;
     left: 0px;
-    color: #60C000;
+    color: #50A000;
+    text-shadow: 0px 0px 5px #70E000;
     content: attr(data-highlight);
 }
 
