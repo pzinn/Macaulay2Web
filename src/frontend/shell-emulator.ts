@@ -31,13 +31,11 @@ function dehtml(s) { // these are all the substitutions performed by M2
 */
 
 function baselinePosition(el) {
-    const fs0 = document.createElement('span');
-    fs0.appendChild(document.createTextNode('X')); fs0.style.fontSize = '0'; fs0.style.visibility = 'hidden';
-    const fs1 = document.createElement('span');
-    fs1.appendChild(document.createTextNode('X'));
-    el.appendChild(fs1); el.appendChild(fs0);
-    const result = fs0.getBoundingClientRect().top - fs1.getBoundingClientRect().top;
-    el.removeChild(fs0); el.removeChild(fs1);
+    const probe = document.createElement('span');
+    probe.appendChild(document.createTextNode('X')); probe.style.fontSize = '0'; probe.style.visibility = 'hidden';
+    el.parentElement.insertBefore(probe,el);
+    const result = probe.getBoundingClientRect().top - el.getBoundingClientRect().top;
+    probe.remove();
     return result;
 }
 
@@ -361,7 +359,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     const openingDelimiters = "([{\"";
     const closingDelimiters = ")]}\"";
 
-    // the " handing is a bit messed up
+    // the " handling is a bit messed up
 
     const closingDelimiterHandling = function(pos, closing) {
 	if (inputSpan.parentElement != htmlSec) return; // only happens in transitional state in which case highlighting deactivated
@@ -494,6 +492,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	}
     };
 
+    var rawList=[];
+
     const closeHtml = function() {
 	var anc = htmlSec.parentElement;
 	if (htmlSec.classList.contains("M2Script")) {
@@ -506,7 +506,13 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    //htmlSec.dataset.texCode=dehtml(htmlSec.dataset.texCode); // needed for MathJax compatibility
 	    //htmlSec.innerHTML=katex.renderToString(htmlSec.dataset.texCode);
 	    // we're not gonna bother updating innerHTML because anc *must* be M2Html
-	    try { anc.innerHTML=anc.dataset.saveHTML+=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } ); }
+	    try {
+		anc.innerHTML=anc.dataset.saveHTML+=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } );
+		// restore raw stuff
+		if (htmlSec.idList) htmlSec.idList.forEach( function(id) { document.getElementById("raw"+id).innerHTML=rawList[id]; });
+		//
+		anc.dataset.saveHTML=anc.innerHTML;
+	    }
 	    catch(err) {
 		anc.classList.add("KatexError");
 		anc.innerHTML=anc.dataset.saveHTML+=err.message;
@@ -517,10 +523,19 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    anc.innerHTML=anc.dataset.saveHTML+=htmlSec.outerHTML;
 	} else {
 	    htmlSec.removeAttribute("data-save-h-t-m-l");
-	    if (anc.classList.contains("M2Latex")) { // *try* to convert to texcode. should never occur anyway
+	    if (anc.classList.contains("M2Latex")) { // should almost never occur: html inside tex
 		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0]);
 		var baseline: number = baselinePosition(htmlSec);
+		/*
 		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}}";
+		*/
+		anc.dataset.texCode+="\\htmlId{raw"+rawList.length+"}{"
+		    +"\\raisebox{"+(baseline/fontSize)+"em}{}"
+		    +"\\raisebox{"+((baseline-htmlSec.offsetHeight)/fontSize)+"em}{}"
+		    +"}";
+		if (!anc.idList) anc.idList=[]; // temp nonstandard property TODO FIX
+		anc.idList.push(rawList.length);
+		rawList.push(htmlSec.outerHTML); // try on { (help det)#2#1#0#1#0#0 }
 	    }
 	}
 	htmlSec = anc;
