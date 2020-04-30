@@ -494,49 +494,50 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	}
     };
 
-	const closeHtml = function() {
-	  var anc = htmlSec.parentElement;
-	  if (htmlSec.classList.contains("M2Script")) {
-	      //(htmlSec as HTMLScriptElement).text = dehtml(htmlSec.dataset.jsCode); // should we dehtml? need to think carefully. or should it depend whether we're inside TeX or not?
-	      (htmlSec as HTMLScriptElement).text = htmlSec.dataset.jsCode;
-	      document.head.appendChild(htmlSec); // might as well move to head
-	      // htmlSec.remove(); // or delete, really -- script is useless once run. except doesn't seem to work on safari
-	  }
-	  else if (htmlSec.classList.contains("M2Latex")) {
-	      //htmlSec.dataset.texCode=dehtml(htmlSec.dataset.texCode); // needed for MathJax compatibility
-	      //htmlSec.innerHTML=katex.renderToString(htmlSec.dataset.texCode);
-	      // we're not gonna bother updating innerHTML because anc *must* be M2Html
-	      try { anc.innerHTML=anc.dataset.saveHTML+=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } ); }
-	      catch(err) {
-		  anc.classList.add("KatexError");
-		  anc.innerHTML=anc.dataset.saveHTML+=err.message;
-		  console.log(err.message);
-	      }
-	  }
-	  else if (anc.classList.contains("M2Html")) { // we need to convert to string
-	      anc.innerHTML=anc.dataset.saveHTML+=htmlSec.outerHTML;
-	  }
-	  else if (anc.classList.contains("M2Latex")) { // *try* to convert to texcode. should never occur anyway
-	      var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0]);
-	      var baseline: number = baselinePosition(htmlSec);
-	      anc.dataset.texCode+="{\\rawhtml{"+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}{"+htmlSec.outerHTML+"}}";
-	  }
-	    else htmlSec.removeAttribute("data-save-h-t-m-l");
-	  htmlSec = anc;
-      }
+    const closeHtml = function() {
+	var anc = htmlSec.parentElement;
+	if (htmlSec.classList.contains("M2Script")) {
+	    //(htmlSec as HTMLScriptElement).text = dehtml(htmlSec.dataset.jsCode); // should we dehtml? need to think carefully. or should it depend whether we're inside TeX or not?
+	    (htmlSec as HTMLScriptElement).text = htmlSec.dataset.jsCode;
+	    document.head.appendChild(htmlSec); // might as well move to head
+	    // htmlSec.remove(); // or delete, really -- script is useless once run. except doesn't seem to work on safari
+	}
+	else if (htmlSec.classList.contains("M2Latex")) {
+	    //htmlSec.dataset.texCode=dehtml(htmlSec.dataset.texCode); // needed for MathJax compatibility
+	    //htmlSec.innerHTML=katex.renderToString(htmlSec.dataset.texCode);
+	    // we're not gonna bother updating innerHTML because anc *must* be M2Html
+	    try { anc.innerHTML=anc.dataset.saveHTML+=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } ); }
+	    catch(err) {
+		anc.classList.add("KatexError");
+		anc.innerHTML=anc.dataset.saveHTML+=err.message;
+		console.log(err.message);
+	    }
+	}
+	else if (anc.classList.contains("M2Html")) { // we need to convert to string
+	    anc.innerHTML=anc.dataset.saveHTML+=htmlSec.outerHTML;
+	} else {
+	    htmlSec.removeAttribute("data-save-h-t-m-l");
+	    if (anc.classList.contains("M2Latex")) { // *try* to convert to texcode. should never occur anyway
+		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0]);
+		var baseline: number = baselinePosition(htmlSec);
+		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}}";
+	    }
+	}
+	htmlSec = anc;
+    }
 
-	const closeInput = function() { // need to treat input specially because no closing tag
-	  htmlSec.parentElement.appendChild(document.createElement("br"));
-	    if (inputSpanParentElement.length > 0)
-		attachEl(inputSpan,inputSpanParentElement.pop()); // move back input element to outside htmlSec
-	  else console.log("Input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
-	  // highlight
-	  htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
-	  //htmlSec.addEventListener("click",codeInputAction);
-	  htmlSec.classList.add("M2PastInput");
-//	  htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
-	  closeHtml();
-      }
+    const closeInput = function() { // need to treat input specially because no closing tag
+	htmlSec.parentElement.appendChild(document.createElement("br"));
+	if (inputSpanParentElement.length > 0)
+	    attachEl(inputSpan,inputSpanParentElement.pop()); // move back input element to outside htmlSec
+	else console.log("Input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
+	// highlight
+	htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
+	//htmlSec.addEventListener("click",codeInputAction);
+	htmlSec.classList.add("M2PastInput");
+	//	  htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
+	closeHtml();
+    }
 
 	const createHtml = function(a, className?) {
 	  var anc = htmlSec;
