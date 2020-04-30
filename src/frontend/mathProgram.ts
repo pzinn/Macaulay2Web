@@ -354,6 +354,11 @@ const init = function() {
     document.getElementById("content").onclick=codeClickAction;
     assignClick(document.getElementsByClassName("tabPanelActivator"), openTabCloseDrawer);
     document.getElementById("about").onclick = openAboutTab;
+
+    window.addEventListener('beforeunload', function (e) {
+	e.preventDefault();
+	e.returnValue = ''; // Chrome requires returnValue to be set
+    });
 };
 
 module.exports = function() {
