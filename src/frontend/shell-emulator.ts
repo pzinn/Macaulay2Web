@@ -470,7 +470,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    return;
 	}
 
-	if (e.ctrlKey || e.metaKey) { // do not jump to bottom on Ctrl or Command combos
+	if (e.ctrlKey || e.metaKey || e.key == "PageUp" || e.key == "PageDown") { // do not move caret on Ctrl or Command combos
             return;
 	}
 
