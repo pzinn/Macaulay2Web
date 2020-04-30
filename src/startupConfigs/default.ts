@@ -8,7 +8,7 @@ const options = {
     CONTAINERS: "../lib/LocalContainerManager",
     MATH_PROGRAM: "Macaulay2",
       // tslint:disable-next-line:max-line-length
-      MATH_PROGRAM_COMMAND: "export PATH=~/bin:$PATH; export WWWBROWSER=open; M2 -e \"printWidth=0; topLevelMode = WebApp\"",
+      MATH_PROGRAM_COMMAND: "export PATH=~/bin:$PATH; export WWWBROWSER=open; M2 --webapp -e \"printWidth=0\"",
       // bit of a hack: we assume there's a ~/bin/open
       // that takes care of forming a proper <script> to open a new URL
     port: "8002",

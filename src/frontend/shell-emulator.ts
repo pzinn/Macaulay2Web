@@ -499,16 +499,16 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	  if (htmlSec.classList.contains("M2Script")) {
 	      //(htmlSec as HTMLScriptElement).text = dehtml(htmlSec.dataset.jsCode); // should we dehtml? need to think carefully. or should it depend whether we're inside TeX or not?
 	      (htmlSec as HTMLScriptElement).text = htmlSec.dataset.jsCode;
-	      // document.head.appendChild(htmlSec); // might as well move to head
-	      htmlSec.remove(); // or delete, really -- script is useless once run
+	      document.head.appendChild(htmlSec); // might as well move to head
+	      // htmlSec.remove(); // or delete, really -- script is useless once run. except doesn't seem to work on safari
 	  }
 	  else if (htmlSec.classList.contains("M2Latex")) {
-//	      htmlSec.dataset.texCode=dehtml(htmlSec.dataset.texCode); // needed for MathJax compatibility. might remove since now mathJax doesn't encode any more
+	      //htmlSec.dataset.texCode=dehtml(htmlSec.dataset.texCode); // needed for MathJax compatibility
 	      //htmlSec.innerHTML=katex.renderToString(htmlSec.dataset.texCode);
 	      // we're not gonna bother updating innerHTML because anc *must* be M2Html
 	      try { anc.innerHTML=anc.dataset.saveHTML+=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } ); }
 	      catch(err) {
-		  anc.classList.add("M2Error");
+		  anc.classList.add("KatexError");
 		  anc.innerHTML=anc.dataset.saveHTML+=err.message;
 		  console.log(err.message);
 	      }
@@ -516,10 +516,10 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	  else if (anc.classList.contains("M2Html")) { // we need to convert to string
 	      anc.innerHTML=anc.dataset.saveHTML+=htmlSec.outerHTML;
 	  }
-	  else if (anc.classList.contains("M2Latex")) { // *try* to convert to texcode TEMP gotta replace this with more serious?
+	  else if (anc.classList.contains("M2Latex")) { // *try* to convert to texcode. should never occur anyway
 	      var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0]);
 	      var baseline: number = baselinePosition(htmlSec);
-	      anc.dataset.texCode+="{\\rawhtml{"+(baseline/fontSize)+"}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"}{"+htmlSec.outerHTML+"}}";
+	      anc.dataset.texCode+="{\\rawhtml{"+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}{"+htmlSec.outerHTML+"}}";
 	  }
 	    else htmlSec.removeAttribute("data-save-h-t-m-l");
 	  htmlSec = anc;

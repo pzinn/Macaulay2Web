@@ -253,7 +253,7 @@ code, codeblock, .M2PastInput:hover, .M2HtmlOutput:hover {
     color: gray;
 }
 
-.M2Error {
+.KatexError {
     color: #C07060;
 }
 
