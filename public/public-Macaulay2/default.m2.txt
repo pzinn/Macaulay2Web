@@ -60,6 +60,9 @@ factor oo
 R=RR[x,y]; P=y^2-(x+1)*(x-1)*(x-2);
 gfxPlot(P,{-2,3},"stroke-width"=>0.05,GfxHeight=>25,"stroke"=>"red")
 
+-- or
+debug Core; IMG("src"=>"http://www.lpthe.jussieu.fr/~pzinn/me2007.jpg","alt"=>"me")
+
 -- something fun #2
 R=ZZ[x]; expression x
 x/(1+oo) -- repeat at will
