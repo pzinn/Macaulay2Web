@@ -200,37 +200,10 @@ const showUploadSuccessDialog = function(event) {
   dialog.showModal();
 };
 
-const showImageDialog = function(imageUrl) {
-  if (imageUrl) {
-    const dialog: any = document.getElementById("showImageDialog");
-    if (!dialog.showModal) {
-      dialogPolyfill.registerDialog(dialog);
-    }
-    // console.log("We received an image: " + imageUrl);
-    const btn = document.getElementById("showImageDialogBtn");
-    // Get rid of old click event listeners.
-    const btnClone = btn.cloneNode(true);
-    const content = document.getElementById("showImageDialogContent");
-    content.innerText = "";
-    content.appendChild(btnClone);
-    btnClone.addEventListener("click", function() {
-      window.open(imageUrl, "_blank",
-          "height=200,width=200,toolbar=0,location=0,menubar=0");
-      dialog.close();
-    });
-    content.appendChild(document.createTextNode(imageUrl.split("/").pop()));
-    dialog.showModal();
-  }
-};
-
 const attachCloseDialogBtns = function() {
   document.getElementById("uploadSuccessDialogClose").addEventListener("click",
       function() {
           (document.getElementById("uploadSuccessDialog") as any).close();
-      });
-  document.getElementById("showImageDialogClose").addEventListener("click",
-      function() {
-          (document.getElementById("showImageDialog") as any).close();
       });
 };
 
@@ -260,13 +233,6 @@ const wrapEmitForDisconnect = function(event, msg) {
   }
   return socket;
 };
-
-/*const displayUrlInNewWindow = function(url) {
-  if (url) {
-    window.open(url, "M2 Help");
-  }
-};
-*/
 
 const codeClickAction = function(e) {
     if (e.target.tagName.substring(0,4)=="CODE")
@@ -314,42 +280,36 @@ const assignClick = function(lst, f) {
 }
 
 const init = function() {
-  const zoom = require("./zooming");
-  zoom.attachZoomButtons("M2Out", "M2OutZoomIn", "M2OutResetZoom",
-      "M2OutZoomOut");
+    const zoom = require("./zooming");
+    zoom.attachZoomButtons("M2Out", "M2OutZoomIn", "M2OutResetZoom", "M2OutZoomOut");
 
-  socket = io();
-  socket.on("reconnect_failed", socketOnError("reconnect_fail"));
-  socket.on("reconnect_error", socketOnError("reconnect_error"));
-  socket.on("connect_error", socketOnError("connect_error"));
-  socket.on("result", socketOnMessage);
-  socket.on("disconnect", socketOnDisconnect);
-  socket.on("cookie", socketOnCookie);
-  socket.oldEmit = socket.emit;
-  socket.emit = wrapEmitForDisconnect;
-  socket.on("image", showImageDialog);
+    socket = io();
+    socket.on("reconnect_failed", socketOnError("reconnect_fail"));
+    socket.on("reconnect_error", socketOnError("reconnect_error"));
+    socket.on("connect_error", socketOnError("connect_error"));
+    socket.on("result", socketOnMessage);
+    socket.on("disconnect", socketOnDisconnect);
+    socket.on("cookie", socketOnCookie);
+    socket.oldEmit = socket.emit;
+    socket.emit = wrapEmitForDisconnect;
 
-  const tutorialManager = require("./tutorials")();
-  const fetchTutorials = require("./fetchTutorials");
-  fetchTutorials(tutorialManager.makeTutorialsList);
-  document.getElementById("uptutorial").onchange=tutorialManager.uploadTutorial;
+    const tutorialManager = require("./tutorials")();
+    const fetchTutorials = require("./fetchTutorials");
+    fetchTutorials(tutorialManager.makeTutorialsList);
+    document.getElementById("uptutorial").onchange=tutorialManager.uploadTutorial;
 
-  myshell = new shell.Shell(document.getElementById("M2Out"), socket, document.getElementById("M2In"), document.getElementById("editorToggle"));
+    myshell = new shell.Shell(document.getElementById("M2Out"), socket,
+			      document.getElementById("M2In"), document.getElementById("editorToggle"));
 
-  attachMinMaxBtnActions();
-  attachCtrlBtnActions();
-  attachCloseDialogBtns();
+    attachMinMaxBtnActions();
+    attachCtrlBtnActions();
+    attachCloseDialogBtns();
 
-  // $("#M2In").text(DefaultText);
-  // $("#M2In").html(Prism.highlight(DefaultText,Prism.languages.macaulay2));
-
-  document.getElementById("M2In").onkeypress=editorKeypress;
-
+    document.getElementById("M2In").onkeypress=editorKeypress;
     
-  const siofu = new SocketIOFileUpload(socket);
-  document.getElementById("uploadBtn").addEventListener("click", siofu.prompt,
-      false);
-  siofu.addEventListener("complete", showUploadSuccessDialog);
+    const siofu = new SocketIOFileUpload(socket);
+    document.getElementById("uploadBtn").addEventListener("click", siofu.prompt, false);
+    siofu.addEventListener("complete", showUploadSuccessDialog);
 
     document.getElementById("content").onclick=codeClickAction;
     assignClick(document.getElementsByClassName("tabPanelActivator"), openTabCloseDrawer);
@@ -357,7 +317,7 @@ const init = function() {
 
     window.addEventListener('beforeunload', function (e) {
 	e.preventDefault();
-	e.returnValue = ''; // Chrome requires returnValue to be set
+	e.returnValue = '';
     });
 };
 
