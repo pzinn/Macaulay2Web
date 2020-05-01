@@ -131,10 +131,11 @@ body {
 .M2Html {
     display: inline-table; /* to make sure size is as big as content. inline-block is the more obvious choice */
     white-space: nowrap;
+    line-height: 0; /* necessary for exotic stuff. for all standard HTML elements need to redefine it to something more sensible */
 }
 
 .M2Html ul {
-    line-height: inherit;
+    line-height: 1.2;
 }
 
 .M2Html pre {
@@ -455,10 +456,6 @@ a.submenuItem {
 
 .material-icons {
     vertical-align: middle;
-}
-
-.katex .fbox {
-    border-style: dotted; /* probably temporary */
 }
 
 #accordion h3:hover {

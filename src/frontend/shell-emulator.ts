@@ -509,7 +509,12 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    try {
 		anc.innerHTML=anc.dataset.saveHTML+=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } );
 		// restore raw stuff
-		if (htmlSec.idList) htmlSec.idList.forEach( function(id) { document.getElementById("raw"+id).innerHTML=rawList[id]; });
+		if (htmlSec.idList) htmlSec.idList.forEach( function(id) {
+		    var el = document.getElementById("raw"+id);
+		    el.innerHTML=rawList[id];
+		    el.style.display="contents"; // could put in css but don't want to overreach
+		    el.style.fontSize="0.826446280991736em"; // to compensate for katex's 1.21 factor
+		}); // should pop as well
 		//
 		anc.dataset.saveHTML=anc.innerHTML;
 	    }
@@ -526,6 +531,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    if (anc.classList.contains("M2Latex")) { // should almost never occur: html inside tex
 		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0]);
 		var baseline: number = baselinePosition(htmlSec);
+		// none of the solutions below quite work: dimensions aren't scaled
 		/*
 		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}}";
 		*/
@@ -533,6 +539,11 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		    +"\\raisebox{"+(baseline/fontSize)+"em}{}"
 		    +"\\raisebox{"+((baseline-htmlSec.offsetHeight)/fontSize)+"em}{}"
 		    +"}";
+		/*
+		anc.dataset.texCode+="\\htmlId{raw"+rawList.length+"}{"
+		    +"\\rawhtml{}{"+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}"
+		    +"}";
+		*/
 		if (!anc.idList) anc.idList=[]; // temp nonstandard property TODO FIX
 		anc.idList.push(rawList.length);
 		rawList.push(htmlSec.outerHTML); // try on { (help det)#2#1#0#1#0#0 }
