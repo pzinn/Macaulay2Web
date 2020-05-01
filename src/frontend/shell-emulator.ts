@@ -463,8 +463,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	if ((e.key == "ArrowDown") || (e.key == "ArrowUp")) {
             if (e.key == "ArrowDown") downArrowKeyHandling(); else upArrowKeyHandling();
 	    e.preventDefault();
-	    placeCaretAtEnd(inputSpan);
 	    scrollDownLeft(shell);
+	    placeCaretAtEnd(inputSpan);
 	    return;
 	}
 
@@ -472,7 +472,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
             return;
 	}
 
-	placeCaretAtEnd(inputSpan,true);
+	if (e.key == "Home") scrollDownLeft(shell); else placeCaretAtEnd(inputSpan,true);
 	var pos = window.getSelection().focusOffset;
 
 	if (closingDelimiters.indexOf(e.key) >=0 ) closingDelimiterHandling(pos, e.key);
