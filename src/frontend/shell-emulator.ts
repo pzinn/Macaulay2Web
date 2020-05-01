@@ -504,10 +504,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	}
 	else if (htmlSec.classList.contains("M2Latex")) {
 	    //htmlSec.dataset.texCode=dehtml(htmlSec.dataset.texCode); // needed for MathJax compatibility
-	    //htmlSec.innerHTML=katex.renderToString(htmlSec.dataset.texCode);
-	    // we're not gonna bother updating innerHTML because anc *must* be M2Html
 	    try {
-		anc.innerHTML=anc.dataset.saveHTML+=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } );
+		htmlSec.innerHTML=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } );
 		// restore raw stuff
 		if (htmlSec.idList) htmlSec.idList.forEach( function(id) {
 		    var el = document.getElementById("raw"+id);
@@ -516,15 +514,15 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		    el.style.fontSize="0.826446280991736em"; // to compensate for katex's 1.21 factor
 		}); // should pop as well
 		//
-		anc.dataset.saveHTML=anc.innerHTML;
+//		htmlSec.dataset.saveHTML=htmlSec.innerHTML; // not needed: going to die anyway
 	    }
 	    catch(err) {
-		anc.classList.add("KatexError");
-		anc.innerHTML=anc.dataset.saveHTML+=err.message;
+		htmlSec.classList.add("KatexError"); // TODO: better class for this?
+		htmlSec.innerHTML=err.message;
 		console.log(err.message);
 	    }
 	}
-	else if (anc.classList.contains("M2Html")) { // we need to convert to string
+	if (anc.classList.contains("M2Html")) { // we need to convert to string
 	    anc.innerHTML=anc.dataset.saveHTML+=htmlSec.outerHTML;
 	} else {
 	    htmlSec.removeAttribute("data-save-h-t-m-l");

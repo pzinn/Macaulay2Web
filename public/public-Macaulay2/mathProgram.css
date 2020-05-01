@@ -302,7 +302,7 @@ code:active, codeblock:active, .M2PastInput:active {
     outline: none;
     line-height: inherit;
     display: inline-table; /* for firefox */
-/*    font: inherit; */
+    font-size: inherit;
 }
 
 .autocomplete-selection {

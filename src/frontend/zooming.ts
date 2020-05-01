@@ -6,18 +6,20 @@ function applySize(textarea, sizes) {
 }
 
 function zoomin(textarea, sizes) {
-  console.log("CS: " + sizes);
   sizes.currentSize *= sizes.factor;
+  console.log("zoom: " + sizes.currentSize);
   applySize(textarea, sizes);
 }
 
 function zoomout(textarea, sizes) {
   sizes.currentSize /= sizes.factor;
+  console.log("zoom: " + sizes.currentSize);
   applySize(textarea, sizes);
 }
 
 function reset(textarea, sizes) {
   sizes.currentSize = 1.0;
+  console.log("zoom: " + sizes.currentSize);
   applySize(textarea, sizes);
 }
 
