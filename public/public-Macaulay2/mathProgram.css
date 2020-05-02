@@ -152,7 +152,7 @@ body {
     font-size: 0.826446280991736em;
 }
 
-.M2Html pre .katex { /* .katex normally contains 1.21em which we kill */
+.M2Html pre .katex, .M2Html pre pre { /* .katex normally contains 1.21em which we kill */
     font-size: 1em;
 }
 
