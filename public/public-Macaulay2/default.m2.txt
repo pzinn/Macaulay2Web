@@ -17,7 +17,7 @@ viewHelp "determinant"
   R = ZZ/101[a,b,c,d]
   I = ideal(a^2-b*c, a^3-b^3, a^4-b*d^3, a^5-c^2*d^3)
   J = ideal groebnerBasis I;
-  netList J_*
+  netList J_* -- emulation of ascii style
 
   -- Some examples of rings
   A = ZZ/32003[a..g]

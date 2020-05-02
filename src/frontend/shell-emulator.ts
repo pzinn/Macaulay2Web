@@ -420,7 +420,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
             if (e.key == "ArrowDown") downArrowKeyHandling(); else upArrowKeyHandling();
 	    e.preventDefault();
 	    tools.scrollDown(shell);
-	    tools.placeCaretAtEnd(inputSpan); // TEMP doesnt work for scrolling
+	    tools.placeCaretAtEnd(inputSpan);
+	    //
 	    return;
 	}
 
@@ -436,7 +437,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 
 	if (e.key == "End") {
 	    tools.scrollDown(shell);
-	    tools.placeCaret(inputSpan,0); // to force reset of scrolling (TEMP?)
+	    tools.placeCaretAtEnd(inputSpan); // the default would sometimes use this for vertical scrolling
 	    return;
 	}
 

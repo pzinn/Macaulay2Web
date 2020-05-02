@@ -36,6 +36,7 @@ const placeCaretAtEnd = function(el,flag?) { // flag means only do it if not alr
     if ((!flag)||(document.activeElement!=el))
     {
 	placeCaret(el,el.textContent.length);
+	el.scrollIntoView({inline:"end"});
     }
 }
 const attachElement = function(el,container) { // move an HTML element (with single text node) while preserving focus/caret
