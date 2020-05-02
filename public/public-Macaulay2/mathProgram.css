@@ -147,12 +147,12 @@ body {
     font-size: 1.21em;
 }
 
-
-.M2Html pre pre { /* we don't want this to accumulate */
+/* but then we don't want this to accumulate, which means any subsequence change of font must have opposite correction */
+.M2Html pre .M2html, .M2Html pre .M2Input, .M2Html pre code, .M2Html pre codeblock {
     font-size: 0.826446280991736em;
 }
 
-.M2Html pre .katex { /* same: .katex normally contains 1.21em which we kill */
+.M2Html pre .katex { /* .katex normally contains 1.21em which we kill */
     font-size: 1em;
 }
 
@@ -455,8 +455,4 @@ a.submenuItem {
 
 #accordion h3:hover {
     background-color: #8080FF;
-}
-
-.enclosing {
-    border: 1px solid red; /* TEMP */
 }
