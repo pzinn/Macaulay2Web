@@ -9,7 +9,7 @@
 import {Socket} from "./mathProgram";
 
 const webAppTags = require("../frontend/tags");
-const scrollDownLeft = require("./scroll-down-left");
+const tools = require("./htmlTools");
 
 const unicodeBell = "\u0007";
 declare const katex;
@@ -24,54 +24,6 @@ function dehtml(s) { // these are all the substitutions performed by M2
     s=s.replace(/&amp;/g,"&"); // do this one last
     return s;
 }
-
-/* caret/selection issues:
-- in chrome, anchor*=base* = start, extent*=focus* = end. *node = the DOM element itself
-- in firefox, anchor* = start, focus* = end.              *node = the text node inside the dom element
-*/
-
-function baselinePosition(el) {
-    const probe = document.createElement('span');
-    probe.appendChild(document.createTextNode('X')); probe.style.fontSize = '0'; probe.style.visibility = 'hidden';
-    el.parentElement.insertBefore(probe,el);
-    const result = probe.getBoundingClientRect().top - el.getBoundingClientRect().top;
-    probe.remove();
-    return result;
-}
-
-// the next 4 functions require el to have a single text node!
-const placeCaret = function (el,pos) {
-    if (el.childNodes.length == 1) {
-	var sel=window.getSelection();
-	sel.collapse(el.lastChild,pos);
-    }
-    else if (el.childNodes.length > 1) console.log("placeCaret: not a single node!");
-}
-const addToEl = function(el,pos,s) { // insert into a pure text element and move care to end of insertion
-    const msg=el.textContent;
-    el.textContent = msg.substring(0,pos)+s+msg.substring(pos,msg.length);
-    // put the caret where it should be
-    el.focus();
-    placeCaret(el,pos+s.length);
-}
-const placeCaretAtEnd = function(el,flag?) { // flag means only do it if not already in input. returns position
-    if ((!flag)||(document.activeElement!=el))
-    {
-	el.focus();
-	placeCaret(el,el.textContent.length);
-    }
-}
-const attachEl = function(el,container) { // move an HTML element (with single text node) while preserving focus/caret
-    const flag = document.activeElement == el;
-    const offset = flag ? window.getSelection().focusOffset : 0;
-    container.appendChild(el);
-    if (flag) {
-	el.focus();
-	placeCaret(el,offset);
-    }
-};
-
-
 
 const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, editorToggle?: HTMLInputElement) {
     // Shell is an old-style javascript oop constructor
@@ -118,8 +70,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	      var str = this.textContent;
 	      if (str[str.length-1] == "\n") str=str.substring(0,str.length-1); // cleaner this way
 	      inputSpan.textContent = str;
-	      placeCaretAtEnd(inputSpan);
-	      scrollDownLeft(shell);
+	      tools.scrollDown(shell);
+	      tools.placeCaretAtEnd(inputSpan);
 	  }
       };
 
@@ -153,9 +105,9 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	      inputSpan.textContent+=autoComplete.lastChild.textContent;
 	      var el;
 	      if (flag&&autoCompleteSelection)
-		  addToEl(inputSpan,pos,autoCompleteSelection.textContent+" ");
+		  tools.addToElement(inputSpan,pos,autoCompleteSelection.textContent+" ");
 	      else
-		  addToEl(inputSpan,pos,autoComplete.dataset.word);
+		  tools.addToElement(inputSpan,pos,autoComplete.dataset.word);
 	      autoComplete.remove(); autoComplete=autoCompleteSelection=null;
 	  }
       }
@@ -203,8 +155,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	      }
 	      procInputSpan.textContent+=clean+returnSymbol;
 	      inputSpan.textContent="";
-	      scrollDownLeft(shell);
-	      if (flag2) placeCaretAtEnd(inputSpan);
+	      tools.scrollDownLeft(shell);
+	      if (flag2) tools.placeCaretAtEnd(inputSpan);
 	      if (clean[clean.length-1] != "\n") clean+="\n";
 	      if (flag1) obj.addToEditor(clean);
 	      postRawMessage(clean);
@@ -215,7 +167,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
       if (typeof msg !== "undefined") {
         if (editor !== null) {
 	    editor.appendChild(document.createTextNode(msg));
-          scrollDownLeft(editor);
+          tools.scrollDownLeft(editor);
         }
       }
     };
@@ -253,7 +205,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     const escapeKeyHandling = function(pos) {
 	var esc = inputSpan.textContent.indexOf("\u250B");
 	if (esc<0)
-	    addToEl(inputSpan,pos,"\u250B");
+	    tools.addToElement(inputSpan,pos,"\u250B");
 	else {
 	    var s;
 	    if (esc<pos) {
@@ -272,7 +224,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 			break;
 		    }
 		}
-	    addToEl(inputSpan,pos,sss);
+	    tools.addToElement(inputSpan,pos,sss);
 	}
     };
 
@@ -289,7 +241,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    while ((k<M2symbols.length)&&(M2symbols[k].substring(0,word.length)==word)) k++;
 	    if (k>j) {
 		if (k==j+1) { // yay, one solution
-		    addToEl(inputSpan,pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
+		    tools.addToElement(inputSpan,pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
 		}
 		else { // more interesting: several solutions
 		    // obvious implementation would've been datalist + input;
@@ -437,7 +389,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     }
 
       shell.onpaste = function(e) {
-	  placeCaretAtEnd(inputSpan,true);
+	  tools.placeCaretAtEnd(inputSpan,true);
       };
 
       shell.onclick = function(e) {
@@ -448,7 +400,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	      if (t.classList.contains("M2HtmlOutput")) { toggleOutput.call(t); return; }
 	      t=t.parentElement;
 	  }
-	  if (window.getSelection().isCollapsed) placeCaretAtEnd(inputSpan,true);
+	  if (window.getSelection().isCollapsed) tools.placeCaretAtEnd(inputSpan,true);
       };
 
     shell.onkeydown = function(e: KeyboardEvent) {
@@ -463,8 +415,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	if ((e.key == "ArrowDown") || (e.key == "ArrowUp")) {
             if (e.key == "ArrowDown") downArrowKeyHandling(); else upArrowKeyHandling();
 	    e.preventDefault();
-	    scrollDownLeft(shell);
-	    placeCaretAtEnd(inputSpan);
+	    tools.scrollDown(shell);
+	    tools.placeCaretAtEnd(inputSpan);
 	    return;
 	}
 
@@ -472,20 +424,34 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
             return;
 	}
 
-	if (e.key == "Home") scrollDownLeft(shell); else placeCaretAtEnd(inputSpan,true);
+	if (e.key == "Home") {
+	    e.preventDefault(); // the default would sometimes use this for vertical scrolling
+	    tools.scrollDownLeft(shell);
+	    tools.placeCaret(inputSpan,0);
+	    return;
+	}
+
+	if (e.key == "End") {
+	    e.preventDefault(); // the default would sometimes use this for vertical scrolling
+	    tools.scrollDown(shell);
+	    tools.placeCaret(inputSpan,inputSpan.textContent.length);
+	    return;
+	}
+
+	tools.placeCaretAtEnd(inputSpan,true);
 	var pos = window.getSelection().focusOffset;
 
 	if (closingDelimiters.indexOf(e.key) >=0 ) closingDelimiterHandling(pos, e.key);
 	else if (openingDelimiters.indexOf(e.key) >=0 ) openingDelimiterHandling(pos, e.key);
 	else if (e.key == "Escape") {
-	    scrollDownLeft(shell);
+	    tools.scrollDown(shell);
 	    escapeKeyHandling(pos);
 	    e.preventDefault();
 	    return;
 	}
 	// auto-completion code
 	else if (e.key == "Tab") {
-	    scrollDownLeft(shell);
+	    tools.scrollDown(shell);
 	    tabKeyHandling(pos);
 	    e.preventDefault();
 	    return;
@@ -528,7 +494,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    htmlSec.removeAttribute("data-save-h-t-m-l");
 	    if (anc.classList.contains("M2Latex")) { // should almost never occur: html inside tex
 		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0]);
-		var baseline: number = baselinePosition(htmlSec);
+		var baseline: number = tools.baselinePosition(htmlSec);
 		// none of the solutions below quite work: dimensions aren't scaled
 		/*
 		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}}";
@@ -553,7 +519,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     const closeInput = function() { // need to treat input specially because no closing tag
 	htmlSec.parentElement.appendChild(document.createElement("br"));
 	if (inputSpanParentElement.length > 0)
-	    attachEl(inputSpan,inputSpanParentElement.pop()); // move back input element to outside htmlSec
+	    tools.attachElement(inputSpan,inputSpanParentElement.pop()); // move back input element to outside htmlSec
 	else console.log("Input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
 	// highlight
 	htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
@@ -636,7 +602,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		else if (tag==webAppTags.Input) { // input section: a bit special (ends at first \n)
 		    createHtml("span","M2Input");
 		    inputSpanParentElement.push(inputSpan.parentElement); // not great
-		    attachEl(inputSpan,htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
+		    tools.attachElement(inputSpan,htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
 		}
 		else if (tag==webAppTags.InputContd) { // continuation of input section
 		    inputEndFlag=false;
@@ -671,7 +637,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 			htmlSec.appendChild(document.createTextNode(txt[i]));
 	    }
 	}
-	scrollDownLeft(shell);
+	tools.scrollDownLeft(shell);
     };
 
       obj.reset = function() {

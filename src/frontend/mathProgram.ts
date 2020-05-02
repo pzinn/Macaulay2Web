@@ -15,7 +15,7 @@ let socket: Socket;
 let serverDisconnect = false;
 const dialogPolyfill = require("dialog-polyfill");
 const shell = require("./shell-emulator");
-const scrollDownLeft = require("./scroll-down-left");
+const tools = require("./htmlTools");
 
 const mathJaxTags = require("../frontend/tags");
 
@@ -91,7 +91,7 @@ const attachMinMaxBtnActions = function() {
     dialog.appendChild(output);
     maxCtrl.insertBefore(zoomBtns, downsize);
     dialog.showModal();
-    scrollDownLeft(document.getElementById("M2Out"));
+    tools.scrollDownLeft(output);
   });
   downsize.addEventListener("click", function() {
     const dialog: any = document.getElementById("fullScreenOutput");
@@ -101,7 +101,7 @@ const attachMinMaxBtnActions = function() {
     oldPosition.appendChild(output);
     ctrl.insertBefore(zoomBtns, maximize);
     dialog.close();
-    scrollDownLeft(document.getElementById("M2Out"));
+    tools.scrollDownLeft(output);
   });
 };
 
