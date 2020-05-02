@@ -475,10 +475,10 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		// restore raw stuff
 		if (htmlSec.dataset.idList) htmlSec.dataset.idList.split(" ").forEach( function(id) {
 		    var el = document.getElementById("raw"+id);
-		    el.innerHTML=rawList[+id];
 		    el.style.display="contents"; // could put in css but don't want to overreach
 		    el.style.fontSize="0.826446280991736em"; // to compensate for katex's 1.21 factor
-		}); // should pop as well
+		    el.innerHTML=rawList[+id];
+		});
 		//
 //		htmlSec.dataset.saveHTML=htmlSec.innerHTML; // not needed: going to die anyway
 	    }
@@ -493,9 +493,11 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	} else {
 	    htmlSec.removeAttribute("data-save-h-t-m-l");
 	    if (anc.classList.contains("M2Latex")) { // should almost never occur: html inside tex
-		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0]);
-		var baseline: number = tools.baselinePosition(htmlSec);
 		// none of the solutions below quite work: dimensions aren't scaled
+		// at least we compensate the 1.21 factor of KaTeX, better than nothing
+		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0])*1.21;
+		// but if say this was inside a sup/superscript, will be wrong (box will be too big)
+		var baseline: number = tools.baselinePosition(htmlSec);
 		anc.dataset.texCode+="\\htmlId{raw"+rawList.length+"}{"
 		    +"\\raisebox{"+(baseline/fontSize)+"em}{}"
 		    +"\\raisebox{"+((baseline-htmlSec.offsetHeight)/fontSize)+"em}{}"

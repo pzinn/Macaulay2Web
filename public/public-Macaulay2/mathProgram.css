@@ -456,3 +456,7 @@ a.submenuItem {
 #accordion h3:hover {
     background-color: #8080FF;
 }
+
+.enclosing {
+    border: 1px solid red; /* TEMP */
+}
