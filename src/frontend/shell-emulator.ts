@@ -397,7 +397,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	  var t=e.target as HTMLElement;
 	  while (t!=shell) {
 	      if (t.classList.contains("M2PastInput")) { codeInputAction.call(t); return; }
-	      if (t.classList.contains("M2HtmlOutput")) { toggleOutput.call(t); return; }
+	      if (t.classList.contains("M2Output")) { toggleOutput.call(t); return; }
 	      t=t.parentElement;
 	  }
 	  if (window.getSelection().isCollapsed) tools.placeCaretAtEnd(inputSpan,true);
@@ -473,9 +473,9 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    try {
 		htmlSec.innerHTML=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } );
 		// restore raw stuff
-		if (htmlSec.idList) htmlSec.idList.forEach( function(id) {
+		if (htmlSec.dataset.idList) htmlSec.dataset.idList.split(" ").forEach( function(id) {
 		    var el = document.getElementById("raw"+id);
-		    el.innerHTML=rawList[id];
+		    el.innerHTML=rawList[+id];
 		    el.style.display="contents"; // could put in css but don't want to overreach
 		    el.style.fontSize="0.826446280991736em"; // to compensate for katex's 1.21 factor
 		}); // should pop as well
@@ -496,20 +496,18 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0]);
 		var baseline: number = tools.baselinePosition(htmlSec);
 		// none of the solutions below quite work: dimensions aren't scaled
-		/*
-		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}}";
-		*/
 		anc.dataset.texCode+="\\htmlId{raw"+rawList.length+"}{"
 		    +"\\raisebox{"+(baseline/fontSize)+"em}{}"
 		    +"\\raisebox{"+((baseline-htmlSec.offsetHeight)/fontSize)+"em}{}"
 		    +"}";
 		/*
+		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
+		+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}}";
 		anc.dataset.texCode+="\\htmlId{raw"+rawList.length+"}{"
 		    +"\\rawhtml{}{"+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}"
 		    +"}";
 		*/
-		if (!anc.idList) anc.idList=[]; // temp nonstandard property TODO FIX
-		anc.idList.push(rawList.length);
+		if (!anc.dataset.idList) anc.dataset.idList=rawList.length; else anc.dataset.idList+=" "+rawList.length;
 		rawList.push(htmlSec.outerHTML); // try on { (help det)#2#1#0#1#0#0 }
 	    }
 	}
@@ -534,7 +532,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	  htmlSec=document.createElement(a);
 	  if (className) {
 	      htmlSec.className=className;
-	      if (className.indexOf("M2HtmlOutput")>=0) {
+	      if (className.indexOf("M2Output")>=0) {
 //		  htmlSec.addEventListener("click",toggleOutput);
 		  htmlSec.addEventListener("mousedown", function(e) {
 		      if (e.detail>1) e.preventDefault();
@@ -589,7 +587,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		    createHtml("span","M2Html");
 		}
 		else if (tag==webAppTags.Output) { // pretty much the same
-		    createHtml("span","M2Html M2HtmlOutput");
+		    createHtml("span","M2Html M2Output");
 		}
 		else if (tag==webAppTags.Tex) { // tex section beginning.
 		    createHtml("span","M2Latex");

@@ -132,13 +132,14 @@ body {
     display: inline-table; /* to make sure size is as big as content. inline-block is the more obvious choice */
     white-space: nowrap;
     line-height: 0; /* necessary for exotic stuff. for all standard HTML elements need to redefine it to something more sensible */
+    font-family: "Roboto Mono"; /* default font */
 }
 
 .M2Html ul {
     line-height: 1.2;
 }
 
-.M2Html pre {
+.M2Html pre { /* annoying issue that whenever one uses KaTeX fonts, une must have font-size 1.21em */
     display: inline;
     margin: 0px;
     font-family: KaTeX_Typewriter, monospace;
@@ -146,9 +147,15 @@ body {
     font-size: 1.21em;
 }
 
-.M2Html pre pre { /* otherwise font size multipliers accumulate */
+
+.M2Html pre pre { /* we don't want this to accumulate */
+    font-size: 0.826446280991736em;
+}
+
+.M2Html pre .katex { /* same: .katex normally contains 1.21em which we kill */
     font-size: 1em;
 }
+
 
 .M2Html .examples td > pre { /* "examples" is the class name used by M2 documentation. <td> <pre> is used for code example */
     display: block;
@@ -156,17 +163,7 @@ body {
     border-width: 1px;
     margin: 4px;
     padding: 4px;
-    font-family: 'Roboto Mono';
-    font-size: 1em;
     line-height: 1em;
-}
-
-.M2Html .examples td > pre pre { /* annoying */
-    font-size: 1.21em;
-}
-
-.M2Html .examples td > pre pre pre { /* annoying */
-    font-size: 1em;
 }
 
 
@@ -199,12 +196,6 @@ body {
     font-size: 1.2em;
     margin: 2px 0px;
     line-height: 1.2;
-}
-
-code, codeblock, .M2PastInput:hover, .M2HtmlOutput:hover {
-    box-shadow: 1px 1px 2px 0px black;
-    text-decoration: none;
-    cursor: pointer;
 }
 
 /* the wrapped variant */
@@ -264,7 +255,6 @@ code, codeblock {
     font-family: 'Roboto Mono';
     display: inline-block;
     line-height: 1.5;
-    transition: background-color 100ms;
 }
 
 code, codeblock, .M2PastInput:hover {
@@ -272,9 +262,14 @@ code, codeblock, .M2PastInput:hover {
     background-color: lightyellow;
 }
 
+code, codeblock, .M2PastInput:hover, .M2Output:hover {
+    box-shadow: 1px 1px 2px 0px black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 code {
     padding: 1px 3px;
-    border-radius: 5px;
 }
 
 codeblock {
@@ -282,7 +277,7 @@ codeblock {
     border-radius: 10px;
 }
 
-.M2PastInput:hover, .M2HtmlOutput:hover {
+code, .M2PastInput:hover, .M2Output:hover {
     border-radius: 5px;
 }
  
