@@ -16,11 +16,6 @@ const baselinePosition = function(el) {
     return result;
 }
 
-/* caret/selection issues:
-- in chrome, anchor*=base* = start, extent*=focus* = end. *node = the DOM element itself
-- in firefox, anchor* = start, focus* = end.              *node = the text node inside the dom element
-*/
-
 // the next 4 functions require el to have a single text node!
 const placeCaret = function (el,pos) {
     el.focus();
@@ -53,8 +48,24 @@ const attachElement = function(el,container) { // move an HTML element (with sin
     }
 };
 
-
-
+// ... and this one forces the element to have one text node
+// we're assuming isCollapsed is true to simplify
+const sanitizeElement = function(el) {
+    var sel = window.getSelection();
+    var offset=-1;
+    var content = "";
+    for (var i=0; i<el.childNodes.length; i++)
+    {
+	var subel = el.childNodes[i];
+	if (subel instanceof HTMLElement) { sanitizeElement(subel); subel=subel.firstChild; }
+	if (sel.focusNode == subel) {
+	    offset = content.length + sel.focusOffset;
+	}
+	content += subel.textContent;
+    }
+    el.textContent=content;
+    if (offset>=0) placeCaret(el,offset);
+}
 
 module.exports = {
     scrollDownLeft,
@@ -63,5 +74,6 @@ module.exports = {
     placeCaret,
     addToElement,
     placeCaretAtEnd,
-    attachElement
+    attachElement,
+    sanitizeElement
 };

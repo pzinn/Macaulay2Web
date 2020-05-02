@@ -71,7 +71,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	      if (str[str.length-1] == "\n") str=str.substring(0,str.length-1); // cleaner this way
 	      inputSpan.textContent = str;
 	      tools.scrollDown(shell);
-	      tools.placeCaretAtEnd(inputSpan);
+	      tools.placeCaretAtEnd(inputSpan); // TEMP doesnt work for scrolling
 	  }
       };
 
@@ -156,7 +156,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	      procInputSpan.textContent+=clean+returnSymbol;
 	      inputSpan.textContent="";
 	      tools.scrollDownLeft(shell);
-	      if (flag2) tools.placeCaretAtEnd(inputSpan);
+	      if (flag2) tools.placeCaret(inputSpan,0);
 	      if (clean[clean.length-1] != "\n") clean+="\n";
 	      if (flag1) obj.addToEditor(clean);
 	      postRawMessage(clean);
@@ -388,9 +388,13 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	} // we never throw an error on an opening delimiter -- it's assumed more input is coming 
     }
 
-      shell.onpaste = function(e) {
-	  tools.placeCaretAtEnd(inputSpan,true);
-      };
+    shell.onpaste = function(e) {
+	tools.placeCaretAtEnd(inputSpan,true);
+	inputSpan.oninput = function() {
+	    inputSpan.oninput = null; // !
+	    tools.sanitizeElement(inputSpan); // remove HTML tags from pasted input
+	}
+    };
 
       shell.onclick = function(e) {
 	  // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
@@ -416,7 +420,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
             if (e.key == "ArrowDown") downArrowKeyHandling(); else upArrowKeyHandling();
 	    e.preventDefault();
 	    tools.scrollDown(shell);
-	    tools.placeCaretAtEnd(inputSpan);
+	    tools.placeCaretAtEnd(inputSpan); // TEMP doesnt work for scrolling
 	    return;
 	}
 
@@ -425,16 +429,14 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	}
 
 	if (e.key == "Home") {
-	    e.preventDefault(); // the default would sometimes use this for vertical scrolling
 	    tools.scrollDownLeft(shell);
-	    tools.placeCaret(inputSpan,0);
+	    tools.placeCaret(inputSpan,0); // the default would sometimes use this for vertical scrolling
 	    return;
 	}
 
 	if (e.key == "End") {
-	    e.preventDefault(); // the default would sometimes use this for vertical scrolling
 	    tools.scrollDown(shell);
-	    tools.placeCaret(inputSpan,inputSpan.textContent.length);
+	    tools.placeCaret(inputSpan,0); // to force reset of scrolling (TEMP?)
 	    return;
 	}
 
