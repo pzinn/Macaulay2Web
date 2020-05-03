@@ -501,9 +501,10 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		// 18mu= 1em * mathfont size modifier, here 1.21 factor of KaTeX
 		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0])*1.21/18;
 		var baseline: number = tools.baselinePosition(htmlSec);
-		anc.dataset.texCode+="\\htmlId{raw"+rawList.length+"}{"
+		anc.dataset.texCode+="\\htmlId{raw"+rawList.length+"}{\\vphantom{"
 		    +"\\raisebox{"+(baseline/fontSize)+"mu}{}"
 		    +"\\raisebox{"+((baseline-htmlSec.offsetHeight)/fontSize)+"mu}{}"
+		    +"}\\hspace{"+(htmlSec.offsetWidth/fontSize)+"mu}" // the hspace is really just for debugging
 		    +"}";
 		if (!anc.dataset.idList) anc.dataset.idList=rawList.length; else anc.dataset.idList+=" "+rawList.length;
 		rawList.push(htmlSec.outerHTML); // try on { (help det)#2#1#0#1#0#0 }
