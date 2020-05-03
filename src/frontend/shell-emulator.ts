@@ -496,24 +496,19 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	} else {
 	    htmlSec.removeAttribute("data-save-h-t-m-l");
 	    if (anc.classList.contains("M2Latex")) { // should almost never occur: html inside tex
-		// none of the solutions below quite work: dimensions aren't scaled
-		// at least we compensate the 1.21 factor of KaTeX, better than nothing
-		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0])*1.21;
-		// but if say this was inside a sup/superscript, will be wrong (box will be too big)
+		// 18mu= 1em * mathfont size modifier, here 1.21 factor of KaTeX
+		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0])*1.21/18;
 		var baseline: number = tools.baselinePosition(htmlSec);
 		anc.dataset.texCode+="\\htmlId{raw"+rawList.length+"}{"
-		    +"\\raisebox{"+(baseline/fontSize)+"em}{}"
-		    +"\\raisebox{"+((baseline-htmlSec.offsetHeight)/fontSize)+"em}{}"
+		    +"\\raisebox{"+(baseline/fontSize)+"mu}{}"
+		    +"\\raisebox{"+((baseline-htmlSec.offsetHeight)/fontSize)+"mu}{}"
 		    +"}";
-		/*
-		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
-		+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}}";
-		anc.dataset.texCode+="\\htmlId{raw"+rawList.length+"}{"
-		    +"\\rawhtml{}{"+(baseline/fontSize)+"em}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"em}"
-		    +"}";
-		*/
 		if (!anc.dataset.idList) anc.dataset.idList=rawList.length; else anc.dataset.idList+=" "+rawList.length;
 		rawList.push(htmlSec.outerHTML); // try on { (help det)#2#1#0#1#0#0 }
+		/*
+		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
+		+(baseline/fontSize)+"mu}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"mu}}";
+		*/
 	    }
 	}
 	htmlSec = anc;
