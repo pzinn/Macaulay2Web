@@ -426,6 +426,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	}
 
 	if (e.ctrlKey || e.metaKey || e.key == "PageUp" || e.key == "PageDown") { // do not move caret on Ctrl or Command combos
+	    if (e.key== "PageUp" && document.activeElement == inputSpan) inputSpan.blur();
+	    // this prevents the annoying behavior at the cost of losing the caret
             return;
 	}
 

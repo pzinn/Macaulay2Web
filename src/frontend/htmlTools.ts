@@ -62,7 +62,7 @@ const sanitizeElement = function(el) {
 	if (sel.focusNode == subel) {
 	    offset = content.length + sel.focusOffset;
 	}
-	content += subel.textContent;
+	content += el.childNodes[i].textContent;
     }
     el.textContent=content;
     if (offset>=0) placeCaret(el,offset);
