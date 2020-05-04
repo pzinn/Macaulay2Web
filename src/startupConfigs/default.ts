@@ -37,7 +37,6 @@ const options = {
     port: "22",
     sshKey: process.env.HOME + "/keys/host_key",
   },
-//  help: require("./HelpMacaulay2").help(),
 };
 
 const overrideDefaultOptions = function(overrideOptions, defaultOptions) {
