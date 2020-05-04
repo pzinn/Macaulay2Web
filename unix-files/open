@@ -1,6 +1,4 @@
-#echo $1
-#echo "My PID" 
-#echo $$
-#echo "parent PID" 
-#echo $PPID
-echo -n ">>SPECIAL_EVENT_START>>$1<<SPECIAL_EVENT_END<<";
+#!/bin/bash
+#URL=`echo $1 | sed -e 's/.*\/share\/doc\/Macaulay2/http:\/\/www2\.Macaulay2\.com\/Macaulay2\/doc\/Macaulay2-1\.12\/share\/doc\/Macaulay2/'`
+#echo -n -e "\x1Dwindow.open('$URL','M2 help')\x11";
+echo -n -e "\x1Dconsole.log('opening help');window.open('$1','M2 help')\x11";
