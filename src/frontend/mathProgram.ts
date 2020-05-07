@@ -200,10 +200,37 @@ const showUploadSuccessDialog = function(event) {
   dialog.showModal();
 };
 
+const showImageDialog = function(imageUrl) {
+  if (imageUrl) {
+    const dialog: any = document.getElementById("showImageDialog");
+    if (!dialog.showModal) {
+      dialogPolyfill.registerDialog(dialog);
+    }
+    // console.log("We received an image: " + imageUrl);
+    const btn = document.getElementById("showImageDialogBtn");
+    // Get rid of old click event listeners.
+    const btnClone = btn.cloneNode(true);
+    const content = document.getElementById("showImageDialogContent");
+    content.innerText = "";
+    content.appendChild(btnClone);
+    btnClone.addEventListener("click", function() {
+      window.open(imageUrl, "_blank",
+          "height=200,width=200,toolbar=0,location=0,menubar=0");
+      dialog.close();
+    });
+    content.appendChild(document.createTextNode(imageUrl.split("/").pop()));
+    dialog.showModal();
+  }
+};
+
 const attachCloseDialogBtns = function() {
   document.getElementById("uploadSuccessDialogClose").addEventListener("click",
       function() {
           (document.getElementById("uploadSuccessDialog") as any).close();
+      });
+  document.getElementById("showImageDialogClose").addEventListener("click",
+      function() {
+          (document.getElementById("showImageDialog") as any).close();
       });
 };
 
@@ -292,6 +319,7 @@ const init = function() {
     socket.on("cookie", socketOnCookie);
     socket.oldEmit = socket.emit;
     socket.emit = wrapEmitForDisconnect;
+    socket.on("image", showImageDialog);
 
     const tutorialManager = require("./tutorials")();
     const fetchTutorials = require("./fetchTutorials");
