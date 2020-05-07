@@ -11,6 +11,7 @@ import {LocalContainerManager} from "./LocalContainerManager";
 import {SshDockerContainers} from "./sshDockerContainers";
 import {SudoDockerContainers} from "./sudoDockerContainers";
 import { AddressInfo } from "net";
+import { emitUrlForUserGeneratedFileToClient } from "./fileDownload";
 
 import * as reader from "./tutorialReader";
 
@@ -242,8 +243,8 @@ const sendDataToClient = function(client: Client) {
       return;
     }
     updateLastActiveTime(client);
-    const pathPrefix: string = staticFolder + "-" + serverConfig.MATH_PROGRAM;
       /*
+	const pathPrefix: string = staticFolder + "-" + serverConfig.MATH_PROGRAM;
     const specialUrlEmitter = require("./specialUrlEmitter")(
       pathPrefix,
       sshCredentials,
@@ -453,6 +454,20 @@ const socketResetAction = function(client: Client) {
   };
 };
 
+const socketDownloadAction = function(socket, client: Client) {
+    const pathPrefix: string = staticFolder + "-" + serverConfig.MATH_PROGRAM;
+    return function(msg: string) {
+      emitUrlForUserGeneratedFileToClient(
+        client,
+        msg,
+        pathPrefix,
+          userSpecificPath(client),
+        sshCredentials,
+        logExceptOnTest,
+        emitDataViaSockets);
+    };
+};
+
 const sevenDays = 7 * 86409000;
 
 const initializeClientId = function(socket): string{
@@ -489,6 +504,7 @@ const listen = function() {
     fileUpload.attachUploadListenerToSocket(client, socket);
     socket.on("input", socketInputAction(socket, client));
     socket.on("reset", socketResetAction(client));
+      socket.on("download", socketDownloadAction(socket,client));
   });
 
   const listener = http.listen(serverConfig.port);

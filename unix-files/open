@@ -1,4 +1,6 @@
 #!/bin/bash
-#URL=`echo $1 | sed -e 's/.*\/share\/doc\/Macaulay2/http:\/\/www2\.Macaulay2\.com\/Macaulay2\/doc\/Macaulay2-1\.12\/share\/doc\/Macaulay2/'`
-#echo -n -e "\x1Dwindow.open('$URL','M2 help')\x11";
-echo -n -e "\x1Dconsole.log('opening help');window.open('$1','M2 help')\x11";
+if [[ $1 == *"share/doc/Macaulay2"* ]]; then
+    echo -n -e "\x1Dwindow.open('$1','M2 help')\x11";
+else
+    echo -n -e "\x1Dsocket.emit('download','$1')\x11";
+fi

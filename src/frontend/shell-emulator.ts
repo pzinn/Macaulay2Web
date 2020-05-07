@@ -469,8 +469,10 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	var anc = htmlSec.parentElement;
 	if (htmlSec.classList.contains("M2Script")) {
 	    //(htmlSec as HTMLScriptElement).text = dehtml(htmlSec.dataset.jsCode); // should we dehtml? need to think carefully. or should it depend whether we're inside TeX or not?
-	    (htmlSec as HTMLScriptElement).text = htmlSec.dataset.jsCode;
+/*	    (htmlSec as HTMLScriptElement).text = htmlSec.dataset.jsCode;
 	    document.head.appendChild(htmlSec); // might as well move to head
+*/
+	    new Function("socket",htmlSec.dataset.jsCode)(socket); // !
 	    // htmlSec.remove(); // or delete, really -- script is useless once run. except doesn't seem to work on safari
 	}
 	else if (htmlSec.classList.contains("M2Latex")) {
@@ -597,7 +599,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		    htmlSec.dataset.texCode="";
 		}
 		else if (tag==webAppTags.Script) { // script section beginning
-		    createHtml("script","M2Script");
+		    //		    createHtml("script","M2Script");
+		    createHtml("span","M2Script");
 		    htmlSec.dataset.jsCode=""; // can't write directly to text because scripts can only be written once!
 		}
 		else if (tag==webAppTags.Input) { // input section: a bit special (ends at first \n)
