@@ -37,10 +37,13 @@ const emitUrlForUserGeneratedFileToClient = function(client : Client, // tslint:
       throw new Error("ssh2.sftp() failed: " + generateError);
     }
     const targetPath: string = pathPrefix + pathPostfix;
-    fs.mkdir(targetPath, function(fsError) {
-      if (fsError) {
-        logFunction("Folder exists, but we proceed anyway");
-      }
+      fs.mkdir(targetPath, function(fsError) {
+	  if (fsError) {
+	      if (fsError.code !== 'EEXIST')
+		  console.error("Error creating directory: "+targetPath);
+	      else
+		  logFunction("Folder exists");
+	  }
       console.log("File we want is " + path);
       const completePath = targetPath + fileName;
       sftp.fastGet(path, completePath, function(sftpError) {
