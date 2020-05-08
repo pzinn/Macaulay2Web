@@ -473,12 +473,13 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    document.head.appendChild(htmlSec); // might as well move to head
 */
 	    new Function("socket",htmlSec.dataset.jsCode)(socket); // !
-	    // htmlSec.remove(); // or delete, really -- script is useless once run. except doesn't seem to work on safari
+	    htmlSec.removeAttribute("data-js-code");
 	}
 	else if (htmlSec.classList.contains("M2Latex")) {
 	    //htmlSec.dataset.texCode=dehtml(htmlSec.dataset.texCode); // needed for MathJax compatibility
 	    try {
 		htmlSec.innerHTML=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } );
+		htmlSec.removeAttribute("data-tex-code");
 		// restore raw stuff
 		if (htmlSec.dataset.idList) htmlSec.dataset.idList.split(" ").forEach( function(id) {
 		    var el = document.getElementById("raw"+id);
@@ -499,14 +500,14 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    anc.innerHTML=anc.dataset.saveHTML+=htmlSec.outerHTML;
 	} else {
 	    htmlSec.removeAttribute("data-save-h-t-m-l");
-	    if (anc.classList.contains("M2Latex")) { // should almost never occur: html inside tex
+	    if (anc.classList.contains("M2Latex")) { // html inside tex
 		// 18mu= 1em * mathfont size modifier, here 1.21 factor of KaTeX
-		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0])*1.21/18;
+		var fontSize: number = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0])*1.21;
 		var baseline: number = tools.baselinePosition(htmlSec);
 		anc.dataset.texCode+="\\htmlId{raw"+rawList.length+"}{\\vphantom{"
-		    +"\\raisebox{"+(baseline/fontSize)+"mu}{}"
-		    +"\\raisebox{"+((baseline-htmlSec.offsetHeight)/fontSize)+"mu}{}"
-		    +"}\\hspace{"+(htmlSec.offsetWidth/fontSize)+"mu}" // the hspace is really just for debugging
+		    +"\\raisebox{"+(baseline/fontSize)+"ce}{}"
+		    +"\\raisebox{"+((baseline-htmlSec.offsetHeight)/fontSize)+"ce}{}"
+		    +"}\\hspace{"+(htmlSec.offsetWidth/fontSize)+"ce}" // the hspace is really just for debugging
 		    +"}";
 		if (!anc.dataset.idList) anc.dataset.idList=rawList.length; else anc.dataset.idList+=" "+rawList.length;
 		rawList.push(htmlSec.outerHTML); // try on { (help det)#2#1#0#1#0#0 }

@@ -72,6 +72,7 @@ body {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     font-family: "Roboto Mono";
+    font-weight: normal;
     position: relative;
     outline: none;
     line-height: 1.14286;
@@ -85,6 +86,7 @@ body {
     vertical-align: top;
     white-space: pre;
     font-family: "Roboto Mono";
+    font-weight: normal;
 }
 
 .M2CurrentInput[data-highlight]::after {
@@ -126,6 +128,8 @@ body {
 
 .M2Text {
     white-space: pre;
+    font-family: "Roboto Mono"; /* default font */
+    font-weight: normal;
 }
 
 .M2Html {
@@ -133,68 +137,67 @@ body {
     white-space: nowrap;
     line-height: 0; /* necessary for exotic stuff. for all standard HTML elements need to redefine it to something more sensible */
     font-family: "Roboto Mono"; /* default font */
+    font-weight: normal;
 }
 
 .M2Html ul {
     line-height: 1.2;
+    font-size: inherit;
 }
 
-.M2Html pre { /* annoying issue that whenever one uses KaTeX fonts, une must have font-size 1.21em */
+.M2Html pre {
     display: inline;
     margin: 0px;
-    font-family: KaTeX_Typewriter, monospace;
+    font-family: "Roboto Mono";
+    font-weight: 500;
     line-height: 1.2;
-    font-size: 1.21em;
+    font-size: inherit;
 }
 
-/* but then we don't want this to accumulate, which means any subsequence change of font must have opposite correction */
-.M2Html pre .M2html, .M2Html pre .M2Input, .M2Html pre code, .M2Html pre codeblock {
-    font-size: 0.826446280991736em;
+.M2Html table {
+    border-spacing: 0.2em;
+    line-height: 1.2;
+    font-size: inherit;
 }
-
-.M2Html pre .katex, .M2Html pre pre { /* .katex normally contains 1.21em which we kill */
-    font-size: 1em;
-}
-
 
 .M2Html .examples td > pre { /* "examples" is the class name used by M2 documentation. <td> <pre> is used for code example */
     display: block;
     border-style: solid;
     border-width: 1px;
-    margin: 4px;
-    padding: 4px;
-    line-height: 1em;
+    margin: 0.3em;
+    padding: 0.3em;
+    line-height: 1;
 }
 
 
 .M2Html h1 {
     font-size: 2.2em;
-    margin: 12px 0px;
+    margin: 0.85em 0em;
     line-height: 1.2;
 }
 .M2Html h2 {
     font-size: 2em;
-    margin: 10px 0px;
+    margin: 0.7em 0em;
     line-height: 1.2;
 }
 .M2Html h3 {
     font-size: 1.8em;
-    margin: 8px 0px;
+    margin: 0.6em 0em;
     line-height: 1.2;
 }
 .M2Html h4 {
     font-size: 1.6em;
-    margin: 6px 0px;
+    margin: 0.4em 0em;
     line-height: 1.2;
 }
 .M2Html h5 {
     font-size: 1.4em;
-    margin: 4px 0px;
+    margin: 0.3em 0em;
     line-height: 1.2;
 }
 .M2Html h6 {
     font-size: 1.2em;
-    margin: 2px 0px;
+    margin: 0.15em 0em;
     line-height: 1.2;
 }
 
@@ -253,6 +256,7 @@ code, codeblock {
     white-space: pre;
     margin-left: 20px;
     font-family: 'Roboto Mono';
+    font-weight: normal;
     display: inline-block;
     line-height: 1.5;
 }
@@ -322,6 +326,7 @@ code:active, codeblock:active, .M2PastInput:active {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     font-family: "Roboto Mono";
+    font-weight: normal;
 }
 
 .close-icon {
@@ -455,4 +460,9 @@ a.submenuItem {
 
 #accordion h3:hover {
     background-color: #8080FF;
+}
+
+tt {
+    font-family: "Roboto Mono";
+    font-weight: 500;
 }
