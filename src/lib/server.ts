@@ -302,11 +302,17 @@ const unhandled = function(request, response) {
   response.end();
 };
 
+/*
+// the old way: just redirect help with
+// app.use("/usr/share/doc/Macaulay2",getHelp);
 const getHelp = function(req, res, next) {
     console.log("redirecting help");
     res.redirect(301, 'http://www2.macaulay2.com/Macaulay2/doc/Macaulay2/share/doc/Macaulay2'+req.path);
+    }
+*/
+const getHelp = function(req, res) {
+    res.sendFile(staticFolder + "-" + serverConfig.MATH_PROGRAM + "/help.html");
 }
-
 
 const initializeServer = function() {
   const favicon = require("serve-favicon");
@@ -352,13 +358,18 @@ const initializeServer = function() {
   const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM);
   app.use(favicon(staticFolder + "-" +
       serverConfig.MATH_PROGRAM + "/favicon.ico"));
-  app.use(SocketIOFileUpload.router);
+  app.use(SocketIOFileUpload.router);  
+  // to obtain the raw files
+  app.use("/force/usr/share/",serveStatic(staticFolder + "-share"));
+  // otherwise html's get processed
+  app.get(/\/usr\/share\/.+\.html/,getHelp);
+  // rest is fine
+  app.use("/usr/share/",serveStatic(staticFolder + "-share"));
   app.use(serveStatic(staticFolder + "-" + serverConfig.MATH_PROGRAM));
   app.use(serveStatic(staticFolder + "-common"));
   app.use(expressWinston.logger(loggerSettings));
   app.use("/admin", admin.stats);
   app.use("/getListOfTutorials", getList);
-  app.use("\*/share/doc/Macaulay2",getHelp);
   app.use(unhandled);
 };
 
