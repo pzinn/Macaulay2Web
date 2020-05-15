@@ -105,7 +105,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	      inputSpan.textContent+=autoComplete.lastChild.textContent;
 	      var el;
 	      if (flag&&autoCompleteSelection)
-		  tools.addToElement(inputSpan,pos,autoCompleteSelection.textContent+" ");
+		  tools.addToElement(inputSpan,pos,autoCompleteSelection.dataset.fullword);
 	      else
 		  tools.addToElement(inputSpan,pos,autoComplete.dataset.word);
 	      autoComplete.remove(); autoComplete=autoCompleteSelection=null;
@@ -117,14 +117,18 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	inputSpan.removeAttribute("data-highlight-error");
     }
 
-      const symbols = {
-	  0x391:"Alpha",0x392:"Beta",0x393:"Gamma",0x394:"Delta",0x395:"Epsilon",0x396:"Zeta",0x397:"Eta",0x398:"Theta",0x399:"Iota",0x39a:"Kappa",0x39b:"Lambda",0x39c:"Mu",0x39d:"Nu",0x39e:"Xi",0x39f:"Omicron",0x3a0:"Pi",0x3a1:"Rho",0x3a3:"Sigma",0x3a4:"Tau",0x3a5:"Upsilon",0x3a6:"Phi",0x3a7:"Chi",0x3a8:"Psi",0x3a9:"Omega",0x3b1:"alpha",0x3b2:"beta",0x3b3:"gamma",0x3b4:"delta",0x3f5:"epsilon",0x3b6:"zeta",0x3b7:"eta",0x3b8:"theta",0x3b9:"iota",0x3ba:"kappa",0x3bb:"lambda",0x3bc:"mu",0x3bd:"nu",0x3be:"xi",0x3bf:"omicron",0x3c0:"pi",0x3c1:"rho",0x3c3:"sigma",0x3c4:"tau",0x3c5:"upsilon",0x3d5:"phi",0x3c7:"chi",0x3c8:"psi",0x3c9:"omega",0x3b5:"varepsilon",0x3d1:"vartheta",0x3d6:"varpi",0x3f1:"varrho",0x3c2:"varsigma",0x3c6:"varphi",
-	  0x2135:"aleph",0x2136:"beth",0x2138:"daleth",0x2137:"gimel",
-	  0x210f:"hbar",0x2207:"nabla",0x2113:"ell",0x2118:"wp",0x211c:"Re",0x2111:"Im",
-	  0x2102:"CC",0x210D:"HH",0x2115:"NN",0x2119:"PP",0x211A:"QQ",0x211D:"RR",0x2124:"ZZ",
-	  0x221e:"infty",
-	  0x0A:"\n"
-      }; // partial support for unicode symbols
+    // partial support for unicode symbols
+    // symbols are ordered; from most useful to least
+    const UCsymbols = {
+	"Alpha": 0x391, "Beta": 0x392, "Chi": 0x3a7, "Delta": 0x394, "Epsilon": 0x395, "Eta": 0x397, "Gamma": 0x393, "Iota": 0x399, "Kappa": 0x39a, "Lambda": 0x39b, "Mu": 0x39c, "Nu": 0x39d, "Omega": 0x3a9, "Omicron": 0x39f, "Phi": 0x3a6, "Pi": 0x3a0, "Psi": 0x3a8, "Rho": 0x3a1, "Sigma": 0x3a3, "Tau": 0x3a4, "Theta": 0x398, "Upsilon": 0x3a5, "Xi": 0x39e, "Zeta": 0x396, "alpha": 0x3b1, "beta": 0x3b2, "chi": 0x3c7, "delta": 0x3b4, "epsilon": 0x3f5, "eta": 0x3b7, "gamma": 0x3b3, "iota": 0x3b9, "kappa": 0x3ba, "lambda": 0x3bb, "mu": 0x3bc, "nu": 0x3bd, "omega": 0x3c9, "omicron": 0x3bf, "phi": 0x3d5, "pi": 0x3c0, "psi": 0x3c8, "rho": 0x3c1, "sigma": 0x3c3, "tau": 0x3c4, "theta": 0x3b8, "upsilon": 0x3c5, "varepsilon": 0x3b5, "varphi": 0x3c6, "varpi": 0x3d6, "varrho": 0x3f1, "varsigma": 0x3c2, "vartheta": 0x3d1, "xi": 0x3be, "zeta": 0x3b6,
+	"CC": 0x2102, "HH": 0x210d, "NN": 0x2115, "PP": 0x2119, "QQ": 0x211a, "RR": 0x211d,  "ZZ": 0x2124,
+	"Im": 0x2111, "Re": 0x211c, "infty": 0x221e, "nabla": 0x2207, "wp": 0x2118,
+	"ell": 0x2113, "hbar": 0x210f,
+	"aleph": 0x2135, "beth": 0x2136, "gimel": 0x2137, "daleth": 0x2138,
+	"\n": 0xa
+    };
+
+    const UCsymbolKeys = Object.keys(UCsymbols).sort();
 
     const returnSymbol="\u21B5";
 
@@ -132,14 +136,11 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	socket.emit("input", msg);
     };
 
+    const UCsymbolValues=Object.values(UCsymbols).map(i => String.fromCharCode(i)).join("");
+    const sanitizeRegEx = new RegExp("[^ -~"+UCsymbolValues+"]","g"); // a bit too restrictive?
     const sanitizeInput = function(msg: string) {
-	  // sanitize input
-	  var clean = "";
-	  for (var i=0; i<msg.length; i++) {
-	      var c = msg.charCodeAt(i);
-	      if (((c>=32)&&(c<128))||(symbols[c])) clean+=msg.charAt(i); // a bit too restrictive?
-	  }
-	return clean;
+	// sanitize input
+	return msg.replace(sanitizeRegEx,"");
     }
 
     obj.postMessage = function(msg,flag1,flag2) { // send input, adding \n if necessary
@@ -218,9 +219,9 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 	    }
 	    var sss="";
 	    if (s.length>0)
-		for (var ss in symbols) {
-		    if (symbols[ss].startsWith(s)) {
-			sss=String.fromCharCode(+ss);
+		for (var ss in UCsymbols) {
+		    if (ss.startsWith(s)) {
+			sss=String.fromCharCode(UCsymbols[ss]);
 			break;
 		    }
 		}
@@ -229,19 +230,29 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
     };
 
     const tabKeyHandling = function(pos) {
-	var msg = inputSpan.textContent;
+	const msg = inputSpan.textContent;
 	var i=pos-1;
 	while ((i>=0)&&(((msg[i]>="A")&&(msg[i]<="Z"))||((msg[i]>="a")&&(msg[i]<="z")))) i--; // would be faster with regex
-	var word = msg.substring(i+1,pos);
-	// find all M2symbols starting with last word of msg
+	const word = msg.substring(i+1,pos);
+	const flag = (i<0)||(msg[i]!="\u250B");
+	if (flag) i++; // !flag => include the escape symbol
+	const lst = flag ? M2symbols : UCsymbolKeys;
+
+	// find all symbols starting with last word of msg
 	var j=0;
-	while ((j<M2symbols.length)&&(M2symbols[j]<word)) j++;
-	if (j<M2symbols.length) {
+	while ((j<lst.length)&&(lst[j]<word)) j++;
+	if (j<lst.length) {
 	    var k=j;
-	    while ((k<M2symbols.length)&&(M2symbols[k].substring(0,word.length)==word)) k++;
+	    while ((k<lst.length)&&(lst[k].substring(0,word.length)==word)) k++;
 	    if (k>j) {
 		if (k==j+1) { // yay, one solution
-		    tools.addToElement(inputSpan,pos,M2symbols[j].substring(word.length,M2symbols[j].length)+" ");
+		    if (flag)
+			tools.addToElement(inputSpan,pos,lst[j].substring(word.length,lst[j].length)+" ");
+		    else {
+			inputSpan.textContent=inputSpan.textContent.substring(0,i)
+			    +inputSpan.textContent.substring(pos,inputSpan.textContent.length);
+			tools.addToElement(inputSpan,i,String.fromCharCode(UCsymbols[lst[j]]));
+		    }
 		}
 		else { // more interesting: several solutions
 		    // obvious implementation would've been datalist + input;
@@ -254,7 +265,8 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		    for (var l=j; l<k; l++)
 		    {
 			var opt = document.createElement("li");
-			opt.textContent=M2symbols[l];
+			opt.textContent=lst[l];
+			opt.dataset.fullword = flag ? lst[l]+" " :  String.fromCharCode(UCsymbols[lst[l]]);
 			opt.addEventListener("mouseover", function() {
 			    var el=document.getElementById("autocomplete-selection");
 			    if (el) el.removeAttribute("id");
@@ -266,7 +278,7 @@ const Shell = function(shell: HTMLElement, socket: Socket, editor: HTMLElement, 
 		    autoCompleteSelection.classList.add("autocomplete-selection");
 		    autoComplete.appendChild(tabMenu);
 		    autoComplete.appendChild(document.createTextNode(inputSpan.textContent.substring(pos,inputSpan.textContent.length)));
-		    inputSpan.textContent=inputSpan.textContent.substring(0,i+1);
+		    inputSpan.textContent=inputSpan.textContent.substring(0,i);
 		    inputSpan.parentElement.appendChild(autoComplete);
 		    tabMenu.addEventListener("click", function(e) {
 			removeAutoComplete(true);
