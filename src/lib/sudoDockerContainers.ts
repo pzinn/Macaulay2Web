@@ -1,8 +1,8 @@
-import {Instance} from "./instance";
-import {InstanceManager} from "./instanceManager";
+import { Instance } from "./instance";
+import { InstanceManager } from "./instanceManager";
 
-import child_process = require("child_process");
-const exec = child_process.exec;
+import childProcess = require("child_process");
+const exec = childProcess.exec;
 
 class SudoDockerContainersInstanceManager implements InstanceManager {
   private resources: any;
@@ -20,23 +20,25 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     const newInstance = JSON.parse(JSON.stringify(self.currentInstance));
     self.currentInstance.port++;
     newInstance.containerName = "m2Port" + newInstance.port;
-    exec(self.constructDockerRunCommand(self.resources, newInstance),
-      function(error) {
-        if (error) {
-          const containerAlreadyStarted =
-                error.message.match(/Conflict. The name/) ||
-                error.message.match(/Conflict. The container name/);
-          if (containerAlreadyStarted) {
-            self.getNewInstance(next);
-          } else {
-            console.error("Error starting the docker container: " +
-                  error.message);
-            throw error;
-          }
+    exec(self.constructDockerRunCommand(self.resources, newInstance), function (
+      error
+    ) {
+      if (error) {
+        const containerAlreadyStarted =
+          error.message.match(/Conflict. The name/) ||
+          error.message.match(/Conflict. The container name/);
+        if (containerAlreadyStarted) {
+          self.getNewInstance(next);
         } else {
-          self.waitForSshd(next, newInstance);
+          console.error(
+            "Error starting the docker container: " + error.message
+          );
+          throw error;
         }
-      });
+      } else {
+        self.waitForSshd(next, newInstance);
+      }
+    });
   }
 
   public updateLastActiveTime() {
@@ -46,10 +48,14 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   private removeInstance(instance: Instance) {
     console.log("Removing container: " + instance.containerName);
     const removeDockerContainer = "sudo docker rm -f " + instance.containerName;
-    exec(removeDockerContainer, function(error) {
+    exec(removeDockerContainer, function (error) {
       if (error) {
-        console.error("Error removing container " +
-            instance.containerName + " with error:" + error);
+        console.error(
+          "Error removing container " +
+            instance.containerName +
+            " with error:" +
+            error
+        );
       }
     });
   }
@@ -65,14 +71,15 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   }
 
   private waitForSshd(next, instance: Instance) {
-    const dockerRunningProcesses = "sudo docker exec " + instance.containerName +
-        " ps aux";
-    const filterForSshd = "grep \"" + this.options.sshdCmd + "\"";
+    const dockerRunningProcesses =
+      "sudo docker exec " + instance.containerName + " ps aux";
+    const filterForSshd = 'grep "' + this.options.sshdCmd + '"';
     const excludeGrep = "grep -v grep";
 
     const self = this;
-    exec(dockerRunningProcesses + " | " + filterForSshd + " | " + excludeGrep,
-      function(error, stdout, stderr) {
+    exec(
+      dockerRunningProcesses + " | " + filterForSshd + " | " + excludeGrep,
+      function (error, stdout, stderr) {
         if (error) {
           console.error("Error while waiting for sshd: " + error);
         }
@@ -87,8 +94,9 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
           console.log("sshd not ready yet.");
           self.waitForSshd(next, instance);
         }
-      });
+      }
+    );
   }
 }
 
-export {SudoDockerContainersInstanceManager as SudoDockerContainers};
+export { SudoDockerContainersInstanceManager as SudoDockerContainers };

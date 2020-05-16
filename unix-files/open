@@ -1,5 +1,5 @@
 #!/bin/bash
-if [[ $1 == *"share/doc/Macaulay2"* ]]; then
+if [[ $1 == "/usr/share/doc/Macaulay2"* ]]; then
     echo -n -e "\x1Dwindow.open('$1','M2 help')\x11";
 else
     echo -n -e "\x1Dsocket.emit('download','$1')\x11";

@@ -1,5 +1,5 @@
-import {InstanceManager} from "../lib/instanceManager";
-import {SshDockerContainers} from "../lib/sshDockerContainers";
+import { InstanceManager } from "../lib/instanceManager";
+import { SshDockerContainers } from "../lib/sshDockerContainers";
 
 const options = {
   hostConfig: {
@@ -20,9 +20,10 @@ const options = {
     CONTAINERS(resources, hostConfig, guestInstance): InstanceManager {
       return new SshDockerContainers(resources, hostConfig, guestInstance);
     },
-    resumeString: "Type 'listvar();' to print the list of " +
-    "existing variables.\n" +
-    "Type 'basering;' to print the currently active ring.\n> ",
+    resumeString:
+      "Type 'listvar();' to print the list of " +
+      "existing variables.\n" +
+      "Type 'basering;' to print the currently active ring.\n> ",
   },
   startInstance: {
     host: "localhost",
@@ -35,4 +36,4 @@ const options = {
   help: require("./HelpSingular").help(),
 };
 
-export {options};
+export { options };

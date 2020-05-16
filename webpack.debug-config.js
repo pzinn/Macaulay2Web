@@ -5,5 +5,5 @@ module.exports = {
 	filename: "public/public-common/index.js"
     },
     mode: 'development',
-    devtool: "inline-module-source-map"
+    devtool: "inline-source-map"
 };

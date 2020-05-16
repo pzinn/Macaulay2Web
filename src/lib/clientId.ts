@@ -1,6 +1,6 @@
-import {IClients} from "./client";
+import { IClients } from "./client";
 
-const exists = function(clientId: string, clients: IClients, logFunction) {
+const exists = function (clientId: string, clients: IClients, logFunction) {
   if (clientId in clients) {
     logFunction("Client already exists");
     return true;

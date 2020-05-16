@@ -1,21 +1,20 @@
-import {Client} from "./client";
-import {IClients} from "./client";
+//import {Client} from "./client";
+import { IClients } from "./client";
 
-const currentUsers = function(clients: IClients): number {
+const currentUsers = function (clients: IClients): number {
   return Object.keys(clients).length;
 };
 
 let totalUsers;
 
-module.exports = function(clients: IClients, total: number, program: string) {
+module.exports = function (clients: IClients, total: number, program: string) {
   totalUsers = total;
-  const stats = function(request, response): void {
+  const stats = function (request, response): void {
     response.writeHead(200, {
       "Content-Type": "text/html",
     });
 
-    const htmlString: string =
-`<head>
+    const htmlString = `<head>
     <link rel="stylesheet" href="mathProgram.css" type="text/css"
         media="screen">
 </head>

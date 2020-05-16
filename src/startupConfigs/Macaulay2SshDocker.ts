@@ -1,13 +1,14 @@
-import {InstanceManager} from "../lib/instanceManager";
-import {SshDockerContainers} from "../lib/sshDockerContainers";
+import { InstanceManager } from "../lib/instanceManager";
+import { SshDockerContainers } from "../lib/sshDockerContainers";
 
 const options = {
   serverConfig: {
     port: 8002,
     MATH_PROGRAM: "Macaulay2",
-    MATH_PROGRAM_COMMAND: "export WWWBROWSER=/usr/bin/open; " +
-    "export PATH=/usr/bin:$PATH; " +
-    "M2 --print-width 100",
+    MATH_PROGRAM_COMMAND:
+      "export WWWBROWSER=/usr/bin/open; " +
+      "export PATH=/usr/bin:$PATH; " +
+      "M2 --print-width 100",
     CONTAINERS(resources, hostConfig, guestInstance): InstanceManager {
       return new SshDockerContainers(resources, hostConfig, guestInstance);
     },
@@ -22,4 +23,4 @@ const options = {
   },
 };
 
-export {options};
+export { options };

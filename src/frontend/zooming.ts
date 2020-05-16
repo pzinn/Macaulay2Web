@@ -37,12 +37,15 @@ function sanitizeFactor(factor) {
   return result;
 }
 
-exports.attachZoomButtons = function(textareaID,
-                                     zoominID, resetID, zoomoutID,
-                                     inputFactorOrDefault) {
-  const inputFactor = typeof inputFactorOrDefault === "undefined" ?
-      1.1 :
-      inputFactorOrDefault;
+exports.attachZoomButtons = function (
+  textareaID,
+  zoominID,
+  resetID,
+  zoomoutID,
+  inputFactorOrDefault
+) {
+  const inputFactor =
+    typeof inputFactorOrDefault === "undefined" ? 1.1 : inputFactorOrDefault;
   const sizes = {
     factor: 1.1,
     currentSize: 1.0,
@@ -52,7 +55,7 @@ exports.attachZoomButtons = function(textareaID,
   let zoomoutBtn;
   let resetBtn;
 
-  const init = function() {
+  const init = function () {
     sizes.factor = sanitizeFactor(inputFactor);
     textarea = document.getElementById(textareaID);
     zoominBtn = document.getElementById(zoominID);
@@ -60,14 +63,14 @@ exports.attachZoomButtons = function(textareaID,
     resetBtn = document.getElementById(resetID);
   };
 
-  const attachListeners = function(s) {
-    zoominBtn.addEventListener("click", function() {
+  const attachListeners = function (s) {
+    zoominBtn.addEventListener("click", function () {
       zoomin(textarea, s);
     });
-    zoomoutBtn.addEventListener("click", function() {
+    zoomoutBtn.addEventListener("click", function () {
       zoomout(textarea, s);
     });
-    resetBtn.addEventListener("click", function() {
+    resetBtn.addEventListener("click", function () {
       reset(textarea, s);
     });
   };

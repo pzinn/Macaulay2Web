@@ -1,5 +1,5 @@
-import {InstanceManager} from "../lib/instanceManager";
-import {LocalContainerManager} from "../lib/LocalContainerManager";
+import { InstanceManager } from "../lib/instanceManager";
+import { LocalContainerManager } from "../lib/LocalContainerManager";
 
 const options = {
   serverConfig: {
@@ -9,4 +9,4 @@ const options = {
   },
 };
 
-export {options};
+export { options };

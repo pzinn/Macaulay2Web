@@ -1,5 +1,5 @@
-import {InstanceManager} from "../lib/instanceManager";
-import {SudoDockerContainers} from "../lib/sudoDockerContainers";
+import { InstanceManager } from "../lib/instanceManager";
+import { SudoDockerContainers } from "../lib/sudoDockerContainers";
 
 const options = {
   serverConfig: {
@@ -9,9 +9,10 @@ const options = {
     CONTAINERS(resources, hostConfig, guestInstance): InstanceManager {
       return new SudoDockerContainers(resources, hostConfig, guestInstance);
     },
-    resumeString: "Type 'listvar();' to print the list of " +
-    "existing variables.\n" +
-    "Type 'basering;' to print the currently active ring.\n> ",
+    resumeString:
+      "Type 'listvar();' to print the list of " +
+      "existing variables.\n" +
+      "Type 'basering;' to print the currently active ring.\n> ",
   },
   hostConfig: {
     containerType: "singular_container",
@@ -24,4 +25,4 @@ const options = {
   help: require("./HelpSingular").help(),
 };
 
-export {options};
+export { options };

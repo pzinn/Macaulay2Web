@@ -1,8 +1,8 @@
-import {Instance} from "./instance";
-import {InstanceManager} from "./instanceManager";
+import { Instance } from "./instance";
+import { InstanceManager } from "./instanceManager";
 
-import child_process = require("child_process");
-const exec = child_process.exec;
+import childProcess = require("child_process");
+const exec = childProcess.exec;
 
 class LocalContainerManager implements InstanceManager {
   private options: any;
@@ -16,24 +16,24 @@ class LocalContainerManager implements InstanceManager {
         sshKey: undefined,
       },
     };
-    exec("whoami", function(error, username) {
+    exec("whoami", function (error, username) {
       options.credentials.username = username.trim();
     });
 
-    exec("echo $HOME", function(error, homedir) {
+    exec("echo $HOME", function (error, homedir) {
       options.credentials.sshKey = homedir.trim() + "/.ssh/id_rsa";
     });
 
     this.options = options;
   }
 
-  public getNewInstance = function(next: any) {
-      next(false, this.options.credentials);
-    };
+  public getNewInstance = function (next: any) {
+    next(false, this.options.credentials);
+  };
 
   public updateLastActiveTime(instance: Instance) {
     //
   }
 }
 
-export {LocalContainerManager as LocalContainerManager};
+export { LocalContainerManager };

@@ -1,5 +1,5 @@
 const mathJaxTags = require("../frontend/tags");
-import {AuthOption} from "../lib/enums";
+import { AuthOption } from "../lib/enums";
 
 const options = {
   cookieName: "tryM2",
@@ -7,11 +7,15 @@ const options = {
   serverConfig: {
     CONTAINERS: "../lib/LocalContainerManager",
     MATH_PROGRAM: "Macaulay2",
-      // tslint:disable-next-line:max-line-length
-      MATH_PROGRAM_COMMAND: "export WWWBROWSER=open; M2 --webapp",
+    MATH_PROGRAM_COMMAND: "export WWWBROWSER=open; M2 --webapp",
     port: "8002",
-      // tslint:disable-next-line:max-line-length
-      resumeString: "Type " + mathJaxTags.Html + "<span class=\"M2PastInput\" onclick=\"document.getElementsByClassName('M2CurrentInput')[0].textContent=this.textContent\">listUserSymbols</span>" + mathJaxTags.End + " to print the list of existing symbols.\n\ni* : " + mathJaxTags.Input,
+    resumeString:
+      "Type " +
+      mathJaxTags.Html +
+      '<span class="M2PastInput" onclick="document.getElementsByClassName(\'M2CurrentInput\')[0].textContent=this.textContent">listUserSymbols</span>' +
+      mathJaxTags.End +
+      " to print the list of existing symbols.\n\ni* : " +
+      mathJaxTags.Input,
   },
   startInstance: {
     host: "127.0.0.1",
@@ -37,7 +41,7 @@ const options = {
   },
 };
 
-const overrideDefaultOptions = function(overrideOptions, defaultOptions) {
+const overrideDefaultOptions = function (overrideOptions, defaultOptions) {
   for (const opt in overrideOptions) {
     if (defaultOptions.hasOwnProperty(opt)) {
       if (defaultOptions[opt] instanceof Function) {
@@ -53,4 +57,4 @@ const overrideDefaultOptions = function(overrideOptions, defaultOptions) {
   }
 };
 
-export {options, overrideDefaultOptions};
+export { options, overrideDefaultOptions };
