@@ -286,7 +286,7 @@ const codeClickAction = function (e) {
 };
 
 const openTabCloseDrawer = function (event) {
-  const panelId = this.href;
+    const panelId = this.getAttribute("href").substring(1)+"Title";
   // show tab panel
   document.getElementById(panelId).click();
   // close drawer menu
