@@ -61,6 +61,7 @@ const Shell = function (
     inputSpan.focus();
     htmlSec = shell;
     inputSpanParentElement = [];
+    inputEndFlag = false;
   };
 
   createInputEl();
