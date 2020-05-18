@@ -81,27 +81,28 @@ const attachMinMaxBtnActions = function () {
   const maximize = document.getElementById("maximizeOutput");
   const downsize = document.getElementById("downsizeOutput");
   const zoomBtns = document.getElementById("M2OutZoomBtns");
+  const dialog: any = document.getElementById("fullScreenOutput");
+  const output = document.getElementById("M2Out");
+  dialog.onclose = function () {
+    const oldPosition = document.getElementById("right-half");
+    const ctrl = document.getElementById("M2OutCtrlBtns");
+    oldPosition.appendChild(output);
+    ctrl.insertBefore(zoomBtns, maximize);
+    tools.scrollDownLeft(output);
+  };
   maximize.addEventListener("click", function () {
-    const dialog: any = document.getElementById("fullScreenOutput");
     const maxCtrl = document.getElementById("M2OutCtrlBtnsMax");
     if (!dialog.showModal) {
       dialogPolyfill.registerDialog(dialog);
     }
-    const output = document.getElementById("M2Out");
     dialog.appendChild(output);
     maxCtrl.insertBefore(zoomBtns, downsize);
     dialog.showModal();
+    output.focus();
     tools.scrollDownLeft(output);
   });
   downsize.addEventListener("click", function () {
-    const dialog: any = document.getElementById("fullScreenOutput");
-    const oldPosition = document.getElementById("right-half");
-    const output = document.getElementById("M2Out");
-    const ctrl = document.getElementById("M2OutCtrlBtns");
-    oldPosition.appendChild(output);
-    ctrl.insertBefore(zoomBtns, maximize);
     dialog.close();
-    tools.scrollDownLeft(output);
   });
 };
 
@@ -286,7 +287,7 @@ const codeClickAction = function (e) {
 };
 
 const openTabCloseDrawer = function (event) {
-    const panelId = this.getAttribute("href").substring(1)+"Title";
+  const panelId = this.getAttribute("href").substring(1) + "Title";
   // show tab panel
   document.getElementById(panelId).click();
   // close drawer menu

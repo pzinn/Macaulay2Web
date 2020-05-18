@@ -476,6 +476,7 @@ const Shell = function (
     // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
     let t = e.target as HTMLElement;
     while (t != shell) {
+      if (t.tagName == "A") return;
       if (t.classList.contains("M2PastInput")) {
         codeInputAction.call(t);
         return;
@@ -619,7 +620,7 @@ const Shell = function (
           "ce}" + // the hspace is really just for debugging
           "}";
         if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
-          else anc.dataset.idList += " " + rawList.length;
+        else anc.dataset.idList += " " + rawList.length;
         rawList.push(htmlSec.outerHTML); // try on { (help det)#2#1#0#1#0#0 }
         /*
 		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
