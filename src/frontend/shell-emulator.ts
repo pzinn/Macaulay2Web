@@ -1,11 +1,3 @@
-// initialize with ID (string) of field that should act like a shell,
-//  i.e., command history, taking input and replacing it with output from server
-
-// shell functions for
-// * interrupt
-/* eslint-env browser */
-/* eslint "max-len": "off" */
-
 import { Socket } from "./mathProgram";
 
 const webAppTags = require("../frontend/tags");
@@ -16,6 +8,7 @@ declare const katex;
 declare const Prism;
 declare const M2symbols;
 
+/*
 function dehtml(s) {
   // these are all the substitutions performed by M2
   s = s.replace(/&bsol;/g, "\\");
@@ -25,6 +18,7 @@ function dehtml(s) {
   s = s.replace(/&amp;/g, "&"); // do this one last
   return s;
 }
+*/
 
 const Shell = function (
   shell: HTMLElement,
@@ -35,7 +29,7 @@ const Shell = function (
   // Shell is an old-style javascript oop constructor
   // we're using arguments as private variables, cf
   // https://stackoverflow.com/questions/18099129/javascript-using-arguments-for-closure-bad-or-good
-  const obj = this; // for nested functions with their own 'this'. or one could use bind but simpler this way
+  const obj = this; // for nested functions with their own 'this'. or one could use bind, or => functions, but simpler this way
   let htmlSec; // the current place in shell where new stuff gets written
   let inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
   const cmdHistory: any = []; // History of commands for shell-like arrow navigation
@@ -613,7 +607,7 @@ const Shell = function (
         anc.dataset.texCode +=
           "\\htmlId{raw" +
           rawList.length +
-          "}{\\vphantom{" +
+          "}{\\vphantom{" + // the vphantom ensures proper horizontal space
           "\\raisebox{" +
           baseline / fontSize +
           "ce}{}" +
@@ -625,11 +619,11 @@ const Shell = function (
           "ce}" + // the hspace is really just for debugging
           "}";
         if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
-        else anc.dataset.idList += " " + rawList.length;
+          else anc.dataset.idList += " " + rawList.length;
         rawList.push(htmlSec.outerHTML); // try on { (help det)#2#1#0#1#0#0 }
         /*
 		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
-		+(baseline/fontSize)+"mu}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"mu}}";
+		+(baseline/fontSize)+"ce}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"ce}}";
 		*/
       }
     }

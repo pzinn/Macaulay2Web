@@ -376,14 +376,12 @@ const initializeServer = function () {
   );
   const prettyTags = {};
   const temp = Object.entries(webAppTags);
-  //    for (const a of temp) prettyTags[a[1] as any]="\u001b[32m<"+a[0]+">\u001b[39m";
   for (const a of temp) prettyTags[a[1] as any] = "<" + a[0] + ">";
 
   const myFormat = winston.format.printf((info) => {
     const msg = info.message.replace(webAppTagsRegExp, function (match, token) {
       return prettyTags[token];
     });
-    // 	return `\u001b[34m${info.cat} to ${info.id}\u001b[39m\n${msg}`;
     return `${info.cat} to ${info.id}\n${msg}`;
   });
 

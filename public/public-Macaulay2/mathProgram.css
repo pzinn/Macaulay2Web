@@ -140,6 +140,10 @@ body {
     font-weight: normal;
 }
 
+.M2Html > * {
+    line-height: 1.2;
+}
+
 .M2Html ul {
     line-height: 1.2;
     font-size: inherit;
