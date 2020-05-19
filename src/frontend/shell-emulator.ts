@@ -435,7 +435,7 @@ const Shell = function (
     const depth = [];
     for (i = 0; i < openingDelimiters.length; i++)
       depth.push(i == index ? 1 : 0);
-    i = len;
+    i = len - 1;
     while (i < input.length - 1 && depth[index] > 0) {
       i++;
       if (i == 0 || input[i - 1] != "\\") {
@@ -457,7 +457,7 @@ const Shell = function (
       inputSpan.dataset.highlight =
         highlight.substring(0, len) +
         opening +
-        highlight.substring(len + 1) +
+        highlight.substring(len + 1, i + 1) +
         closing;
       setTimeout(function () {
         inputSpan.removeAttribute("data-highlight");
