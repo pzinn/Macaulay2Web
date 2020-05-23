@@ -77,9 +77,10 @@ const Shell = function (
     }
   };
 
-  const toggleOutput = function () {
-    if (window.getSelection().isCollapsed) {
-      if (this.classList.contains("M2Html-wrapped")) {
+  const toggleOutput = function (force?) {
+    // force means force hide
+    if (window.getSelection().isCollapsed || force) {
+      if (this.classList.contains("M2Html-wrapped") || force) {
         this.classList.remove("M2Html-wrapped");
         const thisel = this; // because of closure, the element will be saved
         const anc = thisel.parentElement;
@@ -490,6 +491,20 @@ const Shell = function (
     }
     if (window.getSelection().isCollapsed)
       tools.placeCaretAtEnd(inputSpan, true);
+  };
+
+  shell.ondblclick = function (e) {
+    // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
+    let t = e.target as HTMLElement;
+    while (t != shell) {
+      if (t.tagName == "A") return;
+      if (t.classList.contains("M2PastInput")) return;
+      if (t.classList.contains("M2Output")) {
+        toggleOutput.call(t, true);
+        return;
+      }
+      t = t.parentElement;
+    }
   };
 
   shell.onkeydown = function (e: KeyboardEvent) {
