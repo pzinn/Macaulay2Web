@@ -583,12 +583,13 @@ const Shell = function (
       else socket.emit("download", url);
       htmlSec.removeAttribute("data-code");
     } else if (htmlSec.classList.contains("M2Katex")) {
-      //htmlSec.dataset.code=dehtml(htmlSec.dataset.code); // needed for MathJax compatibility
       try {
-        htmlSec.innerHTML = katex.renderToString(htmlSec.dataset.code, {
-          trust: true,
-          strict: false,
-        });
+        htmlSec.innerHTML = katex
+          .__renderToHTMLTree(htmlSec.dataset.code, {
+            trust: true,
+            strict: false,
+          })
+          .toMarkup(); // one could call katex.renderToString instead but mathml causes problems
         htmlSec.removeAttribute("data-code");
         // restore raw stuff
         if (htmlSec.dataset.idList)
@@ -600,7 +601,7 @@ const Shell = function (
             el.appendChild(rawList[+id]);
           });
         //
-        //		htmlSec.dataset.code=htmlSec.innerHTML; // not needed: going to die anyway
+        //htmlSec.dataset.code=htmlSec.innerHTML; // not needed: going to die anyway
       } catch (err) {
         htmlSec.classList.add("KatexError"); // TODO: better class for this?
         htmlSec.innerHTML = err.message;
