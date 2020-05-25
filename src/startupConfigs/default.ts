@@ -1,4 +1,4 @@
-const mathJaxTags = require("../frontend/tags");
+import { webAppTags } from "../frontend/tags";
 import { AuthOption } from "../lib/enums";
 
 const options = {
@@ -11,11 +11,11 @@ const options = {
     port: "8002",
     resumeString:
       "Type " +
-      mathJaxTags.Html +
+      webAppTags.Html +
       '<span class="M2PastInput" onclick="document.getElementsByClassName(\'M2CurrentInput\')[0].textContent=this.textContent">listUserSymbols</span>' +
-      mathJaxTags.End +
+      webAppTags.End +
       " to print the list of existing symbols.\n\ni* : " +
-      mathJaxTags.Input,
+      webAppTags.Input,
   },
   startInstance: {
     host: "127.0.0.1",

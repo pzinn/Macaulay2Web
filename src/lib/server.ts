@@ -26,7 +26,7 @@ const io: SocketIO.Server = ioModule(http);
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
 
-const webAppTags = require("../frontend/tags");
+import { webAppTags } from "../frontend/tags";
 
 import path = require("path");
 let getClientIdFromSocket;

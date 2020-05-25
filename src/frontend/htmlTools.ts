@@ -75,7 +75,7 @@ const sanitizeElement = function (el) {
   if (offset >= 0) placeCaret(el, offset);
 };
 
-module.exports = {
+export {
   scrollDownLeft,
   scrollDown,
   baselinePosition,

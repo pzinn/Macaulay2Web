@@ -1,7 +1,16 @@
 import { Socket } from "./mathProgram";
 
-const webAppTags = require("../frontend/tags");
-const tools = require("./htmlTools");
+import { webAppTags, webAppClasses } from "./tags";
+import {
+  scrollDownLeft,
+  scrollDown,
+  baselinePosition,
+  placeCaret,
+  addToElement,
+  placeCaretAtEnd,
+  attachElement,
+  sanitizeElement,
+} from "./htmlTools";
 
 const unicodeBell = "\u0007";
 declare const katex;
@@ -72,8 +81,8 @@ const Shell = function (
       let str = this.textContent;
       if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
       inputSpan.textContent = str;
-      tools.scrollDown(shell);
-      tools.placeCaretAtEnd(inputSpan); // TEMP doesnt work for scrolling
+      scrollDown(shell);
+      placeCaretAtEnd(inputSpan); // TEMP doesnt work for scrolling
     }
   };
 
@@ -108,12 +117,8 @@ const Shell = function (
       const pos = inputSpan.textContent.length;
       inputSpan.textContent += autoComplete.lastChild.textContent;
       if (flag && autoCompleteSelection)
-        tools.addToElement(
-          inputSpan,
-          pos,
-          autoCompleteSelection.dataset.fullword
-        );
-      else tools.addToElement(inputSpan, pos, autoComplete.dataset.word);
+        addToElement(inputSpan, pos, autoCompleteSelection.dataset.fullword);
+      else addToElement(inputSpan, pos, autoComplete.dataset.word);
       autoComplete.remove();
       autoComplete = autoCompleteSelection = null;
     }
@@ -168,8 +173,8 @@ const Shell = function (
       }
       procInputSpan.textContent += clean + returnSymbol;
       inputSpan.textContent = "";
-      tools.scrollDownLeft(shell);
-      if (flag2) tools.placeCaret(inputSpan, 0);
+      scrollDownLeft(shell);
+      if (flag2) placeCaret(inputSpan, 0);
       if (clean[clean.length - 1] != "\n") clean += "\n";
       if (flag1) obj.addToEditor(clean);
       postRawMessage(clean);
@@ -181,7 +186,7 @@ const Shell = function (
     if (typeof msg !== "undefined") {
       if (editor !== null) {
         editor.appendChild(document.createTextNode(msg));
-        tools.scrollDownLeft(editor);
+        scrollDownLeft(editor);
       }
     }
   };
@@ -218,7 +223,7 @@ const Shell = function (
 
   const escapeKeyHandling = function (pos) {
     const esc = inputSpan.textContent.indexOf("\u250B");
-    if (esc < 0) tools.addToElement(inputSpan, pos, "\u250B");
+    if (esc < 0) addToElement(inputSpan, pos, "\u250B");
     else {
       let s;
       if (esc < pos) {
@@ -244,7 +249,7 @@ const Shell = function (
             break;
           }
         }
-      tools.addToElement(inputSpan, pos, sss);
+      addToElement(inputSpan, pos, sss);
     }
   };
 
@@ -271,7 +276,7 @@ const Shell = function (
         if (k == j + 1) {
           // yay, one solution
           if (flag)
-            tools.addToElement(
+            addToElement(
               inputSpan,
               pos,
               lst[j].substring(word.length, lst[j].length) + " "
@@ -283,11 +288,7 @@ const Shell = function (
                 pos,
                 inputSpan.textContent.length
               );
-            tools.addToElement(
-              inputSpan,
-              i,
-              String.fromCharCode(UCsymbols[lst[j]])
-            );
+            addToElement(inputSpan, i, String.fromCharCode(UCsymbols[lst[j]]));
           }
         } else {
           // more interesting: several solutions
@@ -467,10 +468,10 @@ const Shell = function (
   };
 
   shell.onpaste = function (e) {
-    tools.placeCaretAtEnd(inputSpan, true);
+    placeCaretAtEnd(inputSpan, true);
     inputSpan.oninput = function () {
       inputSpan.oninput = null; // !
-      tools.sanitizeElement(inputSpan); // remove HTML tags from pasted input
+      sanitizeElement(inputSpan); // remove HTML tags from pasted input
     };
   };
 
@@ -489,8 +490,7 @@ const Shell = function (
       }
       t = t.parentElement;
     }
-    if (window.getSelection().isCollapsed)
-      tools.placeCaretAtEnd(inputSpan, true);
+    if (window.getSelection().isCollapsed) placeCaretAtEnd(inputSpan, true);
   };
 
   shell.ondblclick = function (e) {
@@ -524,8 +524,8 @@ const Shell = function (
       if (e.key == "ArrowDown") downArrowKeyHandling();
       else upArrowKeyHandling();
       e.preventDefault();
-      tools.scrollDown(shell);
-      tools.placeCaretAtEnd(inputSpan);
+      scrollDown(shell);
+      placeCaretAtEnd(inputSpan);
       //
       return;
     }
@@ -539,18 +539,18 @@ const Shell = function (
     }
 
     if (e.key == "Home") {
-      tools.scrollDownLeft(shell);
-      tools.placeCaret(inputSpan, 0); // the default would sometimes use this for vertical scrolling
+      scrollDownLeft(shell);
+      placeCaret(inputSpan, 0); // the default would sometimes use this for vertical scrolling
       return;
     }
 
     if (e.key == "End") {
-      tools.scrollDown(shell);
-      tools.placeCaretAtEnd(inputSpan); // the default would sometimes use this for vertical scrolling
+      scrollDown(shell);
+      placeCaretAtEnd(inputSpan); // the default would sometimes use this for vertical scrolling
       return;
     }
 
-    tools.placeCaretAtEnd(inputSpan, true);
+    placeCaretAtEnd(inputSpan, true);
     const pos = window.getSelection().focusOffset;
 
     if (closingDelimiters.indexOf(e.key) >= 0)
@@ -558,14 +558,14 @@ const Shell = function (
     else if (openingDelimiters.indexOf(e.key) >= 0)
       openingDelimiterHandling(pos, e.key);
     else if (e.key == "Escape") {
-      tools.scrollDown(shell);
+      scrollDown(shell);
       escapeKeyHandling(pos);
       e.preventDefault();
       return;
     }
     // auto-completion code
     else if (e.key == "Tab") {
-      tools.scrollDown(shell);
+      scrollDown(shell);
       tabKeyHandling(pos);
       e.preventDefault();
       return;
@@ -576,21 +576,20 @@ const Shell = function (
 
   const closeHtml = function () {
     const anc = htmlSec.parentElement;
-    if (htmlSec.classList.contains("M2Script")) {
-      //(htmlSec as HTMLScriptElement).text = dehtml(htmlSec.dataset.jsCode); // should we dehtml? need to think carefully. or should it depend whether we're inside TeX or not?
-      /*	    (htmlSec as HTMLScriptElement).text = htmlSec.dataset.jsCode;
-	    document.head.appendChild(htmlSec); // might as well move to head
-*/
-      new Function("socket", htmlSec.dataset.jsCode)(socket); // !
-      htmlSec.removeAttribute("data-js-code");
-    } else if (htmlSec.classList.contains("M2Latex")) {
-      //htmlSec.dataset.texCode=dehtml(htmlSec.dataset.texCode); // needed for MathJax compatibility
+    if (htmlSec.classList.contains("M2Url")) {
+      const url = htmlSec.dataset.code;
+      if (url.startsWith("/usr/share/doc/Macaulay2"))
+        window.open(url, "M2 help");
+      else socket.emit("download", url);
+      htmlSec.removeAttribute("data-code");
+    } else if (htmlSec.classList.contains("M2Katex")) {
+      //htmlSec.dataset.code=dehtml(htmlSec.dataset.code); // needed for MathJax compatibility
       try {
-        htmlSec.innerHTML = katex.renderToString(htmlSec.dataset.texCode, {
+        htmlSec.innerHTML = katex.renderToString(htmlSec.dataset.code, {
           trust: true,
           strict: false,
         });
-        htmlSec.removeAttribute("data-tex-code");
+        htmlSec.removeAttribute("data-code");
         // restore raw stuff
         if (htmlSec.dataset.idList)
           htmlSec.dataset.idList.split(" ").forEach(function (id) {
@@ -601,7 +600,7 @@ const Shell = function (
             el.appendChild(rawList[+id]);
           });
         //
-        //		htmlSec.dataset.saveHTML=htmlSec.innerHTML; // not needed: going to die anyway
+        //		htmlSec.dataset.code=htmlSec.innerHTML; // not needed: going to die anyway
       } catch (err) {
         htmlSec.classList.add("KatexError"); // TODO: better class for this?
         htmlSec.innerHTML = err.message;
@@ -609,11 +608,11 @@ const Shell = function (
       }
     }
     if (anc.classList.contains("M2Html")) {
-      // we need to convert to string
-      anc.innerHTML = anc.dataset.saveHTML += htmlSec.outerHTML;
+      // we need to convert to string :/
+      anc.innerHTML = anc.dataset.code += htmlSec.outerHTML;
     } else {
-      htmlSec.removeAttribute("data-save-h-t-m-l");
-      if (anc.classList.contains("M2Latex")) {
+      htmlSec.removeAttribute("data-code");
+      if (anc.classList.contains("M2Katex")) {
         // html inside tex
         // 18mu= 1em * mathfont size modifier, here 1.21 factor of KaTeX
         const fontSize: number =
@@ -621,8 +620,8 @@ const Shell = function (
             .getComputedStyle(htmlSec, null)
             .getPropertyValue("font-size")
             .split("px", 1)[0] * 1.21;
-        const baseline: number = tools.baselinePosition(htmlSec);
-        anc.dataset.texCode +=
+        const baseline: number = baselinePosition(htmlSec);
+        anc.dataset.code +=
           "\\htmlId{raw" +
           rawList.length +
           "}{\\vphantom{" + // the vphantom ensures proper horizontal space
@@ -640,7 +639,7 @@ const Shell = function (
         else anc.dataset.idList += " " + rawList.length;
         rawList.push(htmlSec); // try on { (help det)#2#1#0#1#0#0 }
         /*
-		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
+		anc.dataset.code+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
 		+(baseline/fontSize)+"ce}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"ce}}";
 		*/
       }
@@ -652,7 +651,7 @@ const Shell = function (
     // need to treat input specially because no closing tag
     htmlSec.parentElement.appendChild(document.createElement("br"));
     if (inputSpanParentElement.length > 0)
-      tools.attachElement(inputSpan, inputSpanParentElement.pop());
+      attachElement(inputSpan, inputSpanParentElement.pop());
     // move back input element to outside htmlSec
     else console.log("Input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
     // highlight
@@ -672,12 +671,11 @@ const Shell = function (
     if (className) {
       htmlSec.className = className;
       if (className.indexOf("M2Output") >= 0) {
-        //		  htmlSec.addEventListener("click",toggleOutput);
+        //htmlSec.addEventListener("click",toggleOutput);
         htmlSec.addEventListener("mousedown", function (e) {
           if (e.detail > 1) e.preventDefault();
         });
       }
-      if (className.indexOf("M2Html") >= 0) htmlSec.dataset.saveHTML = ""; // need to keep track of innerHTML because html tags may get broken
     }
     if (inputSpan.parentElement == anc) anc.insertBefore(htmlSec, inputSpan);
     else anc.appendChild(htmlSec);
@@ -702,7 +700,6 @@ const Shell = function (
     //	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully -- though sometimes still misses
     //	msg = msg.replace(/\r\n/g, "\n"); // that's right...
     msg = msg.replace(/\r./g, ""); // remove the line wrapping with repeated last/first character
-    //	msg = msg.replace(/(?<=["'])[^"']+\/share\/doc\/Macaulay2/g,"http://www2.Macaulay2.com/Macaulay2/doc/Macaulay2-1.12/share/doc/Macaulay2"); // disabled since firefox can't deal with this regex. instead, server does a redirect
 
     if (procInputSpan !== null) {
       procInputSpan.remove();
@@ -715,7 +712,7 @@ const Shell = function (
       if (
         inputEndFlag &&
         ((i == 0 && txt[i].length > 0) ||
-          (i > 0 && txt[i - 1] != webAppTags.InputContd))
+          (i > 0 && txt[i - 1] !== webAppTags.InputContd))
       ) {
         closeInput();
         inputEndFlag = false;
@@ -726,32 +723,19 @@ const Shell = function (
           // end of section
           if (htmlSec.classList.contains("M2Input")) closeInput(); // should never happen but does because of annoying escape sequence garbage bug (see also closeInput fix)
           closeHtml();
-        } else if (tag == webAppTags.Html) {
-          // html section beginning
-          createHtml("span", "M2Html");
-        } else if (tag == webAppTags.Output) {
-          // pretty much the same
-          createHtml("span", "M2Html M2Output");
-        } else if (tag == webAppTags.Tex) {
-          // tex section beginning.
-          createHtml("span", "M2Latex");
-          htmlSec.dataset.texCode = "";
-        } else if (tag == webAppTags.Script) {
-          // script section beginning
-          //		    createHtml("script","M2Script");
-          createHtml("span", "M2Script");
-          htmlSec.dataset.jsCode = ""; // can't write directly to text because scripts can only be written once!
-        } else if (tag == webAppTags.Input) {
-          // input section: a bit special (ends at first \n)
-          createHtml("span", "M2Input");
-          inputSpanParentElement.push(inputSpan.parentElement); // not great
-          tools.attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
-        } else if (tag == webAppTags.InputContd) {
+        } else if (tag === webAppTags.InputContd) {
           // continuation of input section
           inputEndFlag = false;
         } else {
-          // ordinary text (error messages, prompts, etc)
-          createHtml("span", "M2Text");
+          // new section
+          createHtml("span", webAppClasses[tag]);
+          if (tag === webAppTags.Input) {
+            // input section: a bit special (ends at first \n)
+            inputSpanParentElement.push(inputSpan.parentElement); // not great
+            attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
+          } else if (tag !== webAppTags.Text) {
+            htmlSec.dataset.code = ""; // even M2Html needs to keep track of innerHTML because html tags may get broken
+          }
         }
       }
       if (txt[i].length > 0) {
@@ -773,17 +757,17 @@ const Shell = function (
           }
         }
 
-        if (l.contains("M2Latex")) htmlSec.dataset.texCode += txt[i];
-        else if (l.contains("M2Html"))
-          htmlSec.innerHTML = htmlSec.dataset.saveHTML += txt[i];
-        else if (l.contains("M2Script")) htmlSec.dataset.jsCode += txt[i];
+        if (htmlSec.dataset.code !== undefined) {
+          htmlSec.dataset.code += txt[i];
+          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // might as well update in real time
+        }
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
         else if (inputSpan.parentElement == htmlSec)
           htmlSec.insertBefore(document.createTextNode(txt[i]), inputSpan);
         else htmlSec.appendChild(document.createTextNode(txt[i]));
       }
     }
-    tools.scrollDownLeft(shell);
+    scrollDownLeft(shell);
   };
 
   obj.reset = function () {

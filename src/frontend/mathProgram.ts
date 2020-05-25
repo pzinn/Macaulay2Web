@@ -15,13 +15,14 @@ let socket: Socket;
 let serverDisconnect = false;
 const dialogPolyfill = require("dialog-polyfill");
 const shell = require("./shell-emulator");
-const tools = require("./htmlTools");
+import { scrollDownLeft } from "./htmlTools";
 
-const mathJaxTags = require("../frontend/tags");
+import { webAppTags, webAppClasses } from "../frontend/tags";
 
 let myshell;
 
 const getSelected = function () {
+  removeBR();
   // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
   const sel = window.getSelection() as any; // modify is still "experimental"
   if (document.getElementById("M2In").contains(sel.focusNode)) {
@@ -88,7 +89,7 @@ const attachMinMaxBtnActions = function () {
     const ctrl = document.getElementById("M2OutCtrlBtns");
     oldPosition.appendChild(output);
     ctrl.insertBefore(zoomBtns, maximize);
-    tools.scrollDownLeft(output);
+    scrollDownLeft(output);
   };
   maximize.addEventListener("click", function () {
     const maxCtrl = document.getElementById("M2OutCtrlBtnsMax");
@@ -99,7 +100,7 @@ const attachMinMaxBtnActions = function () {
     maxCtrl.insertBefore(zoomBtns, downsize);
     dialog.showModal();
     output.focus();
-    tools.scrollDownLeft(output);
+    scrollDownLeft(output);
   });
   downsize.addEventListener("click", function () {
     dialog.close();
@@ -163,7 +164,7 @@ const removeBR = function () {
       input.insertBefore(document.createTextNode("\n"), input.children[i]);
       input.removeChild(input.children[i]);
     } else if (input.children[i].tagName == "DIV") {
-      // normally should never happen
+      // same for DIV
       input.insertBefore(
         document.createTextNode(input.children[i].textContent + "\n"),
         input.children[i]
@@ -255,7 +256,7 @@ const attachCloseDialogBtns = function () {
 const socketOnDisconnect = function (msg) {
   console.log("We got disconnected. " + msg);
   myshell.onmessage(
-    mathJaxTags.Text +
+    webAppTags.Text +
       "Sorry, your session was disconnected" +
       " by the server.\n\n"
   );
