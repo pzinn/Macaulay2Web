@@ -597,7 +597,8 @@ const Shell = function (
             const el = document.getElementById("raw" + id);
             el.style.display = "contents"; // could put in css but don't want to overreach
             el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
-            el.innerHTML = rawList[+id];
+            el.innerHTML = "";
+            el.appendChild(rawList[+id]);
           });
         //
         //		htmlSec.dataset.saveHTML=htmlSec.innerHTML; // not needed: going to die anyway
@@ -637,7 +638,7 @@ const Shell = function (
           "}";
         if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
         else anc.dataset.idList += " " + rawList.length;
-        rawList.push(htmlSec.outerHTML); // try on { (help det)#2#1#0#1#0#0 }
+        rawList.push(htmlSec); // try on { (help det)#2#1#0#1#0#0 }
         /*
 		anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
 		+(baseline/fontSize)+"ce}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"ce}}";
