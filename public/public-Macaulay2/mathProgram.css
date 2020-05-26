@@ -259,6 +259,7 @@ body {
 code, codeblock {
     white-space: pre;
     margin-left: 20px;
+    margin-right: 20px;
     font-family: 'Roboto Mono';
     font-weight: normal;
     display: inline-block;

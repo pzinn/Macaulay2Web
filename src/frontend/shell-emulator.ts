@@ -86,29 +86,29 @@ const Shell = function (
     }
   };
 
-  const toggleOutput = function (force?) {
-    // force means force hide
-    if (window.getSelection().isCollapsed || force) {
-      if (this.classList.contains("M2Html-wrapped") || force) {
-        this.classList.remove("M2Html-wrapped");
-        const thisel = this; // because of closure, the element will be saved
-        const anc = thisel.parentElement;
-        const ph = document.createElement("span");
-        ph.classList.add("M2-hidden");
-        ph.addEventListener("click", function (e) {
-          // so we can restore it later
-          anc.insertBefore(thisel, ph);
-          anc.removeChild(ph);
-          e.stopPropagation();
-          return;
-        });
-        ph.addEventListener("mousedown", function (e) {
-          if (e.detail > 1) e.preventDefault();
-        });
-        anc.insertBefore(ph, this);
-        anc.removeChild(this);
-      } else this.classList.add("M2Html-wrapped");
-    }
+  const wrapOutput = function () {
+    if (window.getSelection().isCollapsed)
+      this.classList.toggle("M2Html-wrapped");
+  };
+
+  const hideOutput = function () {
+    this.classList.remove("M2Html-wrapped");
+    const thisel = this; // because of closure, the element will be saved
+    const anc = thisel.parentElement;
+    const ph = document.createElement("span");
+    ph.classList.add("M2-hidden");
+    ph.addEventListener("click", function (e) {
+      // so we can restore it later
+      anc.insertBefore(thisel, ph);
+      anc.removeChild(ph);
+      e.stopPropagation();
+      return;
+    });
+    ph.addEventListener("mousedown", function (e) {
+      if (e.detail > 1) e.preventDefault();
+    });
+    anc.insertBefore(ph, this);
+    anc.removeChild(this);
   };
 
   const removeAutoComplete = function (flag) {
@@ -485,7 +485,7 @@ const Shell = function (
         return;
       }
       if (t.classList.contains("M2Output")) {
-        toggleOutput.call(t);
+        wrapOutput.call(t);
         return;
       }
       t = t.parentElement;
@@ -500,7 +500,7 @@ const Shell = function (
       if (t.tagName == "A") return;
       if (t.classList.contains("M2PastInput")) return;
       if (t.classList.contains("M2Output")) {
-        toggleOutput.call(t, true);
+        hideOutput.call(t);
         return;
       }
       t = t.parentElement;
@@ -672,7 +672,7 @@ const Shell = function (
     if (className) {
       htmlSec.className = className;
       if (className.indexOf("M2Output") >= 0) {
-        //htmlSec.addEventListener("click",toggleOutput);
+        //htmlSec.addEventListener("click",wrapOutput);
         htmlSec.addEventListener("mousedown", function (e) {
           if (e.detail > 1) e.preventDefault();
         });
