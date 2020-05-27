@@ -1,25 +1,20 @@
-const webAppTagCodes = {
-    "End":        17,      // end of section script
-    "Html":       18,      // indicates what follows is HTML
-    "Output":     19,      // it's html but it's output
-    "Input":      20,      // it's text but it's input
-    "InputContd": 28,      // text, continuation of input
-    "Script":     29,      // script
-    "Text":       30,      // indicates what follows is pure text; default mode
-    "Tex":        31       // TeX
-}
-/*
-const webAppTags = Object.fromEntries(Object.entries(webAppTagCodes).map(
-    ([key,val]) => [key,String.fromCharCode(val)])); // node.js 12 accepts that
-*/
-// returns a new object with the values at each key mapped using mapFn(value)
-function objectMap(object, mapFn) {
-  return Object.keys(object).reduce(function(result, key) {
-    result[key] = mapFn(object[key])
-    return result
-  }, {})
-}
-const webAppTags = objectMap(webAppTagCodes, String.fromCharCode);
+// borrowed from tags.js
+var webAppTagCodes = [
+    ["End", 17, ""],
+    ["Html", 18, "M2Html"],
+    ["Output", 19, "M2Html M2Output"],
+    ["Input", 20, "M2Input"],
+    ["InputContd", 28, "M2Input"],
+    ["Url", 29, "M2Url"],
+    ["Text", 30, "M2Text"],
+    ["Tex", 31, "M2Katex"],
+];
+var webAppTags = {};
+var webAppClasses = {};
+webAppTagCodes.forEach(function (x) {
+    webAppTags[x[0]] = String.fromCharCode(x[1]);
+    webAppClasses[String.fromCharCode(x[1])] = x[2];
+});
 
 const baselinePosition = function(el) {
     const probe = document.createElement('span');
@@ -66,61 +61,81 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	var rawList=[];
 
-	const closeHtml = function() {
-	    var anc = htmlSec.parentElement;
-	    if (htmlSec.classList.contains("M2Script")) {
-		//(htmlSec as HTMLScriptElement).text = dehtml(htmlSec.dataset.jsCode); // should we dehtml? need to think carefully. or should it depend whether we're inside TeX or not?
-		/*	    (htmlSec as HTMLScriptElement).text = htmlSec.dataset.jsCode;
-			    document.head.appendChild(htmlSec); // might as well move to head
+	const closeHtml = function () {
+	    const anc = htmlSec.parentElement;
+	    if (htmlSec.classList.contains("M2Url")) {
+		/*
+		const url = htmlSec.dataset.code;
+		if (url.startsWith("/usr/share/doc/Macaulay2"))
+		    window.open(url, "M2 help");
+		else socket.emit("download", url);
 		*/
-		new Function("socket",htmlSec.dataset.jsCode)(socket); // !
-		htmlSec.removeAttribute("data-js-code");
-	    }
-	    else if (htmlSec.classList.contains("M2Latex")) {
-		//htmlSec.dataset.texCode=dehtml(htmlSec.dataset.texCode); // needed for MathJax compatibility
+		htmlSec.removeAttribute("data-code");
+	    } else if (htmlSec.classList.contains("M2Katex")) {
 		try {
-		    htmlSec.innerHTML=katex.renderToString(htmlSec.dataset.texCode, { trust: true, strict: false } );
-		    htmlSec.removeAttribute("data-tex-code");
+		    htmlSec.innerHTML = katex
+			.__renderToHTMLTree(htmlSec.dataset.code, {
+			    trust: true,
+			    strict: false,
+			})
+			.toMarkup(); // one could call katex.renderToString instead but mathml causes problems
+		    htmlSec.removeAttribute("data-code");
 		    // restore raw stuff
-		    if (htmlSec.dataset.idList) htmlSec.dataset.idList.split(" ").forEach( function(id) {
-			var el = document.getElementById("raw"+id);
-			el.style.display="contents"; // could put in css but don't want to overreach
-			el.style.fontSize="0.826446280991736em"; // to compensate for katex's 1.21 factor
-			el.innerHTML=rawList[+id];
-		    });
+		    if (htmlSec.dataset.idList)
+			htmlSec.dataset.idList.split(" ").forEach(function (id) {
+			    const el = document.getElementById("raw" + id);
+			    el.style.display = "contents"; // could put in css but don't want to overreach
+			    el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
+			    el.innerHTML = "";
+			    el.appendChild(rawList[+id]);
+			});
 		    //
-		    //		htmlSec.dataset.saveHTML=htmlSec.innerHTML; // not needed: going to die anyway
-		}
-		catch(err) {
+		    //htmlSec.dataset.code=htmlSec.innerHTML; // not needed: going to die anyway
+		} catch (err) {
 		    htmlSec.classList.add("KatexError"); // TODO: better class for this?
-		    htmlSec.innerHTML=err.message;
+		    htmlSec.innerHTML = err.message;
 		    console.log(err.message);
 		}
 	    }
-	    if (anc.classList.contains("M2Html")) { // we need to convert to string
-		anc.innerHTML=anc.dataset.saveHTML+=htmlSec.outerHTML;
+	    if (anc.classList.contains("M2Html")) {
+		// we need to convert to string :/
+		anc.innerHTML = anc.dataset.code += htmlSec.outerHTML;
 	    } else {
-		htmlSec.removeAttribute("data-save-h-t-m-l");
-		if (anc.classList.contains("M2Latex")) { // html inside tex
+		htmlSec.removeAttribute("data-code");
+		if (anc.classList.contains("M2Katex")) {
+		    // html inside tex
 		    // 18mu= 1em * mathfont size modifier, here 1.21 factor of KaTeX
-		    var fontSize = +(window.getComputedStyle(htmlSec,null).getPropertyValue("font-size").split("px",1)[0])*1.21;
-		    var baseline = baselinePosition(htmlSec);
-		    anc.dataset.texCode+="\\htmlId{raw"+rawList.length+"}{\\vphantom{"
-			+"\\raisebox{"+(baseline/fontSize)+"ce}{}"
-			+"\\raisebox{"+((baseline-htmlSec.offsetHeight)/fontSize)+"ce}{}"
-			+"}\\hspace{"+(htmlSec.offsetWidth/fontSize)+"ce}" // the hspace is really just for debugging
-			+"}";
-		    if (!anc.dataset.idList) anc.dataset.idList=rawList.length; else anc.dataset.idList+=" "+rawList.length;
-		    rawList.push(htmlSec.outerHTML); // try on { (help det)#2#1#0#1#0#0 }
+		    const fontSize =
+			  +window
+			  .getComputedStyle(htmlSec, null)
+			  .getPropertyValue("font-size")
+			  .split("px", 1)[0] * 1.21;
+		    const baseline = baselinePosition(htmlSec);
+		    anc.dataset.code +=
+			"\\htmlId{raw" +
+			rawList.length +
+			"}{\\vphantom{" + // the vphantom ensures proper horizontal space
+			"\\raisebox{" +
+			baseline / fontSize +
+			"ce}{}" +
+			"\\raisebox{" +
+			(baseline - htmlSec.offsetHeight) / fontSize +
+			"ce}{}" +
+			"}\\hspace{" +
+			htmlSec.offsetWidth / fontSize +
+			"ce}" + // the hspace is really just for debugging
+			"}";
+		    if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
+		    else anc.dataset.idList += " " + rawList.length;
+		    rawList.push(htmlSec); // try on { (help det)#2#1#0#1#0#0 }
 		    /*
-		      anc.dataset.texCode+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
-		      +(baseline/fontSize)+"mu}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"mu}}";
+		      anc.dataset.code+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
+		      +(baseline/fontSize)+"ce}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"ce}}";
 		    */
 		}
 	    }
 	    htmlSec = anc;
-	}
-
+	};
 	const closeInput = function() { // need to treat input specially because no closing tag
 	    htmlSec.parentElement.appendChild(document.createElement("br"));
 	    // highlight
@@ -132,78 +147,67 @@ document.addEventListener("DOMContentLoaded", function() {
 	const createHtml = function(a, className) {
 	    var anc = htmlSec;
 	    htmlSec=document.createElement(a);
-	    if (className) {
-		htmlSec.className=className;
-		if (className.indexOf("M2Html")>=0)
-		    htmlSec.dataset.saveHTML=""; // need to keep track of innerHTML because html tags may get broken
-	    }
+	    if (className) htmlSec.className=className;
 	    anc.appendChild(htmlSec);
 	}
 
 	//createHtml("div","M2Html");
-	shell.classList.add("M2Html"); shell.dataset.saveHTML="";
+	shell.classList.add("M2Html"); shell.dataset.code="";
 	htmlSec=shell;
 	
-	var txt=msg.split(webAppTagsRegExp);
-	for (var i=0; i<txt.length; i+=2)
-	{
+	const txt = msg.split(webAppTagsRegExp);
+	for (let i = 0; i < txt.length; i += 2) {
 	    // if we are at the end of an input section
-	    if ((inputEndFlag)&&(((i==0)&&(txt[i].length>0))||((i>0)&&(txt[i-1]!=webAppTags.InputContd)))) {
+	    if (
+		inputEndFlag &&
+		    ((i == 0 && txt[i].length > 0) ||
+		     (i > 0 && txt[i - 1] !== webAppTags.InputContd))
+	    ) {
 		closeInput();
-		inputEndFlag=false;
+		inputEndFlag = false;
 	    }
-	    if (i>0) {
-		var tag=txt[i-1];
-		if (tag==webAppTags.End) { // end of section
+	    if (i > 0) {
+		const tag = txt[i - 1];
+		if (tag == webAppTags.End) {
+		    // end of section
 		    if (htmlSec.classList.contains("M2Input")) closeInput(); // should never happen but does because of annoying escape sequence garbage bug (see also closeInput fix)
 		    closeHtml();
-		}
-		else if (tag==webAppTags.Html) { // html section beginning
-		    createHtml("span","M2Html");
-		}
-		else if (tag==webAppTags.Output) { // pretty much the same
-		    createHtml("span","M2Html M2Output");
-		}
-		else if (tag==webAppTags.Tex) { // tex section beginning.
-		    createHtml("span","M2Latex");
-		    htmlSec.dataset.texCode="";
-		}
-		else if (tag==webAppTags.Script) { // script section beginning
-		    //		    createHtml("script","M2Script");
-		    createHtml("span","M2Script");
-		    htmlSec.dataset.jsCode=""; // can't write directly to text because scripts can only be written once!
-		}
-		else if (tag==webAppTags.Input) { // input section: a bit special (ends at first \n)
-		    createHtml("span","M2Input");
-		}
-		else if (tag==webAppTags.InputContd) { // continuation of input section
-		    inputEndFlag=false;
-		}
-		else { // ordinary text (error messages, prompts, etc)
-		    createHtml("span","M2Text");
+		} else if (tag === webAppTags.InputContd) {
+		    // continuation of input section
+		    inputEndFlag = false;
+		} else {
+		    // new section
+		    createHtml("span", webAppClasses[tag]);
+		    if (tag !== webAppTags.Input && tag !== webAppTags.Text) {
+			htmlSec.dataset.code = ""; // even M2Html needs to keep track of innerHTML because html tags may get broken
+		    }
 		}
 	    }
-	    if (txt[i].length>0) {
-		var l = htmlSec.classList;
+	    if (txt[i].length > 0) {
+		let l = htmlSec.classList;
 		// for next round, check if we're nearing the end of an input section
 		if (l.contains("M2Input")) {
-		    var ii=txt[i].indexOf("\n");
-		    if (ii>=0) {
-			if (ii<txt[i].length-1) {
+		    const ii = txt[i].indexOf("\n");
+		    if (ii >= 0) {
+			if (ii < txt[i].length - 1) {
 			    // need to do some surgery
-			    htmlSec.appendChild(document.createTextNode(txt[i].substring(0,ii+1)));
-			    txt[i]=txt[i].substring(ii+1,txt[i].length);
+			    htmlSec.insertBefore(
+				document.createTextNode(txt[i].substring(0, ii + 1)),
+				inputSpan
+			    );
+			    txt[i] = txt[i].substring(ii + 1, txt[i].length);
 			    closeInput();
-			    l=htmlSec.classList;
-			} else inputEndFlag=true; // can't tell for sure if it's the end or not, so set a flag to remind us
+			    l = htmlSec.classList;
+			} else inputEndFlag = true; // can't tell for sure if it's the end or not, so set a flag to remind us
 		    }
 		}
 
-		if (l.contains("M2Latex")) htmlSec.dataset.texCode+=txt[i];
-		else if (l.contains("M2Html")) htmlSec.innerHTML=htmlSec.dataset.saveHTML+=txt[i];
-		else if (l.contains("M2Script")) htmlSec.dataset.jsCode+=txt[i];
-		else // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
-		    htmlSec.appendChild(document.createTextNode(txt[i]));
+		if (htmlSec.dataset.code !== undefined) {
+		    htmlSec.dataset.code += txt[i];
+		    if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // might as well update in real time
+		}
+		// all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
+		else htmlSec.appendChild(document.createTextNode(txt[i]));
 	    }
 	}
 	closeHtml();
