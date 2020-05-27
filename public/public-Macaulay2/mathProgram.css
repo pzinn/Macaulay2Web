@@ -209,10 +209,12 @@ body {
 
 .M2Html-wrapped {
     white-space: normal;
+    word-break: break-word;
 }
 
 .M2Html-wrapped pre {
     white-space: pre-wrap;
+    word-break: break-all;
 }
 
 /* this allows katex to wrap */

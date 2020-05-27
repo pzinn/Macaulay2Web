@@ -32,7 +32,7 @@ x/(1+oo) -- repeat at will
 -- something fun #2
 restart
 loadPackage "Gfx"
-gfx(GfxEllipse{[0,0],90,30,"stroke"=>"none","fill"=>gfxLinearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")},GfxBlur=>0.3},GfxText{[-65,-7],"Macaulay2",GfxFontSize=>25,"stroke"=>"black","fill"=>"white"},GfxHeight=>12)
+gfx(GfxEllipse{[0,0],90,30,"stroke"=>"none","fill"=>gfxLinearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")},GfxBlur=>0.3},GfxText{[-65,-7],"Macaulay2",GfxFontSize=>25,"stroke"=>"black","fill"=>"white"},GfxHeight=>12,GfxMargin=>0)
 
 -- dodecahedron
 vertices={vector{-137.638,0.,26.2866},vector{137.638,0.,-26.2866},vector{-42.5325,-130.902,26.2866},vector{-42.5325,130.902,26.2866},vector{111.352,-80.9017,26.2866},vector{111.352,80.9017,26.2866},vector{-26.2866,-80.9017,111.352},vector{-26.2866,80.9017,111.352},vector{-68.8191,-50.,-111.352},vector{-68.8191,50.,-111.352},vector{68.8191,-50.,111.352},vector{68.8191,50.,111.352},vector{85.0651,0.,-111.352},vector{-111.352,-80.9017,-26.2866},vector{-111.352,80.9017,-26.2866},vector{-85.0651,0.,111.352},vector{26.2866,-80.9017,-111.352},vector{26.2866,80.9017,-111.352},vector{42.5325,-130.902,-26.2866},vector{42.5325,130.902,-26.2866}};
@@ -59,3 +59,11 @@ factor oo
 -- or (more serious)
 R=RR[x,y]; P=y^2-(x+1)*(x-1)*(x-2);
 gfxPlot(P,{-2,3},"stroke-width"=>0.05,GfxHeight=>25,"stroke"=>"red")
+
+
+-- html stuff
+needsPackage "Text"
+UL {"hi","ha",LI {"ho","style"=>"color:green"},"style"=>"color:red"}
+style(oo,"background" => "yellow","font-size"=>"2em")
+net oo -- the ascii version
+IMG("src"=>"http://www.lpthe.jussieu.fr/~pzinn/me2007.jpg","alt"=>"me","style"=>"width:10em") -- use relative units! (hence "style")
