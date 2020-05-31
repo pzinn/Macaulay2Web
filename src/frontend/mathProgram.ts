@@ -22,7 +22,6 @@ import { webAppTags, webAppClasses } from "../frontend/tags";
 let myshell;
 
 const getSelected = function () {
-  removeBR();
   // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
   const sel = window.getSelection() as any; // modify is still "experimental"
   if (document.getElementById("M2In").contains(sel.focusNode)) {
@@ -30,9 +29,9 @@ const getSelected = function () {
     if (sel.isCollapsed) {
       sel.modify("move", "backward", "lineboundary");
       sel.modify("extend", "forward", "lineboundary");
-      //	    var s=sel.toString(); // doesn't work in firefox because replaces "\n" with " "
+      // const s=sel.toString(); // doesn't work in firefox because replaces "\n" with " "
       const s = sel.getRangeAt(0).cloneContents().textContent;
-      //      sel.modify("move", "forward", "line"); // doesn't work great in firefox TODO
+      // sel.modify("move", "forward", "line"); // doesn't work in firefox
       sel.collapseToEnd();
       sel.modify("move", "forward", "character");
       return s + "\n";
@@ -41,6 +40,7 @@ const getSelected = function () {
 };
 
 const editorEvaluate = function () {
+  removeBR();
   const msg = getSelected();
   myshell.postMessage(msg, false, false); // important not to move the pointer so can move to next line
   document.getElementById("M2In").focus(); // in chrome, this.blur() would be enough, but not in firefox
@@ -148,7 +148,6 @@ const loadFileProcess = function (event) {
     fileReader.onload = function (e) {
       // var textFromFileLoaded = e.target.result;
       const textFromFileLoaded = fileReader.result;
-      //$("#M2In").text(textFromFileLoaded);
       document.getElementById("M2In").innerHTML = Prism.highlight(
         textFromFileLoaded,
         Prism.languages.macaulay2
@@ -220,28 +219,28 @@ const showUploadSuccessDialog = function (event) {
   dialog.showModal();
 };
 
-const showImageDialog = function (imageUrl) {
-  if (imageUrl) {
-    const dialog: any = document.getElementById("showImageDialog");
+const showFileDialog = function (fileUrl) {
+  if (fileUrl) {
+    const dialog: any = document.getElementById("showFileDialog");
     if (!dialog.showModal) {
       dialogPolyfill.registerDialog(dialog);
     }
-    // console.log("We received an image: " + imageUrl);
-    const btn = document.getElementById("showImageDialogBtn");
+    // console.log("We received an file: " + fileUrl);
+    const btn = document.getElementById("showFileDialogBtn");
     // Get rid of old click event listeners.
     const btnClone = btn.cloneNode(true);
-    const content = document.getElementById("showImageDialogContent");
+    const content = document.getElementById("showFileDialogContent");
     content.innerText = "";
     content.appendChild(btnClone);
     btnClone.addEventListener("click", function () {
       window.open(
-        imageUrl,
+        fileUrl,
         "_blank",
         "height=200,width=200,toolbar=0,location=0,menubar=0"
       );
       dialog.close();
     });
-    content.appendChild(document.createTextNode(imageUrl.split("/").pop()));
+    content.appendChild(document.createTextNode(fileUrl.split("/").pop()));
     dialog.showModal();
   }
 };
@@ -253,9 +252,9 @@ const attachCloseDialogBtns = function () {
       (document.getElementById("uploadSuccessDialog") as any).close();
     });
   document
-    .getElementById("showImageDialogClose")
+    .getElementById("showFileDialogClose")
     .addEventListener("click", function () {
-      (document.getElementById("showImageDialog") as any).close();
+      (document.getElementById("showFileDialog") as any).close();
     });
 };
 
@@ -351,7 +350,7 @@ const init = function () {
   socket.on("cookie", socketOnCookie);
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
-  socket.on("image", showImageDialog);
+  socket.on("file", showFileDialog);
 
   const tutorialManager = require("./tutorials")();
   const fetchTutorials = require("./fetchTutorials");

@@ -29,7 +29,7 @@ const emitUrlForUserGeneratedFileToClient = function (
   }
   const sshConnection = ssh2();
   sshConnection.on("end", function () {
-    logFunction("Image action ended.");
+    logFunction("File action ended.");
   });
 
   const handleUserGeneratedFile = function (generateError, sftp) {
@@ -57,7 +57,7 @@ const emitUrlForUserGeneratedFileToClient = function (
           setTimeout(unlink(completePath), 1000 * 60 * 10);
           emitDataViaSockets(
             client.socketArray,
-            SocketEvent.image,
+            SocketEvent.file,
             pathPostfix + fileName
           );
         }
