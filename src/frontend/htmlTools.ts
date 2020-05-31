@@ -75,6 +75,18 @@ const sanitizeElement = function (el) {
   if (offset >= 0) placeCaret(el, offset);
 };
 
+// this one works everywhere
+const caretIsAtEnd = function () {
+  const sel = window.getSelection() as any;
+  const offset = sel.focusOffset;
+  sel.modify("move", "forward", "character");
+  if (offset == sel.focusOffset) return true;
+  else {
+    sel.modify("move", "backward", "character");
+    return false;
+  }
+};
+
 export {
   scrollDownLeft,
   scrollDown,
@@ -84,4 +96,5 @@ export {
   placeCaretAtEnd,
   attachElement,
   sanitizeElement,
+  caretIsAtEnd,
 };

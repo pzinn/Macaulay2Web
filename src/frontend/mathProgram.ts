@@ -15,7 +15,7 @@ let socket: Socket;
 let serverDisconnect = false;
 const dialogPolyfill = require("dialog-polyfill");
 const shell = require("./shell-emulator");
-import { scrollDownLeft } from "./htmlTools";
+import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 
 import { webAppTags, webAppClasses } from "../frontend/tags";
 
@@ -32,7 +32,9 @@ const getSelected = function () {
       sel.modify("extend", "forward", "lineboundary");
       //	    var s=sel.toString(); // doesn't work in firefox because replaces "\n" with " "
       const s = sel.getRangeAt(0).cloneContents().textContent;
-      sel.modify("move", "forward", "line");
+      //      sel.modify("move", "forward", "line"); // doesn't work great in firefox TODO
+      sel.collapseToEnd();
+      sel.modify("move", "forward", "character");
       return s + "\n";
     } else return sel.getRangeAt(0).cloneContents().textContent;
   } else return "";
@@ -41,6 +43,7 @@ const getSelected = function () {
 const editorEvaluate = function () {
   const msg = getSelected();
   myshell.postMessage(msg, false, false); // important not to move the pointer so can move to next line
+  document.getElementById("M2In").focus(); // in chrome, this.blur() would be enough, but not in firefox
   /*
     const input = msg.split("\n");
     for (var line=0; line<input.length; line++) {
@@ -61,10 +64,11 @@ const editorEvaluate = function () {
 
 const editorKeypress = function (e) {
   //    var prismInvoked=false;
-  if (e.which === 13 && e.shiftKey) {
-    e.preventDefault();
+  if (e.key == "Enter" && e.shiftKey) {
+    removeBR();
+    if (!caretIsAtEnd()) e.preventDefault();
     const msg = getSelected();
-    myshell.postMessage(msg, false, true);
+    myshell.postMessage(msg, false, false);
   }
   /*
     if (!prismInvoked) {
@@ -161,7 +165,9 @@ const removeBR = function () {
   let i = 0;
   while (i < input.childElementCount) {
     if (input.children[i].tagName == "BR") {
-      input.insertBefore(document.createTextNode("\n"), input.children[i]);
+      if (i != input.childElementCount - 1)
+        // firefox always adds an extra useless <br> at the end
+        input.insertBefore(document.createTextNode("\n"), input.children[i]);
       input.removeChild(input.children[i]);
     } else if (input.children[i].tagName == "DIV") {
       // same for DIV
