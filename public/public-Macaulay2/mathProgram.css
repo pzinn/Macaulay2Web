@@ -207,9 +207,16 @@ body {
 
 /* the wrapped variant */
 
+/* the shadow doesn't work in inline mode because the box
+does not contain the whole contents (and is possibly empty) */
+.M2Output.M2Html-wrapped:hover {
+    box-shadow: none;
+}
+
 .M2Html-wrapped {
     white-space: normal;
     word-break: break-word;
+    display: inline;
 }
 
 .M2Html-wrapped pre {
@@ -236,10 +243,6 @@ body {
 /* and anything else that has vertical structure, really */
 .M2Html-wrapped .katex .vlist {
     white-space: nowrap;
-}
-
-.M2Html-wrapped:hover {
-    box-shadow: 1px 1px 2px #600000;
 }
 
 .M2-hidden:hover {
