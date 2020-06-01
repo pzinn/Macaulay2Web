@@ -13,7 +13,7 @@ type Socket = SocketIOClient.Socket & { oldEmit?: any };
 export { Socket };
 let socket: Socket;
 let serverDisconnect = false;
-const dialogPolyfill = require("dialog-polyfill");
+//const dialogPolyfill = require("dialog-polyfill");
 const shell = require("./shell-emulator");
 import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 
@@ -97,9 +97,9 @@ const attachMinMaxBtnActions = function () {
   };
   maximize.addEventListener("click", function () {
     const maxCtrl = document.getElementById("M2OutCtrlBtnsMax");
-    if (!dialog.showModal) {
+/*    if (!dialog.showModal) {
       dialogPolyfill.registerDialog(dialog);
-    }
+    }*/
     dialog.appendChild(output);
     maxCtrl.insertBefore(zoomBtns, downsize);
     dialog.showModal();
@@ -201,9 +201,9 @@ const hilite = function (event) {
 
 const showUploadSuccessDialog = function (event) {
   const dialog: any = document.getElementById("uploadSuccessDialog");
-  if (!dialog.showModal) {
+/*  if (!dialog.showModal) {
     dialogPolyfill.registerDialog(dialog);
-  }
+  }*/
   // console.log('we uploaded the file: ' + event.success);
   // console.log(event.file);
   const filename = event.file.name;
@@ -222,9 +222,9 @@ const showUploadSuccessDialog = function (event) {
 const showFileDialog = function (fileUrl) {
   if (fileUrl) {
     const dialog: any = document.getElementById("showFileDialog");
-    if (!dialog.showModal) {
+/*    if (!dialog.showModal) {
       dialogPolyfill.registerDialog(dialog);
-    }
+    }*/
     // console.log("We received an file: " + fileUrl);
     const btn = document.getElementById("showFileDialogBtn");
     // Get rid of old click event listeners.
