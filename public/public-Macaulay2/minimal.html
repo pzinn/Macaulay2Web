@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+  <head>
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Mono:regular,medium,bold' rel='stylesheet' type='text/css'/>
+
+    <link rel="stylesheet" href="katex/katex.css"/>
+    <script src="katex/katex.js"></script>
+
+    <script src="Gfx/Gfx.js"></script>
+    <link rel="stylesheet" href="Gfx/Gfx.css"/>
+
+    <link rel="stylesheet" href="mathProgram.css" type="text/css"/>
+
+    <script src="/siofu/client.js"></script>
+    <script type="text/javascript" src="settings.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+    
+    <link href="prism/prism-M2.css" rel="stylesheet" />
+    <script src="prism/prism.js"></script>
+    <script src="prism/prism-M2.js"></script>
+    
+    <title>
+      TryM2 - Web Interface for Macaulay2
+    </title>
+
+    <base target="_blank">
+  </head>
+  <body style="font-size:14px">
+    <dialog id="showFileDialog" class="mdl-dialog">
+      <button id="showFileDialogClose"
+              class="saveDialogButton mdl-button mdl-js-button mdl-button--icon">
+        <i class="material-icons icon-with-action">close</i>
+      </button>
+      <div class="mdl-dialog__content">
+	<p id="showFileDialogContent">
+          <button id="showFileDialogBtn"
+		  class="saveDialogButton mdl-button mdl-js-button mdl-button--icon mdl-button--colored"
+		  href="">
+            <i class="material-icons">file_download</i>
+          </button>
+        </p>
+      </div>
+    </dialog>
+
+    <div id="M2Out" tabindex="0" style="width:500px;height:500px;overflow:auto;border:1px solid black" class="M2Text"></div>
+
+    </div>
+  </body>
+</html>

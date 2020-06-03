@@ -82,33 +82,40 @@ const editorKeypress = function (e) {
 */
 };
 
+const attachClick = function (id: string, f) {
+  const el = document.getElementById(id);
+  if (el) el.onclick = f;
+};
+
 const attachMinMaxBtnActions = function () {
-  const maximize = document.getElementById("maximizeOutput");
-  const downsize = document.getElementById("downsizeOutput");
-  const zoomBtns = document.getElementById("M2OutZoomBtns");
   const dialog: any = document.getElementById("fullScreenOutput");
-  const output = document.getElementById("M2Out");
-  dialog.onclose = function () {
-    const oldPosition = document.getElementById("right-half");
-    const ctrl = document.getElementById("M2OutCtrlBtns");
-    oldPosition.appendChild(output);
-    ctrl.insertBefore(zoomBtns, maximize);
-    scrollDownLeft(output);
-  };
-  maximize.addEventListener("click", function () {
-    const maxCtrl = document.getElementById("M2OutCtrlBtnsMax");
-/*    if (!dialog.showModal) {
-      dialogPolyfill.registerDialog(dialog);
-    }*/
-    dialog.appendChild(output);
-    maxCtrl.insertBefore(zoomBtns, downsize);
-    dialog.showModal();
-    output.focus();
-    scrollDownLeft(output);
-  });
-  downsize.addEventListener("click", function () {
-    dialog.close();
-  });
+  if (dialog) {
+    const maximize = document.getElementById("maximizeOutput");
+    const downsize = document.getElementById("downsizeOutput");
+    const zoomBtns = document.getElementById("M2OutZoomBtns");
+    const output = document.getElementById("M2Out");
+    dialog.onclose = function () {
+      const oldPosition = document.getElementById("right-half");
+      const ctrl = document.getElementById("M2OutCtrlBtns");
+      oldPosition.appendChild(output);
+      ctrl.insertBefore(zoomBtns, maximize);
+      scrollDownLeft(output);
+    };
+    attachClick("maximizeOutput", function () {
+      const maxCtrl = document.getElementById("M2OutCtrlBtnsMax");
+      /*    if (!dialog.showModal) {
+		  dialogPolyfill.registerDialog(dialog);
+		  }*/
+      dialog.appendChild(output);
+      maxCtrl.insertBefore(zoomBtns, downsize);
+      dialog.showModal();
+      output.focus();
+      scrollDownLeft(output);
+    });
+    attachClick("downsizeOutput", function () {
+      dialog.close();
+    });
+  }
 };
 
 const emitReset = function () {
@@ -122,13 +129,13 @@ const ClearOut = function (e) {
 };
 
 const attachCtrlBtnActions = function () {
-  document.getElementById("sendBtn").onclick = editorEvaluate;
-  document.getElementById("resetBtn").onclick = emitReset;
-  document.getElementById("interruptBtn").onclick = myshell.interrupt;
-  document.getElementById("saveBtn").onclick = saveFile;
-  document.getElementById("loadBtn").onclick = loadFile;
-  document.getElementById("hiliteBtn").onclick = hilite;
-  document.getElementById("clearBtn").onclick = ClearOut;
+  attachClick("sendBtn", editorEvaluate);
+  attachClick("resetBtn", emitReset);
+  attachClick("interruptBtn", myshell.interrupt);
+  attachClick("saveBtn", saveFile);
+  attachClick("loadBtn", loadFile);
+  attachClick("hiliteBtn", hilite);
+  attachClick("clearBtn", ClearOut);
 };
 
 let fileName = "default.m2";
@@ -201,7 +208,7 @@ const hilite = function (event) {
 
 const showUploadSuccessDialog = function (event) {
   const dialog: any = document.getElementById("uploadSuccessDialog");
-/*  if (!dialog.showModal) {
+  /*  if (!dialog.showModal) {
     dialogPolyfill.registerDialog(dialog);
   }*/
   // console.log('we uploaded the file: ' + event.success);
@@ -219,43 +226,39 @@ const showUploadSuccessDialog = function (event) {
   dialog.showModal();
 };
 
-const showFileDialog = function (fileUrl) {
-  if (fileUrl) {
-    const dialog: any = document.getElementById("showFileDialog");
-/*    if (!dialog.showModal) {
+const fileDialog = function (fileUrl) {
+  const dialog: any = document.getElementById("showFileDialog");
+  if (fileUrl && !dialog.open) {
+    /*    if (!dialog.showModal) {
       dialogPolyfill.registerDialog(dialog);
     }*/
-    // console.log("We received an file: " + fileUrl);
+    console.log("We received a file: " + fileUrl);
     const btn = document.getElementById("showFileDialogBtn");
     // Get rid of old click event listeners.
-    const btnClone = btn.cloneNode(true);
+    const btnClone = btn.cloneNode(true) as any;
     const content = document.getElementById("showFileDialogContent");
     content.innerText = "";
     content.appendChild(btnClone);
-    btnClone.addEventListener("click", function () {
+    btnClone.onclick = function () {
       window.open(
         fileUrl,
         "_blank",
         "height=200,width=200,toolbar=0,location=0,menubar=0"
       );
       dialog.close();
-    });
+    };
     content.appendChild(document.createTextNode(fileUrl.split("/").pop()));
     dialog.showModal();
   }
 };
 
 const attachCloseDialogBtns = function () {
-  document
-    .getElementById("uploadSuccessDialogClose")
-    .addEventListener("click", function () {
-      (document.getElementById("uploadSuccessDialog") as any).close();
-    });
-  document
-    .getElementById("showFileDialogClose")
-    .addEventListener("click", function () {
-      (document.getElementById("showFileDialog") as any).close();
-    });
+  attachClick("uploadSuccessDialogClose", function () {
+    (document.getElementById("uploadSuccessDialog") as any).close();
+  });
+  attachClick("showFileDialogClose", function () {
+    (document.getElementById("showFileDialog") as any).close();
+  });
 };
 
 const socketOnDisconnect = function (msg) {
@@ -328,10 +331,6 @@ const socketOnError = function (type) {
   };
 };
 
-const assignClick = function (lst, f) {
-  for (let i = 0; i < lst.length; i++) lst[i].onclick = f;
-};
-
 const init = function () {
   const zoom = require("./zooming");
   zoom.attachZoomButtons(
@@ -350,18 +349,20 @@ const init = function () {
   socket.on("cookie", socketOnCookie);
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
-  socket.on("file", showFileDialog);
+  socket.on("file", fileDialog);
 
-  const tutorialManager = require("./tutorials")();
-  const fetchTutorials = require("./fetchTutorials");
-  fetchTutorials(tutorialManager.makeTutorialsList);
-  document.getElementById("uptutorial").onchange =
-    tutorialManager.uploadTutorial;
-
+  const upTutorial = document.getElementById("uptutorial");
+  if (upTutorial) {
+    const tutorialManager = require("./tutorials")();
+    const fetchTutorials = require("./fetchTutorials");
+    fetchTutorials(tutorialManager.makeTutorialsList);
+    upTutorial.onchange = tutorialManager.uploadTutorial;
+  }
+  const editor = document.getElementById("M2In");
   myshell = new shell.Shell(
     document.getElementById("M2Out"),
     socket,
-    document.getElementById("M2In"),
+    editor,
     document.getElementById("editorToggle")
   );
 
@@ -369,20 +370,19 @@ const init = function () {
   attachCtrlBtnActions();
   attachCloseDialogBtns();
 
-  document.getElementById("M2In").onkeypress = editorKeypress;
+  if (editor) editor.onkeypress = editorKeypress;
 
   const siofu = new SocketIOFileUpload(socket);
-  document
-    .getElementById("uploadBtn")
-    .addEventListener("click", siofu.prompt, false);
+  attachClick("uploadBtn", siofu.prompt);
   siofu.addEventListener("complete", showUploadSuccessDialog);
 
-  document.getElementById("content").onclick = codeClickAction;
-  assignClick(
-    document.getElementsByClassName("tabPanelActivator"),
-    openTabCloseDrawer
+  attachClick("content", codeClickAction);
+  Array.from(document.getElementsByClassName("tabPanelActivator")).forEach(
+    (el) => {
+      (el as any).onclick = openTabCloseDrawer;
+    }
   );
-  document.getElementById("about").onclick = openAboutTab;
+  attachClick("about", openAboutTab);
 
   window.addEventListener("beforeunload", function (e) {
     e.preventDefault();

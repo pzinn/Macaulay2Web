@@ -1,28 +1,5 @@
 /* global document */
 
-function applySize(textarea, sizes) {
-  const sizePercent = Math.round(sizes.currentSize * 100);
-  textarea.style.fontSize = sizePercent.toString() + "%";
-}
-
-function zoomin(textarea, sizes) {
-  sizes.currentSize *= sizes.factor;
-  console.log("zoom: " + sizes.currentSize);
-  applySize(textarea, sizes);
-}
-
-function zoomout(textarea, sizes) {
-  sizes.currentSize /= sizes.factor;
-  console.log("zoom: " + sizes.currentSize);
-  applySize(textarea, sizes);
-}
-
-function reset(textarea, sizes) {
-  sizes.currentSize = 1.0;
-  console.log("zoom: " + sizes.currentSize);
-  applySize(textarea, sizes);
-}
-
 function sanitizeFactor(factor) {
   let result = factor;
   if (result < 0) {
@@ -37,6 +14,11 @@ function sanitizeFactor(factor) {
   return result;
 }
 
+const attachClick = function (id: string, f) {
+  const el = document.getElementById(id);
+  if (el) el.onclick = f;
+};
+
 exports.attachZoomButtons = function (
   textareaID,
   zoominID,
@@ -50,31 +32,33 @@ exports.attachZoomButtons = function (
     factor: 1.1,
     currentSize: 1.0,
   };
-  let textarea;
-  let zoominBtn;
-  let zoomoutBtn;
-  let resetBtn;
+  const textarea = document.getElementById(textareaID);
+  function applySize() {
+    const sizePercent = Math.round(sizes.currentSize * 100);
+    textarea.style.fontSize = sizePercent.toString() + "%";
+  }
 
-  const init = function () {
-    sizes.factor = sanitizeFactor(inputFactor);
-    textarea = document.getElementById(textareaID);
-    zoominBtn = document.getElementById(zoominID);
-    zoomoutBtn = document.getElementById(zoomoutID);
-    resetBtn = document.getElementById(resetID);
+  const zoomin = function () {
+    sizes.currentSize *= sizes.factor;
+    console.log("zoom: " + sizes.currentSize);
+    applySize();
   };
 
-  const attachListeners = function (s) {
-    zoominBtn.addEventListener("click", function () {
-      zoomin(textarea, s);
-    });
-    zoomoutBtn.addEventListener("click", function () {
-      zoomout(textarea, s);
-    });
-    resetBtn.addEventListener("click", function () {
-      reset(textarea, s);
-    });
+  const zoomout = function () {
+    sizes.currentSize /= sizes.factor;
+    console.log("zoom: " + sizes.currentSize);
+    applySize();
   };
 
-  init();
-  attachListeners(sizes);
+  const reset = function () {
+    sizes.currentSize = 1.0;
+    console.log("zoom: " + sizes.currentSize);
+    applySize();
+  };
+
+  sizes.factor = sanitizeFactor(inputFactor);
+
+  attachClick(zoominID, zoomin);
+  attachClick(zoomoutID, zoomout);
+  attachClick(resetID, reset);
 };
