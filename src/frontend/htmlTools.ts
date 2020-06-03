@@ -21,26 +21,26 @@ const baselinePosition = function (el) {
 
 // the next 4 functions require el to have a single text node!
 const placeCaret = function (el, pos) {
-  el.focus();
+  el.focus({ preventScroll: true });
+  if (el.childNodes.length > 1) sanitizeElement(el);
   if (el.childNodes.length == 1) {
     const sel = window.getSelection();
     sel.collapse(el.lastChild, pos);
-  } else if (el.childNodes.length > 1)
-    console.log("placeCaret: not a single node!");
+  }
 };
 const addToElement = function (el, pos, s) {
   // insert into a pure text element and move care to end of insertion
   const msg = el.textContent;
   el.textContent = msg.substring(0, pos) + s + msg.substring(pos, msg.length);
   // put the caret where it should be
-  el.focus();
+  //  el.focus();
   placeCaret(el, pos + s.length);
 };
 const placeCaretAtEnd = function (el, flag?) {
   // flag means only do it if not already in input
   if (!flag || document.activeElement != el) {
     placeCaret(el, el.textContent.length);
-    el.scrollIntoView({ inline: "end" });
+    el.scrollIntoView({ inline: "end", block: "end" });
   }
 };
 const attachElement = function (el, container) {
@@ -49,7 +49,7 @@ const attachElement = function (el, container) {
   const offset = flag ? window.getSelection().focusOffset : 0;
   container.appendChild(el);
   if (flag) {
-    el.focus();
+    //    el.focus();
     placeCaret(el, offset);
   }
 };

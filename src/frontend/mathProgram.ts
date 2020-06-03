@@ -291,7 +291,10 @@ const wrapEmitForDisconnect = function (event, msg) {
 };
 
 const codeClickAction = function (e) {
-  if (e.target.tagName.substring(0, 4) == "CODE")
+  if (
+    e.target.tagName.substring(0, 4) == "CODE" &&
+    window.getSelection().isCollapsed
+  )
     myshell.postMessage(e.target.textContent, false, false);
 };
 
@@ -358,9 +361,10 @@ const init = function () {
     fetchTutorials(tutorialManager.makeTutorialsList);
     upTutorial.onchange = tutorialManager.uploadTutorial;
   }
-  const editor = document.getElementById("M2In");
+    const editor = document.getElementById("M2In");
+    const console =     document.getElementById("M2Out");
   myshell = new shell.Shell(
-    document.getElementById("M2Out"),
+      console,
     socket,
     editor,
     document.getElementById("editorToggle")
@@ -388,6 +392,14 @@ const init = function () {
     e.preventDefault();
     e.returnValue = "";
   });
+
+    const url=new URL(document.location.href);
+    const width = url.searchParams.get("width");
+    if (width) console.style.width=width;
+    const height = url.searchParams.get("height");
+    if (height) console.style.height=height;
+    const exec = url.searchParams.get("exec");
+    if (exec) setTimeout( function() { myshell.postMessage(exec, false, false); }, 2000);
 };
 
 module.exports = function () {
