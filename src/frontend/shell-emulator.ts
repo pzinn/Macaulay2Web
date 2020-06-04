@@ -81,18 +81,18 @@ const Shell = function (
       let str = this.textContent;
       if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
       inputSpan.textContent = str;
+      placeCaretAtEnd(inputSpan);
       scrollDown(shell);
-      placeCaretAtEnd(inputSpan); // TEMP doesnt work for scrolling
     }
   };
 
   const wrapOutput = function () {
     if (window.getSelection().isCollapsed)
-      this.classList.toggle("M2Html-wrapped");
+      this.classList.toggle("M2wrapped");
   };
 
   const hideOutput = function () {
-    this.classList.remove("M2Html-wrapped");
+    this.classList.remove("M2wrapped");
     const thisel = this; // because of closure, the element will be saved
     const anc = thisel.parentElement;
     const ph = document.createElement("span");
@@ -496,7 +496,10 @@ const Shell = function (
       }
       t = t.parentElement;
     }
-    if (window.getSelection().isCollapsed) placeCaretAtEnd(inputSpan, true);
+      if (window.getSelection().isCollapsed) {
+	  placeCaretAtEnd(inputSpan, true);
+	  scrollDown(shell);
+      }
   };
 
   shell.ondblclick = function (e) {
@@ -530,8 +533,8 @@ const Shell = function (
       if (e.key == "ArrowDown") downArrowKeyHandling();
       else upArrowKeyHandling();
       e.preventDefault();
-      scrollDown(shell);
       placeCaretAtEnd(inputSpan);
+      scrollDown(shell);
       //
       return;
     }
@@ -545,14 +548,14 @@ const Shell = function (
     }
 
     if (e.key == "Home") {
-      scrollDownLeft(shell);
       placeCaret(inputSpan, 0); // the default would sometimes use this for vertical scrolling
+      scrollDownLeft(shell);
       return;
     }
 
     if (e.key == "End") {
-      scrollDown(shell);
       placeCaretAtEnd(inputSpan); // the default would sometimes use this for vertical scrolling
+      scrollDown(shell);
       return;
     }
 
@@ -594,6 +597,7 @@ const Shell = function (
           .__renderToHTMLTree(htmlSec.dataset.code, {
             trust: true,
             strict: false,
+            maxExpand: Infinity,
           })
           .toMarkup(); // one could call katex.renderToString instead but mathml causes problems
         htmlSec.removeAttribute("data-code");

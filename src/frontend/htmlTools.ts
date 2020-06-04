@@ -1,6 +1,6 @@
 const scrollDownLeft = function (el) {
-  el.scrollTop = el.scrollHeight;
   el.scrollLeft = 0;
+  el.scrollTop = el.scrollHeight;
 };
 
 const scrollDown = function (el) {

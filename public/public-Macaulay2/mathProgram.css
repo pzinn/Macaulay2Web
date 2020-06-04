@@ -207,39 +207,39 @@ body {
 
 /* the shadow doesn't work in inline mode because the box
 does not contain the whole contents (and is possibly empty) */
-.M2Output.M2Html-wrapped:hover {
+.M2Output.M2wrapped:hover, .M2wrapped .M2Output:hover {
     box-shadow: none;
 }
 
-.M2Html-wrapped {
+.M2Html.M2wrapped, .M2wrapped .M2Html {
     white-space: normal;
     word-break: break-word;
     display: inline;
 }
 
-.M2Html-wrapped pre {
+.M2wrapped pre, .M2wrapped .M2Input, .M2wrapped .M2Text {
     white-space: pre-wrap;
     word-break: break-all;
 }
 
 /* this allows katex to wrap */
-.M2Html-wrapped .katex {
+.M2wrapped .katex {
     white-space: normal;
 }
 
 /* this allows katex to wrap further than it currently wants to... */
-.M2Html-wrapped .katex .base {
+.M2wrapped .katex .base {
     white-space: normal;
     width: 100%;
     display: inline;
 }
 
 /* ...except it screws up fraction bars */
-.M2Html-wrapped .katex .mfrac {
+.M2wrapped .katex .mfrac {
     white-space: nowrap;
 }
 /* and anything else that has vertical structure, really */
-.M2Html-wrapped .katex .vlist {
+.M2wrapped .katex .vlist {
     white-space: nowrap;
 }
 

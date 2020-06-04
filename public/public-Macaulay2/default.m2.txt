@@ -47,7 +47,7 @@ dodecasplit=apply(faces,centers,(f,c)->GfxPolygon{apply(f,j->vertices#j),
 	GfxAutoMatrix=>apply(steps,j->gfxRotation(2*pi/5/steps*4*min(j/steps,1-j/steps),c,c)*gfxTranslation(0.075*sin(2*pi*j/steps)*c)),
 	"fill"=>concatenate("rgb(",toString(134+round(1.2*c_0)),",",toString(134+round(1.2*c_1)),",",toString(134+round(1.2*c_2)),")")});
 d=gfx(dodecasplit,"fill-opacity"=>0.65,GfxAutoMatrix=>gfxRotation(0.02,(1,2,3)));
-d1=gfx(d,GfxMatrix=>gfxTranslation(200,0,0)); -- using alternate syntax of Array instead of Vector
+d1=gfx(d,GfxMatrix=>gfxTranslation(200,0,0)); -- using alternate syntax of Sequence instead of Vector
 d2=gfx(d,GfxMatrix=>gfxTranslation(-200,0,0));
 gfx(d1,d2,GfxRange=>{vector{-400,-400},vector{400,400}},GfxHeight=>25,"stroke-width"=>2) -- press button at top/left!
 

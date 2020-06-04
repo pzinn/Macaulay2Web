@@ -361,10 +361,10 @@ const init = function () {
     fetchTutorials(tutorialManager.makeTutorialsList);
     upTutorial.onchange = tutorialManager.uploadTutorial;
   }
-    const editor = document.getElementById("M2In");
-    const console =     document.getElementById("M2Out");
+  const editor = document.getElementById("M2In");
+  const console = document.getElementById("M2Out");
   myshell = new shell.Shell(
-      console,
+    console,
     socket,
     editor,
     document.getElementById("editorToggle")
@@ -388,18 +388,22 @@ const init = function () {
   );
   attachClick("about", openAboutTab);
 
+    if (editor) // only ask for confirmation if there's an editor
   window.addEventListener("beforeunload", function (e) {
     e.preventDefault();
     e.returnValue = "";
   });
 
-    const url=new URL(document.location.href);
-    const width = url.searchParams.get("width");
-    if (width) console.style.width=width;
-    const height = url.searchParams.get("height");
-    if (height) console.style.height=height;
-    const exec = url.searchParams.get("exec");
-    if (exec) setTimeout( function() { myshell.postMessage(exec, false, false); }, 2000);
+  const url = new URL(document.location.href);
+  const width = url.searchParams.get("width");
+  if (width) console.style.width = width;
+  const height = url.searchParams.get("height");
+  if (height) console.style.height = height;
+  const exec = url.searchParams.get("exec");
+  if (exec)
+    setTimeout(function () {
+      myshell.postMessage(exec, false, false);
+    }, 2000);
 };
 
 module.exports = function () {
