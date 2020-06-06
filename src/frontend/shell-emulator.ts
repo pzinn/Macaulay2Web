@@ -87,8 +87,7 @@ const Shell = function (
   };
 
   const wrapOutput = function () {
-    if (window.getSelection().isCollapsed)
-      this.classList.toggle("M2wrapped");
+    if (window.getSelection().isCollapsed) this.classList.toggle("M2wrapped");
   };
 
   const hideOutput = function () {
@@ -496,10 +495,10 @@ const Shell = function (
       }
       t = t.parentElement;
     }
-      if (window.getSelection().isCollapsed) {
-	  placeCaretAtEnd(inputSpan, true);
-	  scrollDown(shell);
-      }
+    if (window.getSelection().isCollapsed) {
+      placeCaretAtEnd(inputSpan, true);
+      scrollDown(shell);
+    }
   };
 
   shell.ondblclick = function (e) {

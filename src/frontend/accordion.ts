@@ -54,24 +54,27 @@ const appendTutorialToAccordion = function (
   const icon = document.createElement("i");
   icon.innerHTML = cssClasses.titleSymbolActive;
   icon.className = cssClasses.titleSymbolClass;
-  const titlea = document.createElement("a");
-  titlea.className = cssClasses.titleHref;
-  if (index >= 0) titlea.setAttribute("data-tutorial", index);
-  titlea.onclick = showLesson;
-  titlea.href = "#";
-  titlea.innerHTML = tmptitle.innerHTML;
+  const titleSpan = document.createElement("span");
+  titleSpan.className = cssClasses.titleHref;
+  if (index >= 0) titleSpan.setAttribute("data-tutorial", index);
+  titleSpan.onclick = showLesson;
+  titleSpan.innerHTML = tmptitle.innerHTML;
   title.appendChild(icon);
-  title.appendChild(titlea);
+  title.appendChild(titleSpan);
 
   const div = document.createElement("div");
   div.innerHTML = blurb;
   div.insertBefore(title, div.firstChild);
-  let h = 0;
-  div.style.height = h + "px";
-  setTimeout(function () {
-    h = totalHeight(title) + 5;
-    div.style.height = h + "px";
-  }, 1);
+  let heightClosed = 0;
+  div.style.height = "0px";
+  let f = function () {
+    const h = totalHeight(title);
+    if (h > 0) {
+      heightClosed = 5 + h;
+      div.style.height = heightClosed + "px";
+    } else setTimeout(f, 1000);
+  };
+  setTimeout(f, 1);
   div.style.overflow = "hidden";
   div.style.transition = "height 0.5s";
 
@@ -90,7 +93,9 @@ const appendTutorialToAccordion = function (
       cssClasses.titleSymbolActive + " " + cssClasses.titleSymbolInactive
     );
     div.style.height =
-      (div.style.height == h + "px" ? childrenTotalHeight(div) : h) + "px";
+      (div.style.height == heightClosed + "px"
+        ? childrenTotalHeight(div)
+        : heightClosed) + "px";
     //	div.scrollIntoView(); // too brutal
   };
   const ul = document.createElement("ul");

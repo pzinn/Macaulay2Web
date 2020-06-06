@@ -1,0 +1,132 @@
+<html>
+  <head>
+    <title>More on the interface</title>
+  </head>
+  <body>
+    <div>
+      <h4>Introduction</h4>
+      <p>If you've used previously the ``habanero'' server, you should recognize much of the interface. If not, the welcome tutorial can help.
+	Here we focus on new features:</p>
+      <ul>
+	<li>(Ka)TeX output</li>
+	<li>Input greek letters and other unicode symbols with [Escape]start of name[Escape] (also works with ZZ, QQ etc)</li>
+	<li>Static syntax highlighting in editor and input; delimiter matching in input
+	<li>Auto-complete in input with [Tab]</li>
+	<li>Click on past input</li>
+	<li>Click/double click on output to wrap/hide it</li>
+	<li>Native support of HTML classes
+	<li>In order to work, this web interface uses <code>topLevelMode=WebApp</code>, a special output mode of Macaulay2 adapted to mixing TeX and HTML.
+	  If you're nostalgic, you can always revert to <code>topLevelMode=Standard</code> for your usual terminal/ascii output.</li>
+      </ul>
+      <p>Some of these points are developed in the next pages.</p>
+    </div>
+    <div>
+      <h4>KaTeX</h4>
+      <p>By default, all output is processed by the Macaulay2 command <tt>texMath</tt> and then rendered to the browser using <a href="katex.org">KaTeX</a>:<br/>
+	<code>matrix table(5,5,(i,j)->i*j)</code>
+      </p>
+      <p>All built-in types have a method <tt>texMath</tt> (or at least they should!). If you define your own type, say,<br/>
+	<code>MyType = new Type of BasicList</code><br/>
+	  then it is a good idea to define your own method <tt>texMath</tt>. One way to do that is to write<br/>
+	<code>texMath MyType := x -> texMath expression x</code><br/>
+	and then for example<br/>
+	<codeblock>expression MyType := x -> (
+	  if #x===0 then return expression 0;
+	  if #x===1 then return expression x#0;
+	  expression x#0 + 1 / expression drop(x,1)
+	  )</codeblock><br/>
+	The advantage is that several forms of output can then be written at once; e.g., you can also have<br/>
+	<code>net MyType := x -> net expression x; toString MyType := x -> toString expression x;</code><br/>
+	Let us try:<br/>
+	<code>A = new MyType from a_0..a_5</code><br/>
+	<code>net A</code><br/>
+	<code>toString A</code>
+      </p>
+    </div>
+    <div>
+      <h4>Hypertext</h4>
+      <p>This interface has native support for HTML output.</p>
+      <p>
+	Here is how one can create HTML classes in Macaulay2; they are <tt>MarkUpType</tt>s with common ancestor the type <tt>Hypertext</tt>.
+      </p>
+      <p>
+      The package <tt>Text</tt> must be (re)loaded:<br/>
+      <code>needsPackage "Text"</code>
+      </p>
+      <p>
+	<tt>MarkUpType</tt>s are self-initializing:<br/>
+	<code> DIV { BOLD { "hello" }, HR {}, OL {"stuff", "more stuff", LI {"and more"} }, "there" }</code><br/>
+	Note how <tt>LI</tt> is optional inside <tt>OL</tt> or <tt>UL</tt>.
+      </p>
+      <p>
+	All HTML items can take options:<br/>
+	<code>IMG { "src"=>"http://www.lpthe.jussieu.fr/~pzinn/M2.jpg", "alt"=>"Melbourne likes M2", "width"=>"200" }</code><br/>
+	A particularly important one is <tt>style</tt>:<br/>
+	<code>mychord = UL { LI {"C","style"=>"color:red"}, "E", "G", "style"=>"color:green" }</code><br/>
+	which is why it has its own function:<br/>
+	<code>style(mychord, "background" => "yellow", "font-size"=>"2em")</code>
+      </p>
+      <p>
+	Style is ignored in <tt>Standard</tt> mode (<tt>net</tt> output):<br/>
+	<code>net mychord</code>
+      </p>
+      <p>
+	Using <tt>style</tt> is often preferrable to styling directly with HTML attributes; e.g., in the examples above, substitute<br/>
+	<code>style( SPAN { "hello" }, "font-weight" => "bold" )</code>
+	<code>style( IMG { "src"=>"http://www.lpthe.jussieu.fr/~pzinn/M2.jpg" }, "width" => "10em" )</code><br/>
+      </p>
+    </div>
+    <div>
+      <h4>Gfx</h4>
+      <p>
+	Another type of HTML item is available: <tt>SVG</tt> (scalable vector graphics). It can be accessed via the package <tt>Gfx</tt>. <small>(name will change)</small><br/>
+	<code>needsPackage "Gfx"</code>
+      </p>
+      <p>
+	Some examples:<br/>
+	<codeblock>
+	  uglyLogo=gfx(GfxEllipse{(0,0),90,30,"stroke"=>"none",GfxBlur=>0.3,
+	    "fill"=>gfxLinearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")}},
+	    GfxText{(-65,-7),"Macaulay2",GfxFontSize=>25,"stroke"=>"black","fill"=>"white"},
+	    GfxAutoMatrix=>gfxTranslation(0,0,10),GfxHeight=>12)
+	</codeblock><br/>
+	The next one mixes KaTeX and HTML output:<br/>
+	<codeblock>
+	  rgb={"red","green","blue"}; scan(rgb, x -> globalAssign(value x,
+	    GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>0.8,GfxHeight=>0.8,GfxMargin=>0}));
+	  R=QQ[x_red,x_green,x_blue]; describe R
+	</codeblock>
+      </p>
+      <p>To access the underlying SVG object, just write<br/>
+	<code>SVG uglyLogo</code><br/>
+	<code>style(oo,"background"=>"black")</code>
+      </p>
+      <p>For more information, consult the help:<br/>
+	<code>viewHelp Gfx</code>
+      </p>
+    </div>
+    <div>
+      <h4>Other packages</h4>
+      <p>
+	For your package to work with this interface,
+	it needs to have either a <tt>texMath</tt> or <tt>html</tt> method for all defined types.
+      </p>
+      <p>Say your type is<br/>
+	<code>MyType = new Type of BasicList</code><br/>
+	If you want to have (Ka)TeX output with <tt>texMath</tt>, there is nothing more to do.
+	If you want to use HTML output with <tt>html</tt>, you must write:<br/>
+	<code>htmlWithTex MyType := html</code><br/>
+	Let us define the <tt>html</tt> method for our type: (we could define it via <tt>expression</tt> as we did earlier for other modes of output, but for simplicity we define it directly here)<br/>
+	<code>needsPackage "Text"; html MyType := x -> html ( UL toList x )</code><br/>
+	Let us test it:<br/>
+	<code>new MyType from {"ha","hi","hey"}</code>
+      </p>
+      <p>
+	Here we can show how an existing package which already has HTML output can be easily converted to the new interface:<br/>
+	<code>needsPackage "Graphs"</code><br/>
+	Thanks to <tt>htmlWithTex Graph := html</tt>, we have<br/>
+	<code>help graph</code>
+      </p>
+    </div>
+  </body>
+</html>

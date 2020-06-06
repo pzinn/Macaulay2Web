@@ -143,9 +143,9 @@
             <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone"
                  id="left-half">
 
-                <div class="mdl-tabs mdl-js-tabs ">
+                <div id="tabs" class="mdl-tabs mdl-js-tabs ">
                     <div class="mdl-tabs__tab-bar mdl mdl-layout--large-screen-only">
-                        <a href="#home" id="homeTitle" class="mdl-tabs__tab">Home</a>
+                        <a href="#home" id="homeTitle" class="mdl-tabs__tab is-active">Home</a>
                         <a href="#lessonTab" id="lessonTabTitle"
                            class="mdl-tabs__tab">Tutorial</a>
                         <a href="#editor" id="editorTitle"
@@ -161,22 +161,7 @@
                         <img class="image-text-wrap mdl-layout--small-screen-only small-image"
                              src="frontPageImage.jpg"/>
 
-                        <h3>Macaulay2 KaTeX-interface beta</h3>
-			Currently only chrome and firefox are fully supported (safari should be OK too)<br/>
-			Some cool features:
-			<ul>
-			  <li>Fancy TeX-ification: input greek letters with [Escape]start of name[Escape] (also works with ZZ, QQ etc)</li>
-			  <li>Static syntax highlighting in editor and input; delimiter matching in input
-			  <li>Auto-complete in input with [Tab]</li>
-			  <li>Click on past input</li>
-			  <li>Click/double click on output to wrap/hide it</li>
-			  <li>Native support of HTML classes <small>(see editor for examples)</small></li>
-			  <li>If you're nostalgic, you can always revert to <code>topLevelMode=Standard</code></li>
-			</ul>
-
-			<p>This beta is hosted on the Melbourne Research Cloud.</p>
-
-                        <h3>Welcome to Macaulay2</h3>
+                        <h3>Welcome to Macaulay2 (KaTeX-interface beta)</h3>
 
                         <p>Learn and use
                             Macaulay2.
@@ -190,7 +175,11 @@
                             system devoted to supporting research in <b>algebraic
                                 geometry and commutative
                                 algebra</b>, and related fields in mathematics or
-                            applications. </p>
+                          applications. </p>
+			<p>This beta is hosted on the Melbourne Research Cloud.
+			  Currently only chrome and firefox are fully supported (safari should be OK too)
+			</p>
+
                     </div>
                     <div class="mdl-tabs__panel" id="lessonTab">
                         <div id="lesson">

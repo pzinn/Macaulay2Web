@@ -299,7 +299,7 @@ const codeClickAction = function (e) {
 };
 
 const openTabCloseDrawer = function (event) {
-  const panelId = this.getAttribute("href").substring(1) + "Title";
+  const panelId = this.getAttribute("href").substring(1) + "Title"; // probably not the right way, but works
   // show tab panel
   document.getElementById(panelId).click();
   // close drawer menu
@@ -354,13 +354,6 @@ const init = function () {
   socket.emit = wrapEmitForDisconnect;
   socket.on("file", fileDialog);
 
-  const upTutorial = document.getElementById("uptutorial");
-  if (upTutorial) {
-    const tutorialManager = require("./tutorials")();
-    const fetchTutorials = require("./fetchTutorials");
-    fetchTutorials(tutorialManager.makeTutorialsList);
-    upTutorial.onchange = tutorialManager.uploadTutorial;
-  }
   const editor = document.getElementById("M2In");
   const console = document.getElementById("M2Out");
   myshell = new shell.Shell(
@@ -388,11 +381,12 @@ const init = function () {
   );
   attachClick("about", openAboutTab);
 
-    if (editor) // only ask for confirmation if there's an editor
-  window.addEventListener("beforeunload", function (e) {
-    e.preventDefault();
-    e.returnValue = "";
-  });
+  if (editor)
+    // only ask for confirmation if there's an editor
+    window.addEventListener("beforeunload", function (e) {
+      e.preventDefault();
+      e.returnValue = "";
+    });
 
   const url = new URL(document.location.href);
   const width = url.searchParams.get("width");
@@ -404,6 +398,30 @@ const init = function () {
     setTimeout(function () {
       myshell.postMessage(exec, false, false);
     }, 2000);
+
+  let tab = url.hash.substr(1);
+
+  const upTutorial = document.getElementById("uptutorial");
+  if (upTutorial) {
+    const tute = url.searchParams.get("tutorial");
+    const page = url.searchParams.get("lesson"); // can do complicated things like http://localhost:8002/?tutorial=4&lesson=1#editor
+    const tutorialManager = require("./tutorials")(+tute, +page);
+    const fetchTutorials = require("./fetchTutorials");
+    fetchTutorials(tutorialManager.makeTutorialsList);
+    upTutorial.onchange = tutorialManager.uploadTutorial;
+    if (tute !== null && tab === "") tab = "lessonTab";
+  }
+
+  const tabs = document.getElementById("tabs");
+  if (tab && tabs) {
+    let f = function () {
+      if (tabs.classList.contains("is-upgraded"))
+        // MDL js loaded
+        document.getElementById(tab + "Title").click();
+      else setTimeout(f, 100);
+    };
+    f();
+  }
 };
 
 module.exports = function () {

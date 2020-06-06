@@ -267,7 +267,9 @@ const uploadTutorial = function () {
   return false;
 };
 
-module.exports = function () {
+module.exports = function (initialTutorialNr, initialLessonNr) {
+  if (initialTutorialNr) tutorialNr = initialTutorialNr;
+  if (initialLessonNr) lessonNr = initialLessonNr;
   return {
     showLesson,
     tutorials,
