@@ -414,7 +414,7 @@ const init = function () {
 
   const tabs = document.getElementById("tabs");
   if (tab && tabs) {
-    let f = function () {
+    const f = function () {
       if (tabs.classList.contains("is-upgraded"))
         // MDL js loaded
         document.getElementById(tab + "Title").click();

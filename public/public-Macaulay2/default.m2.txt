@@ -23,22 +23,9 @@ viewHelp "determinant"
   A = ZZ/32003[a..g]
   B = QQ[x_1..x_6]
   C = ZZ/101[vars(0..12)]
----------------
+
 -- something fun
-
-R=ZZ[x]; expression x
-x/(1+oo) -- repeat at will
-
--- something fun #2
-restart
-loadPackage "Gfx"
-gfx(GfxEllipse{(0,0),90,30,"stroke"=>"none",GfxBlur=>0.3,
-"fill"=>gfxLinearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")}},
-GfxText{(-65,-7),"Macaulay2",GfxFontSize=>25,"stroke"=>"black","fill"=>"white"},
-GfxAutoMatrix=>gfxTranslation(0,0,10),
-GfxHeight=>12)
-
--- dodecahedron
+needsPackage "Gfx"
 vertices={vector{-137.638,0.,26.2866},vector{137.638,0.,-26.2866},vector{-42.5325,-130.902,26.2866},vector{-42.5325,130.902,26.2866},vector{111.352,-80.9017,26.2866},vector{111.352,80.9017,26.2866},vector{-26.2866,-80.9017,111.352},vector{-26.2866,80.9017,111.352},vector{-68.8191,-50.,-111.352},vector{-68.8191,50.,-111.352},vector{68.8191,-50.,111.352},vector{68.8191,50.,111.352},vector{85.0651,0.,-111.352},vector{-111.352,-80.9017,-26.2866},vector{-111.352,80.9017,-26.2866},vector{-85.0651,0.,111.352},vector{26.2866,-80.9017,-111.352},vector{26.2866,80.9017,-111.352},vector{42.5325,-130.902,-26.2866},vector{42.5325,130.902,-26.2866}};
 faces={{14,9,8,13,0},{1,5,11,10,4},{4,10,6,2,18},{10,11,7,15,6},{11,5,19,3,7},{5,1,12,17,19},{1,4,18,16,12},{3,19,17,9,14},{17,12,16,8,9},{16,18,2,13,8},{2,6,15,0,13},{15,7,3,14,0}};
 centers=apply(faces,f->1/5*sum(f,i->vertices#i));
@@ -51,23 +38,6 @@ d1=gfx(d,GfxMatrix=>gfxTranslation(200,0,0)); -- using alternate syntax of Seque
 d2=gfx(d,GfxMatrix=>gfxTranslation(-200,0,0));
 gfx(d1,d2,GfxRange=>{vector{-400,-400},vector{400,400}},GfxHeight=>25,"stroke-width"=>2) -- press button at top/left!
 
--- or
-rgb={"red","green","blue"};
-scan(rgb, x -> globalAssign(value x, GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>0.8,GfxHeight=>0.8,GfxMargin=>0}))
-value\rgb
-R=QQ[x_red,x_green,x_blue]
-describe R
-x_red^2-x_green^2
-factor oo
-
 -- or (more serious)
 R=RR[x,y]; P=y^2-(x+1)*(x-1)*(x-2);
 gfxPlot(P,{-2,3},"stroke-width"=>0.05,GfxHeight=>25,"stroke"=>"red")
-
-
--- html stuff
-needsPackage "Text"
-UL {"hi","ha",LI {"ho","style"=>"color:green"},"style"=>"color:red"}
-style(oo,"background" => "yellow","font-size"=>"2em")
-net oo -- the ascii version
-IMG("src"=>"http://www.lpthe.jussieu.fr/~pzinn/me2007.jpg","alt"=>"me","style"=>"width:10em") -- use relative units! (hence "style")

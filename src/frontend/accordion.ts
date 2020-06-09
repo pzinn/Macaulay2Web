@@ -67,7 +67,7 @@ const appendTutorialToAccordion = function (
   div.insertBefore(title, div.firstChild);
   let heightClosed = 0;
   div.style.height = "0px";
-  let f = function () {
+  const f = function () {
     const h = totalHeight(title);
     if (h > 0) {
       heightClosed = 5 + h;
