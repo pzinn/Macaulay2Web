@@ -40,7 +40,7 @@ const placeCaretAtEnd = function (el, flag?) {
   // flag means only do it if not already in input
   if (!flag || document.activeElement != el) {
     placeCaret(el, el.textContent.length);
-    el.scrollIntoView({ inline: "end", block: "end" });
+    el.scrollIntoView({ inline: "end", block: "nearest" });
   }
 };
 const attachElement = function (el, container) {
