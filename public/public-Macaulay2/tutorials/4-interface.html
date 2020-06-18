@@ -78,23 +78,23 @@
       </p>
     </div>
     <div>
-      <h4>Gfx</h4>
+      <h4>Graphics</h4>
       <p>
-	Another type of HTML item is available: <tt>SVG</tt> (scalable vector graphics). It can be accessed via the package <tt>Gfx</tt>. <small>(name will change)</small><br/>
-	<code>needsPackage "Gfx"</code>
+	Another type of HTML item is available: <tt>SVG</tt> (scalable vector graphics). It can be accessed via the package <tt>Graphics</tt>.<br/>
+	<code>needsPackage "Graphics"</code>
       </p>
       <p>
 	Some examples:<br/>
 	<codeblock>
-	  uglyLogo=gfx(GfxEllipse{(0,0),90,30,"stroke"=>"none",GfxBlur=>0.3,
-	    "fill"=>gfxLinearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")}},
-	    GfxText{(-65,-7),"Macaulay2",GfxFontSize=>25,"stroke"=>"black","fill"=>"white"},
-	    GfxAutoMatrix=>gfxTranslation(0,0,10),GfxHeight=>12)
+	  uglyLogo=gList(Ellipse{(0,0),90,30,"stroke"=>"none",Blur=>0.3,
+	    "fill"=>linearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")}},
+	    GraphicsText{(-65,-7),"Macaulay2",FontSize=>25,"stroke"=>"black","fill"=>"white"},
+	    AnimMatrix=>translation(0,0,10),SizeY=>12)
 	</codeblock><br/>
 	The next one mixes KaTeX and HTML output:<br/>
 	<codeblock>
 	  rgb={"red","green","blue"}; scan(rgb, x -> globalAssign(value x,
-	    GfxCircle{"fill"=>x,"stroke"=>"black",GfxWidth=>0.8,GfxHeight=>0.8,GfxMargin=>0}));
+	    Circle{"fill"=>x,"stroke"=>"black",SizeX=>0.8,SizeY=>0.8,Margin=>0}));
 	  R=QQ[x_red,x_green,x_blue]; describe R
 	</codeblock>
       </p>
@@ -103,7 +103,7 @@
 	<code>style(oo,"background"=>"black")</code>
       </p>
       <p>For more information, consult the help:<br/>
-	<code>viewHelp Gfx</code>
+	<code>viewHelp Graphics</code>
       </p>
     </div>
     <div>
