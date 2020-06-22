@@ -95,7 +95,7 @@
 	<codeblock>
 	  rgb={"red","green","blue"}; scan(rgb, x -> globalAssign(value x,
 	    Circle{"fill"=>x,"stroke"=>"black",SizeX=>0.8,SizeY=>0.8,Margin=>0}));
-	  R=QQ[x_red,x_green,x_blue]; describe R
+	  R=QQ[x_red,x_green,x_blue]; print describe R; res cokernel vars R
 	</codeblock>
       </p>
       <p>To access the underlying SVG object, just write<br/>
@@ -120,10 +120,10 @@
 	Let us define the <tt>html</tt> method for our type: (we could define it via <tt>expression</tt> as we did earlier for other modes of output, but for simplicity we define it directly here)<br/>
 	<code>needsPackage "Text"; html MyType := x -> html ( UL toList x )</code><br/>
 	Let us test it:<br/>
-	<code>new MyType from {"ha","hi","hey"}</code>
+	<code>new MyType from {"ha","hi",1-ii,QQ[x]}</code>
       </p>
       <p>
-	Here we can show how an existing package which already has HTML output can be easily converted to the new interface:<br/>
+	Here we show how an existing package which already has HTML output can be easily converted to the new interface:<br/>
 	<code>needsPackage "Graphs"</code><br/>
 	Thanks to <tt>htmlWithTex Graph := html</tt>, we have<br/>
 	<code>help graph</code>

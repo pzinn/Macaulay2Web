@@ -528,7 +528,7 @@ const Shell = function (
       return;
     }
 
-    if (e.key == "ArrowDown" || e.key == "ArrowUp") {
+    if ((e.key == "ArrowDown" || e.key == "ArrowUp") && !e.shiftKey) {
       if (e.key == "ArrowDown") downArrowKeyHandling();
       else upArrowKeyHandling();
       e.preventDefault();
