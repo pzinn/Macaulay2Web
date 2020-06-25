@@ -33,7 +33,8 @@ const Shell = function (
   shell: HTMLElement,
   socket: Socket,
   editor: HTMLElement,
-  editorToggle?: HTMLInputElement
+  editorToggle: HTMLInputElement,
+  iFrame: HTMLFrameElement
 ) {
   // Shell is an old-style javascript oop constructor
   // we're using arguments as private variables, cf
@@ -480,22 +481,28 @@ const Shell = function (
     };
   };
 
-  shell.onclick = function (e) {
-    // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
-    let t = e.target as HTMLElement;
-    while (t != shell) {
-      if (t.tagName == "A") return;
+  obj.ancSearch = function (t: HTMLElement, base: HTMLElement) {
+    while (t != base) {
+      if (t.tagName == "A") return true;
       if (t.classList.contains("M2PastInput")) {
         codeInputAction.call(t);
-        return;
+        return true;
       }
       if (t.classList.contains("M2Output")) {
         wrapOutput.call(t);
-        return;
+        return true;
       }
       t = t.parentElement;
     }
-    if (window.getSelection().isCollapsed) {
+    return false;
+  };
+
+  shell.onclick = function (e) {
+    // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
+    if (
+      !obj.ancSearch(e.target as HTMLElement, shell) &&
+      window.getSelection().isCollapsed
+    ) {
       placeCaretAtEnd(inputSpan, true);
       scrollDown(shell);
     }
@@ -587,7 +594,8 @@ const Shell = function (
     if (htmlSec.classList.contains("M2Url")) {
       const url = htmlSec.dataset.code;
       if (url.startsWith("/usr/share/doc/Macaulay2"))
-        window.open(url, "M2 help");
+        if (iFrame) iFrame.src = url;
+        else window.open(url, "M2 help");
       else socket.emit("download", url);
       htmlSec.removeAttribute("data-code");
     } else if (htmlSec.classList.contains("M2Katex")) {

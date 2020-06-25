@@ -48,7 +48,7 @@
         TryM2 - Web Interface for Macaulay2
     </title>
 
-    <base target="_blank">
+    <base target="browse">
 </head>
 <body>
   <iframe id="editorDefault" src="default.m2.txt" onload="loadEditorDefault();" style="display: none;"></iframe>
@@ -134,7 +134,8 @@
             <a class="mdl-navigation__link tabPanelActivator" href="#home">Home</a>
             <a class="mdl-navigation__link tabPanelActivator" href="#lessonTab">Tutorial</a>
             <a class="mdl-navigation__link tabPanelActivator" href="#editor">Editor</a>
-            <a class="mdl-navigation__link tabPanelActivator" href="#help">About</a>
+            <a class="mdl-navigation__link tabPanelActivator" href="#about">About</a>
+            <a class="mdl-navigation__link tabPanelActivator" href="#browseTab">Browse</a>
         </nav>
     </div>
 
@@ -150,8 +151,10 @@
                            class="mdl-tabs__tab">Tutorial</a>
                         <a href="#editor" id="editorTitle"
                            class="mdl-tabs__tab">Editor</a>
-                        <a href="#help" id="helpTitle"
+                        <a href="#about" id="aboutTitle"
                            class="mdl-tabs__tab">About</a>
+                        <a href="#browseTab" id="browseTitle"
+                           class="mdl-tabs__tab">Browse</a>
 
                     </div>
                     <div class="mdl-tabs__panel mdl-layout--fixed-header is-active"
@@ -181,6 +184,9 @@
 			</p>
 
                     </div>
+		    <div class="mdl-tabs__panel" id="browseTab">
+		      <iframe name="browse" style="width:100%;height:100%" id="browseFrame"></iframe>
+		    </div>
                     <div class="mdl-tabs__panel" id="lessonTab">
                         <div id="lesson">
 
@@ -218,7 +224,7 @@
                            spellcheck="false" autocapitalize="off">
                       </div>
                     </div>
-                    <div class="mdl-tabs__panel" id="help">
+                    <div class="mdl-tabs__panel" id="about">
 
                         <h4>Questions?</h4>
                         <p>Email the M2 group
@@ -254,7 +260,7 @@
                             the NSF, <a
                                 href="http://www.math.uiuc.edu/Macaulay2/Funding/"
                                 target='_blank'>see here</a> and through
-                            Award 0635561, and DFG grant <a
+                            Award 0635561, and DFG grant <a target='_blank'
                                 href="http://www.computeralgebra.de">SPP1489</a>.
                             <br> <br>
                         </p>
@@ -310,7 +316,7 @@
     <footer class="mdl-mini-footer mdl-layout--large-screen-only">
         <div class="mdl-mini-footer__left-section">
             <div class="mdl-logo">
-                <a id="about" class="icon-with-action">About</a>
+                <a id="aboutIcon" class="icon-with-action">About</a>
             </div>
         </div>
 

@@ -123,7 +123,7 @@ const emitReset = function () {
   socket.emit("reset");
 };
 
-const ClearOut = function (e) {
+const clearOut = function (e) {
   const out = document.getElementById("M2Out");
   while (out.childElementCount > 1) out.removeChild(out.firstChild);
 };
@@ -135,7 +135,7 @@ const attachCtrlBtnActions = function () {
   attachClick("saveBtn", saveFile);
   attachClick("loadBtn", loadFile);
   attachClick("hiliteBtn", hilite);
-  attachClick("clearBtn", ClearOut);
+  attachClick("clearBtn", clearOut);
 };
 
 let fileName = "default.m2";
@@ -311,8 +311,28 @@ const openTabCloseDrawer = function (event) {
 };
 
 const openAboutTab = function (event) {
+  const el = document.getElementById("aboutTitle");
   // show tab panel
-  document.getElementById("helpTitle").click();
+  if (el) el.click();
+  // do not follow link
+  event.preventDefault();
+};
+
+let ignoreFirstLoad = true;
+const openBrowseTab = function (event) {
+  const tabs = document.getElementById("tabs");
+  const el = document.getElementById("browseTitle");
+  // show tab panel
+  if (el && tabs.classList.contains("is-upgraded")) {
+    if (ignoreFirstLoad) ignoreFirstLoad = false;
+    else el.click();
+  }
+    // try to enable links
+    const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
+    if (iFrame&&iFrame.contentDocument&&iFrame.contentDocument.body)
+	(iFrame as any).contentDocument.body.onclick = function (e) {
+	    myshell.ancSearch(e.target as HTMLElement, iFrame.contentDocument.body);
+    };
   // do not follow link
   event.preventDefault();
 };
@@ -355,12 +375,14 @@ const init = function () {
   socket.on("file", fileDialog);
 
   const editor = document.getElementById("M2In");
+  const iFrame = document.getElementById("browseFrame");
   const console = document.getElementById("M2Out");
   myshell = new shell.Shell(
     console,
     socket,
     editor,
-    document.getElementById("editorToggle")
+    document.getElementById("editorToggle"),
+    iFrame
   );
 
   attachMinMaxBtnActions();
@@ -379,7 +401,7 @@ const init = function () {
       (el as any).onclick = openTabCloseDrawer;
     }
   );
-  attachClick("about", openAboutTab);
+  attachClick("aboutIcon", openAboutTab);
 
   if (editor)
     // only ask for confirmation if there's an editor
@@ -422,6 +444,8 @@ const init = function () {
     };
     f();
   }
+
+  if (iFrame) iFrame.onload = openBrowseTab;
 };
 
 module.exports = function () {
