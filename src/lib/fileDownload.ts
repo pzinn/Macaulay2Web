@@ -2,6 +2,7 @@ const ssh2 = require("ssh2");
 import fs = require("fs");
 import { Client } from "./client";
 import { SocketEvent } from "./enums";
+import path = require("path");
 
 const unlink = function (completePath: string) {
   return function () {
@@ -16,14 +17,14 @@ const unlink = function (completePath: string) {
 
 const emitUrlForUserGeneratedFileToClient = function (
   client: Client,
-  path: string,
+  sourcePath: string,
   pathPrefix: string,
   pathPostfix: string,
   sshCredentials,
   logFunction,
   emitDataViaSockets
 ) {
-  const fileName: string = path;
+  const fileName: string = path.basename(sourcePath);
   if (!fileName) {
     return;
   }
@@ -43,13 +44,13 @@ const emitUrlForUserGeneratedFileToClient = function (
           console.error("Error creating directory: " + targetPath);
         else logFunction("Folder exists");
       }
-      console.log("File we want is " + path);
+      console.log("File we want is " + sourcePath);
       const completePath = targetPath + fileName;
-      sftp.fastGet(path, completePath, function (sftpError) {
+      sftp.fastGet(sourcePath, completePath, function (sftpError) {
         if (sftpError) {
           console.error(
             "Error while downloading file. PATH: " +
-              path +
+              sourcePath +
               ", ERROR: " +
               sftpError
           );

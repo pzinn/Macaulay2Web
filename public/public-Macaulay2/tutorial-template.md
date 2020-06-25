@@ -12,7 +12,7 @@ of each lesson.  Latex math, via mathjax, can be used, and Macaulay2
 code that you wish to become buttons should be enclosed by triple backquotes (```),
 as is shown below.
     
-We use mathjax, which means that you can include math, in the form
+We use katex, which means that you can include math, in the form
 like the following: \(f(x) = x^3-\sin x + 1\), or in display form via:
 \[ \sum_{i=0}^n (x_i y_i + 1). \]
 
