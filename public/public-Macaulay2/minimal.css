@@ -1,0 +1,364 @@
+#M2Out {
+    overflow: scroll;
+    /*background: #F8FAE8;*/ /* var(--left-color); */
+/*    box-shadow: 0px 0px 15px 5px #F8FAE8;*/
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    resize: none;
+    box-sizing: border-box;
+    font-family: "Roboto Mono";
+    font-weight: normal;
+    position: relative;
+    outline: none;
+    line-height: 1.14286;
+}
+
+/* various sections inside #M2Out */
+
+.M2Input {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    white-space: pre;
+    font-family: "Roboto Mono";
+    font-weight: normal;
+}
+
+.M2CurrentInput[data-highlight]::after {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    color: #50A000;
+    text-shadow: 0px 0px 5px #70E000;
+    content: attr(data-highlight);
+}
+
+.M2CurrentInput[data-highlight-error]::after {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    color: red;
+    content: attr(data-highlight-error);
+}
+
+.M2CurrentInput {
+    position: static;
+    outline: none;
+    /* what's below is for textarea */
+/*    background: none;
+    resize: none;
+    overflow: hidden;
+    border: none;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    line-height: inherit;*/
+}
+
+.M2CurrentInput:empty {
+/*    display: block;  clever workaround for chrome's bug with empty inline-block not having focus */
+    min-width: 2px;  /* clever workaround for chrome's bug with empty text node not displaying caret */
+}
+
+.M2Text {
+    white-space: pre;
+    font-family: "Roboto Mono"; /* default font */
+    font-weight: normal;
+}
+
+.M2Html {
+    display: inline-table; /* to make sure size is as big as content. inline-block is the more obvious choice */
+    white-space: nowrap;
+    line-height: 0; /* necessary for exotic stuff. for all standard HTML elements need to redefine it to something more sensible */
+    font-family: "Roboto Mono"; /* default font */
+    font-weight: normal;
+}
+
+.M2Html > * {
+    line-height: 1.2;
+}
+
+.M2Html ul {
+    line-height: 1.2;
+    font-size: inherit;
+}
+
+.M2Html pre {
+    display: inline;
+    margin: 0px;
+    font-family: "Roboto Mono";
+    font-weight: 500;
+    line-height: 1.2;
+    font-size: inherit;
+}
+
+.M2Html table {
+    border-spacing: 0.2em;
+    line-height: 1.2;
+    font-size: inherit;
+}
+
+.M2Html .examples td > pre { /* "examples" is the class name used by M2 documentation. <td> <pre> is used for code example */
+    display: block;
+    border-style: solid;
+    border-width: 1px;
+    margin: 0.3em;
+    padding: 0.3em;
+    line-height: 1;
+}
+
+
+.M2Html h1 {
+    font-size: 2.2em;
+    margin: 0.85em 0em;
+    line-height: 1.2;
+}
+.M2Html h2 {
+    font-size: 2em;
+    margin: 0.7em 0em;
+    line-height: 1.2;
+}
+.M2Html h3 {
+    font-size: 1.8em;
+    margin: 0.6em 0em;
+    line-height: 1.2;
+}
+.M2Html h4 {
+    font-size: 1.6em;
+    margin: 0.4em 0em;
+    line-height: 1.2;
+}
+.M2Html h5 {
+    font-size: 1.4em;
+    margin: 0.3em 0em;
+    line-height: 1.2;
+}
+.M2Html h6 {
+    font-size: 1.2em;
+    margin: 0.15em 0em;
+    line-height: 1.2;
+}
+
+/* the wrapped variant */
+
+/* the shadow doesn't work in inline mode because the box
+does not contain the whole contents (and is possibly empty) */
+.M2Output.M2wrapped:hover, .M2wrapped .M2Output:hover {
+    box-shadow: none;
+}
+
+.M2Html.M2wrapped, .M2wrapped .M2Html {
+    white-space: normal;
+    word-break: break-word;
+    display: inline;
+}
+
+.M2wrapped pre, .M2wrapped .M2Input, .M2wrapped .M2Text {
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* this allows katex to wrap */
+.M2wrapped .katex {
+    white-space: normal;
+}
+
+/* this allows katex to wrap further than it currently wants to... */
+.M2wrapped .katex .base {
+    white-space: normal;
+    width: 100%;
+    display: inline;
+}
+
+/* ...except it screws up fraction bars */
+.M2wrapped .katex .mfrac {
+    white-space: nowrap;
+}
+/* and anything else that has vertical structure, really */
+.M2wrapped .katex .vlist {
+    white-space: nowrap;
+}
+
+.M2-hidden:hover {
+    box-shadow: 1px 1px 2px #006000;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.M2-hidden::after {
+    content: "<hidden>";
+    color: gray;
+}
+
+.KatexError {
+    color: #C07060;
+}
+
+code, codeblock {
+    white-space: pre;
+    margin-left: 20px;
+    margin-right: 20px;
+    font-family: 'Roboto Mono';
+    font-weight: normal;
+    display: inline-block;
+    line-height: 1.5;
+}
+
+code, codeblock, .M2PastInput:hover {
+    transition: background-color 200ms;
+    background-color: lightyellow;
+}
+
+code, codeblock, .M2PastInput:hover, .M2Output:hover {
+    box-shadow: 1px 1px 2px 0px black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+code {
+    padding: 1px 3px;
+}
+
+codeblock {
+    padding: 3px 6px;
+    border-radius: 10px;
+}
+
+code, .M2PastInput:hover, .M2Output:hover {
+    border-radius: 5px;
+}
+ 
+code:active, codeblock:active, .M2PastInput:active {
+    transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */
+    background-color: red;
+    box-shadow: 1px 1px 2px #000;
+    text-decoration: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.autocomplete ul {
+    list-style: none;
+    padding: 0px;
+    margin: 0px;
+    outline: none;
+    line-height: inherit;
+    display: inline-table; /* for firefox */
+    font-size: inherit;
+}
+
+.autocomplete-selection {
+    background-color: rgb(255,110,64);
+    cursor: pointer;
+}
+
+#M2In {
+    /* position: absolute; */ /* otherwise 2 scrollbars appear... fixed instead by inline style hack */
+    display: inline-block; /* prevents chrome from creating new <div> when hitting \n.
+			      doesn't prevent firefox from inserting <br>, though.
+			      and incompatible with position: absolute */
+    outline: none;
+    overflow: scroll;
+    background: #F8FAE8; /* var(--left-color); */
+    white-space: pre;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    resize: none;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    font-family: "Roboto Mono";
+    font-weight: normal;
+}
+
+.close-icon {
+    position: absolute;
+    margin-top: -8px;
+    top: 50%;
+    right: 0.5em;
+}
+
+#sendBtn {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    right: 24px;
+}
+#loadBtn {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    right: 205px;
+}
+#saveBtn {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    right: 132px;
+}
+#hiliteBtn {
+    position: absolute;
+    z-index: 2;
+    top: 54px;
+    right: 24px;
+}
+
+
+
+/*
+#M2OutCtrlBtns, #M2OutCtrlBtnsMax {
+    z-index: 2;
+    position: absolute;
+    top: 16px;
+    right: 80px;
+}
+*/
+#M2OutZoomBtns {
+    z-index: 2;
+    position: absolute;
+    top: 5px;
+    right: 64px;
+}
+#maximizeOutput, #downsizeOutput {
+    z-index: 2;
+    position: absolute;
+    top: 5px;
+    right: 30px;
+}
+
+.icon-with-action {
+    cursor: default;
+}
+
+.image-text-wrap {
+    float: right;
+    margin: 10px;
+    border-radius: 5px;
+}
+
+ 
+.small-image {
+    width: 20vw;
+}
+
+
+.unstyled {
+    list-style: none;
+}
+
+a.submenuItem {
+    text-decoration:none;
+}
+
+.material-icons {
+    vertical-align: middle;
+}
+
+tt {
+    font-family: "Roboto Mono";
+    font-weight: 500;
+}
