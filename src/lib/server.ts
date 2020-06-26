@@ -306,13 +306,13 @@ const sendDataToClient = function (client: Client) {
       );
       return;
       }
-      */
     myLogger.log({
       level: "info",
       message: data,
       cat: "output",
       id: client.id,
     });
+      */
     emitDataViaClientSockets(client, SocketEvent.result, data);
   };
 };
@@ -362,6 +362,23 @@ const getHelp = function(req, res, next) {
 */
 const getHelp = function (req, res) {
   res.sendFile(staticFolder + "-" + serverConfig.MATH_PROGRAM + "/help.html");
+};
+
+const adminBroadcast = function (req, res, next) {
+  if (req.query.message) {
+    console.log(req.headers.host + " messaged: " + req.query.message);
+    let text = req.query.message.replace(/[^a-z0-9 \.,_-]/gim, "");
+    if (text === "reboot")
+      // common special case
+      text =
+        "<span style='color:red'>System is going for reboot in 5 minutes. Please save your data.</span>";
+    // broadcast
+    io.emit(
+      "result",
+      "\n" + webAppTags.Html + "<h3>" + text + "</h3>" + webAppTags.End + "\n"
+    ); // TODO: avoid interference with M2Input
+  }
+  next();
 };
 
 const initializeServer = function () {
@@ -422,6 +439,7 @@ const initializeServer = function () {
   app.use(serveStatic(staticFolder + "-" + serverConfig.MATH_PROGRAM));
   app.use(serveStatic(staticFolder + "-common"));
   app.use(expressWinston.logger(loggerSettings));
+  app.use("/admin", adminBroadcast);
   app.use("/admin", admin.stats);
   app.use("/getListOfTutorials", getList);
   app.use(unhandled);

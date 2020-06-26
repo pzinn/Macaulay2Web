@@ -327,11 +327,11 @@ const openBrowseTab = function (event) {
     if (ignoreFirstLoad) ignoreFirstLoad = false;
     else el.click();
   }
-    // try to enable links
-    const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
-    if (iFrame&&iFrame.contentDocument&&iFrame.contentDocument.body)
-	(iFrame as any).contentDocument.body.onclick = function (e) {
-	    myshell.ancSearch(e.target as HTMLElement, iFrame.contentDocument.body);
+  // try to enable links
+  const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
+  if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body)
+    (iFrame as any).contentDocument.body.onclick = function (e) {
+      myshell.ancSearch(e.target as HTMLElement, iFrame.contentDocument.body);
     };
   // do not follow link
   event.preventDefault();
