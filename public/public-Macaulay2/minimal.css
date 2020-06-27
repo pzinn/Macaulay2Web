@@ -100,14 +100,35 @@
     font-size: inherit;
 }
 
-.M2Html .examples td > pre { /* "examples" is the class name used by M2 documentation. <td> <pre> is used for code example */
-    display: block;
-    border-style: solid;
-    border-width: 1px;
-    margin: 0.3em;
-    padding: 0.3em;
-    line-height: 1;
+/* from doc.css */
+table.examples {
+     margin-left: 2em;
+     width: 25%;
+     border-style: solid;
+/*     background-color: #c0ffff;
+     border-top-color: #c0ffff;
+     border-bottom-color: #50b0b0;
+     border-left-color: #a0ffff;
+     border-right-color: #50b0b0;
+     font-size: 75%;*/
+     border-width: 3px;
+     border-spacing: 0px;
+     line-height: 110%;		/* 122% seems to be the default, and 100% leaves almost no space between lines */
 }
+table.examples td {
+     border-style: solid;
+/*     border-top-color: #50b0b0;
+     border-bottom-color: #c0ffff;
+     border-left-color: #50b0b0;
+     border-right-color: #a0ffff;*/
+     padding: 1ex;
+     border-width: 1px;
+}
+table.examples pre {
+     margin: 0pt;
+     padding: 0pt;
+}
+
 
 
 .M2Html h1 {
@@ -348,14 +369,6 @@ code:active, codeblock:active, .M2PastInput:active {
 
 .unstyled {
     list-style: none;
-}
-
-a.submenuItem {
-    text-decoration:none;
-}
-
-.material-icons {
-    vertical-align: middle;
 }
 
 tt {
