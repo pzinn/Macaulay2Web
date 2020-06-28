@@ -11,7 +11,10 @@ import { LocalContainerManager } from "./LocalContainerManager";
 import { SshDockerContainers } from "./sshDockerContainers";
 import { SudoDockerContainers } from "./sudoDockerContainers";
 import { AddressInfo } from "net";
-import { emitUrlForUserGeneratedFileToClient } from "./fileDownload";
+import {
+  //  emitUrlForUserGeneratedFileToClient,
+  directDownload,
+} from "./fileDownload";
 
 import * as reader from "./tutorialReader";
 
@@ -40,11 +43,11 @@ let serverConfig = {
 };
 let options;
 const staticFolder = path.join(__dirname, "../../public/public");
-let myLogger;
+//let myLogger;
 
 const logExceptOnTest = function (msg: string): void {
   if (process.env.NODE_ENV !== "test") {
-    console.log(msg);
+    console.log("[" + new Date().toString() + "] " + msg);
   }
 };
 
@@ -345,13 +348,42 @@ const killMathProgram = function (
   channel.close();
 };
 
+const fileDownload = function (request, response, next) {
+  const rawCookies = request.headers.cookie;
+  if (rawCookies) {
+    const cookies = Cookie.parse(rawCookies);
+    const id = cookies[options.cookieName];
+    if (id) {
+      const client = clients[id];
+      if (client) {
+        logExceptOnTest("that was " + id);
+        let sourcePath = decodeURIComponent(request.url);
+        if (sourcePath.startsWith("/relative/"))
+          sourcePath = sourcePath.substring(10); // for relative paths
+        directDownload(
+          client,
+          sourcePath,
+          staticFolder + "-" + serverConfig.MATH_PROGRAM,
+          userSpecificPath(client),
+          sshCredentials,
+          logExceptOnTest,
+          function (targetPath) {
+            if (targetPath) {
+              response.sendFile(targetPath);
+            } else next();
+          }
+        );
+      }
+    }
+  }
+};
+
 const unhandled = function (request, response) {
   logExceptOnTest("Request for something we don't serve: " + request.url);
   response.writeHead(404, "Request for something we don't serve.");
   response.write("404");
   response.end();
 };
-
 /*
 // the old way: just redirect help with
 // app.use("/usr/share/doc/Macaulay2",getHelp);
@@ -366,7 +398,14 @@ const getHelp = function (req, res) {
 
 const adminBroadcast = function (req, res, next) {
   if (req.query.message) {
-    console.log(req.headers.host + " messaged: " + req.query.message);
+    console.log(
+      "[" +
+        new Date().toString() +
+        "] " +
+        req.headers.host +
+        " messaged: " +
+        req.query.message
+    );
     let text = req.query.message.replace(/[^a-z0-9 \.,_-]/gim, "");
     if (text === "reboot")
       // common special case
@@ -387,6 +426,7 @@ const initializeServer = function () {
   const winston = require("winston");
   const expressWinston = require("express-winston");
 
+  /*
   const webAppTagsRegExp = new RegExp(
     "(" + Object.values(webAppTags).join("|") + ")",
     "g"
@@ -412,20 +452,19 @@ const initializeServer = function () {
       }),
     ],
   });
-
+*/
   const loggerSettings = {
-    transports: [
-      new winston.transports.Console({
-        level: "error",
-        json: true,
-        colorize: true,
-      }),
-    ],
+    transports: [new winston.transports.Console()],
+    format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.json()
+    ),
   };
 
   const prefix: string = staticFolder + "-" + serverConfig.MATH_PROGRAM + "/";
   const getList: reader.GetListFunction = reader.tutorialReader(prefix, fs);
   const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM);
+  app.use(expressWinston.logger(loggerSettings));
   app.use(
     favicon(staticFolder + "-" + serverConfig.MATH_PROGRAM + "/favicon.ico")
   );
@@ -438,10 +477,10 @@ const initializeServer = function () {
   app.use("/usr/share/", serveStatic(staticFolder + "-share"));
   app.use(serveStatic(staticFolder + "-" + serverConfig.MATH_PROGRAM));
   app.use(serveStatic(staticFolder + "-common"));
-  app.use(expressWinston.logger(loggerSettings));
   app.use("/admin", adminBroadcast);
   app.use("/admin", admin.stats);
   app.use("/getListOfTutorials", getList);
+  app.use(fileDownload);
   app.use(unhandled);
 };
 
@@ -536,6 +575,7 @@ const socketResetAction = function (client: Client) {
   };
 };
 
+/*
 const socketDownloadAction = function (socket, client: Client) {
   const pathPrefix: string = staticFolder + "-" + serverConfig.MATH_PROGRAM;
   return function (msg: string) {
@@ -550,6 +590,7 @@ const socketDownloadAction = function (socket, client: Client) {
     );
   };
 };
+*/
 
 const sevenDays = 7 * 86409000;
 
@@ -587,7 +628,7 @@ const listen = function () {
     fileUpload.attachUploadListenerToSocket(client, socket);
     socket.on("input", socketInputAction(socket, client));
     socket.on("reset", socketResetAction(client));
-    socket.on("download", socketDownloadAction(socket, client));
+    //    socket.on("download", socketDownloadAction(socket, client));
   });
 
   const listener = http.listen(serverConfig.port);

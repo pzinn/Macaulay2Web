@@ -226,31 +226,18 @@ const showUploadSuccessDialog = function (event) {
   dialog.showModal();
 };
 
+/*
 const fileDialog = function (fileUrl) {
-  const dialog: any = document.getElementById("showFileDialog");
-  if (fileUrl && !dialog.open) {
-    /*    if (!dialog.showModal) {
-      dialogPolyfill.registerDialog(dialog);
-    }*/
-    console.log("We received a file: " + fileUrl);
-    const btn = document.getElementById("showFileDialogBtn");
-    // Get rid of old click event listeners.
-    const btnClone = btn.cloneNode(true) as any;
-    const content = document.getElementById("showFileDialogContent");
-    content.innerText = "";
-    content.appendChild(btnClone);
-    btnClone.onclick = function () {
-      window.open(
-        fileUrl,
-        "_blank",
-        "height=200,width=200,toolbar=0,location=0,menubar=0"
-      );
-      dialog.close();
-    };
-    content.appendChild(document.createTextNode(fileUrl.split("/").pop()));
-    dialog.showModal();
-  }
+  const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
+  if (iFrame) iFrame.src = fileUrl;
+  else
+    window.open(
+      fileUrl,
+      "_blank",
+      "height=200,width=200,toolbar=0,location=0,menubar=0"
+    );
 };
+*/
 
 const attachCloseDialogBtns = function () {
   attachClick("uploadSuccessDialogClose", function () {
@@ -372,7 +359,7 @@ const init = function () {
   socket.on("cookie", socketOnCookie);
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
-  socket.on("file", fileDialog);
+  //  socket.on("file", fileDialog);
 
   const editor = document.getElementById("M2In");
   const iFrame = document.getElementById("browseFrame");

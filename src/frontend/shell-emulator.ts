@@ -592,11 +592,12 @@ const Shell = function (
   const closeHtml = function () {
     const anc = htmlSec.parentElement;
     if (htmlSec.classList.contains("M2Url")) {
-      const url = htmlSec.dataset.code;
-      if (url.startsWith("/usr/share/doc/Macaulay2"))
-        if (iFrame) iFrame.src = url;
-        else window.open(url, "M2 help");
-      else socket.emit("download", url);
+      let url = htmlSec.dataset.code;
+      if (url[0] != "/") url = "/relative/" + url; // for relative URLs
+      //if (url.startsWith("/usr/share/doc/Macaulay2"))
+      if (iFrame) iFrame.src = url;
+      else window.open(url, "M2 browse");
+      //else socket.emit("download", url);
       htmlSec.removeAttribute("data-code");
     } else if (htmlSec.classList.contains("M2Katex")) {
       try {
