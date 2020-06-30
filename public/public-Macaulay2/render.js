@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	const closeInput = function() { // need to treat input specially because no closing tag
 	    htmlSec.parentElement.appendChild(document.createElement("br"));
 	    // highlight
-	    htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
+//	    htmlSec.innerHTML=Prism.highlight(htmlSec.textContent,Prism.languages.macaulay2);
 	    htmlSec.classList.add("M2PastInput");
 	    closeHtml();
 	}
