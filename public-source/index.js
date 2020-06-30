@@ -2,6 +2,8 @@
 
 "use strict;";
 
+mathProgramName = "Macaulay2";
+
 document.addEventListener(
   "DOMContentLoaded",
   function () {

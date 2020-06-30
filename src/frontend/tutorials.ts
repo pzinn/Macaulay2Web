@@ -3,7 +3,7 @@
 
 //declare var MathJax: jax.IMathJax;
 declare const renderMathInElement;
-declare const Prism;
+//const Prism = require('prismjs');
 const accordion = require("./accordion")();
 
 interface Lesson {

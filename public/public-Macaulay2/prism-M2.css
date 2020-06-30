@@ -1,9 +1,8 @@
 /* PrismJS 1.14.0
 http://prismjs.com/download.html#themes=prism&languages=markup+css+clike+javascript */
 /**
- * prism.js emacs/M2 theme for JavaScript, CSS and HTML
- * Based on dabblet (http://dabblet.com)
- * @author Lea Verou
+ * prism.js theme for Macaulay2
+   2018 P. Zinn-Justin
  */
 
 code[class*="language-"],
