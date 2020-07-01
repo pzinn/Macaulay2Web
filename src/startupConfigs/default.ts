@@ -12,7 +12,7 @@ const options = {
     resumeString:
       "Type " +
       webAppTags.Html +
-      '<span class="M2PastInput" onclick="document.getElementsByClassName(\'M2CurrentInput\')[0].textContent=this.textContent">listUserSymbols</span>' +
+      '<span class="M2PastInput">listUserSymbols</span>' +
       webAppTags.End +
       " to print the list of existing symbols.\n\ni* : " +
       webAppTags.Input,

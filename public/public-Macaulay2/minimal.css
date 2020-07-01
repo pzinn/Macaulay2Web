@@ -351,26 +351,6 @@ code:active, codeblock:active, .M2PastInput:active {
     right: 30px;
 }
 
-.icon-with-action {
-    cursor: default;
-}
-
-.image-text-wrap {
-    float: right;
-    margin: 10px;
-    border-radius: 5px;
-}
-
- 
-.small-image {
-    width: 20vw;
-}
-
-
-.unstyled {
-    list-style: none;
-}
-
 tt {
     font-family: "Roboto Mono";
     font-weight: 500;

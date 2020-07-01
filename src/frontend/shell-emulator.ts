@@ -15,8 +15,7 @@ import {
 const unicodeBell = "\u0007";
 declare const katex;
 //const Prism = require('prismjs');
-const M2symbols = require('./prism-M2');
-
+const M2symbols = require("./prism-M2");
 
 /*
 function dehtml(s) {

@@ -6,8 +6,8 @@ declare const mathProgramName: string;
 declare const DefaultText: string;
 import io = require("socket.io-client");
 //declare const SocketIOFileUpload: any;
-const SocketIOFileUpload = require('socketio-file-upload');
-const Prism = require('prismjs');
+const SocketIOFileUpload = require("socketio-file-upload");
+const Prism = require("prismjs");
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
@@ -364,18 +364,22 @@ const init = function () {
 
   const editor = document.getElementById("M2In");
 
-    // take care of default editor text
+  // take care of default editor text
+  if (editor) {
     const xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-	if (this.readyState == 4 && this.status == 200) {
-	    editor.innerHTML=Prism.highlight(xhttp.responseText,Prism.languages.macaulay2);
-	}
+    xhttp.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        editor.innerHTML = Prism.highlight(
+          xhttp.responseText,
+          Prism.languages.macaulay2
+        );
+      }
     };
     xhttp.open("GET", "default.m2.txt", true);
     xhttp.send();
+  }
 
-
-    const iFrame = document.getElementById("browseFrame");
+  const iFrame = document.getElementById("browseFrame");
   const console = document.getElementById("M2Out");
   myshell = new shell.Shell(
     console,
