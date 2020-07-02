@@ -7,7 +7,7 @@ const options = {
   serverConfig: {
     CONTAINERS: "../lib/LocalContainerManager",
     MATH_PROGRAM: "Macaulay2",
-    MATH_PROGRAM_COMMAND: "export WWWBROWSER=open; M2 --webapp",
+      MATH_PROGRAM_COMMAND: "export WWWBROWSER=open; stty cols 1000000000; M2 --webapp",
     port: "8002",
     resumeString:
       "Type " +

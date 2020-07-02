@@ -28,13 +28,13 @@
       <p>All built-in types have a method <tt>texMath</tt> (or at least they should!). If you define your own type, say,<br/>
 	<code>MyType = new Type of BasicList</code><br/>
 	  then it is a good idea to define your own method <tt>texMath</tt>. One way to do that is to write<br/>
-	<code>texMath MyType := x -> texMath expression x</code><br/>
+	<code>texMath MyType := x -> texMath expression x;</code><br/>
 	and then for example<br/>
 	<codeblock>expression MyType := x -> (
 	  if #x===0 then return expression 0;
 	  if #x===1 then return expression x#0;
 	  expression x#0 + 1 / expression drop(x,1)
-	  )</codeblock><br/>
+	  );</codeblock><br/>
 	The advantage is that several forms of output can then be written at once; e.g., you can also have<br/>
 	<code>net MyType := x -> net expression x; toString MyType := x -> toString expression x;</code><br/>
 	Let us try:<br/>
