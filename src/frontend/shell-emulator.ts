@@ -804,6 +804,4 @@ const Shell = function (
   };
 };
 
-module.exports = {
-  Shell,
-};
+module.exports = Shell;

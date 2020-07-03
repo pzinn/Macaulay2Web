@@ -570,7 +570,7 @@ const socketResetAction = function (client: Client) {
         killMathProgram(client.channel, client.id);
         spawnMathProgramInSecureContainer(client);
       }
-      sanitizeClient(client);
+      //      sanitizeClient(client);
     });
   };
 };

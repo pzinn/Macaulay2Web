@@ -15,7 +15,7 @@ export { Socket };
 let socket: Socket;
 let serverDisconnect = false;
 //const dialogPolyfill = require("dialog-polyfill");
-const shell = require("./shell-emulator");
+const Shell = require("./shell-emulator");
 import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 
 import { webAppTags, webAppClasses } from "../frontend/tags";
@@ -381,7 +381,7 @@ const init = function () {
 
   const iFrame = document.getElementById("browseFrame");
   const console = document.getElementById("M2Out");
-  myshell = new shell.Shell(
+  myshell = new Shell(
     console,
     socket,
     editor,
