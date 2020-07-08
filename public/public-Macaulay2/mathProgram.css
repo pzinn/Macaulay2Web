@@ -82,9 +82,6 @@ body {
     position: relative;
     display: inline-block;
     vertical-align: top;
-    white-space: pre;
-    font-family: "Roboto Mono";
-    font-weight: normal;
 }
 
 .M2CurrentInput[data-highlight]::after {
@@ -136,6 +133,7 @@ body {
     line-height: 0; /* necessary for exotic stuff. for all standard HTML elements need to redefine it to something more sensible */
     font-family: "Roboto Mono"; /* default font */
     font-weight: normal;
+    position: relative;
 }
 
 .M2Html > * {
@@ -226,9 +224,11 @@ table.examples pre {
 
 /* the shadow doesn't work in inline mode because the box
 does not contain the whole contents (and is possibly empty) */
+/*
 .M2Output.M2wrapped:hover, .M2wrapped .M2Output:hover {
     box-shadow: none;
 }
+*/
 
 .M2Html.M2wrapped, .M2wrapped .M2Html {
     white-space: normal;
@@ -236,7 +236,7 @@ does not contain the whole contents (and is possibly empty) */
     display: inline;
 }
 
-.M2wrapped pre, .M2wrapped .M2Input, .M2wrapped .M2Text {
+.M2Text.M2wrapped, .M2wrapped pre, .M2wrapped .M2Text {
     white-space: pre-wrap;
     word-break: break-all;
 }
@@ -293,7 +293,8 @@ code, codeblock, .M2PastInput:hover {
     background-color: lightyellow;
 }
 
-code, codeblock, .M2PastInput:hover, .M2Output:hover {
+/* .M2Output:hover, */
+code, codeblock, .M2PastInput:hover {
     box-shadow: 1px 1px 2px 0px black;
     text-decoration: none;
     cursor: pointer;
@@ -308,7 +309,8 @@ codeblock {
     border-radius: 10px;
 }
 
-code, .M2PastInput:hover, .M2Output:hover {
+/* .M2Output:hover, */
+code, .M2PastInput:hover {
     border-radius: 5px;
 }
  
@@ -423,10 +425,6 @@ code:active, codeblock:active, .M2PastInput:active {
     right: 30px;
 }
 
-.icon-with-action {
-    cursor: default;
-}
-
 .image-text-wrap {
     float: right;
     margin: 10px;
@@ -489,7 +487,31 @@ a.submenuItem {
     background-color: #8080FF;
 }
 
+.menuTitle:hover {
+    background-color: #A070FF;
+}
+
 tt {
     font-family: "Roboto Mono";
     font-weight: 500;
 }
+
+#aboutIcon {
+    cursor: pointer;
+}
+
+/*
+
+.M2OutputIcon {
+    position: absolute;
+    right: 0px;
+    top: 50%;
+    transform: translate(100%,-50%);
+    visibility: hidden;
+}
+
+.M2Output:hover > .M2OutputIcon {
+    visibility: visible;
+}
+
+*/

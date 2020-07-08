@@ -2,8 +2,10 @@
 
 const cssClasses = {
   titleSymbolClass: "material-icons titleSymbol",
-  titleSymbolActive: "expand_more",
-  titleSymbolInactive: "expand_less",
+  //  titleSymbolActive: "expand_more",
+  titleSymbolActive: "arrow_right",
+  //  titleSymbolInactive: "expand_less",
+  titleSymbolInactive: "arrow_drop_down",
   title: "mdl-button mdl-js-button mdl-button--raised mdl-list__item",
   titleHover: "mdl-button--colored",
   titleToggleClass: "",
@@ -61,6 +63,7 @@ const appendTutorialToAccordion = function (
   titleSpan.innerHTML = tmptitle.innerHTML;
   title.appendChild(icon);
   title.appendChild(titleSpan);
+  title.style.cursor = "pointer";
 
   const div = document.createElement("div");
   div.innerHTML = blurb;
@@ -80,7 +83,7 @@ const appendTutorialToAccordion = function (
 
   if (deleteButton) {
     const deleteButton = document.createElement("i");
-    deleteButton.className = "material-icons icon-with-action saveDialogClose";
+    deleteButton.className = "material-icons saveDialogClose";
     deleteButton.innerHTML = "close";
     deleteButton.onclick = removeTutorial(div);
     title.appendChild(deleteButton);

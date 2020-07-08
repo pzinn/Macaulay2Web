@@ -67,6 +67,7 @@ const Shell = function (
     inputSpan.autocomplete = "off";
     inputSpan.classList.add("M2Input");
     inputSpan.classList.add("M2CurrentInput");
+    inputSpan.classList.add("M2Text");
     shell.appendChild(inputSpan);
     inputSpan.focus();
     htmlSec = shell;
@@ -628,7 +629,8 @@ const Shell = function (
     }
     if (anc.classList.contains("M2Html")) {
       // we need to convert to string :/
-      anc.innerHTML = anc.dataset.code += htmlSec.outerHTML;
+      //      anc.innerHTML = anc.dataset.code += htmlSec.outerHTML;
+      anc.dataset.code += htmlSec.outerHTML;
     } else {
       htmlSec.removeAttribute("data-code");
       if (anc.classList.contains("M2Katex")) {
@@ -694,7 +696,10 @@ const Shell = function (
         htmlSec.addEventListener("mousedown", function (e) {
           if (e.detail > 1) e.preventDefault();
         });
+        // htmlSec.dataset.code = htmlSec.innerHTML = '<i class="material-icons M2OutputIcon">arrow_left</i>';
       }
+      if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
+      // even M2Html needs to keep track of innerHTML because html tags may get broken
     }
     if (inputSpan.parentElement == anc) anc.insertBefore(htmlSec, inputSpan);
     else anc.appendChild(htmlSec);
@@ -752,8 +757,6 @@ const Shell = function (
             // input section: a bit special (ends at first \n)
             inputSpanParentElement.push(inputSpan.parentElement); // not great
             attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
-          } else if (tag !== webAppTags.Text) {
-            htmlSec.dataset.code = ""; // even M2Html needs to keep track of innerHTML because html tags may get broken
           }
         }
       }
