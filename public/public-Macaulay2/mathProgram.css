@@ -209,7 +209,16 @@ a.submenuItem {
 
 .material-icons {
     vertical-align: middle;
+    transition: transform 0.5s;
 }
+
+button.rotated .material-icons {
+    transform: translate(-12px,-12px) rotate(90deg);
+}
+h3.rotated .material-icons {
+    transform: rotate(90deg);
+}
+
 
 #accordion h3:hover {
     background-color: #8080FF;

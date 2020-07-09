@@ -129,16 +129,11 @@ const clearOut = function () {
   while (out.childElementCount > 1) out.removeChild(out.firstChild);
 };
 
-const toggleWrap = function() {
-    const out = document.getElementById("M2Out");
-    const icon = document.getElementById("wrapBtnIcon");
-    if (out.classList.contains("M2wrapped")) {
-	out.classList.remove("M2wrapped");
-	icon.textContent="arrow_right";
-    } else {
-	out.classList.add("M2wrapped");
-	icon.textContent="arrow_drop_down";
-    }
+const toggleWrap = function () {
+  const out = document.getElementById("M2Out");
+  const btn = document.getElementById("wrapBtn");
+  btn.classList.toggle("rotated");
+  out.classList.toggle("M2wrapped");
 };
 
 const attachCtrlBtnActions = function () {
@@ -148,8 +143,8 @@ const attachCtrlBtnActions = function () {
   attachClick("saveBtn", saveFile);
   attachClick("loadBtn", loadFile);
   attachClick("hiliteBtn", hilite);
-    attachClick("clearBtn", clearOut);
-    attachClick("wrapBtn", toggleWrap);
+  attachClick("clearBtn", clearOut);
+  attachClick("wrapBtn", toggleWrap);
 };
 
 let fileName = "default.m2";

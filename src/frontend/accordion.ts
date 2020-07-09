@@ -5,10 +5,11 @@ const cssClasses = {
   //  titleSymbolActive: "expand_more",
   titleSymbolActive: "arrow_right",
   //  titleSymbolInactive: "expand_less",
-  titleSymbolInactive: "arrow_drop_down",
+  // titleSymbolInactive: "arrow_drop_down",
+  titleSymbolInactive: "arrow_right",
   title: "mdl-button mdl-js-button mdl-button--raised mdl-list__item",
   titleHover: "mdl-button--colored",
-  titleToggleClass: "",
+  titleToggleClass: "rotated",
   content: "mdl-list__item-text-body mdl-list__item",
   innerListItem: "unstyled",
   titleHref: "menuTitle mdl-button mdl-js-button mdl-button-raised",
@@ -90,11 +91,11 @@ const appendTutorialToAccordion = function (
   }
 
   title.onclick = function (e) {
-    //        title.classList.toggle(cssClasses.titleToggleClass);
-    toggleText(
+    title.classList.toggle(cssClasses.titleToggleClass);
+    /*toggleText(
       title.firstElementChild,
       cssClasses.titleSymbolActive + " " + cssClasses.titleSymbolInactive
-    );
+    );*/
     div.style.height =
       (div.style.height == heightClosed + "px"
         ? childrenTotalHeight(div)
