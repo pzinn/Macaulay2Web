@@ -489,10 +489,10 @@ const Shell = function (
         codeInputAction.call(t);
         return true;
       }
-      if (t.classList.contains("M2Output")) {
+/*      if (t.classList.contains("M2Output")) {
         wrapOutput.call(t);
         return true;
-      }
+      }*/
       t = t.parentElement;
     }
     return false;
