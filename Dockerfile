@@ -1,10 +1,10 @@
-FROM lkastner/m2container:latest
-MAINTAINER InteractiveShell Team <trym2@googlegroups.com>
+FROM pzinn/m2container:latest
+MAINTAINER Paul Zinn-Justin
 
 ##### M2 userland
 RUN mkdir /home/m2user/.ssh
 COPY unix-files/ssh_config /etc/ssh/ssh_config
-COPY unix-files/sshd_config /etc/ssh/sshd_config
+COPY unix-files/sshd_config.fedora /etc/ssh/sshd_config
 RUN chown root:root /etc/ssh/ssh_config
 RUN chmod 644 /etc/ssh/ssh_config
 RUN chown root:root /etc/ssh/sshd_config
