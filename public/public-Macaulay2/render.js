@@ -1,13 +1,13 @@
 // borrowed from tags.js
-var webAppTagCodes = [
-    ["End", 17, ""],
-    ["Html", 18, "M2Html"],
-    ["Output", 19, "M2Html M2Output"],
-    ["Input", 20, "M2Input"],
-    ["InputContd", 28, "M2Input"],
-    ["Url", 29, "M2Url"],
-    ["Text", 30, "M2Text"],
-    ["Tex", 31, "M2Katex"],
+const webAppTagCodes = [
+  ["End", 17, ""], // end of section script
+  ["Html", 18, "M2Html"], // indicates what follows is HTML
+  ["Output", 19, "M2Html M2Output"], // it's html but it's output
+  ["Input", 20, "M2Text M2Input"], // it's text but it's input
+  ["InputContd", 28, "M2Text M2Input"], // text, continuation of input
+  ["Url", 29, "M2Url"], // url
+  ["Text", 30, "M2Text"], // indicates what follows is pure text; default mode. not used at the moment
+  ["Tex", 31, "M2Katex"] // TeX
 ];
 var webAppTags = {};
 var webAppClasses = {};
@@ -99,7 +99,8 @@ document.addEventListener("DOMContentLoaded", function() {
 	    }
 	    if (anc.classList.contains("M2Html")) {
 		// we need to convert to string :/
-		anc.innerHTML = anc.dataset.code += htmlSec.outerHTML;
+		//      anc.innerHTML = anc.dataset.code += htmlSec.outerHTML;
+		anc.dataset.code += htmlSec.outerHTML;
 	    } else {
 		htmlSec.removeAttribute("data-code");
 		if (anc.classList.contains("M2Katex")) {
@@ -147,7 +148,10 @@ document.addEventListener("DOMContentLoaded", function() {
 	const createHtml = function(a, className) {
 	    var anc = htmlSec;
 	    htmlSec=document.createElement(a);
-	    if (className) htmlSec.className=className;
+	    if (className) {
+		htmlSec.className=className;
+		if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
+	    }
 	    anc.appendChild(htmlSec);
 	}
 
@@ -178,9 +182,6 @@ document.addEventListener("DOMContentLoaded", function() {
 		} else {
 		    // new section
 		    createHtml("span", webAppClasses[tag]);
-		    if (tag !== webAppTags.Input && tag !== webAppTags.Text) {
-			htmlSec.dataset.code = ""; // even M2Html needs to keep track of innerHTML because html tags may get broken
-		    }
 		}
 	    }
 	    if (txt[i].length > 0) {
