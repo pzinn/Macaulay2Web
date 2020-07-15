@@ -1,9 +1,5 @@
-# sshd
-#
-# VERSION               0.0.3
-
-FROM ubuntu:18.04
-MAINTAINER InteractiveShell Team <trym2@googlegroups.com>
+FROM ubuntu:20.04
+MAINTAINER Paul Zinn-Justin <pzinn@unimelb.edu.au>
 
 # For ssh server and up-to-date ubuntu.
 RUN apt-get update && apt-get install -yq openssh-server wget gnupg
@@ -12,7 +8,7 @@ RUN apt-get update && apt-get install -yq openssh-server wget gnupg
 RUN apt-get install -yq gfan libglpk40
 
 # Installing M2
-RUN echo "deb http://www.math.uiuc.edu/Macaulay2/Repositories/Ubuntu bionic main" >> /etc/apt/sources.list
+RUN echo "deb http://www.math.uiuc.edu/Macaulay2/Repositories/Ubuntu focal main" >> /etc/apt/sources.list
 RUN wget http://www.math.uiuc.edu/Macaulay2/PublicKeys/Macaulay2-key
 RUN apt-key add Macaulay2-key
 RUN apt-get update && apt-get install -y macaulay2
