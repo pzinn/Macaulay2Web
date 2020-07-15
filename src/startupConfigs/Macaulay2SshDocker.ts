@@ -6,9 +6,7 @@ const options = {
     port: 8002,
     MATH_PROGRAM: "Macaulay2",
     MATH_PROGRAM_COMMAND:
-      "export WWWBROWSER=/usr/bin/open; " +
-      "export PATH=/usr/bin:$PATH; " +
-      "M2 --print-width 100",
+      "export WWWBROWSER=open; stty cols 1000000000; M2 --webapp",
     CONTAINERS(resources, hostConfig, guestInstance): InstanceManager {
       return new SshDockerContainers(resources, hostConfig, guestInstance);
     },
