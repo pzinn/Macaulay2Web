@@ -210,10 +210,10 @@ from
 ### Client
 * main file:
 `public/public-common/index.js`
-produced by `webpack` from `public-source/index.js`
+produced by `webpack` from `dist/frontend/*.js`
 and called by
 `public/public-Macaulay2/index.html`
-* other files:
+* all js files: (including webpack entry index.js)
 `dist/frontend/*.js`
 produced by `tsc`:
 ```bash

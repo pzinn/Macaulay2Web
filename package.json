@@ -58,7 +58,7 @@
     "ssh_singular": "npm run build && npm start singular ssh",
     "forever_singular": "npm run build && forever start -l /home/user/logs/forever.log -o /home/user/logs/out.log -e /home/user/logs/err.log --append dist/index.js singular ssh",
     "stop": "kill `ps ax | grep Server | grep -v monitor | grep node | awk '{print $1}'`",
-    "lint": "eslint src/lib/*.ts src/startupConfigs/*.ts src/frontend/*.ts ./public-source/ --fix",
+    "lint": "eslint src/lib/*.ts src/startupConfigs/*.ts src/frontend/*.ts --fix",
     "format": "prettier --write src/lib/*.ts src/startupConfigs/*.ts src/frontend/*.ts"
   },
   "repository": {

@@ -2,12 +2,12 @@
 
 "use strict;";
 
-mathProgramName = "Macaulay2";
+const mathProgramName = "Macaulay2";
 
 document.addEventListener(
   "DOMContentLoaded",
   function () {
-    const init = require("../dist/frontend/mathProgram");
+    const init = require("./mathProgram");
     init();
   },
   false

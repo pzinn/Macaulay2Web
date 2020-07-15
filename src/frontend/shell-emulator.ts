@@ -474,7 +474,7 @@ const Shell = function (
     } // we never throw an error on an opening delimiter -- it's assumed more input is coming
   };
 
-  shell.onpaste = function (e) {
+  shell.onpaste = function () {
     placeCaretAtEnd(inputSpan, true);
     inputSpan.oninput = function () {
       inputSpan.oninput = null; // !
@@ -720,7 +720,7 @@ const Shell = function (
       }
 */
 
-    let msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
+    const msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
     //	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully -- though sometimes still misses
     //	msg = msg.replace(/\r\n/g, "\n"); // that's right...
     //msg = msg.replace(/\r./g, ""); // remove the line wrapping with repeated last/first character
