@@ -1,12 +1,14 @@
-[![Build Status](https://travis-ci.org/fhinkel/InteractiveShell.svg?branch=master)](https://travis-ci.org/fhinkel/InteractiveShell)
+# Macaulay2Web - a Web App for Macaulay2
 
-# Interactive Shell - a Web App for Macaulay2
+Macaulay2Web is a web interface for the [Macaulay2](http://www.macaulay2.com).
+It is based on [InteractiveShell](https://travis-ci.org/fhinkel/InteractiveShell).
+What follows is mostly outdated and needs rewriting.
 
 ## Quickstart
 
 Run the following commands in a terminal (`vagrant` might take a while):
 ```bash
-git clone https://github.com/fhinkel/InteractiveShell.git
+git clone https://github.com/pzinn/Macaulay2Web.git
 cd InteractiveShell/setups/basic
 vagrant up
 ```

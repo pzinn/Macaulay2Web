@@ -1,7 +1,7 @@
 {
-  "name": "InteractiveShell",
+  "name": "Macaulay2Web",
   "version": "3.1.0",
-  "description": "Build web apps for interactive command-line tools",
+  "description": "Web apps for Macaulay2",
   "contributors": [
     {
       "name": "Franziska Hinkelmann",
