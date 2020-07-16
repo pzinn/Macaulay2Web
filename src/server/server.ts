@@ -355,23 +355,23 @@ const fileDownload = function (request, response, next) {
     const id = cookies[options.cookieName];
     if (id && clients[id]) {
       const client = clients[id];
-        logExceptOnTest("that was " + id);
-        let sourcePath = decodeURIComponent(request.url);
-        if (sourcePath.startsWith("/relative/"))
-          sourcePath = sourcePath.substring(10); // for relative paths
-        directDownload(
-          client,
-          sourcePath,
-          staticFolder,
-          userSpecificPath(client),
-          sshCredentials,
-          logExceptOnTest,
-          function (targetPath) {
-            if (targetPath) {
-              response.sendFile(targetPath);
-            } else next();
-          }
-        );
+      logExceptOnTest("that was " + id);
+      let sourcePath = decodeURIComponent(request.url);
+      if (sourcePath.startsWith("/relative/"))
+        sourcePath = sourcePath.substring(10); // for relative paths
+      directDownload(
+        client,
+        sourcePath,
+        staticFolder,
+        userSpecificPath(client),
+        sshCredentials,
+        logExceptOnTest,
+        function (targetPath) {
+          if (targetPath) {
+            response.sendFile(targetPath);
+          } else next();
+        }
+      );
     } else next();
   } else next();
 };
@@ -459,12 +459,13 @@ const initializeServer = function () {
     ),
   };
 
-  const getList: reader.GetListFunction = reader.tutorialReader(staticFolder, fs);
+  const getList: reader.GetListFunction = reader.tutorialReader(
+    staticFolder,
+    fs
+  );
   const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM);
   app.use(expressWinston.logger(loggerSettings));
-  app.use(
-    favicon(staticFolder + "favicon.ico")
-  );
+  app.use(favicon(staticFolder + "favicon.ico"));
   app.use(SocketIOFileUpload.router);
   // to obtain the raw files
   app.use("/force/usr/share/", serveStatic(staticFolder + "share"));
@@ -472,7 +473,7 @@ const initializeServer = function () {
   app.get(/\/usr\/share\/.+\.html/, getHelp);
   // rest is fine
   app.use("/usr/share/", serveStatic(staticFolder + "share"));
-    app.use(serveStatic(staticFolder));
+  app.use(serveStatic(staticFolder));
   app.use("/admin", adminBroadcast);
   app.use("/admin", admin.stats);
   app.use("/getListOfTutorials", getList);

@@ -22,7 +22,7 @@ const options = {
     host: "127.0.0.1",
     username: "m2user",
     port: "123",
-    sshKey: process.env.HOME + "/InteractiveShell/id_rsa",
+    sshKey: process.env.HOME + "/Macaulay2Web/id_rsa",
     containerName: "",
   },
   perContainerResources: {
