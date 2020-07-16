@@ -1,5 +1,5 @@
-import { InstanceManager } from "../lib/instanceManager";
-import { SudoDockerContainers } from "../lib/sudoDockerContainers";
+import { InstanceManager } from "../instanceManager";
+import { SudoDockerContainers } from "../sudoDockerContainers";
 
 const options = {
   serverConfig: {

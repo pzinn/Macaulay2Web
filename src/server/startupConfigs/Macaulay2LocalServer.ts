@@ -1,5 +1,5 @@
-import { InstanceManager } from "../lib/instanceManager";
-import { LocalContainerManager } from "../lib/LocalContainerManager";
+import { InstanceManager } from "../instanceManager";
+import { LocalContainerManager } from "../LocalContainerManager";
 
 const options = {
   serverConfig: {

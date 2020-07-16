@@ -3,7 +3,7 @@ let mode : string = "docker";
 const args : string[] = process.argv;
 const n : number = args.length;
 import fs = require("fs");
-import {AuthOption} from "./lib/enums";
+import {AuthOption} from "./enums";
 
 import {options, overrideDefaultOptions} from "./startupConfigs/default";
 
@@ -82,7 +82,7 @@ fileExistsPromise("public/users.htpasswd")
   }
 })
 .then(function() {
-  const MathServer = require("./lib/server").mathServer(options);
+  const MathServer = require("./server").mathServer(options);
   MathServer.listen();
 })
 .catch(function(err) {

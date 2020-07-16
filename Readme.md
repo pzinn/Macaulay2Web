@@ -9,12 +9,12 @@ What follows is mostly outdated and needs rewriting.
 Run the following commands in a terminal (`vagrant` might take a while):
 ```bash
 git clone https://github.com/pzinn/Macaulay2Web.git
-cd InteractiveShell/setups/basic
+cd Macaulay2Web/setups/basic
 vagrant up
 ```
 Point your broser to [localhost:8002](http://localhost:8002).
 
-## Purpose
+## Interactive Shell
 
 With Interactive Shell you can build a web app for interactive command-line tools.
 We have developed Interactive Shell specifically for Macaulay2.
@@ -198,16 +198,16 @@ our fork of this repository before sending a pull request.
 ## File structure:
 ### Server
 * main file:
-`dist/index.js`
+`dist/server/index.js`
 produced by `tsc`:
 ```bash
 npx tsc
 ```
-(or `./node_modules/.bin/tsc`) from `src/index.ts`
+(or `./node_modules/.bin/tsc`) from `src/server/index.ts`
 * other files:
-`dist/lib/*.js` `dist/startupConfigs/*.js`
+`dist/server/*.js` `dist/server/startupConfigs/*.js`
 from
-`src/lib/*.ts` `src/startupConfigs/*.ts`
+`src/server/*.ts` `src/server/startupConfigs/*.ts`
 
 ### Client
 * main file:

@@ -1,11 +1,11 @@
-import { webAppTags } from "../frontend/tags";
-import { AuthOption } from "../lib/enums";
+import { webAppTags } from "../../frontend/tags";
+import { AuthOption } from "../enums";
 
 const options = {
   cookieName: "tryM2",
   authentication: AuthOption.none,
   serverConfig: {
-    CONTAINERS: "../lib/LocalContainerManager",
+    CONTAINERS: "../LocalContainerManager",
     MATH_PROGRAM: "Macaulay2",
     MATH_PROGRAM_COMMAND:
       "export M2MODE=default; export WWWBROWSER=open; stty cols 1000000000; M2 --webapp",

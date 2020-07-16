@@ -1,5 +1,5 @@
-import { InstanceManager } from "../lib/instanceManager";
-import { SshDockerContainers } from "../lib/sshDockerContainers";
+import { InstanceManager } from "../instanceManager";
+import { SshDockerContainers } from "../sshDockerContainers";
 
 const options = {
   serverConfig: {

@@ -4,7 +4,7 @@ import { Client } from "./client";
 import { IClients } from "./client";
 import clientIdHelper from "./clientId";
 
-import { AuthOption, SocketEvent } from "../lib/enums";
+import { AuthOption, SocketEvent } from "./enums";
 import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
 import { LocalContainerManager } from "./LocalContainerManager";
@@ -42,7 +42,7 @@ let serverConfig = {
   CONTAINERS: undefined,
 };
 let options;
-const staticFolder = path.join(__dirname, "../../public/public");
+const staticFolder = path.join(__dirname, "../../public/");
 //let myLogger;
 
 const logExceptOnTest = function (msg: string): void {
@@ -353,9 +353,8 @@ const fileDownload = function (request, response, next) {
   if (rawCookies) {
     const cookies = Cookie.parse(rawCookies);
     const id = cookies[options.cookieName];
-    if (id) {
+    if (id && clients[id]) {
       const client = clients[id];
-      if (client) {
         logExceptOnTest("that was " + id);
         let sourcePath = decodeURIComponent(request.url);
         if (sourcePath.startsWith("/relative/"))
@@ -363,7 +362,7 @@ const fileDownload = function (request, response, next) {
         directDownload(
           client,
           sourcePath,
-          staticFolder + "-" + serverConfig.MATH_PROGRAM,
+          staticFolder,
           userSpecificPath(client),
           sshCredentials,
           logExceptOnTest,
@@ -373,9 +372,8 @@ const fileDownload = function (request, response, next) {
             } else next();
           }
         );
-      }
-    }
-  }
+    } else next();
+  } else next();
 };
 
 const unhandled = function (request, response) {
@@ -393,7 +391,7 @@ const getHelp = function(req, res, next) {
     }
 */
 const getHelp = function (req, res) {
-  res.sendFile(staticFolder + "-" + serverConfig.MATH_PROGRAM + "/help.html");
+  res.sendFile(staticFolder + "help.html");
 };
 
 const adminBroadcast = function (req, res, next) {
@@ -461,22 +459,20 @@ const initializeServer = function () {
     ),
   };
 
-  const prefix: string = staticFolder + "-" + serverConfig.MATH_PROGRAM + "/";
-  const getList: reader.GetListFunction = reader.tutorialReader(prefix, fs);
+  const getList: reader.GetListFunction = reader.tutorialReader(staticFolder, fs);
   const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM);
   app.use(expressWinston.logger(loggerSettings));
   app.use(
-    favicon(staticFolder + "-" + serverConfig.MATH_PROGRAM + "/favicon.ico")
+    favicon(staticFolder + "favicon.ico")
   );
   app.use(SocketIOFileUpload.router);
   // to obtain the raw files
-  app.use("/force/usr/share/", serveStatic(staticFolder + "-share"));
+  app.use("/force/usr/share/", serveStatic(staticFolder + "share"));
   // otherwise html's get processed
   app.get(/\/usr\/share\/.+\.html/, getHelp);
   // rest is fine
-  app.use("/usr/share/", serveStatic(staticFolder + "-share"));
-  app.use(serveStatic(staticFolder + "-" + serverConfig.MATH_PROGRAM));
-  app.use(serveStatic(staticFolder + "-common"));
+  app.use("/usr/share/", serveStatic(staticFolder + "share"));
+    app.use(serveStatic(staticFolder));
   app.use("/admin", adminBroadcast);
   app.use("/admin", admin.stats);
   app.use("/getListOfTutorials", getList);
