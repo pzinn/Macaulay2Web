@@ -16,6 +16,7 @@
 	<li>Double click on output to hide it</li>
 	<li>The triangular icon in the top right (next to the zoom icons) toggles wrapping of output</li>
 	<li>Native support of HTML classes</li>
+	<li>You may jump directly to a particular lesson by adding e.g. <a href="?tutorial=4&lesson=2" target="_blank">?tutorial=4&lesson=2</a> to the URL.
 	<li>In order to work, this web interface uses <code>topLevelMode=WebApp</code>, a special output mode of Macaulay2 adapted to mixing TeX and HTML.
 	  If you're nostalgic, you can always revert to <code>topLevelMode=Standard</code> for your usual terminal/ascii output.</li>
       </ul>
@@ -89,19 +90,15 @@
       </p>
       <p>
 	Some examples:<br/>
-	<codeblock>
-	  uglyLogo=gList(Ellipse{(0,0),90,30,"stroke"=>"none",Blur=>0.3,
+	<codeblock>uglyLogo=gList(Ellipse{(0,0),90,30,"stroke"=>"none",Blur=>0.3,
 	    "fill"=>linearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")}},
 	    GraphicsText{(-65,-7),"Macaulay2",
 	      FontSize=>25,"stroke"=>"black","stroke-width"=>"0.5%","fill"=>"white"},
-	    AnimMatrix=>translation(0,0,10),SizeY=>12)
-	</codeblock><br/>
+	    AnimMatrix=>translation(0,0,10),SizeY=>12)</codeblock><br/>
 	The next one mixes KaTeX and HTML output:<br/>
-	<codeblock>
-	  rgb={"red","green","blue"}; scan(rgb, x -> globalAssign(value x,
+	<codeblock>rgb={"red","green","blue"}; scan(rgb, x -> globalAssign(value x,
 	    Circle{"fill"=>x,"stroke"=>"black",SizeX=>0.8,SizeY=>0.8,Margin=>0}));
-	  R=QQ[x_red,x_green,x_blue]; print describe R; res cokernel vars R
-	</codeblock>
+	  R=QQ[x_red,x_green,x_blue]; print describe R; res cokernel vars R</codeblock>
       </p>
       <p>To access the underlying SVG object, just write<br/>
 	<code>SVG uglyLogo</code><br/>
