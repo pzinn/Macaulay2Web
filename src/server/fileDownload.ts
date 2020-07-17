@@ -18,8 +18,7 @@ const unlink = function (completePath: string) {
 const directDownload = function (
   client: Client,
   sourcePath: string,
-  pathPrefix: string,
-  pathPostfix: string,
+  targetPath: string,
   sshCredentials,
   logFunction,
   next
@@ -37,7 +36,6 @@ const directDownload = function (
     if (generateError) {
       throw new Error("ssh2.sftp() failed: " + generateError);
     }
-    const targetPath: string = pathPrefix + pathPostfix;
     fs.mkdir(targetPath, function (fsError) {
       if (fsError) {
         if (fsError.code !== "EEXIST")

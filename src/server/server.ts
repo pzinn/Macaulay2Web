@@ -80,7 +80,7 @@ const logClient = function (clientID, str) {
 };
 
 const userSpecificPath = function (client: Client): string {
-  return "/" + client.id + "-files/";
+  return staticFolder + client.id + "-files/";
 };
 
 const disconnectSocket = function (socket: SocketIO.Socket): void {
@@ -101,17 +101,14 @@ const disconnectSockets = function (sockets): void {
 };
 
 const deleteClientData = function (client: Client): void {
-  logClient(
-    client.id,
-    "deleting folder " + staticFolder + userSpecificPath(client)
-  );
+  logClient(client.id, "deleting folder " + userSpecificPath(client));
   try {
     logClient(client.id, "Sending disconnect. ");
     disconnectSockets(clients[client.id].socketArray);
   } catch (error) {
     logClient(client.id, "Socket seems already dead: " + error);
   }
-  fs.rmdir(staticFolder + userSpecificPath(client), function (error) {
+  fs.rmdir(userSpecificPath(client), function (error) {
     if (error) {
       logClient(client.id, "Error deleting user folder: " + error);
     }
@@ -362,7 +359,6 @@ const fileDownload = function (request, response, next) {
       directDownload(
         client,
         sourcePath,
-        staticFolder,
         userSpecificPath(client),
         sshCredentials,
         logExceptOnTest,
