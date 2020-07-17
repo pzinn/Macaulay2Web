@@ -44,8 +44,6 @@ Vagrant.configure(2) do |config|
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
   config.vm.synced_folder "../../", "/home/vagrant/Macaulay2Web"
-  # TESTING: replace with whichever directory M2 has its share (for help)
-  config.vm.synced_folder "~m2web/M2/M2/BUILD/fedora/usr-dist/common/share/", "/home/vagrant/Macaulay2Web/public/share"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.

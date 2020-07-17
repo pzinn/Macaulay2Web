@@ -32,7 +32,7 @@ function contents(f) {
 	    f(xhttp.responseText);
 	}
     };
-    xhttp.open("GET", location.origin+"/force"+location.pathname, true); // to get the real html
+    xhttp.open("GET", location.origin+location.pathname+"?force", true); // to get the real html
     xhttp.send();
 }
 

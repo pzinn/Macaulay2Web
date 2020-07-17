@@ -353,7 +353,7 @@ const fileDownload = function (request, response, next) {
     if (id && clients[id]) {
       const client = clients[id];
       logExceptOnTest("that was " + id);
-      let sourcePath = decodeURIComponent(request.url);
+      let sourcePath = decodeURIComponent(request.path);
       if (sourcePath.startsWith("/relative/"))
         sourcePath = sourcePath.substring(10); // for relative paths
       directDownload(
@@ -386,8 +386,11 @@ const getHelp = function(req, res, next) {
     res.redirect(301, 'http://www2.macaulay2.com/Macaulay2/doc/Macaulay2/share/doc/Macaulay2'+req.path);
     }
 */
-const getHelp = function (req, res) {
-  res.sendFile(staticFolder + "help.html");
+const getHelp = function (req, res, next) {
+  if (req.query.force === undefined) {
+    console.log("help served");
+    res.sendFile(staticFolder + "help.html");
+  } else next();
 };
 
 const adminBroadcast = function (req, res, next) {
@@ -463,12 +466,10 @@ const initializeServer = function () {
   app.use(expressWinston.logger(loggerSettings));
   app.use(favicon(staticFolder + "favicon.ico"));
   app.use(SocketIOFileUpload.router);
-  // to obtain the raw files
-  app.use("/force/usr/share/", serveStatic(staticFolder + "share"));
-  // otherwise html's get processed
+  // help html files get processed
   app.get(/\/usr\/share\/.+\.html/, getHelp);
   // rest is fine
-  app.use("/usr/share/", serveStatic(staticFolder + "share"));
+  app.use("/usr/share/", serveStatic("/usr/share"));
   app.use(serveStatic(staticFolder));
   app.use("/admin", adminBroadcast);
   app.use("/admin", admin.stats);
