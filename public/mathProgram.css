@@ -62,10 +62,6 @@ body {
     vertical-align: bottom;
 }
 
-#M2Out {
-    resize: none;
-}
-
 #M2In {
     /* position: absolute; */ /* otherwise 2 scrollbars appear... fixed instead by inline style hack */
     display: inline-block; /* prevents chrome from creating new <div> when hitting \n.
