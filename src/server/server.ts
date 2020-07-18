@@ -469,7 +469,7 @@ const initializeServer = function () {
   // help html files get processed
   app.get(/\/usr\/share\/.+\.html/, getHelp);
   // rest is fine
-  app.use("/usr/share/", serveStatic("/usr/share"));
+  app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use(serveStatic(staticFolder));
   app.use("/admin", adminBroadcast);
   app.use("/admin", admin.stats);

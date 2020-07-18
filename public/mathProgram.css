@@ -53,13 +53,16 @@ body {
     box-sizing: border-box;
 }
 
-.navigationButton {
+#lessonNav {
     position: relative;
     z-index: 2;
     float: right;
-    margin-right: 10px;
+    margin-right: 20px;
     margin-bottom: 0px;
-    vertical-align: bottom;
+}
+
+#lessonNr {
+    vertical-align: middle;
 }
 
 #M2In {

@@ -1,4 +1,3 @@
 This directory contains docker files for creating a Macaulay2 image.
-the original ubuntu version -> pzinn/m2ubuntu
-the attempted fedora version -> pzinn/m2fedora
-replace in ../Dockerfile
+pzinn/m2container
+ATM must manually provide the RPM file

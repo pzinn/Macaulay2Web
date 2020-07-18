@@ -23,19 +23,17 @@ let tutorials = [];
 let firstLoadFlag = true; // true until we show tutorial for the first time.
 // Needed because we need to load lesson 0
 
-const attachTutorialNavBtnActions = function () {
-  const previousBtn = document.getElementById(
-    "previousBtn"
-  ) as HTMLButtonElement;
+const updateTutorialNav = function () {
+  const prevBtn = document.getElementById("prevBtn") as HTMLButtonElement;
   const nextBtn = document.getElementById("nextBtn") as HTMLButtonElement;
   if (lessonNr > 0) {
-    previousBtn.disabled = false;
-    previousBtn.onclick = function () {
+    prevBtn.disabled = false;
+    prevBtn.onclick = function () {
       loadLesson(tutorialNr, lessonNr - 1);
     };
   } else {
-    previousBtn.disabled = true;
-    previousBtn.onclick = null;
+    prevBtn.disabled = true;
+    prevBtn.onclick = null;
   }
   if (lessonNr < tutorials[tutorialNr].lessons.length - 1) {
     nextBtn.disabled = false;
@@ -46,6 +44,8 @@ const attachTutorialNavBtnActions = function () {
     nextBtn.disabled = true;
     nextBtn.onclick = null;
   }
+  document.getElementById("lessonNr").innerHTML =
+    " " + (lessonNr + 1) + "/" + tutorials[tutorialNr].lessons.length;
 };
 
 const loadLesson = function (tutorialid: number, lessonid: number) {
@@ -81,7 +81,7 @@ const loadLesson = function (tutorialid: number, lessonid: number) {
       "\\bold": "{\\bf #1}",
     },
   });
-  attachTutorialNavBtnActions();
+  updateTutorialNav();
 };
 
 const loadLessonIfChanged = function (

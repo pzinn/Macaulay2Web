@@ -423,7 +423,7 @@ const init = function () {
     });
 
   const url = new URL(document.location.href);
-/*
+  /*
   const width = url.searchParams.get("width");
   if (width) console.style.width = width;
   const height = url.searchParams.get("height");
