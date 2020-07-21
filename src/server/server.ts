@@ -148,6 +148,8 @@ const emitDataViaClientSockets = function (
   type: SocketEvent,
   data
 ) {
+  const s = short(data);
+  if (s != "") logClient(client.id, "Sending output: " + s);
   const sockets = client.socketArray;
   emitDataViaSockets(sockets, type, data);
 };
@@ -521,6 +523,12 @@ const writeMsgOnStream = function (client: Client, msg: string) {
   });
 };
 
+const short = function (msg: string) {
+  let shortMsg = msg.substring(0, 77).replace(/[^\x20-\x7F]/g, " ");
+  if (msg.length > 77) shortMsg += "...";
+  return shortMsg.trim();
+};
+
 const checkAndWrite = function (client: Client, msg: string) {
   if (!client.channel || !client.channel.writable) {
     sanitizeClient(client);
@@ -546,7 +554,7 @@ const checkClientSanity = function (client: Client) {
 
 const socketInputAction = function (socket, client: Client) {
   return function (msg: string) {
-    logClient(client.id, "Receiving input");
+    logClient(client.id, "Receiving input: " + short(msg));
     checkClientSanity(client).then(function () {
       setCookieOnSocket(socket, client.id);
       updateLastActiveTime(client);
