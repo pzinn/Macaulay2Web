@@ -1,4 +1,3 @@
-let mathProgram = "Macaulay2";
 let mode = "docker";
 const args: string[] = process.argv;
 const n: number = args.length;
@@ -8,11 +7,8 @@ import { AuthOption } from "./enums";
 import { options, overrideDefaultOptions } from "./startupConfigs/default";
 
 if (n > 2) {
-  mathProgram = args[2];
-}
-
-if (n > 3) {
-  mode = args[3];
+  console.log("mode " + args[2] + " requested");
+  mode = args[2];
 }
 
 if (n > 4) {
@@ -22,45 +18,35 @@ if (n > 4) {
 }
 
 function usage(): void {
-  console.log("Usage: index.js {Macaulay2|Singular} {local|docker|ssh}");
+  console.log("Usage: node dist/server/index.js {local|docker|ssh} [port]");
 }
 
 // Dirname is dist.
 import p = require("path"); // eslint-disable-line  no-undef
 const path = p.join(__dirname, "/startupConfigs/"); // eslint-disable-line  no-undef
 
-if (mathProgram === "--help") {
+if (mode === "--help") {
   usage();
   process.exit(0);
 }
 
 let overrideOptions;
-if (mathProgram === "Macaulay2" || mathProgram === "M2") {
-  if (mode === "local") {
-    overrideOptions = require(path + "Macaulay2LocalServer");
-  } else if (mode === "docker") {
-    overrideOptions = require(path + "Macaulay2SudoDocker");
-  } else if (mode === "ssh") {
-    overrideOptions = require(path + "Macaulay2SshDocker");
-  } else {
-    console.log("There is no mode " + mode);
-  }
-} else if (mathProgram === "Singular" || mathProgram === "singular") {
-  if (mode === "local") {
-    overrideOptions = require(path + "SingularLocalServer");
-  } else if (mode === "docker") {
-    overrideOptions = require(path + "SingularSudoDocker");
-  } else if (mode === "ssh") {
-    overrideOptions = require(path + "SingularSshDocker");
-  } else {
-    console.log("There is no mode " + mode);
-  }
+if (mode === "local") {
+  overrideOptions = require(path + "Macaulay2LocalServer");
+} else if (mode === "docker") {
+  overrideOptions = require(path + "Macaulay2SudoDocker");
+} else if (mode === "ssh") {
+  overrideOptions = require(path + "Macaulay2SshDocker");
 } else {
-  console.log("Did not recognize math program " + mathProgram);
+  console.log("There is no mode " + mode);
 }
 
 overrideDefaultOptions(overrideOptions.options, options);
-console.log("Done reading options.");
+
+if (n > 3) {
+  console.log("port " + args[3] + " requested");
+  overrideDefaultOptions({ serverConfig: { port: args[3] } }, options);
+}
 
 // This starts the main server!
 

@@ -44,14 +44,11 @@ const options = {
 
 const overrideDefaultOptions = function (overrideOptions, defaultOptions) {
   for (const opt in overrideOptions) {
-    if (defaultOptions.hasOwnProperty(opt)) {
-      if (defaultOptions[opt] instanceof Function) {
-        defaultOptions[opt] = overrideOptions[opt];
-      } else if (defaultOptions[opt] instanceof Object) {
-        overrideDefaultOptions(overrideOptions[opt], defaultOptions[opt]);
-      } else {
-        defaultOptions[opt] = overrideOptions[opt];
-      }
+    if (
+      defaultOptions.hasOwnProperty(opt) &&
+      defaultOptions[opt] instanceof Object
+    ) {
+      overrideDefaultOptions(overrideOptions[opt], defaultOptions[opt]);
     } else {
       defaultOptions[opt] = overrideOptions[opt];
     }
