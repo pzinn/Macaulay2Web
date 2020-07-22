@@ -62,8 +62,8 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
   private constructDockerRunCommand(resources, newInstance: Instance) {
     let dockerRunCmd = "sudo docker run -d";
-    dockerRunCmd += " -c " + resources.cpuShares;
-    dockerRunCmd += " -m " + resources.memory + "m";
+    dockerRunCmd += " --cpus=\"" + resources.cpuShares+"\"";
+    dockerRunCmd += " --memory=\"" + resources.memory + "m\"";
     dockerRunCmd += " --name " + newInstance.containerName;
     dockerRunCmd += " -p " + newInstance.port + ":22 ";
     dockerRunCmd += this.options.containerType + " " + this.options.sshdCmd;
