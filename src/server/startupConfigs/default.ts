@@ -27,7 +27,7 @@ const options = {
   },
   perContainerResources: {
     cpuShares: 0.5,
-    memory: 256, // Mb
+    memory: 384, // Mb
   },
   hostConfig: {
     minContainerAge: 10,
