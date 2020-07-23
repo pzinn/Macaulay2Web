@@ -606,6 +606,8 @@ const setCookieOnSocket = function (socket, clientID: string): void {
   const expDate = new Date(new Date().getTime() + sevenDays);
   const sessionCookie = Cookie.serialize(options.cookieName, clientID, {
     expires: expDate,
+    sameSite: "none",
+    secure: true,
   });
   socket.emit("cookie", sessionCookie);
 };
