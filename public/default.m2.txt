@@ -6,12 +6,9 @@
 -- or by clicking on Evaluate.
 
 -- To open the Macaulay2 documentation for a 
--- topic in another browser tab or window do e.g.:
+-- topic in another the "Browse" tab:
 
 viewHelp "determinant"
-
--- If nothing shows up, you may need to set your browser 
--- to allow pop up windows.
 
 -- Here are some sample commands:
   R = ZZ/101[a,b,c,d]
