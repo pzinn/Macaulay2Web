@@ -306,6 +306,7 @@ const openTabCloseDrawer = function (event) {
   event.preventDefault();
 };
 
+/*
 const openAboutTab = function (event) {
   const el = document.getElementById("aboutTitle");
   // show tab panel
@@ -313,6 +314,7 @@ const openAboutTab = function (event) {
   // do not follow link
   event.preventDefault();
 };
+*/
 
 let ignoreFirstLoad = true;
 const openBrowseTab = function (event) {
@@ -413,7 +415,7 @@ const init = function () {
       (el as any).onclick = openTabCloseDrawer;
     }
   );
-  attachClick("aboutIcon", openAboutTab);
+//  attachClick("aboutIcon", openAboutTab);
 
   if (editor)
     // only ask for confirmation if there's an editor
