@@ -24,6 +24,7 @@ const options = {
     port: 123,
     sshKey: process.env.HOME + "/Macaulay2Web/id_rsa",
     containerName: "",
+    lastActiveTime: 0,
   },
   perContainerResources: {
     cpuShares: 0.5,
@@ -31,7 +32,7 @@ const options = {
   },
   hostConfig: {
     minContainerAge: 10,
-    maxContainerNumber: 1,
+    maxContainerNumber: 256,
     containerType: "m2container",
     sshdCmd: "/usr/sbin/sshd -D",
     dockerCmdPrefix: "sudo ",

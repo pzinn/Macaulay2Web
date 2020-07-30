@@ -16,8 +16,6 @@ const options = {
     username: "m2user",
     port: "5000",
     sshKey: process.env.HOME + "/keys/docker_key",
-    containerName: "",
-    lastActiveTime: 0,
   },
 };
 

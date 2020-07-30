@@ -415,7 +415,7 @@ const init = function () {
       (el as any).onclick = openTabCloseDrawer;
     }
   );
-//  attachClick("aboutIcon", openAboutTab);
+  //  attachClick("aboutIcon", openAboutTab);
 
   if (editor)
     // only ask for confirmation if there's an editor
