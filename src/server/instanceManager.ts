@@ -1,8 +1,9 @@
 import { Instance } from "./instance";
 
 interface InstanceManager {
-  getNewInstance(next: any);
+  getNewInstance(userId: string, next: any);
   updateLastActiveTime(instance: Instance);
+  recoverInstances(next: any);
 }
 
 export { InstanceManager };

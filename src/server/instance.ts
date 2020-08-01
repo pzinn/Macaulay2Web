@@ -7,4 +7,5 @@ export interface Instance {
   lastActiveTime?: number;
   containerId?: string;
   killNotify?: () => void;
+  userId: string;
 }

@@ -65,10 +65,13 @@ const clients: IClients = {};
 let totalUsers = 0;
 
 let instanceManager: InstanceManager = {
-  getNewInstance(next: any) {
+  getNewInstance(userId: string, next: any) {
     //
   },
   updateLastActiveTime() {
+    //
+  },
+  recoverInstances() {
     //
   },
 };
@@ -159,7 +162,10 @@ const getInstance = function (client: Client, next) {
     next(client.instance);
   } else {
     try {
-      instanceManager.getNewInstance(function (err, instance: Instance) {
+      instanceManager.getNewInstance(client.id, function (
+        err,
+        instance: Instance
+      ) {
         if (err) {
           emitDataViaClientSockets(
             client,
@@ -689,7 +695,18 @@ const MathServer = function (o) {
     guestInstance
   );
 
-  initializeServer();
+  instanceManager.recoverInstances(function (lst) {
+    console.log("Recovered " + JSON.stringify(lst) + " instances");
+    for (const clientId in lst) {
+      const client = new Client(clientId);
+      clients[clientId] = client;
+      client.instance = lst[clientId];
+      spawnMathProgramInSecureContainer(client);
+      totalUsers += 1;
+    }
+    console.log("start init");
+    initializeServer();
+  });
 
   // These are the methods available from the outside:
   return {

@@ -30,13 +30,14 @@ class SshDockerContainersInstanceManager implements InstanceManager {
     instance.lastActiveTime = Date.now();
   }
 
-  public getNewInstance(next) {
+  public getNewInstance(userId, next) {
     if (this.currentContainers.length >= this.hostConfig.maxContainerNumber) {
-      this.killOldestContainer(next);
+      this.killOldestContainer(userId, next);
     } else {
       const currentInstance = JSON.parse(JSON.stringify(this.guestInstance));
       this.guestInstance.port++;
       currentInstance.containerName = "m2Port" + currentInstance.port;
+      currentInstance.userId = userId;
       this.connectWithSshAndCreateContainer(currentInstance, next);
     }
   }
@@ -60,14 +61,18 @@ class SshDockerContainersInstanceManager implements InstanceManager {
       function (stream) {
         stream.on("data", function (dataObject) {
           instance.containerId = dataObject.toString();
-          self.checkForSuccessfulContainerStart(instance, next);
+          self.checkForSuccessfulContainerStart(
+            instance,
+            instance.userId,
+            next
+          );
         });
         stream.stderr.on("data", function (dataObject) {
           // If we get stderr, there will not come an id, so don't be
           // afraid of data.
           const data = dataObject.toString();
           if (data.match(/ERROR/i)) {
-            self.getNewInstance(next);
+            self.getNewInstance(instance.userId, next);
             stream.end();
           }
         });
@@ -139,7 +144,7 @@ class SshDockerContainersInstanceManager implements InstanceManager {
         stream.on("data", function (dataObject) {
           const data = dataObject.toString();
           if (data === "") {
-            self.getNewInstance(next);
+            self.getNewInstance(instance.userId, next);
           } else {
             self.checkForRunningSshd(instance, next);
           }
@@ -213,17 +218,22 @@ class SshDockerContainersInstanceManager implements InstanceManager {
       });
   }
 
-  private killOldestContainer = function (next) {
+  private killOldestContainer = function (userId: string, next) {
     const self = this;
     self.sortInstancesByAge();
     if (self.isLegal(self.currentContainers[0])) {
       self.removeInstance(self.currentContainers[0], function () {
-        self.getNewInstance(next);
+        self.getNewInstance(userId, next);
       });
     } else {
       throw new Error("Too many active users.");
     }
   };
+
+  public recoverInstances(next) {
+    // not implemented yet
+    next({});
+  }
 }
 
 export { SshDockerContainersInstanceManager as SshDockerContainers };

@@ -18,16 +18,65 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     this.currentContainers = currentContainers;
   }
 
-  public getNewInstance(next) {
+  // experimental: scan existing dockers
+  public recoverInstances(next) {
+    const self = this;
+    const dockerPsCmd = "sudo docker ps -q";
+    const existing = {};
+    exec(dockerPsCmd, function (error, stdout, stderr) {
+      const lst = stdout.split("\n");
+
+      const asyncLoop = function (i) {
+        if (i == 0) {
+          next(existing);
+          return;
+        }
+        i--;
+        if (lst[i] != "") {
+          const dockerInspectCmd = "sudo docker inspect " + lst[i];
+          exec(dockerInspectCmd, function (error, stdout, stderr) {
+            const res = JSON.parse(stdout);
+            const userId = res[0].Config.Labels.userId;
+            if (userId && userId.substring(0, 4) == "user") {
+              // find port
+              const port = res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
+              console.log(
+                "Scanning " + lst[i] + " found " + userId + ":" + port
+              );
+              const newInstance = JSON.parse(
+                JSON.stringify(self.currentInstance)
+              ); // eww
+              newInstance.port = port;
+              newInstance.userId = userId;
+              newInstance.containerName = "m2Port" + newInstance.port;
+              if (!existing[userId]) {
+                console.log("Recovering");
+                // test for sshd?
+                existing[userId] = newInstance;
+                self.addInstanceToArray(newInstance);
+              } else {
+                self.removeInstance(newInstance);
+              }
+            }
+            asyncLoop(i);
+          });
+        } else asyncLoop(i);
+      };
+      asyncLoop(lst.length);
+    });
+  }
+
+  public getNewInstance(userId, next) {
     const self = this;
     if (this.currentContainers.length >= this.hostConfig.maxContainerNumber) {
       this.killOldestContainer(function () {
-        self.getNewInstance(next);
+        self.getNewInstance(userId, next);
       });
     } else {
       const newInstance = JSON.parse(JSON.stringify(self.currentInstance));
       self.currentInstance.port++;
       newInstance.containerName = "m2Port" + newInstance.port;
+      newInstance.userId = userId;
       exec(
         self.constructDockerRunCommand(self.resources, newInstance),
         function (error) {
@@ -36,7 +85,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               error.message.match(/Conflict. The name/) ||
               error.message.match(/Conflict. The container name/);
             if (containerAlreadyStarted) {
-              self.getNewInstance(next);
+              self.getNewInstance(userId, next);
             } else {
               console.error(
                 "Error starting the docker container: " + error.message
@@ -58,7 +107,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
   private removeInstanceFromArray = function (instance: Instance) {
     const position = this.currentContainers.indexOf(instance);
-    this.currentContainers.splice(position, 1);
+    if (position > 0) this.currentContainers.splice(position, 1);
   };
 
   private addInstanceToArray = function (instance: Instance) {
@@ -86,7 +135,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     }
   };
 
-  private removeInstance(instance: Instance, next) {
+  private removeInstance(instance: Instance, next?) {
     const self = this;
     console.log("Removing container: " + instance.containerName);
     const removeDockerContainer = "sudo docker rm -f " + instance.containerName;
@@ -111,9 +160,10 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     dockerRunCmd += ' --cpus="' + resources.cpuShares + '"';
     dockerRunCmd += ' --memory="' + resources.memory + 'm"';
     dockerRunCmd += " --name " + newInstance.containerName;
-    dockerRunCmd += " -p " + newInstance.port + ":22 ";
+    dockerRunCmd += " -p " + newInstance.port + ":22";
+    dockerRunCmd += " -l " + "userId=" + newInstance.userId;
     dockerRunCmd +=
-      this.hostConfig.containerType + " " + this.hostConfig.sshdCmd;
+      " " + this.hostConfig.containerType + " " + this.hostConfig.sshdCmd;
     return dockerRunCmd;
   }
 

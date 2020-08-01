@@ -27,8 +27,8 @@ const multiMachineManager = function () {
       this.containerManager = require(containerManagerFile)(config);
       this.config = config;
       this.maxContainerNumber = maxContainerNumber;
-      this.getNewInstance = function (next) {
-        this.containerManager.getNewInstance(function (err, instance) {
+      this.getNewInstance = function (userId, next) {
+        this.containerManager.getNewInstance(userId, function (err, instance) {
           if (err) {
             next(err);
           } else {
@@ -60,11 +60,11 @@ const multiMachineManager = function () {
     instance.machine.updateLastActiveTime(instance);
   };
 
-  const getNewInstance = function (next) {
+  const getNewInstance = function (userId, next) {
     machines.sort(function (a, b) {
       return a.load - b.load;
     });
-    machines[0].getNewInstance(next);
+    machines[0].getNewInstance(userId, next);
   };
 
   const removeInstance = function (instance, next) {

@@ -27,12 +27,17 @@ class LocalContainerManager implements InstanceManager {
     this.options = options;
   }
 
-  public getNewInstance = function (next: any) {
+  public getNewInstance = function (userId: string, next: any) {
     next(false, this.options.credentials);
   };
 
   public updateLastActiveTime(instance: Instance) {
     //
+  }
+
+  public recoverInstances(next) {
+    // not implemented yet
+    next({});
   }
 }
 
