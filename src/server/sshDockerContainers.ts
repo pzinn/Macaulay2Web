@@ -4,6 +4,8 @@ import fs = require("fs");
 import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
 
+const logger = require("./logger");
+
 class SshDockerContainersInstanceManager implements InstanceManager {
   private resources: any;
   private hostConfig: ssh2.ConnectConfig & {
@@ -83,7 +85,7 @@ class SshDockerContainersInstanceManager implements InstanceManager {
 
   private removeInstance(instance: Instance, next) {
     const self = this;
-    console.log("Removing container: " + instance.containerName);
+    logger.info("Removing container: " + instance.containerName);
     if (instance.killNotify) {
       instance.killNotify();
     }
@@ -199,13 +201,13 @@ class SshDockerContainersInstanceManager implements InstanceManager {
             connection.end();
           });
           stream.on("Error", function (error) {
-            console.log("Error in stream: " + error);
+            logger.error("Error in stream: " + error);
           });
           next(stream);
         });
       })
       .on("error", function (error) {
-        console.log("Error while sshing: " + error + "\nTried to do: " + cmd);
+        logger.error("Error while sshing: " + error + "\nTried to do: " + cmd);
         if (errorHandler) {
           errorHandler(error);
         }

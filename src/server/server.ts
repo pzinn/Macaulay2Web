@@ -11,10 +11,7 @@ import { LocalContainerManager } from "./LocalContainerManager";
 import { SshDockerContainers } from "./sshDockerContainers";
 import { SudoDockerContainers } from "./sudoDockerContainers";
 import { AddressInfo } from "net";
-import {
-  //  emitUrlForUserGeneratedFileToClient,
-  directDownload,
-} from "./fileDownload";
+import { directDownload } from "./fileDownload";
 
 import * as reader from "./tutorialReader";
 
@@ -43,6 +40,8 @@ const greenlock = require("greenlock-express");
 
 import { webAppTags } from "../frontend/tags";
 
+const logger = require("./logger");
+
 import path = require("path");
 let getClientIdFromSocket;
 let serverConfig = {
@@ -56,12 +55,6 @@ let serverConfig = {
 };
 let options;
 const staticFolder = path.join(__dirname, "../../public/");
-
-const logExceptOnTest = function (msg: string): void {
-  if (process.env.NODE_ENV !== "test") {
-    console.log("[" + new Date().toString() + "] " + msg);
-  }
-};
 
 const sshCredentials = function (instance: Instance): ssh2.ConnectConfig {
   return {
@@ -90,7 +83,7 @@ let instanceManager: InstanceManager = {
 
 const logClient = function (clientID, str) {
   if (process.env.NODE_ENV !== "test") {
-    logExceptOnTest(clientID + ": " + str);
+    logger.info(clientID + ": " + str);
   }
 };
 
@@ -102,7 +95,7 @@ const disconnectSocket = function (socket: SocketIO.Socket): void {
   try {
     socket.disconnect();
   } catch (error) {
-    logExceptOnTest("Failed to disconnect socket: " + error);
+    logger.error("Failed to disconnect socket: " + error);
   }
 };
 
@@ -152,7 +145,7 @@ const emitDataSafelyViaSocket = function (
   try {
     socket.emit(SocketEvent[type], data);
   } catch (error) {
-    logExceptOnTest(
+    logger.error(
       "Error while executing socket.emit of type " + SocketEvent[type]
     );
   }
@@ -303,7 +296,7 @@ const sendDataToClient = function (client: Client) {
   return function (dataObject) {
     const data: string = dataObject.toString();
     if (client.nSockets() === 0) {
-      logClient(client.id, "Error, no socket for client.");
+      logClient(client.id, "No socket for client.");
       return;
     }
     updateLastActiveTime(client);
@@ -346,7 +339,7 @@ const fileDownload = function (request, response, next) {
     const id = cookies[options.cookieName];
     if (id && clients[id]) {
       const client = clients[id];
-      logExceptOnTest("that was " + id);
+      logger.info("file request from " + id);
       let sourcePath = decodeURIComponent(request.path);
       if (sourcePath.startsWith("/relative/"))
         sourcePath = sourcePath.substring(10); // for relative paths
@@ -355,7 +348,7 @@ const fileDownload = function (request, response, next) {
         sourcePath,
         userSpecificPath(client),
         sshCredentials,
-        logExceptOnTest,
+        logger.info,
         function (targetPath) {
           if (targetPath) {
             response.sendFile(targetPath);
@@ -367,7 +360,7 @@ const fileDownload = function (request, response, next) {
 };
 
 const unhandled = function (request, response) {
-  logExceptOnTest("Request for something we don't serve: " + request.url);
+  logger.error("Request for something we don't serve: " + request.url);
   response.writeHead(404, "Request for something we don't serve.");
   response.write("404");
   response.end();
@@ -376,27 +369,20 @@ const unhandled = function (request, response) {
 // the old way: just redirect help with
 // app.use("/usr/share/doc/Macaulay2",getHelp);
 const getHelp = function(req, res, next) {
-    console.log("redirecting help");
+    logger.info("redirecting help");
     res.redirect(301, 'http://www2.macaulay2.com/Macaulay2/doc/Macaulay2/share/doc/Macaulay2'+req.path);
     }
 */
 const getHelp = function (req, res, next) {
   if (req.query.force === undefined) {
-    console.log("help served");
+    logger.info("help served");
     res.sendFile(staticFolder + "help.html");
   } else next();
 };
 
 const adminBroadcast = function (req, res, next) {
   if (req.query.message) {
-    console.log(
-      "[" +
-        new Date().toString() +
-        "] " +
-        req.headers.host +
-        " messaged: " +
-        req.query.message
-    );
+    logger.info(req.headers.host + " messaged: " + req.query.message);
     let text = req.query.message.replace(/[^a-z0-9 \.,_-]/gim, "");
     if (text === "reboot")
       // common special case
@@ -414,23 +400,14 @@ const adminBroadcast = function (req, res, next) {
 const initializeServer = function () {
   const favicon = require("serve-favicon");
   const serveStatic = require("serve-static");
-  const winston = require("winston");
   const expressWinston = require("express-winston");
-
-  const loggerSettings = {
-    transports: [new winston.transports.Console()],
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.json()
-    ),
-  };
 
   const getList: reader.GetListFunction = reader.tutorialReader(
     staticFolder,
     fs
   );
   const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM);
-  app.use(expressWinston.logger(loggerSettings));
+  app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
   app.use(SocketIOFileUpload.router);
   // help html files get processed
@@ -446,7 +423,7 @@ const initializeServer = function () {
 };
 
 const clientExistenceCheck = function (clientId: string, socket): Client {
-  logExceptOnTest("Checking existence of client with id " + clientId);
+  logger.info("Checking existence of client with id " + clientId);
   if (!clients[clientId]) {
     clients[clientId] = new Client(clientId);
     totalUsers += 1;
@@ -545,7 +522,7 @@ const socketResetAction = function (client: Client) {
 const sevenDays = 7 * 86409000;
 
 const initializeClientId = function (socket): string {
-  const clientID = clientIdHelper(clients, logExceptOnTest).getNewId();
+  const clientID = clientIdHelper(clients, logger.info).getNewId();
   setCookieOnSocket(socket, clientID);
   return clientID;
 };
@@ -567,14 +544,14 @@ const listen = function () {
     io = socketio(server);
 
     io.on("connection", function (socket: SocketIO.Socket) {
-      logExceptOnTest("Incoming new connection!");
+      logger.info("Incoming new connection!");
       let clientId: string = getClientIdFromSocket(socket);
       if (typeof clientId === "undefined") {
         clientId = initializeClientId(socket);
       }
       logClient(clientId, "Assigned clientID");
       if (clientId === "deadCookie") {
-        logExceptOnTest("Disconnecting for dead cookie.");
+        logger.info("Disconnecting for dead cookie.");
         disconnectSocket(socket);
         return;
       }
@@ -582,7 +559,7 @@ const listen = function () {
       sanitizeClient(client);
       addNewSocket(client, socket);
       const fileUpload = require("./fileUpload")(
-        logExceptOnTest,
+        logger.info,
         sshCredentials
       );
       fileUpload.attachUploadListenerToSocket(client, socket);
@@ -610,8 +587,8 @@ const listen = function () {
     })
     .ready(httpsWorker);
 
-  logExceptOnTest("Http  server running on " + serverConfig.port);
-  logExceptOnTest("Https server running on " + serverConfig.port2);
+  logger.info("Http  server running on " + serverConfig.port);
+  logger.info("Https server running on " + serverConfig.port2);
 };
 
 const authorizeIfNecessary = function (authOption: AuthOption) {
@@ -647,7 +624,7 @@ const MathServer = function (o) {
   serverConfig = options.serverConfig;
 
   if (!serverConfig.CONTAINERS) {
-    console.error("error, no container management given.");
+    logger.error("error, no container management given.");
     throw new Error("No CONTAINERS!");
   }
 
@@ -662,7 +639,7 @@ const MathServer = function (o) {
   );
 
   instanceManager.recoverInstances(function (lst) {
-    console.log("Recovered " + JSON.stringify(lst) + " instances");
+    logger.info("Recovered " + Object.keys(lst).length + " instances");
     for (const clientId in lst) {
       const client = new Client(clientId);
       clients[clientId] = client;
@@ -670,7 +647,7 @@ const MathServer = function (o) {
       spawnMathProgramInSecureContainer(client);
       totalUsers += 1;
     }
-    console.log("start init");
+    logger.info("start init");
     initializeServer();
   });
 

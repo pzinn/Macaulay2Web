@@ -1,4 +1,5 @@
 /* eslint "no-unused-vars": "off" */
+const logger = require("./logger");
 const multiMachineManager = function () {
   const Machine = function () {
     this.name = "";
@@ -9,7 +10,7 @@ const multiMachineManager = function () {
     this.load = 0;
     this.updateLoad = function () {
       if (this.maxContainerNumber === 0) {
-        console.log(
+        logger.info(
           "Why are you even considering " + "machines that don't allow users?"
         );
         this.load = 1;

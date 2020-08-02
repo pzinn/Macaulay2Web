@@ -4,6 +4,8 @@ import { InstanceManager } from "./instanceManager";
 import childProcess = require("child_process");
 const exec = childProcess.exec;
 
+const logger = require("./logger");
+
 class SudoDockerContainersInstanceManager implements InstanceManager {
   private resources: any;
   private hostConfig: any;
@@ -40,7 +42,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
             if (userId && userId.substring(0, 4) == "user") {
               // find port
               const port = res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
-              console.log(
+              logger.info(
                 "Scanning " + lst[i] + " found " + userId + ":" + port
               );
               const newInstance = JSON.parse(
@@ -50,7 +52,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               newInstance.userId = userId;
               newInstance.containerName = "m2Port" + newInstance.port;
               if (!existing[userId]) {
-                console.log("Recovering");
+                logger.info("Recovering");
                 // test for sshd?
                 existing[userId] = newInstance;
                 self.addInstanceToArray(newInstance);
@@ -87,7 +89,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
             if (containerAlreadyStarted) {
               self.getNewInstance(userId, next);
             } else {
-              console.error(
+              logger.error(
                 "Error starting the docker container: " + error.message
               );
               throw error;
@@ -137,11 +139,11 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
   private removeInstance(instance: Instance, next?) {
     const self = this;
-    console.log("Removing container: " + instance.containerName);
+    logger.info("Removing container: " + instance.containerName);
     const removeDockerContainer = "sudo docker rm -f " + instance.containerName;
     exec(removeDockerContainer, function (error) {
       if (error) {
-        console.error(
+        logger.error(
           "Error removing container " +
             instance.containerName +
             " with error:" +
@@ -178,17 +180,17 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       dockerRunningProcesses + " | " + filterForSshd + " | " + excludeGrep,
       function (error, stdout, stderr) {
         if (error) {
-          console.error("Error while waiting for sshd: " + error);
+          logger.error("Error while waiting for sshd: " + error);
         }
         const runningSshDaemons = stdout;
 
-        console.log("Looking for sshd. OUT: " + stdout + " ERR: " + stderr);
+        logger.info("Looking for sshd. OUT: " + stdout + " ERR: " + stderr);
 
         if (runningSshDaemons) {
-          console.log("sshd is ready.");
+          logger.info("sshd is ready.");
           next(null, instance);
         } else {
-          console.log("sshd not ready yet.");
+          logger.info("sshd not ready yet.");
           self.waitForSshd(next, instance);
         }
       }

@@ -1,5 +1,6 @@
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
+const logger = require("./logger");
 
 const completeFileUpload = function (client, sshCredentials) {
   return function (event) {
@@ -9,7 +10,7 @@ const completeFileUpload = function (client, sshCredentials) {
     connection.on("ready", function () {
       connection.sftp(function (err, sftp) {
         if (err) {
-          console.log("There was an error while connecting via sftp: " + err);
+          logger.error("There was an error while connecting via sftp: " + err);
         }
         const stream = sftp.createWriteStream(event.file.name);
         stream.write(client.fileUploadBuffer);
@@ -31,7 +32,7 @@ module.exports = function (logExceptOnTest, sshCredentials) {
       uploader.listen(socket);
 
       uploader.on("error", function (event) {
-        console.error("Error in upload " + event);
+        logger.error("Error in upload " + event);
       });
 
       uploader.on("start", function (event) {
