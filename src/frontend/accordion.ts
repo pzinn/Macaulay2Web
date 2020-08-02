@@ -16,9 +16,11 @@ const cssClasses = {
   submenuHref: "submenuItem",
 };
 
+/*
 const toggleText = function (el, text) {
   el.innerHTML = text.replace(el.innerHTML, "");
 };
+*/
 
 const doUptutorialClick = function (e) {
   e.stopPropagation();
@@ -90,7 +92,7 @@ const appendTutorialToAccordion = function (
     title.appendChild(deleteButton);
   }
 
-  title.onclick = function (e) {
+  title.onclick = function () {
     title.classList.toggle(cssClasses.titleToggleClass);
     /*toggleText(
       title.firstElementChild,

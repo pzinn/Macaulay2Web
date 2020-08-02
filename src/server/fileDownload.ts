@@ -1,7 +1,6 @@
 const ssh2 = require("ssh2");
 import fs = require("fs");
 import { Client } from "./client";
-import { SocketEvent } from "./enums";
 import path = require("path");
 const logger = require("./logger");
 

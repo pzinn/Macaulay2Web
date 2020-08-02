@@ -1,9 +1,6 @@
-/* global SocketIOFileUpload, mathProgramName, DefaultText */
 /* eslint-env browser */
 "use strict";
 
-declare const mathProgramName: string;
-declare const DefaultText: string;
 import io = require("socket.io-client");
 //declare const SocketIOFileUpload: any;
 const SocketIOFileUpload = require("socketio-file-upload");
@@ -226,9 +223,7 @@ const showUploadSuccessDialog = function (event) {
   // console.log("File uploaded successfully!" + filename);
   const successSentence =
     filename +
-    " has been uploaded and you can use it by loading it into your " +
-    mathProgramName +
-    " session.";
+    " has been uploaded and you can use it by loading it into your session.";
   document.getElementById(
     "uploadSuccessDialogContent"
   ).innerText = successSentence;

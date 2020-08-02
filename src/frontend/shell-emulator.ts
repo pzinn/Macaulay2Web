@@ -88,9 +88,11 @@ const Shell = function (
     }
   };
 
+  /*
   const wrapOutput = function () {
     if (window.getSelection().isCollapsed) this.classList.toggle("M2wrapped");
   };
+*/
 
   const hideOutput = function () {
     this.classList.remove("M2wrapped");
