@@ -43,7 +43,6 @@ let serverConfig = {
 };
 let options;
 const staticFolder = path.join(__dirname, "../../public/");
-//let myLogger;
 
 const logExceptOnTest = function (msg: string): void {
   if (process.env.NODE_ENV !== "test") {
@@ -295,32 +294,6 @@ const sendDataToClient = function (client: Client) {
       return;
     }
     updateLastActiveTime(client);
-    /*
-	const pathPrefix: string = staticFolder + "-" + serverConfig.MATH_PROGRAM;
-    const specialUrlEmitter = require("./specialUrlEmitter")(
-      pathPrefix,
-      sshCredentials,
-      logExceptOnTest,
-      emitDataViaSockets,
-      options,
-    );
-    const dataMarkedAsSpecial = specialUrlEmitter.isSpecial(data);
-    if (dataMarkedAsSpecial !== false) {
-      specialUrlEmitter.emitEventUrlToClient(
-        client,
-        dataMarkedAsSpecial,
-        data,
-        userSpecificPath(client),
-      );
-      return;
-      }
-    myLogger.log({
-      level: "info",
-      message: data,
-      cat: "output",
-      id: client.id,
-    });
-      */
     emitDataViaClientSockets(client, SocketEvent.result, data);
   };
 };
@@ -431,33 +404,6 @@ const initializeServer = function () {
   const winston = require("winston");
   const expressWinston = require("express-winston");
 
-  /*
-  const webAppTagsRegExp = new RegExp(
-    "(" + Object.values(webAppTags).join("|") + ")",
-    "g"
-  );
-  const prettyTags = {};
-  const temp = Object.entries(webAppTags);
-  for (const a of temp) prettyTags[a[1] as any] = "<" + a[0] + ">";
-
-  const myFormat = winston.format.printf((info) => {
-    const msg = info.message.replace(webAppTagsRegExp, function (match, token) {
-      return prettyTags[token];
-    });
-    return `${info.cat} to ${info.id}\n${msg}`;
-  });
-
-  myLogger = winston.createLogger({
-    // custom logger (as opposed to express winston)
-    level: "info",
-    format: myFormat,
-    transports: [
-      new winston.transports.File({
-        filename: "winston.log",
-      }),
-    ],
-  });
-*/
   const loggerSettings = {
     transports: [new winston.transports.Console()],
     format: winston.format.combine(
@@ -582,23 +528,6 @@ const socketResetAction = function (client: Client) {
     });
   };
 };
-
-/*
-const socketDownloadAction = function (socket, client: Client) {
-  const pathPrefix: string = staticFolder + "-" + serverConfig.MATH_PROGRAM;
-  return function (msg: string) {
-    emitUrlForUserGeneratedFileToClient(
-      client,
-      msg,
-      pathPrefix,
-      userSpecificPath(client),
-      sshCredentials,
-      logExceptOnTest,
-      emitDataViaSockets
-    );
-  };
-};
-*/
 
 const sevenDays = 7 * 86409000;
 
