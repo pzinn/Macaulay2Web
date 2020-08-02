@@ -11,14 +11,16 @@ if (n > 2) {
   mode = args[2];
 }
 
-if (n > 4) {
+if (n > 5) {
   console.log("Too many options");
   usage();
   process.exit(0);
 }
 
 function usage(): void {
-  console.log("Usage: node dist/server/index.js {local|docker|ssh} [port]");
+  console.log(
+    "Usage: node dist/server/index.js {local|docker|ssh} [http port] [https port]"
+  );
 }
 
 // Dirname is dist.
@@ -44,8 +46,13 @@ if (mode === "local") {
 overrideDefaultOptions(overrideOptions.options, options);
 
 if (n > 3) {
-  console.log("port " + args[3] + " requested");
+  console.log("http  port " + args[3] + " requested");
   overrideDefaultOptions({ serverConfig: { port: args[3] } }, options);
+}
+
+if (n > 4) {
+  console.log("https port " + args[4] + " requested");
+  overrideDefaultOptions({ serverConfig: { port2: args[4] } }, options);
 }
 
 // This starts the main server!

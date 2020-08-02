@@ -20,14 +20,26 @@ import * as reader from "./tutorialReader";
 
 import express = require("express");
 const app = express();
-import httpModule = require("http");
-const http = httpModule.createServer(app);
+//import httpModule = require("http");
+//const http = httpModule.createServer(app);
 import fs = require("fs");
 import Cookie = require("cookie");
-import ioModule = require("socket.io");
-const io: SocketIO.Server = ioModule(http);
+
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
+/*
+const httpsOptions = {
+  key: fs.readFileSync("https/key.pem"),
+  cert: fs.readFileSync("https/cert.pem"),
+};
+const httpsModule = require("https");
+const https = httpsModule.createServer(httpsOptions, app);
+io.attach(https);
+*/
+import socketio = require("socket.io");
+let io: SocketIO.Server; // = socketio(http);
+
+const greenlock = require("greenlock-express");
 
 import { webAppTags } from "../frontend/tags";
 
@@ -39,6 +51,7 @@ let serverConfig = {
   MATH_PROGRAM_COMMAND: undefined,
   resumeString: undefined,
   port: undefined,
+  port2: undefined,
   CONTAINERS: undefined,
 };
 let options;
@@ -548,33 +561,57 @@ const setCookieOnSocket = function (socket, clientID: string): void {
 };
 
 const listen = function () {
-  io.on("connection", function (socket: SocketIO.Socket) {
-    logExceptOnTest("Incoming new connection!");
-    let clientId: string = getClientIdFromSocket(socket);
-    if (typeof clientId === "undefined") {
-      clientId = initializeClientId(socket);
-    }
-    logClient(clientId, "Assigned clientID");
-    if (clientId === "deadCookie") {
-      logExceptOnTest("Disconnecting for dead cookie.");
-      disconnectSocket(socket);
-      return;
-    }
-    const client = clientExistenceCheck(clientId, socket);
-    sanitizeClient(client);
-    addNewSocket(client, socket);
-    const fileUpload = require("./fileUpload")(logExceptOnTest, sshCredentials);
-    fileUpload.attachUploadListenerToSocket(client, socket);
-    socket.on("input", socketInputAction(socket, client));
-    socket.on("reset", socketResetAction(client));
-    //    socket.on("download", socketDownloadAction(socket, client));
-  });
+  const httpsWorker = function (glx) {
+    const server = glx.httpsServer();
 
+    io = socketio(server);
+
+    io.on("connection", function (socket: SocketIO.Socket) {
+      logExceptOnTest("Incoming new connection!");
+      let clientId: string = getClientIdFromSocket(socket);
+      if (typeof clientId === "undefined") {
+        clientId = initializeClientId(socket);
+      }
+      logClient(clientId, "Assigned clientID");
+      if (clientId === "deadCookie") {
+        logExceptOnTest("Disconnecting for dead cookie.");
+        disconnectSocket(socket);
+        return;
+      }
+      const client = clientExistenceCheck(clientId, socket);
+      sanitizeClient(client);
+      addNewSocket(client, socket);
+      const fileUpload = require("./fileUpload")(
+        logExceptOnTest,
+        sshCredentials
+      );
+      fileUpload.attachUploadListenerToSocket(client, socket);
+      socket.on("input", socketInputAction(socket, client));
+      socket.on("reset", socketResetAction(client));
+    });
+
+    glx.serveApp(app);
+  };
+
+  /*
   const listener = http.listen(serverConfig.port);
-  logExceptOnTest(
-    "Server running on " + (listener.address() as AddressInfo).port
-  );
-  return listener;
+  const listener2 = https.listen(serverConfig.port2);
+  */
+
+  greenlock
+    .init({
+      packageRoot: path.join(__dirname, "/../.."),
+      // contact for security and critical bug notices
+      maintainerEmail: "pzinn@unimelb.edu.au",
+      // where to look for configuration
+      configDir: "./greenlock.d",
+      // whether or not to run at cloudscale
+      cluster: false,
+    })
+    .ready(httpsWorker);
+
+  logExceptOnTest("Http  server running on " + serverConfig.port);
+  logExceptOnTest("Https server running on " + serverConfig.port2);
 };
 
 const authorizeIfNecessary = function (authOption: AuthOption) {
@@ -640,9 +677,6 @@ const MathServer = function (o) {
   // These are the methods available from the outside:
   return {
     listen,
-    close() {
-      http.close();
-    },
   };
 };
 

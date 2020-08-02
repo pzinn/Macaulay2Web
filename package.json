@@ -32,6 +32,7 @@
     "cookie": "^0.4.1",
     "express": "4.16.1",
     "express-winston": "3.1.0",
+    "greenlock-express": "^4.0.3",
     "http-auth": "3.2.3",
     "prismjs": "^1.20.0",
     "serve-favicon": "^2.5.0",

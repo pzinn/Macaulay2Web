@@ -9,7 +9,8 @@ const options = {
     MATH_PROGRAM: "Macaulay2",
     MATH_PROGRAM_COMMAND:
       "stty cols 1000000000; M2MODE=default WWWBROWSER=open M2 --webapp",
-    port: "8002",
+    port: 80,
+    port2: 443,
     resumeString:
       "Type " +
       webAppTags.Html +
