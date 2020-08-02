@@ -76,8 +76,7 @@ fileExistsPromise("public/users.htpasswd")
     }
   })
   .then(function () {
-    const MathServer = require("./server").mathServer(options);
-    MathServer.listen();
+    require("./server").mathServer(options);
   })
   .catch(function (err) {
     logger.error(err);

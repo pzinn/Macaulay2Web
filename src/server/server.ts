@@ -558,10 +558,7 @@ const listen = function () {
       const client = clientExistenceCheck(clientId, socket);
       sanitizeClient(client);
       addNewSocket(client, socket);
-      const fileUpload = require("./fileUpload")(
-        logger.info,
-        sshCredentials
-      );
+      const fileUpload = require("./fileUpload")(logger.info, sshCredentials);
       fileUpload.attachUploadListenerToSocket(client, socket);
       socket.on("input", socketInputAction(socket, client));
       socket.on("reset", socketResetAction(client));
@@ -649,12 +646,8 @@ const MathServer = function (o) {
     }
     logger.info("start init");
     initializeServer();
+    listen();
   });
-
-  // These are the methods available from the outside:
-  return {
-    listen,
-  };
 };
 
 exports.mathServer = MathServer;
