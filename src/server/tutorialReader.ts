@@ -1,4 +1,5 @@
 "use strict";
+const logger = require("./logger");
 
 type Tutorial = string;
 type Tutorials = Tutorial[];
@@ -30,14 +31,14 @@ function tutorialReader(prefix: string, fs): GetListFunction {
     const totalPath: string = prefix + pathForTutorials;
     fs.access(totalPath, fs.constants.R_OK, function (error) {
       if (error) {
-        console.log("Tutorial directory does not exists.");
+        logger.error("Tutorial directory does not exists.");
         response.writeHead(500, { "Content-Type": "text/plain" });
         response.end("Tutorial directory does not exists.");
         return;
       }
       fs.readdir(totalPath, function (err, files) {
         if (err) {
-          console.log("Reading directory of tutorials failed.");
+          logger.error("Reading directory of tutorials failed.");
           response.writeHead(500, { "Content-Type": "text/plain" });
           response.end("Reading directory of tutorials failed.");
           return;

@@ -6,19 +6,21 @@ import { AuthOption } from "./enums";
 
 import { options, overrideDefaultOptions } from "./startupConfigs/default";
 
+const logger = require("./logger");
+
 if (n > 2) {
-  console.log("mode " + args[2] + " requested");
+  logger.info("mode " + args[2] + " requested");
   mode = args[2];
 }
 
 if (n > 4) {
-  console.log("Too many options");
+  logger.error("Too many options");
   usage();
   process.exit(0);
 }
 
 function usage(): void {
-  console.log("Usage: node dist/server/index.js {local|docker|ssh} [port]");
+  logger.info("Usage: node dist/server/index.js {local|docker|ssh} [port]");
 }
 
 // Dirname is dist.
@@ -38,13 +40,13 @@ if (mode === "local") {
 } else if (mode === "ssh") {
   overrideOptions = require(path + "Macaulay2SshDocker");
 } else {
-  console.log("There is no mode " + mode);
+  logger.error("There is no mode " + mode);
 }
 
 overrideDefaultOptions(overrideOptions.options, options);
 
 if (n > 3) {
-  console.log("port " + args[3] + " requested");
+  logger.info("port " + args[3] + " requested");
   overrideDefaultOptions({ serverConfig: { port: args[3] } }, options);
 }
 
@@ -71,5 +73,5 @@ fileExistsPromise("public/users.htpasswd")
     MathServer.listen();
   })
   .catch(function (err) {
-    console.log(err);
+    logger.error(err);
   });
