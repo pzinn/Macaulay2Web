@@ -608,15 +608,8 @@ const MathServer = function (o) {
     }
     logger.info("start init");
     initializeServer();
+    listen();
   });
-
-  // These are the methods available from the outside:
-  return {
-    listen,
-    close() {
-      http.close();
-    },
-  };
 };
 
 exports.mathServer = MathServer;
