@@ -2,6 +2,8 @@ dist
 public/index.js
 public/users.htpasswd
 public/user*
+public/katex
+public/VectorGraphics
 *.log
 .idea
 *.aux
@@ -11,6 +13,7 @@ public/user*
 *.ps
 *.pdf
 *.dvi
+*~
 .DS_Store
 node_modules
 .vagrant/
