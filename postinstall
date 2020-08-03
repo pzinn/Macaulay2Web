@@ -1,0 +1,13 @@
+#!/bin/bash
+cd public
+echo Installing KaTeX
+rm -rf katex
+wget -nv https://github.com/pzinn/KaTeX/releases/download/0.12.0-pzinn/dist.tar.gz
+tar zxf dist.tar.gz
+mv dist katex
+rm dist.tar.gz
+echo Installing VectorGraphics
+mkdir -p VectorGraphics
+cd VectorGraphics
+wget -nv https://raw.githubusercontent.com/pzinn/M2/vanilla/M2/Macaulay2/packages/VectorGraphics/VectorGraphics.css
+wget -nv https://raw.githubusercontent.com/pzinn/M2/vanilla/M2/Macaulay2/packages/VectorGraphics/VectorGraphics.js

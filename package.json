@@ -46,6 +46,7 @@
     "winston": "^3.3.2"
   },
   "scripts": {
+    "postinstall": "./postinstall", 
     "tsc": "tsc && tsc -p src/frontend",
     "build": "npm run lint && npm run format && npm run tsc && ./node_modules/.bin/webpack",
     "start": "node dist/server/index.js",
