@@ -214,9 +214,6 @@ const hilite = function (event) {
 
 const showUploadSuccessDialog = function (event) {
   const dialog: any = document.getElementById("uploadSuccessDialog");
-  /*  if (!dialog.showModal) {
-    dialogPolyfill.registerDialog(dialog);
-  }*/
   // console.log('we uploaded the file: ' + event.success);
   // console.log(event.file);
   const filename = event.file.name;
@@ -229,19 +226,6 @@ const showUploadSuccessDialog = function (event) {
   ).innerText = successSentence;
   dialog.showModal();
 };
-
-/*
-const fileDialog = function (fileUrl) {
-  const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
-  if (iFrame) iFrame.src = fileUrl;
-  else
-    window.open(
-      fileUrl,
-      "_blank",
-      "height=200,width=200,toolbar=0,location=0,menubar=0"
-    );
-};
-*/
 
 const attachCloseDialogBtns = function () {
   attachClick("uploadSuccessDialogClose", function () {
@@ -446,7 +430,7 @@ const init = function () {
     const fetchTutorials = require("./fetchTutorials");
     fetchTutorials(tutorialManager.makeTutorialsList);
     upTutorial.onchange = tutorialManager.uploadTutorial;
-    if (tute !== null && tab === "") tab = "lessonTab";
+    if (tute !== null && tab === "") tab = "tutorial";
   }
 
   const tabs = document.getElementById("tabs");
