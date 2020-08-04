@@ -348,6 +348,11 @@ const socketOnError = function (type) {
 };
 
 const init = function () {
+  const url = new URL(document.location.href);
+
+  let publicId: any = url.searchParams.get("public");
+  if (publicId === null) publicId = url.pathname == "/minimal.html";
+
   const zoom = require("./zooming");
   zoom.attachZoomButtons(
     "M2Out",
@@ -356,7 +361,7 @@ const init = function () {
     "M2OutZoomOut"
   );
 
-  socket = io();
+  socket = io("?publicId=" + publicId);
   socket.on("reconnect_failed", socketOnError("reconnect_fail"));
   socket.on("reconnect_error", socketOnError("reconnect_error"));
   socket.on("connect_error", socketOnError("connect_error"));
@@ -419,7 +424,6 @@ const init = function () {
       e.returnValue = "";
     });
 
-  const url = new URL(document.location.href);
   /*
   const width = url.searchParams.get("width");
   if (width) console.style.width = width;

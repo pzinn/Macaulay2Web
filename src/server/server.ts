@@ -68,9 +68,9 @@ let instanceManager: InstanceManager = {
   },
 };
 
-const logClient = function (clientID, str) {
+const logClient = function (clientId, str) {
   if (process.env.NODE_ENV !== "test") {
-    logger.info(clientID + ": " + str);
+    logger.info(clientId + ": " + str);
   }
 };
 
@@ -313,9 +313,9 @@ const attachChannelToClient = function (
 
 const killMathProgram = function (
   channel: ssh2.ClientChannel,
-  clientID: string
+  clientId: string
 ) {
-  logClient(clientID, "killMathProgramClient.");
+  logClient(clientId, "killMathProgramClient.");
   channel.close();
 };
 
@@ -509,17 +509,19 @@ const socketResetAction = function (client: Client) {
 const sevenDays = 7 * 86409000;
 
 const initializeClientId = function (socket): string {
-  const clientID = clientIdHelper(clients, logger.info).getNewId();
-  setCookieOnSocket(socket, clientID);
-  return clientID;
+  const clientId = clientIdHelper(clients, logger.info).getNewId();
+  setCookieOnSocket(socket, clientId);
+  return clientId;
 };
 
-const setCookieOnSocket = function (socket, clientID: string): void {
-  const expDate = new Date(new Date().getTime() + sevenDays);
-  const sessionCookie = Cookie.serialize(options.cookieName, clientID, {
-    expires: expDate,
-  });
-  socket.emit("cookie", sessionCookie);
+const setCookieOnSocket = function (socket, clientId: string): void {
+  if (clientId != "public") {
+    const expDate = new Date(new Date().getTime() + sevenDays);
+    const sessionCookie = Cookie.serialize(options.cookieName, clientId, {
+      expires: expDate,
+    });
+    socket.emit("cookie", sessionCookie);
+  }
 };
 
 const listen = function () {
@@ -527,9 +529,13 @@ const listen = function () {
     logger.info("Incoming new connection!");
     let clientId: string = getClientIdFromSocket(socket);
     if (typeof clientId === "undefined") {
-      clientId = initializeClientId(socket);
+      if (socket.handshake.query.publicId != "true")
+        clientId = initializeClientId(socket);
+      else {
+        clientId = "public";
+      }
     }
-    logClient(clientId, "Assigned clientID");
+    logClient(clientId, "Assigned clientId");
     if (clientId === "deadCookie") {
       logger.info("Disconnecting for dead cookie.");
       disconnectSocket(socket);
