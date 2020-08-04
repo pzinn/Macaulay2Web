@@ -2,7 +2,7 @@ import { webAppTags } from "../../frontend/tags";
 import { AuthOption } from "../enums";
 
 const options = {
-  cookieName: "tryM2",
+  cookieName: "Macaulay2Web",
   authentication: AuthOption.none,
   serverConfig: {
     CONTAINERS: "../LocalContainerManager",
