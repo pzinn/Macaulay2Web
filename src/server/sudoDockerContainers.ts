@@ -109,7 +109,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
   private removeInstanceFromArray = function (instance: Instance) {
     const position = this.currentContainers.indexOf(instance);
-    if (position > 0) this.currentContainers.splice(position, 1);
+    if (position >= 0) this.currentContainers.splice(position, 1);
   };
 
   private addInstanceToArray = function (instance: Instance) {
