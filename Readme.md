@@ -161,6 +161,21 @@ npm start ## basic with Docker containers
 npm run twoMachines ## Docker containers on different machine than server
 ```
 
+## Command line arguments:
+You can append to the URL, say
+http://localhost:8002
+or
+https://www.unimelb-macaulay2.cloud.edu.au
+the following:
+* `/minimal.html` for a minimal interface, which can be embedded into a web page, e.g. with
+```
+<iframe style="background:#A8A8B8;overflow:hidden;resize:both" scrolling="no" src='https://www.unimelb-macaulay2.cloud.edu.au/minimal.html' title="Macaulay2"></iframe>
+```
+* `?tutorial=a&lesson=b` to jump straight to page b of tutorial a (in the normal interface).
+* `#editor` to start in a different tab (in the normal interface).
+* `?public=[true|false]` -- this option is false (resp. true) by default for the normal (resp. minimal) interface.
+If true, the user does not get his own Macaulay2 process but rather a shared process for all users.
+
 ## Internal file structure:
 ### Server
 * main file:
