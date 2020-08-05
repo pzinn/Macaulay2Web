@@ -11,7 +11,6 @@ type Socket = SocketIOClient.Socket & { oldEmit?: any };
 export { Socket };
 let socket: Socket;
 let serverDisconnect = false;
-//const dialogPolyfill = require("dialog-polyfill");
 const Shell = require("./shell-emulator");
 import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 
@@ -273,27 +272,22 @@ const codeClickAction = function (e) {
     myshell.postMessage(e.target.textContent, false, false);
 };
 
-const openTabCloseDrawer = function (event) {
-  const panelId = this.getAttribute("href").substring(1) + "Title"; // probably not the right way, but works
-  // show tab panel
-  document.getElementById(panelId).click();
-  // close drawer menu
-  (document.body.querySelector(
-    ".mdl-layout__obfuscator.is-visible"
-  ) as any).click();
+const openTabCloseDrawer = function () {
+  document.location.hash = this.getAttribute("href");
+  // close drawer menu if necessary
+  const obfusc = document.getElementsByClassName(
+    "mdl-layout__obfuscator"
+  )[0] as HTMLElement;
+  if (obfusc.classList.contains("is-visible")) obfusc.click();
   // do not follow link
   event.preventDefault();
 };
 
-/*
-const openAboutTab = function (event) {
-  const el = document.getElementById("aboutTitle");
+const openTab = function () {
+  const panelId = document.location.hash.substring(1) + "Title";
   // show tab panel
-  if (el) el.click();
-  // do not follow link
-  event.preventDefault();
+  document.getElementById(panelId).click();
 };
-*/
 
 let ignoreFirstLoad = true;
 const openBrowseTab = function (event) {
@@ -399,6 +393,7 @@ const init = function () {
       (el as any).onclick = openTabCloseDrawer;
     }
   );
+  window.addEventListener("hashchange", openTab);
   //  attachClick("aboutIcon", openAboutTab);
 
   if (editor)
@@ -425,8 +420,8 @@ const init = function () {
   const upTutorial = document.getElementById("uptutorial");
   if (upTutorial) {
     const tute = url.searchParams.get("tutorial");
-    const page = url.searchParams.get("lesson"); // can do complicated things like http://localhost:8002/?tutorial=4&lesson=1#editor
-    const tutorialManager = require("./tutorials")(+tute, +page);
+    const page = url.searchParams.get("lesson") || 1; // can do complicated things like http://localhost:8002/?tutorial=4&lesson=1#editor
+    const tutorialManager = require("./tutorials")(+tute, +page - 1);
     const fetchTutorials = require("./fetchTutorials");
     fetchTutorials(tutorialManager.makeTutorialsList);
     upTutorial.onchange = tutorialManager.uploadTutorial;

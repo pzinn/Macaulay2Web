@@ -103,7 +103,7 @@ const showLesson = function (e) {
   const tutorialIdNr = +el.getAttribute("data-tutorial");
   console.log("Showing lesson. " + lessonIdNr + " / " + tutorialIdNr);
   loadLessonIfChanged(tutorialIdNr, lessonIdNr);
-  document.getElementById("lessonTabTitle").click();
+  document.getElementById("tutorialTitle").click();
   return false;
 };
 
