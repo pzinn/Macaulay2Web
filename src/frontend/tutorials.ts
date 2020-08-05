@@ -1,8 +1,7 @@
 /* eslint-env browser */
 /* eslint "new-cap": "off" */
 
-//declare var MathJax: jax.IMathJax;
-declare const renderMathInElement;
+declare const renderMathInElement; // for technical reasons we choose to *not* integrate KaTeX in npm
 //const Prism = require('prismjs');
 const accordion = require("./accordion")();
 
@@ -177,7 +176,7 @@ const markdownToHtml = function (markdownText) {
   let inSection = false; // only false until the first ##.  After that, it is true.
   let inExample = false;
   let exampleLines = [];
-  const firstLineInExample = false;
+//  const firstLineInExample = false;
   let inPara = false;
   for (const line of lines) {
     if (!inExample && line.match("^##")) {

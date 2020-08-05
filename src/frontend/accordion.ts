@@ -11,16 +11,9 @@ const cssClasses = {
   titleHover: "mdl-button--colored",
   titleToggleClass: "rotated",
   content: "mdl-list__item-text-body mdl-list__item",
-  innerListItem: "unstyled",
+  innerList: "unstyled",
   titleHref: "menuTitle mdl-button mdl-js-button mdl-button-raised",
-  submenuHref: "submenuItem",
 };
-
-/*
-const toggleText = function (el, text) {
-  el.innerHTML = text.replace(el.innerHTML, "");
-};
-*/
 
 const doUptutorialClick = function (e) {
   e.stopPropagation();
@@ -94,10 +87,6 @@ const appendTutorialToAccordion = function (
 
   title.onclick = function () {
     title.classList.toggle(cssClasses.titleToggleClass);
-    /*toggleText(
-      title.firstElementChild,
-      cssClasses.titleSymbolActive + " " + cssClasses.titleSymbolInactive
-    );*/
     div.style.height =
       (div.style.height == heightClosed + "px"
         ? childrenTotalHeight(div)
@@ -105,13 +94,11 @@ const appendTutorialToAccordion = function (
     //	div.scrollIntoView(); // too brutal
   };
   const ul = document.createElement("ul");
+  ul.className = cssClasses.innerList;
   let li, a;
   for (let j = 0; j < lessons.length; j++) {
     li = document.createElement("li");
-    li.className = cssClasses.innerListItem;
     a = document.createElement("a");
-    a.href = "#"; // for the pointer on hover
-    a.className = cssClasses.submenuHref;
     a.innerHTML = lessons[j].title;
     a.setAttribute("data-lesson", j);
     a.setAttribute("data-tutorial", index);
