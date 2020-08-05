@@ -202,8 +202,11 @@ body {
     list-style: none;
 }
 
-a.submenuItem {
+a {
+    cursor: pointer;
     text-decoration:none;
+    color: rgb(100,0,0);
+    font-weight: 500;
 }
 
 .material-icons {
@@ -226,23 +229,3 @@ h3.rotated .material-icons {
 .menuTitle:hover {
     background-color: #A070FF;
 }
-
-#aboutIcon {
-    cursor: pointer;
-}
-
-/*
-
-.M2OutputIcon {
-    position: absolute;
-    right: 0px;
-    top: 50%;
-    transform: translate(100%,-50%);
-    visibility: hidden;
-}
-
-.M2Output:hover > .M2OutputIcon {
-    visibility: visible;
-}
-
-*/
