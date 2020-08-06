@@ -2,7 +2,6 @@
 "use strict";
 
 import io = require("socket.io-client");
-//declare const SocketIOFileUpload: any;
 const SocketIOFileUpload = require("socketio-file-upload");
 const Prism = require("prismjs");
 
@@ -272,21 +271,20 @@ const codeClickAction = function (e) {
     myshell.postMessage(e.target.textContent, false, false);
 };
 
-const openTabCloseDrawer = function () {
-  document.location.hash = this.getAttribute("href");
-  // close drawer menu if necessary
-  const obfusc = document.getElementsByClassName(
-    "mdl-layout__obfuscator"
-  )[0] as HTMLElement;
-  if (obfusc.classList.contains("is-visible")) obfusc.click();
-  // do not follow link
-  event.preventDefault();
-};
-
+// supersedes mdl's internal tab handling
 const openTab = function () {
-  const panelId = document.location.hash.substring(1) + "Title";
-  // show tab panel
-  document.getElementById(panelId).click();
+  const loc = document.location.hash.substring(1);
+  const panel = document.getElementById(loc);
+  if (panel) {
+    const tab = document.getElementById(loc + "Title");
+    const tabs = document.getElementById("tabs") as any;
+    if (tabs.MaterialTabs) {
+      tabs.MaterialTabs.resetPanelState_();
+      tabs.MaterialTabs.resetTabState_();
+    }
+    panel.classList.add("is-active");
+    tab.classList.add("is-active");
+  }
 };
 
 let ignoreFirstLoad = true;
@@ -368,9 +366,9 @@ const init = function () {
   }
 
   const iFrame = document.getElementById("browseFrame");
-  const console = document.getElementById("M2Out");
+  const terminal = document.getElementById("M2Out");
   myshell = new Shell(
-    console,
+    terminal,
     socket,
     editor,
     document.getElementById("editorToggle"),
@@ -388,13 +386,24 @@ const init = function () {
   siofu.addEventListener("complete", showUploadSuccessDialog);
 
   attachClick("content", codeClickAction);
-  Array.from(document.getElementsByClassName("tabPanelActivator")).forEach(
-    (el) => {
-      (el as any).onclick = openTabCloseDrawer;
-    }
+
+  // must add this due to failure of mdl, see https://stackoverflow.com/questions/31536467/how-to-hide-drawer-upon-user-click
+  document.querySelector(".mdl-layout__drawer").addEventListener(
+    "click",
+    function () {
+      document
+        .querySelector(".mdl-layout__obfuscator")
+        .classList.remove("is-visible");
+      this.classList.remove("is-visible");
+    },
+    false
   );
-  window.addEventListener("hashchange", openTab);
-  //  attachClick("aboutIcon", openAboutTab);
+  // supersede mdl's built-in tab handling
+  Array.from(document.getElementsByClassName("mdl-tabs__tab")).forEach((el) => {
+    (el as any).onclick = function (event) {
+      event.stopImmediatePropagation();
+    };
+  });
 
   if (editor)
     // only ask for confirmation if there's an editor
@@ -403,19 +412,13 @@ const init = function () {
       e.returnValue = "";
     });
 
-  /*
-  const width = url.searchParams.get("width");
-  if (width) console.style.width = width;
-  const height = url.searchParams.get("height");
-  if (height) console.style.height = height;
-*/
   const exec = url.searchParams.get("exec");
   if (exec)
     setTimeout(function () {
       myshell.postMessage(exec, false, false);
     }, 2000);
 
-  let tab = url.hash.substr(1);
+  let tab = url.hash;
 
   const upTutorial = document.getElementById("uptutorial");
   if (upTutorial) {
@@ -425,18 +428,15 @@ const init = function () {
     const fetchTutorials = require("./fetchTutorials");
     fetchTutorials(tutorialManager.makeTutorialsList);
     upTutorial.onchange = tutorialManager.uploadTutorial;
-    if (tute !== null && tab === "") tab = "tutorial";
+    if (tute !== null && tab === "") tab = "#tutorial";
   }
 
   const tabs = document.getElementById("tabs");
-  if (tab && tabs) {
-    const f = function () {
-      if (tabs.classList.contains("is-upgraded"))
-        // MDL js loaded
-        document.getElementById(tab + "Title").click();
-      else setTimeout(f, 100);
-    };
-    f();
+  if (tabs) {
+    document.location.hash = "";
+    window.addEventListener("hashchange", openTab);
+    if (tab === "") tab = "#home";
+    document.location.hash = tab;
   }
 
   if (iFrame) iFrame.onload = openBrowseTab;

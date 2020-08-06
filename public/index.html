@@ -94,11 +94,11 @@
       <div class="mdl-layout__drawer">
         <span class="mdl-layout-title">Macaulay2</span>
         <nav class="mdl-navigation">
-          <a class="mdl-navigation__link tabPanelActivator" href="#home">Home</a>
-          <a class="mdl-navigation__link tabPanelActivator" href="#tutorial">Tutorial</a>
-          <a class="mdl-navigation__link tabPanelActivator" href="#editor">Editor</a>
-          <a class="mdl-navigation__link tabPanelActivator" href="#about">About</a>
-          <a class="mdl-navigation__link tabPanelActivator" href="#browse">Browse</a>
+          <a class="mdl-navigation__link" target="_self" href="#home">Home</a>
+          <a class="mdl-navigation__link" target="_self" href="#tutorial">Tutorial</a>
+          <a class="mdl-navigation__link" target="_self" href="#editor">Editor</a>
+          <a class="mdl-navigation__link" target="_self" href="#about">About</a>
+          <a class="mdl-navigation__link" target="_self" href="#browse">Browse</a>
         </nav>
       </div>
 
@@ -107,21 +107,16 @@
           <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone"
                id="left-half">
 
-            <div id="tabs" class="mdl-tabs mdl-js-tabs ">
-              <div class="mdl-tabs__tab-bar mdl mdl-layout--large-screen-only">
-                <a href="#home" id="homeTitle" class="mdl-tabs__tab is-active">Home</a>
-                <a href="#tutorial" id="tutorialTitle"
-                   class="mdl-tabs__tab">Tutorial</a>
-                <a href="#editor" id="editorTitle"
-                   class="mdl-tabs__tab">Editor</a>
-                <a href="#about" id="aboutTitle"
-                   class="mdl-tabs__tab">About</a>
-                <a href="#browse" id="browseTitle"
-                   class="mdl-tabs__tab">Browse</a>
+            <div id="tabs" class="mdl-tabs mdl-js-tabs">
+              <div class="mdl-tabs__tab-bar mdl-layout--large-screen-only">
+                <a href="#home" target="_self" id="homeTitle" class="mdl-tabs__tab">Home</a>
+                <a href="#tutorial" target="_self" id="tutorialTitle" class="mdl-tabs__tab">Tutorial</a>
+                <a href="#editor" target="_self" id="editorTitle" class="mdl-tabs__tab">Editor</a>
+                <a href="#about" target="_self" id="aboutTitle" class="mdl-tabs__tab">About</a>
+                <a href="#browse" target="_self" id="browseTitle" class="mdl-tabs__tab">Browse</a>
 
               </div>
-              <div class="mdl-tabs__panel mdl-layout--fixed-header is-active"
-                   id="home">
+              <div class="mdl-tabs__panel mdl-layout--fixed-header" id="home">
                 <img class="image-text-wrap mdl-layout--large-screen-only"
                      src="frontPageImage.jpg"/>
                 <img class="image-text-wrap mdl-layout--small-screen-only small-image"
