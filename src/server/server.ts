@@ -551,10 +551,11 @@ const listen = function () {
       logger.info("Incoming new connection!");
       let clientId: string = getClientIdFromSocket(socket);
       if (typeof clientId === "undefined") {
-        if (socket.handshake.query.publicId != "true")
-          clientId = initializeClientId(socket);
+        let publicId = socket.handshake.query.publicId;
+        if (publicId === "false") clientId = initializeClientId(socket);
         else {
-          clientId = "public";
+          if (publicId === "true") publicId = "default";
+          clientId = "public_" + publicId;
         }
       }
       logClient(clientId, "Assigned clientId");
