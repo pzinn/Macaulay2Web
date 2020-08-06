@@ -4,24 +4,11 @@ body {
     --left-color: whitesmoke;
     --right-color: lightsteelblue;
     /* --right-color: #F0FFE0; */
-    background: -webkit-linear-gradient(left, var(--left-color), var(--right-color)); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, var(--left-color), var(--right-color)); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, var(--left-color), var(--right-color)); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, var(--left-color), var(--right-color)); /* Standard syntax */
+    background: linear-gradient(to right, var(--left-color), var(--right-color));
 }
 
 .mdl-grid {
     position: absolute;
-
-    /* Firefox */
-    width: -moz-calc(100% - 16px);
-    height: -moz-calc(100% - 16px);
-
-    /* WebKit */
-    width: -webkit-calc(100% - 16px);
-    height: -webkit-calc(100% - 16px);
-
-    /* Standard */
     width: calc(100% - 16px);
     height: calc(100% - 16px);
 
@@ -29,13 +16,8 @@ body {
 
 #left-half, #right-half {
     position: relative;
-    /* grid has margin 8px, which is not subtracked by
+    /* grid has margin 8px, which is not subtracted by
     box-sizing, so we subtract it manually */
-    /* Firefox */
-    height: -moz-calc(100% - 16px);
-    /* WebKit */
-    height: -webkit-calc(100% - 16px);
-    /* Standard */
     height: calc(100% - 16px);
 }
 
@@ -45,11 +27,8 @@ body {
     overflow-y: auto;
     overflow-x: auto;
     z-index: 1;
-    /* Position:absolute is needed for the editor not to be a tiny bit too
-     * high. */
+    /* Position:absolute is needed for the editor not to be a tiny bit too high. */
     position: absolute;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
 
@@ -78,8 +57,6 @@ body {
     height: 100%;
     z-index: 1;
     resize: none;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
     box-sizing: border-box;
     font-family: "Roboto Mono";
     font-weight: normal;
@@ -126,19 +103,9 @@ body {
     background: var(--left-color);
     width: 100%;
     height: 100%;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
 
-/*
-#M2OutCtrlBtns, #M2OutCtrlBtnsMax {
-    z-index: 2;
-    position: absolute;
-    top: 16px;
-    right: 80px;
-}
-*/
 #M2OutZoomBtns {
     z-index: 2;
     position: absolute;
@@ -164,8 +131,6 @@ body {
     position: relative;
     display: flex;
     flex-direction: column;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
 
@@ -175,20 +140,9 @@ body {
     display: flex;
     height: 100%;
     position: relative;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
 
-/*
-#M2In {
-    margin: 0px;     // We need this margin, otherwise flexbox does not work correctly.
-    flex: 1;
-    display: flex;
-    position: absolute;
-}
-*/
- 
 .small-image {
     width: 20vw;
 }
