@@ -388,16 +388,18 @@ const init = function () {
   attachClick("content", codeClickAction);
 
   // must add this due to failure of mdl, see https://stackoverflow.com/questions/31536467/how-to-hide-drawer-upon-user-click
-  document.querySelector(".mdl-layout__drawer").addEventListener(
-    "click",
-    function () {
-      document
-        .querySelector(".mdl-layout__obfuscator")
-        .classList.remove("is-visible");
-      this.classList.remove("is-visible");
-    },
-    false
-  );
+  const drawer = document.querySelector(".mdl-layout__drawer");
+  if (drawer)
+    drawer.addEventListener(
+      "click",
+      function () {
+        document
+          .querySelector(".mdl-layout__obfuscator")
+          .classList.remove("is-visible");
+        this.classList.remove("is-visible");
+      },
+      false
+    );
   // supersede mdl's built-in tab handling
   Array.from(document.getElementsByClassName("mdl-tabs__tab")).forEach((el) => {
     (el as any).onclick = function (event) {
