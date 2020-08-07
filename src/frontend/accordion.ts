@@ -62,20 +62,10 @@ const appendTutorialToAccordion = function (
   title.style.cursor = "pointer";
 
   const div = document.createElement("div");
-  div.innerHTML = blurb;
   div.insertBefore(title, div.firstChild);
-  let heightClosed = 0;
-  div.style.height = "0px";
-  const f = function () {
-    const h = totalHeight(title);
-    if (h > 0) {
-      heightClosed = 5 + h;
-      div.style.height = heightClosed + "px";
-    } else setTimeout(f, 1000);
-  };
-  setTimeout(f, 1);
   div.style.overflow = "hidden";
   div.style.transition = "height 0.5s";
+  div.style.paddingBottom = "5px";
 
   if (deleteButton) {
     const deleteButton = document.createElement("i");
@@ -85,16 +75,28 @@ const appendTutorialToAccordion = function (
     title.appendChild(deleteButton);
   }
 
-  title.onclick = function () {
-    title.classList.toggle(cssClasses.titleToggleClass);
-    div.style.height =
-      (div.style.height == heightClosed + "px"
-        ? childrenTotalHeight(div)
-        : heightClosed) + "px";
-    //	div.scrollIntoView(); // too brutal
-  };
   const ul = document.createElement("ul");
   ul.className = cssClasses.innerList;
+  ul.innerHTML = blurb;
+
+  let heightClosed, heightOpen;
+  title.onclick = function () {
+    title.classList.toggle(cssClasses.titleToggleClass);
+    if (ul.style.display == "none") {
+      heightClosed = totalHeight(title);
+      div.style.height = heightClosed + "px";
+      ul.style.display = "block";
+      setTimeout(function () {
+        heightOpen = childrenTotalHeight(div);
+        div.style.height = heightOpen + "px";
+      }, 1);
+    } else
+      div.style.height =
+        (title.classList.contains(cssClasses.titleToggleClass)
+          ? heightOpen
+          : heightClosed) + "px";
+  };
+
   let li, a;
   for (let j = 0; j < lessons.length; j++) {
     li = document.createElement("li");
@@ -106,6 +108,7 @@ const appendTutorialToAccordion = function (
     li.appendChild(a);
     ul.appendChild(li);
   }
+  ul.style.display = "none";
   div.appendChild(ul);
   const el = document.getElementById("accordion");
   const lastel = document.getElementById("loadTutorialMenu");
