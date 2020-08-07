@@ -2,6 +2,9 @@
 
 "use strict;";
 
+// bundle mdl
+require("../../public/mdl/material.js");
+
 document.addEventListener(
   "DOMContentLoaded",
   function () {

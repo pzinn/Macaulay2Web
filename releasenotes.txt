@@ -1,3 +1,8 @@
+3.3.0 08/2020
+    * https branch
+    * overhaul of server / docker interaction
+    * better bundling
+
 3.2.0 07/2020
     * name change
     * file restructure

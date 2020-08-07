@@ -1,7 +1,7 @@
 {
   "name": "Macaulay2Web",
-  "version": "3.1.0",
-  "description": "Web apps for Macaulay2",
+  "version": "3.3.0",
+  "description": "Web app for Macaulay2",
   "contributors": [
     {
       "name": "Franziska Hinkelmann",
@@ -71,5 +71,6 @@
     "prettier": "^2.0.5",
     "webpack": "^5.0.0-beta.24",
     "webpack-cli": "^4.0.0-beta.8"
-  }
+  },
+  "license": "see LICENSE and InteractiveShell-LICENSE"
 }

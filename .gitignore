@@ -4,6 +4,7 @@ public/users.htpasswd
 public/user*
 public/katex
 public/VectorGraphics
+public/mdl
 *.log
 .idea
 *.aux
