@@ -73,5 +73,5 @@
     "webpack": "^5.0.0-beta.24",
     "webpack-cli": "^4.0.0-beta.8"
   },
-  "license": "see LICENSE and InteractiveShell-LICENSE"
+  "license": "MIT"
 }
