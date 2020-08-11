@@ -5,8 +5,11 @@
 -- Evaluate a line or selection by typing Shift+Enter 
 -- or by clicking on Evaluate.
 
+-- What follows are some examples.
+-- you can erase it all with e.g. Ctrl-A + Delete
+
 -- To open the Macaulay2 documentation for a 
--- topic in another the "Browse" tab:
+-- topic in the "Browse" tab:
 
 viewHelp "determinant"
 
