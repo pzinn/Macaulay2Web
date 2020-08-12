@@ -7,7 +7,7 @@ const cssClasses = {
   //  titleSymbolInactive: "expand_less",
   // titleSymbolInactive: "arrow_drop_down",
   titleSymbolInactive: "arrow_right",
-  title: "mdl-button mdl-js-button mdl-button--raised mdl-list__item",
+  title: "title mdl-button mdl-js-button mdl-button--raised mdl-list__item",
   titleHover: "mdl-button--colored",
   titleToggleClass: "rotated",
   content: "mdl-list__item-text-body mdl-list__item",
@@ -44,21 +44,26 @@ const appendTutorialToAccordion = function (
   blurb,
   lessons,
   index,
-  showLesson,
-  deleteButton = false
+  deleteButton,
+  clickAction = function (e) {
+    e.stopPropagation();
+  }
 ) {
   const title = tmptitle.cloneNode(false);
   title.className = cssClasses.title;
   const icon = document.createElement("i");
   icon.innerHTML = cssClasses.titleSymbolActive;
   icon.className = cssClasses.titleSymbolClass;
-  const titleSpan = document.createElement("span");
-  titleSpan.className = cssClasses.titleHref;
-  if (index >= 0) titleSpan.setAttribute("data-tutorial", index);
-  titleSpan.onclick = showLesson;
-  titleSpan.innerHTML = tmptitle.innerHTML;
+  const titlea = document.createElement("a");
+  titlea.className = cssClasses.titleHref;
+  if (index >= 0) {
+    titlea.href = "#tutorial-" + index;
+    titlea.target = "_self";
+  }
+  titlea.onclick = clickAction;
+  titlea.innerHTML = tmptitle.innerHTML;
   title.appendChild(icon);
-  title.appendChild(titleSpan);
+  title.appendChild(titlea);
   title.style.cursor = "pointer";
 
   const div = document.createElement("div");
@@ -102,9 +107,8 @@ const appendTutorialToAccordion = function (
     li = document.createElement("li");
     a = document.createElement("a");
     a.innerHTML = lessons[j].title;
-    a.setAttribute("data-lesson", j);
-    a.setAttribute("data-tutorial", index);
-    a.onclick = showLesson;
+    a.href = "#tutorial-" + index + "-" + (j + 1);
+    a.target = "_self";
     li.appendChild(a);
     ul.appendChild(li);
   }
@@ -127,15 +131,21 @@ const appendLoadTutorialMenuToAccordion = function () {
     .then(function (content) {
       const title = document.createElement("h3");
       title.innerHTML = "Load Your Own Tutorial";
-      appendTutorialToAccordion(title, content, [], -1, doUptutorialClick).id =
-        "loadTutorialMenu";
+      appendTutorialToAccordion(
+        title,
+        content,
+        [],
+        -1,
+        false,
+        doUptutorialClick
+      ).id = "loadTutorialMenu";
     })
     .catch(function (error) {
       console.log("loading /uploadTutorialHelp.txt failed: " + error);
     });
 };
 
-const makeAccordion = function (tutorials, showLesson) {
+const makeAccordion = function (tutorials) {
   const accel = document.createElement("div");
   accel.id = "accordion";
   document.getElementById("home").appendChild(accel);
@@ -145,7 +155,7 @@ const makeAccordion = function (tutorials, showLesson) {
       "",
       tutorials[i].lessons,
       i,
-      showLesson
+      false
     );
   appendLoadTutorialMenuToAccordion();
 };
