@@ -4,6 +4,7 @@ import { webAppTags, webAppClasses } from "./tags";
 import {
   scrollDownLeft,
   scrollDown,
+  scrollLeft,
   baselinePosition,
   placeCaret,
   addToElement,
@@ -551,7 +552,7 @@ const Shell = function (
     if (e.ctrlKey || e.metaKey || e.key == "PageUp" || e.key == "PageDown") {
       // do not move caret on Ctrl or Command combos
       if (e.key == "PageUp" && document.activeElement == inputSpan)
-        inputSpan.blur();
+        shell.focus();
       // this prevents the annoying behavior at the cost of losing the caret
       return;
     }
@@ -570,6 +571,7 @@ const Shell = function (
 
     placeCaretAtEnd(inputSpan, true);
     const pos = window.getSelection().focusOffset;
+    if (pos == 0) scrollLeft(shell);
 
     if (closingDelimiters.indexOf(e.key) >= 0)
       closingDelimiterHandling(pos, e.key);
@@ -807,6 +809,7 @@ const Shell = function (
     removeDelimiterHighlight();
     postRawMessage("\x03");
   };
+  inputSpan.focus();
 };
 
 module.exports = Shell;

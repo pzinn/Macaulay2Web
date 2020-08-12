@@ -1,10 +1,14 @@
-const scrollDownLeft = function (el) {
+const scrollLeft = function (el) {
   el.scrollLeft = 0;
-  el.scrollTop = el.scrollHeight;
 };
 
 const scrollDown = function (el) {
   el.scrollTop = el.scrollHeight;
+};
+
+const scrollDownLeft = function (el) {
+  scrollLeft(el);
+  scrollDown(el);
 };
 
 const baselinePosition = function (el) {
@@ -90,6 +94,7 @@ const caretIsAtEnd = function () {
 export {
   scrollDownLeft,
   scrollDown,
+  scrollLeft,
   baselinePosition,
   placeCaret,
   addToElement,

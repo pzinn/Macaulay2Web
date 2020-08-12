@@ -10,7 +10,7 @@ type Socket = SocketIOClient.Socket & { oldEmit?: any };
 export { Socket };
 let socket: Socket;
 let serverDisconnect = false;
-const Shell = require("./shell-emulator");
+const Shell = require("./shellEmulator");
 import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 
 import { webAppTags, webAppClasses } from "../frontend/tags";
@@ -365,6 +365,27 @@ const init = function () {
     xhttp.send();
   }
 
+  let tab = url.hash;
+
+  const upTutorial = document.getElementById("uptutorial");
+  if (upTutorial) {
+    const tute = url.searchParams.get("tutorial");
+    const page = url.searchParams.get("lesson") || 1; // can do complicated things like http://localhost:8002/?tutorial=4&lesson=1#editor
+    const tutorialManager = require("./tutorials")(+tute, +page - 1);
+    const fetchTutorials = require("./fetchTutorials");
+    fetchTutorials(tutorialManager.makeTutorialsList);
+    upTutorial.onchange = tutorialManager.uploadTutorial;
+    if (tute !== null && tab === "") tab = "#tutorial";
+  }
+
+  const tabs = document.getElementById("tabs");
+  if (tabs) {
+    document.location.hash = "";
+    window.addEventListener("hashchange", openTab);
+    if (tab === "") tab = "#home";
+    document.location.hash = tab;
+  }
+
   const iFrame = document.getElementById("browseFrame");
   const terminal = document.getElementById("M2Out");
   myshell = new Shell(
@@ -419,27 +440,6 @@ const init = function () {
     setTimeout(function () {
       myshell.postMessage(exec, false, false);
     }, 2000);
-
-  let tab = url.hash;
-
-  const upTutorial = document.getElementById("uptutorial");
-  if (upTutorial) {
-    const tute = url.searchParams.get("tutorial");
-    const page = url.searchParams.get("lesson") || 1; // can do complicated things like http://localhost:8002/?tutorial=4&lesson=1#editor
-    const tutorialManager = require("./tutorials")(+tute, +page - 1);
-    const fetchTutorials = require("./fetchTutorials");
-    fetchTutorials(tutorialManager.makeTutorialsList);
-    upTutorial.onchange = tutorialManager.uploadTutorial;
-    if (tute !== null && tab === "") tab = "#tutorial";
-  }
-
-  const tabs = document.getElementById("tabs");
-  if (tabs) {
-    document.location.hash = "";
-    window.addEventListener("hashchange", openTab);
-    if (tab === "") tab = "#home";
-    document.location.hash = tab;
-  }
 
   if (iFrame) iFrame.onload = openBrowseTab;
 };
