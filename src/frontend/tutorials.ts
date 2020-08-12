@@ -19,8 +19,6 @@ interface Tutorial {
 let lessonNr = 0;
 let tutorialNr = 0;
 let tutorials = [];
-let firstLoadFlag = true; // true until we show tutorial for the first time.
-// Needed because we need to load lesson 0
 
 const updateTutorialNav = function () {
   const prevBtn = document.getElementById("prevBtn") as HTMLButtonElement;
@@ -28,7 +26,7 @@ const updateTutorialNav = function () {
   if (lessonNr > 0) {
     prevBtn.disabled = false;
     prevBtn.onclick = function () {
-      loadLesson(tutorialNr, lessonNr - 1);
+      document.location.hash = "tutorial-" + tutorialNr + "-" + lessonNr;
     };
   } else {
     prevBtn.disabled = true;
@@ -37,7 +35,7 @@ const updateTutorialNav = function () {
   if (lessonNr < tutorials[tutorialNr].lessons.length - 1) {
     nextBtn.disabled = false;
     nextBtn.onclick = function () {
-      loadLesson(tutorialNr, lessonNr + 1);
+      document.location.hash = "tutorial-" + tutorialNr + "-" + (lessonNr + 2);
     };
   } else {
     nextBtn.disabled = true;
@@ -87,23 +85,8 @@ const loadLessonIfChanged = function (
   tutorialid: number,
   lessonid: number
 ): void {
-  const changedLesson =
-    tutorialNr !== tutorialid || lessonNr !== lessonid || firstLoadFlag;
-  firstLoadFlag = false;
-  if (changedLesson) {
+  if (tutorialNr !== tutorialid || lessonNr !== lessonid)
     loadLesson(tutorialid, lessonid);
-  }
-};
-
-const showLesson = function (e) {
-  e.stopPropagation();
-  const el = (e.target || e.srcElement) as HTMLElement;
-  const lessonIdNr = +el.getAttribute("data-lesson"); // default should be 0
-  const tutorialIdNr = +el.getAttribute("data-tutorial");
-  console.log("Showing lesson. " + lessonIdNr + " / " + tutorialIdNr);
-  loadLessonIfChanged(tutorialIdNr, lessonIdNr);
-  document.getElementById("tutorialTitle").click();
-  return false;
 };
 
 const markdownToTutorial = function (theMD: string) {
@@ -161,9 +144,9 @@ const makeTutorialsList = function (tutorialNames) {
       return rawTutorials.map(enrichTutorialWithHtml);
     })
     .then(function (data) {
-      accordion.makeAccordion(data, showLesson);
+      accordion.makeAccordion(data);
       tutorials = data;
-      loadLessonIfChanged(tutorialNr, lessonNr);
+      loadLesson(tutorialNr, lessonNr);
     })
     .catch(function (error) {
       console.log("Error in makeTutorialList: " + error);
@@ -254,14 +237,7 @@ const uploadTutorial = function () {
     const lastIndex = tutorials.length - 1;
     const title = newTutorial.title; // this is an <h3>
     const lessons = newTutorial.lessons;
-    accordion.appendTutorialToAccordion(
-      title,
-      "",
-      lessons,
-      lastIndex,
-      showLesson,
-      true
-    ); // last arg = delete button
+    accordion.appendTutorialToAccordion(title, "", lessons, lastIndex, true); // last arg = delete button
   };
   return false;
 };
@@ -270,9 +246,9 @@ module.exports = function (initialTutorialNr, initialLessonNr) {
   if (initialTutorialNr) tutorialNr = initialTutorialNr;
   if (initialLessonNr) lessonNr = initialLessonNr;
   return {
-    showLesson,
     tutorials,
     uploadTutorial,
     makeTutorialsList,
+    loadLessonIfChanged,
   };
 };

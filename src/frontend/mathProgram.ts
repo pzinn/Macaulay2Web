@@ -16,6 +16,7 @@ import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 import { webAppTags, webAppClasses } from "../frontend/tags";
 
 let myshell;
+let tutorialManager;
 
 const getSelected = function () {
   // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
@@ -273,7 +274,14 @@ const codeClickAction = function (e) {
 
 // supersedes mdl's internal tab handling
 const openTab = function () {
-  const loc = document.location.hash.substring(1);
+  let loc = document.location.hash.substring(1);
+  // new syntax for navigating tutorial
+  const m = /^tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(loc);
+  if (m) {
+    loc = "tutorial";
+    if (m[1] || m[2])
+      tutorialManager.loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
+  }
   const panel = document.getElementById(loc);
   if (panel) {
     const tab = document.getElementById(loc + "Title");
@@ -369,13 +377,17 @@ const init = function () {
 
   const upTutorial = document.getElementById("uptutorial");
   if (upTutorial) {
-    const tute = url.searchParams.get("tutorial");
-    const page = url.searchParams.get("lesson") || 1; // can do complicated things like http://localhost:8002/?tutorial=4&lesson=1#editor
-    const tutorialManager = require("./tutorials")(+tute, +page - 1);
+    const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab);
+    let tute = 0,
+      page = 1;
+    if (m) {
+      tute = +m[1] || 0;
+      page = +m[2] || 1;
+    }
+    tutorialManager = require("./tutorials")(tute, page - 1);
     const fetchTutorials = require("./fetchTutorials");
     fetchTutorials(tutorialManager.makeTutorialsList);
     upTutorial.onchange = tutorialManager.uploadTutorial;
-    if (tute !== null && tab === "") tab = "#tutorial";
   }
 
   const tabs = document.getElementById("tabs");

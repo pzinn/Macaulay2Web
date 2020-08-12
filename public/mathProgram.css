@@ -176,11 +176,10 @@ h3.rotated .material-icons {
 }
 
 
-#accordion h3:hover {
+.title:hover {
     background-color: #8080FF;
 }
 
 .menuTitle:hover {
-    background-color: #A070FF;
+    background-color: #9070FF;
 }
-
