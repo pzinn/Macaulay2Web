@@ -171,8 +171,7 @@ the following:
 ```
 <iframe style="background:#A8A8B8;overflow:hidden;resize:both" scrolling="no" src='https://www.unimelb-macaulay2.cloud.edu.au/minimal.html' title="Macaulay2"></iframe>
 ```
-* `?tutorial=a&lesson=b` to jump straight to page b of tutorial a (in the normal interface).
-* `#[home|tutorial|editor|about|browse]` to start in a different tab (in the normal interface).
+* `#[home|tutorial|editor|about|browse]` to start in a different tab (in the normal interface). `#tutorial-m-n` to go to page `n` of tutorial `m`.
 * `?public=[false|true|name]` -- this option is false (resp. true) by default for the normal (resp. minimal) interface.
 If true or if a name is given, the user does not get his own Macaulay2 process but rather a shared process for all users (the name can be used to specify a particular process for a given page).
 
