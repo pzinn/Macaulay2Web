@@ -22,7 +22,7 @@ const options = {
   startInstance: {
     host: "127.0.0.1",
     username: "m2user",
-    port: 123,
+    port: 1000,
     sshKey: process.env.HOME + "/Macaulay2Web/id_rsa",
     containerName: "",
     lastActiveTime: 0,
