@@ -549,7 +549,13 @@ const Shell = function (
       return;
     }
 
-    if (e.ctrlKey || e.metaKey || e.key == "PageUp" || e.key == "PageDown") {
+    if (
+      e.ctrlKey ||
+      e.altKey ||
+      e.metaKey ||
+      e.key == "PageUp" ||
+      e.key == "PageDown"
+    ) {
       // do not move caret on Ctrl or Command combos
       if (e.key == "PageUp" && document.activeElement == inputSpan)
         shell.focus();
