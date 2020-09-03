@@ -49,7 +49,7 @@
     "tsc": "tsc && tsc -p src/frontend",
     "build": "npm run lint && npm run format && npm run tsc && ./node_modules/.bin/webpack",
     "start": "node dist/server/index.js",
-    "basic": "npm run build && npm start docker",
+    "docker": "npm run build && npm start docker",
     "local": "npm run build && npm start local",
     "debug": "npm run tsc && webpack --config webpack.debug-config.js && npm start local",
     "twoMachines": "npm run build && npm start ssh",
