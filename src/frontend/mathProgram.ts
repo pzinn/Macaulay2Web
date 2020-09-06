@@ -332,6 +332,10 @@ const socketOnError = function (type) {
 };
 
 const init = function () {
+  if (!navigator.cookieEnabled) {
+    alert("This site requires cookies to be enabled.");
+    return;
+  }
   const url = new URL(document.location.href);
 
   let publicId: any = url.searchParams.get("public");
