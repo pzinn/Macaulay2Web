@@ -381,8 +381,6 @@ const Shell = function (
   const openingDelimiters = '([{"';
   const closingDelimiters = ')]}"';
 
-  // the " handling is a bit messed up
-
   const closingDelimiterHandling = function (pos, closing) {
     if (inputSpan.parentElement != htmlSec) return; // only happens in transitional state in which case highlighting deactivated
     if (pos > 0 && inputSpan.textContent[pos - 1] == "\\") return; // \) does not trigger highlighting
@@ -391,42 +389,72 @@ const Shell = function (
     removeDelimiterHighlight();
     const opening = openingDelimiters[index];
     const len = htmlSec.textContent.length - inputSpan.textContent.length + pos; // eww
-    const input = htmlSec.textContent.substring(0, len);
+    const input = htmlSec.textContent;
     const highlight = input.replace(/./g, " "); // only newlines left
-    let i, j;
-    const depth = [];
-    for (i = 0; i < openingDelimiters.length; i++)
-      depth.push(i == index ? 1 : 0);
-    i = len;
-    while (i > 0 && depth[index] > 0) {
-      i--;
-      if (i == 0 || input[i - 1] != "\\") {
-        j = openingDelimiters.indexOf(input[i]);
-        if (j >= 0) {
-          if (openingDelimiters[j] == closingDelimiters[j]) {
-            depth[j] = 1 - depth[j];
-          } else {
-            depth[j]--;
-            if (depth[j] < 0) break;
-          }
-        } else {
-          j = closingDelimiters.indexOf(input[i]);
-          if (j >= 0) depth[j]++;
+    if (openingDelimiters[index] == closing) {
+      // quotes need to be treated separately
+      let flag = 0;
+      let last = -1;
+      let i;
+      for (i = 0; i < input.length && (i < len || flag == 0); i++)
+        if (input[i] == closing && (i == 0 || input[i - 1] != "\\")) {
+          flag = 1 - flag;
+          last = i;
         }
+      if (flag == 0) return;
+      if (last < len) {
+        // it was closing "
+        inputSpan.dataset.highlight =
+          highlight.substring(0, last) +
+          opening +
+          highlight.substring(last + 1, len) +
+          closing;
+      } else {
+        // it was opening "
+        inputSpan.dataset.highlight =
+          highlight.substring(0, len) +
+          opening +
+          highlight.substring(len + 1, last + 1) +
+          closing;
       }
-    }
-    if (depth.every((val) => val == 0)) {
-      inputSpan.dataset.highlight =
-        highlight.substring(0, i) +
-        opening +
-        highlight.substring(i + 1) +
-        closing;
       setTimeout(function () {
         inputSpan.removeAttribute("data-highlight");
       }, 1000);
-    } else if (closing != opening) {
-      // the " could've been an opening. in doubt, abstain
-      inputSpan.dataset.highlightError = highlight + closing;
+    } else {
+      let i, j;
+      const depth = [];
+      for (i = 0; i < openingDelimiters.length; i++)
+        depth.push(i == index ? 1 : 0);
+      i = len;
+      while (i > 0 && depth[index] > 0) {
+        i--;
+        if (i == 0 || input[i - 1] != "\\") {
+          j = openingDelimiters.indexOf(input[i]);
+          if (j >= 0) {
+            if (openingDelimiters[j] == closingDelimiters[j]) {
+              depth[j] = 1 - depth[j];
+            } else {
+              depth[j]--;
+              if (depth[j] < 0) break;
+            }
+          } else {
+            j = closingDelimiters.indexOf(input[i]);
+            if (j >= 0) depth[j]++;
+          }
+        }
+      }
+      if (depth.every((val) => val == 0)) {
+        inputSpan.dataset.highlight =
+          highlight.substring(0, i) +
+          opening +
+          highlight.substring(i + 1, len) +
+          closing;
+        setTimeout(function () {
+          inputSpan.removeAttribute("data-highlight");
+        }, 1000);
+      } else
+        inputSpan.dataset.highlightError =
+          highlight.substring(0, len) + closing;
       setTimeout(function () {
         inputSpan.removeAttribute("data-highlight-error");
       }, 1000);
