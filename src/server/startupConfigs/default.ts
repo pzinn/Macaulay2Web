@@ -28,12 +28,12 @@ const options = {
     lastActiveTime: 0,
   },
   perContainerResources: {
-    cpuShares: 0.5,
+    cpuShares: 1,
     memory: 256, // Mb
   },
   hostConfig: {
     minContainerAge: 10,
-    maxContainerNumber: 256,
+    maxContainerNumber: 384,
     containerType: "m2container",
     sshdCmd: "/usr/sbin/sshd -D",
     dockerCmdPrefix: "sudo ",
