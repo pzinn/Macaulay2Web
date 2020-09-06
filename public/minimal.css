@@ -26,7 +26,7 @@
     top: 0px;
     left: 0px;
     color: #50A000;
-    text-shadow: 0px 0px 5px #70E000;
+    text-shadow: -1px 0px #70E000,1px 0px #70E000,0px -1px #70E000,0px 1px #70E000;
     content: attr(data-highlight);
 }
 
