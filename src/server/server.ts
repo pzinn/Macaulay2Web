@@ -319,9 +319,7 @@ const attachChannelToClient = function (
   channel.setEncoding("utf8");
   client.channel = channel;
   attachListenersToOutput(client);
-  setTimeout(function () {
-    client.saneState = true;
-  }, 2000); // Always need a little time before start is done.
+  client.saneState = true;
 };
 
 const killMathProgram = function (
@@ -437,22 +435,30 @@ const clientExistenceCheck = function (clientId: string, socket): Client {
   return clients[clientId];
 };
 
-const sanitizeClient = function (client: Client) {
+const sanitizeClient = function (client: Client, force?: boolean) {
   if (!client.saneState) {
     logClient(client.id, "Is already being sanitized.");
+    return false;
   }
   client.saneState = false;
 
-  if (!client.channel || !client.channel.writable || !client.instance) {
+  if (
+    force ||
+    !client.channel ||
+    !client.channel.writable ||
+    !client.instance
+  ) {
     spawnMathProgramInSecureContainer(client);
+    /*
+  // Avoid stuck sanitizer.
+  setTimeout(function () {
+      client.saneState = true;
+  }, 2000);
+*/
   } else {
     logClient(client.id, "Has mathProgram instance.");
     client.saneState = true;
   }
-  // Avoid stuck sanitizer.
-  setTimeout(function () {
-    client.saneState = true;
-  }, 2000);
 };
 
 const writeMsgOnStream = function (client: Client, msg: string) {
@@ -479,29 +485,19 @@ const checkAndWrite = function (client: Client, msg: string) {
   }
 };
 
-const checkClientSanity = function (client: Client) {
-  logClient(client.id, "Checking sanity");
-  return new Promise(function (resolve, reject) {
-    if (client.saneState) {
-      logClient(client.id, "Is sane");
-      resolve();
-    } else {
-      logClient(client.id, "Not accepting events.");
-      reject();
-    }
-  }).catch(() => {
-    // empty
-  });
+const checkClientSane = function (client: Client) {
+  logClient(client.id, "Checking sanity: " + client.saneState);
+  return client.saneState;
 };
 
 const socketInputAction = function (socket, client: Client) {
   return function (msg: string) {
     logClient(client.id, "Receiving input: " + short(msg));
-    checkClientSanity(client).then(function () {
+    if (checkClientSane(client)) {
       setCookieOnSocket(socket, client.id);
       updateLastActiveTime(client);
       checkAndWrite(client, msg);
-    });
+    }
   };
 };
 
@@ -509,13 +505,10 @@ const socketResetAction = function (client: Client) {
   return function () {
     optLogCmdToFile(client.id, "Resetting.\n");
     logClient(client.id, "Received reset.");
-    checkClientSanity(client).then(function () {
-      if (client.channel) {
-        killMathProgram(client.channel, client.id);
-        spawnMathProgramInSecureContainer(client);
-      }
-      //      sanitizeClient(client);
-    });
+    if (checkClientSane(client)) {
+      if (client.channel) killMathProgram(client.channel, client.id);
+      sanitizeClient(client, true);
+    }
   };
 };
 
