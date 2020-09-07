@@ -631,12 +631,10 @@ const Shell = function (
   const closeHtml = function () {
     const anc = htmlSec.parentElement;
     if (htmlSec.classList.contains("M2Url")) {
-      let url = htmlSec.dataset.code;
-      if (url[0] != "/") url = "/relative/" + url; // for relative URLs
-      //if (url.startsWith("/usr/share/doc/Macaulay2"))
+	let url = htmlSec.dataset.code.trim();
+	if (url[0] != "/" && url.substr(0,4) != "http") url = "/relative/" + url; // for relative URLs
       if (iFrame) iFrame.src = url;
       else window.open(url, "M2 browse");
-      //else socket.emit("download", url);
       htmlSec.removeAttribute("data-code");
     } else if (htmlSec.classList.contains("M2Katex")) {
       try {
