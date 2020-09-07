@@ -13,7 +13,7 @@ import {
   sanitizeElement,
 } from "./htmlTools";
 
-const unicodeBell = "\u0007";
+//const unicodeBell = "\u0007";
 declare const katex;
 //const Prism = require('prismjs');
 const M2symbols = require("./prism-M2");
@@ -631,8 +631,8 @@ const Shell = function (
   const closeHtml = function () {
     const anc = htmlSec.parentElement;
     if (htmlSec.classList.contains("M2Url")) {
-	let url = htmlSec.dataset.code.trim();
-	if (url[0] != "/" && url.substr(0,4) != "http") url = "/relative/" + url; // for relative URLs
+      let url = htmlSec.dataset.code.trim();
+      if (url[0] != "/" && url.substr(0, 4) != "http") url = "/relative/" + url; // for relative URLs
       if (iFrame) iFrame.src = url;
       else window.open(url, "M2 browse");
       htmlSec.removeAttribute("data-code");
@@ -741,26 +741,14 @@ const Shell = function (
     else anc.appendChild(htmlSec);
   };
 
-  obj.onmessage = function (msgDirty) {
+  /*  obj.onmessage = function (msgDirty) {
     if (msgDirty === unicodeBell) {
       return;
     }
-    // If we get a 'Session resumed.' message, we check whether it is
-    // relevant.
-    // seems a bit brutal. what if there's more stuff in there? TODO
-    /*
-      if (msgDirty.indexOf("Session resumed.") > -1) {
-        if (mathProgramOutput.length > 0) {
-        return;
-        }
-      }
-*/
 
     const msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
-    //	msg = msg.replace(/\r\u001B[^\r]*\r/g, ""); // fix for the annoying mess of the output, hopefully -- though sometimes still misses
-    //	msg = msg.replace(/\r\n/g, "\n"); // that's right...
-    //msg = msg.replace(/\r./g, ""); // remove the line wrapping with repeated last/first character
-
+*/
+  obj.onmessage = function (msg: String) {
     if (procInputSpan !== null) {
       procInputSpan.remove();
       procInputSpan = null;
