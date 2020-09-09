@@ -11,8 +11,8 @@ rm dist.tar.gz
 echo Installing VectorGraphics
 mkdir -p VectorGraphics
 cd VectorGraphics
-wget -nv https://raw.githubusercontent.com/pzinn/M2/vanilla/M2/Macaulay2/packages/VectorGraphics/VectorGraphics.css
-wget -nv https://raw.githubusercontent.com/pzinn/M2/vanilla/M2/Macaulay2/packages/VectorGraphics/VectorGraphics.js
+wget -nv -N https://raw.githubusercontent.com/pzinn/M2/vanilla/M2/Macaulay2/packages/VectorGraphics/VectorGraphics.css
+wget -nv -N https://raw.githubusercontent.com/pzinn/M2/vanilla/M2/Macaulay2/packages/VectorGraphics/VectorGraphics.js
 cd ..
 # mdl
 echo Installing Material Design Lite
