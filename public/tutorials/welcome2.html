@@ -1,0 +1,190 @@
+<html>
+  <head>
+    <title>Welcome Tutorial
+    </title>
+  </head>
+<body>
+
+<div>
+  <h4>Getting started<!-- on web.macaulay2.com--></h4>
+
+  <p>In this tutorial, we will show how to use this web site effectively.</p>
+
+  <p>If you click on the yellow highlighted Macaulay2 code, the results of running
+    those commands will be displayed in the right hand window. You may also
+    type directly into the right hand window.</p>
+
+  <p>
+    For example, click on this yellow code to compute the factors of the
+    given polynomial.
+  </p>
+
+  <p><code>R = QQ[x,y,z]</code></p>
+  <p><code>F = (x-1)^3 - (y-1)^3</code></p>
+  <p><code>factor F</code></p>
+
+    <p>
+  This code is evaluated by Macaulay2 on the server.  This means that
+    you don't need to have Macaulay2 or any of its included packages installed
+    on your computer.</p>
+
+  <p>You are on the first page of this tutorial.  At the top of the
+  window, you see how many pages are in this tutorial.  After you are
+  finished with a page, click or tap on the right arrow key.  You can
+  also go back to previous pages of the tutorial by clicking on the
+  left arrow button.</p>
+
+  <p>Right now, please continue to the next page of the tutorial.</p>
+</div>
+
+<div>
+  <h4>Getting Macaulay2 help on a topic</h4>
+
+  <p>There are two main ways of getting help on a topic in Macaulay2.  The first method gives you
+  text help in the Macaulay2 output window.  For example,</p>
+  <p><code>help determinant</code></p>
+  <p>This displays in the Macaulay2 output window how to use the function "determinant".
+  <b>Note!</b> In many browsers, you will have scroll bars to go back, but in some, notably most versions
+  of Safari, the scrollbars are there but hidden!
+  </p>
+
+  <p>Alternatively, and more usefully, you may obtain the web version by using:</p>
+  <p><code>viewHelp determinant</code></p>
+
+  <p>This opens the documentation page in the ``browse'' tab (or another window).  You can surf through the links
+  there to see other Macaulay2 documentation.</p>
+
+</div>
+
+<div>
+    <h4>Using the terminal and the Editor window</h4>
+
+    <p> You can type in Macaulay2 commands directly into the right hand side terminal.
+    The usual shell like behavior works, such as
+    up and down arrows and tab completion.</p>
+
+    <h4>Using the Editor window on the left</h4>
+    
+  <p>When you write M2 functions or long loops, it is often more convenient to write your code
+    in a separate window and execute the code after you wrote it. This allows you to easily modify previous code and 
+    move the cursor around freely.</p> 
+    
+    <p>Clicking or tapping the <b>Editor</b> button at the top of the page, navigates you to the Input Window.
+  This is where you may type in Macaulay2 code and have it evaluated.</p>
+ 
+   <p>In that window, place your cursor on a line that you wish to evaluate, and either click the
+  <b>Evaluate</b> button, or press Shift-Return (both keys at the same time).</p>
+
+  <p>Alternatively, you may select several lines, or a part of a line, and clicking
+  <b>Evaluate</b> (or press Shift-Return) will evaluate the selection.</p>
+
+  <p>You try it!  Click <b>Editor</b>, type in some Macaulay2 input, or try out some of the example
+  lines already there.  When you are ready to come back to the tutorial, click or tap on the
+  <b>Tutorial</b> button at the top of the page.  You will end up right here!
+
+  
+</div>
+
+<div>
+
+  <h4>Macaulay2 sessions and the Reset button</h4>
+  
+  <p> When your browser starts, it starts a Macaulay2 process on our server.
+  All of your input, either typed and evaluated, or run by pressing buttons,
+  goes to this process.  If you open a second window or tab in the same
+  browser, you will get the same session.
+  </p>
+
+  <p>
+  You might wish to start fresh, or restart Macaulay2, if a computation is
+  going on too long.  In this case, press the <b>Reset</b> button at the top of
+  the page.
+  </p>
+
+  <p>
+  When you first connect to this web site, a cookie is generated, and that is used to connect to
+  your Macaulay2 process on the server.  If you quit your browser, and it is set to remember windows, then
+  it remembers the cookie, and you can reconnect back to the same session.  If not, then a new session
+  is created.  The server will remove the session after some length of time, currently several days or a week.
+  </p>
+
+  <p>
+  Sometimes the server must be restarted for maintenance or other reasons, and at those times, all sessions
+  are terminated.
+  </p>
+
+    <h4>Loading/Saving your work</h4>
+  
+   <p>
+  Click on the <b>Load</b> and <b>Save</b> buttons at the top right of the editor tab to transfer the contents of a local file to the editor, and vice versa.
+  </p>
+
+</div>
+
+<div>
+  <h4>Advanced topics</h4>
+  <h4>Uploading files</h4>
+
+  <p>Use the <b>Upload File</b> button to upload files to the Macaulay2 server that can then be loaded into your Macaulay2 session. Suppose that you have uploaded a file named \(\verb|foo.m2|\) which contains Macaulay2 code.
+  You may then load this file into Macaulay2 using either:
+  </p>
+  
+  <p><code>load "foo.m2"</code></p>
+
+  <p>
+  or, if you wish to see all of the lines executed one by one:
+  </p>
+  
+  <p><code>input "foo.m2"</code></p>
+
+  
+  <p><b>Note</b>: these lines will likely give errors now, as the file
+    \(\verb|foo.m2|\) probably doesn't exist on the server!</p>
+
+  <h4>Running shell commands in your Macaulay2 session</h4>
+
+  <p>It is possible to run shell commands from within Macaulay2, although many operations are restricted.
+  For example, to see what files you have in your home directory on the server, try:</p>
+  <p><code>get "!ls -a"</code></p>
+
+  <h4>Macaulay2 and temporary files</h4>
+
+  <p>Sometimes Macaulay2 or one of its packages generate temporary files.
+  For example, the graph function below creates dot and svg files.
+  </p>
+    <p><code>needsPackage "Graphs"</code></p>
+    <p><code>A = graph({{v_1,v_3},{v_2,v_4},{v_1,v_4}})</code></p>
+
+  <h4>Getting files back to your machine</h4>
+
+  <p>
+  Sometimes your Macaulay2 code will create a file as output.  How to download
+  this onto your machine?  Here is one way.  This first line creates a file for
+  the purpose of this example.<br/>
+  
+  <code>"important-results.txt" << "very important results" << close</code>  </p>
+
+  <p>The next line will open the file in your ``browse'' tab.<br/>
+  <code>show URL "important-results.txt"</code></p>
+
+  <h4>Restrictions in place for the Macaulay2 server</h4>
+
+  <p>The server is being shared with other users, therefore memory and CPU time
+  are limited (generous, but limited).  Other restrictions include: upload file size, number of processes that
+  can run, and the amount of time that the session is saved on the server.
+  </p>
+  
+
+  <h4>Contributing</h4>
+
+  <p>
+  This is an open source project, hosted on <a href="http://github.com/pzinn/Macaulay2Web" target="_blank">GitHub</a>.
+  </p>
+  <p>
+    If you have tutorials that you would like to contribute, please contact
+    <a href='mailto:trym2@googlegroups.com'>the TryM2 team</a> or <a href="mailto:pzinn@unimelb.edu.au">me</a>.
+  </p>
+
+</div>
+</body>
+</html>

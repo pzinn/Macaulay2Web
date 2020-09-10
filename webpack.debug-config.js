@@ -1,9 +1,9 @@
 module.exports = {
-    entry: "./public-source/index.js",
+    entry: "./dist/frontend/index.js",
     output: {
 	path: __dirname, // otherwise is put in "dist/"
-	filename: "public/public-common/index.js"
+	filename: "public/index.js"
     },
     mode: 'development',
-    devtool: "inline-module-source-map"
+    devtool: "inline-source-map"
 };

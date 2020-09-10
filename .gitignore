@@ -1,7 +1,10 @@
 dist
-public/public-common/index.js
+public/index.js
 public/users.htpasswd
-public/public-Macaulay2/user*
+public/user*
+public/katex
+public/VectorGraphics
+public/mdl
 *.log
 .idea
 *.aux
@@ -11,6 +14,7 @@ public/public-Macaulay2/user*
 *.ps
 *.pdf
 *.dvi
+*~
 .DS_Store
 node_modules
 .vagrant/
@@ -18,9 +22,4 @@ node_modules
 id_rsa*
 docker_key*
 host_key*
-manuscript/jsag.maf
-manuscript/jsag.mtc
-manuscript/jsag.mtc0
-manuscript/jsag.out
-manuscript/jsag.synctex.gz
 package-lock.json

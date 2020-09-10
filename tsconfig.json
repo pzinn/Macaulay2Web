@@ -5,12 +5,11 @@
     "outDir": "dist",
     "sourceMap": true, 
     "lib": ["es7"],
-    "types" : ["node", "express", "mocha", "socket.io", "ssh2"]
+    "types" : ["node", "express", "socket.io", "ssh2"]
   },
   "include": [
-    "src/index.ts",
-    "src/lib/*.ts",
-    "src/startupConfigs/*.ts"
+    "src/server/*.ts",
+    "src/server/startupConfigs/*.ts"
   ],
   "exclude": [
     "node_modules",

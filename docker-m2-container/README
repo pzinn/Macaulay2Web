@@ -1,2 +1,3 @@
-This file contains our docker files for creating
-a Macaulay2 image.    
+This directory contains docker files for creating a Macaulay2 image:
+docker build -t pzinn/m2container .
+ATM the default (fedora) dockerfile must manually provide the RPM file
