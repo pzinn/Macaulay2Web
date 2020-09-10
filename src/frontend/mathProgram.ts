@@ -59,7 +59,7 @@ const editorEvaluate = function () {
   // "A synthetic paste event can be manually constructed and dispatched, but it will not affect the contents of the document."
 };
 
-const editorKeypress = function (e) {
+const editorKeyDown = function (e) {
   //    var prismInvoked=false;
   if (e.key == "Enter" && e.shiftKey) {
     removeBR();
@@ -67,6 +67,11 @@ const editorKeypress = function (e) {
     const msg = getSelected();
     myshell.postMessage(msg, false, false);
   }
+
+  else if (e.key == "Tab") {
+	e.preventDefault();
+	document.execCommand('insertHTML', false, '&#009'); // tab inserts an actual tab for now (auto-complete?)
+    }
   /*
     if (!prismInvoked) {
 	prismInvoked=true;
@@ -416,7 +421,7 @@ const init = function () {
   attachCtrlBtnActions();
   attachCloseDialogBtns();
 
-  if (editor) editor.onkeypress = editorKeypress;
+  if (editor) editor.onkeydown = editorKeyDown;
 
   const siofu = new SocketIOFileUpload(socket);
   attachClick("uploadBtn", siofu.prompt);
