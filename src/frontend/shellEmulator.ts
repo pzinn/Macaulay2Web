@@ -382,7 +382,13 @@ const Shell = function (
   const closingDelimiters = ')]}"';
 
   const closingDelimiterHandling = function (pos, closing) {
-    if (inputSpan.parentElement != htmlSec) return; // only happens in transitional state in which case highlighting deactivated
+    if (
+      inputSpan.parentElement != htmlSec ||
+      !htmlSec.classList.contains("M2Input")
+    )
+      return;
+    // the first only happens in transitional state; the second if we turned off webapp mode
+    // in both cases it's simpler to deactivate highlighting
     if (pos > 0 && inputSpan.textContent[pos - 1] == "\\") return; // \) does not trigger highlighting
     const index = closingDelimiters.indexOf(closing);
     if (index < 0) return;
