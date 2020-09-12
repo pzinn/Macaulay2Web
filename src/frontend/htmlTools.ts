@@ -91,6 +91,18 @@ const caretIsAtEnd = function () {
   }
 };
 
+// ~ like innerText, but for document fragments: textContent + <br> -> \n
+const toStringBR = function (frag) {
+  if (frag.nodeName == "BR") return "\n";
+  else if (frag.nodeName == "#text") return frag.textContent;
+  else {
+    let s = "";
+    for (let i = 0; i < frag.childNodes.length; i++)
+      s = s + toStringBR(frag.childNodes[i]);
+    return s;
+  }
+};
+
 export {
   scrollDownLeft,
   scrollDown,
@@ -102,4 +114,5 @@ export {
   attachElement,
   sanitizeElement,
   caretIsAtEnd,
+  toStringBR,
 };
