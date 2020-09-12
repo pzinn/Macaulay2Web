@@ -82,6 +82,7 @@ const sanitizeElement = function (el) {
 // this one works everywhere
 const caretIsAtEnd = function () {
   const sel = window.getSelection() as any;
+  if (!sel.isCollapsed) return false;
   const offset = sel.focusOffset;
   sel.modify("move", "forward", "character");
   if (offset == sel.focusOffset) return true;
