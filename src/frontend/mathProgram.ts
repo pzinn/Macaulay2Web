@@ -11,7 +11,7 @@ export { Socket };
 let socket: Socket;
 let serverDisconnect = false;
 const Shell = require("./shellEmulator");
-import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
+import { scrollDownLeft, caretIsAtEnd, toStringBR } from "./htmlTools";
 
 import { webAppTags, webAppClasses } from "../frontend/tags";
 
@@ -26,18 +26,17 @@ const getSelected = function () {
     if (sel.isCollapsed) {
       sel.modify("move", "backward", "lineboundary");
       sel.modify("extend", "forward", "lineboundary");
-      // const s=sel.toString(); // doesn't work in firefox because replaces "\n" with " "
-      const s = sel.getRangeAt(0).cloneContents().textContent;
+      const s = toStringBR(sel.getRangeAt(0).cloneContents()); // can't use toString because ignores BR which firefox creates
       // sel.modify("move", "forward", "line"); // doesn't work in firefox
       sel.collapseToEnd();
       sel.modify("move", "forward", "character");
       return s + "\n";
-    } else return sel.getRangeAt(0).cloneContents().textContent;
+    } else return toStringBR(sel.getRangeAt(0).cloneContents());
   } else return "";
 };
 
 const editorEvaluate = function () {
-  removeBR();
+  //  removeBR();
   const msg = getSelected();
   myshell.postMessage(msg, false, false); // important not to move the pointer so can move to next line
   document.getElementById("M2In").focus(); // in chrome, this.blur() would be enough, but not in firefox
@@ -62,16 +61,17 @@ const editorEvaluate = function () {
 const editorKeyDown = function (e) {
   //    var prismInvoked=false;
   if (e.key == "Enter" && e.shiftKey) {
-    removeBR();
+    //    removeBR();
     if (!caretIsAtEnd()) e.preventDefault();
     const msg = getSelected();
     myshell.postMessage(msg, false, false);
+  } else if (e.key == "Enter") {
+    document.execCommand("insertText", false, "\n"); // enter inserts \n or <br>
+    e.preventDefault();
+  } else if (e.key == "Tab") {
+    e.preventDefault();
+    document.execCommand("insertHTML", false, "&#009"); // tab inserts an actual tab for now (auto-complete?)
   }
-
-  else if (e.key == "Tab") {
-	e.preventDefault();
-	document.execCommand('insertHTML', false, '&#009'); // tab inserts an actual tab for now (auto-complete?)
-    }
   /*
     if (!prismInvoked) {
 	prismInvoked=true;
@@ -177,6 +177,7 @@ const loadFileProcess = function (event) {
 
 const removeBR = function () {
   // for firefox only: remove <br> in the editor and replace with \n
+  // TODO: in a select/caret/undo-preserving way
   const input = document.getElementById("M2In");
   let i = 0;
   while (i < input.childElementCount) {
@@ -209,11 +210,24 @@ const saveFile = function () {
 };
 
 const hilite = function (event) {
+  var input = document.getElementById("M2In");
   removeBR();
-  document.getElementById("M2In").innerHTML = Prism.highlight(
-    document.getElementById("M2In").textContent,
+  input.innerHTML = Prism.highlight(
+    input.textContent,
     Prism.languages.macaulay2
   );
+
+  // what follows doesn't preserve caret location
+  /*
+  var txt = input.textContent;
+
+  document.execCommand("selectAll");
+  document.execCommand(
+    "insertHTML",
+    false,
+    Prism.highlight(txt, Prism.languages.macaulay2)
+  );
+*/
 };
 
 const showUploadSuccessDialog = function (event) {
