@@ -159,7 +159,7 @@ const Shell = function (
   const sanitizeRegEx = new RegExp("[^ -~" + UCsymbolValues + "]", "g"); // a bit too restrictive?
   const sanitizeInput = function (msg: string) {
     // sanitize input
-    return msg.replace(sanitizeRegEx, "");
+    return msg.replace(sanitizeRegEx, "").replace(/\n$/, "");
   };
 
   obj.postMessage = function (msg, flag1, flag2) {
@@ -179,7 +179,7 @@ const Shell = function (
       inputSpan.textContent = "";
       scrollDownLeft(shell);
       if (flag2) placeCaret(inputSpan, 0);
-      if (clean[clean.length - 1] != "\n") clean += "\n";
+      clean = clean + "\n";
       if (flag1) obj.addToEditor(clean);
       postRawMessage(clean);
     }
