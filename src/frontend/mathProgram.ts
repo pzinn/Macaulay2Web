@@ -210,7 +210,7 @@ const saveFile = function () {
 };
 
 const hilite = function (event) {
-  var input = document.getElementById("M2In");
+  const input = document.getElementById("M2In");
   removeBR();
   input.innerHTML = Prism.highlight(
     input.textContent,
