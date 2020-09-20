@@ -747,14 +747,7 @@ const Shell = function (
     else anc.appendChild(htmlSec);
   };
 
-  /*  obj.onmessage = function (msgDirty) {
-    if (msgDirty === unicodeBell) {
-      return;
-    }
-
-    const msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
-*/
-  obj.onmessage = function (msg: String) {
+  obj.onmessage = function (msg: string) {
     if (procInputSpan !== null) {
       procInputSpan.remove();
       procInputSpan = null;
