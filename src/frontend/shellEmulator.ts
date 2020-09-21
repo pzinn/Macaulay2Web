@@ -159,7 +159,7 @@ const Shell = function (
   const sanitizeRegEx = new RegExp("[^ -~" + UCsymbolValues + "]", "g"); // a bit too restrictive?
   const sanitizeInput = function (msg: string) {
     // sanitize input
-    return msg.replace(sanitizeRegEx, "");
+    return msg.replace(sanitizeRegEx, "").replace(/\n$/, "");
   };
 
   obj.postMessage = function (msg, flag1, flag2) {
@@ -179,7 +179,7 @@ const Shell = function (
       inputSpan.textContent = "";
       scrollDownLeft(shell);
       if (flag2) placeCaret(inputSpan, 0);
-      if (clean[clean.length - 1] != "\n") clean += "\n";
+      clean = clean + "\n";
       if (flag1) obj.addToEditor(clean);
       postRawMessage(clean);
     }
@@ -226,25 +226,38 @@ const Shell = function (
   };
 
   const escapeKeyHandling = function (pos) {
-    const esc = inputSpan.textContent.indexOf("\u250B");
-    if (esc < 0) addToElement(inputSpan, pos, "\u250B");
+    let esc = inputSpan.textContent.indexOf("\u250B");
+    if (esc < 0) document.execCommand("insertText", false, "\u250B");
+    //addToElement(inputSpan, pos, "\u250B");
     else {
       let s;
       if (esc < pos) {
         s = inputSpan.textContent.substring(esc + 1, pos);
+        while (esc < pos) {
+          document.execCommand("delete");
+          pos--;
+        }
+        /*
         inputSpan.textContent =
           inputSpan.textContent.substring(0, esc) +
           inputSpan.textContent.substring(pos, inputSpan.textContent.length);
         pos = esc;
+	    */
       } else {
         s = inputSpan.textContent.substring(pos, esc);
+        /*
         inputSpan.textContent =
           inputSpan.textContent.substring(0, pos) +
           inputSpan.textContent.substring(
             esc + 1,
             inputSpan.textContent.length
-          );
+            );*/
+        while (pos <= esc) {
+          document.execCommand("forwardDelete");
+          esc--;
+        }
       }
+
       let sss = "";
       if (s.length > 0)
         for (const ss in UCsymbols) {
@@ -253,7 +266,8 @@ const Shell = function (
             break;
           }
         }
-      addToElement(inputSpan, pos, sss);
+      //      addToElement(inputSpan, pos, sss);
+      document.execCommand("insertText", false, sss);
     }
   };
 
@@ -280,12 +294,29 @@ const Shell = function (
         if (k == j + 1) {
           // yay, one solution
           if (flag)
+            /*
             addToElement(
               inputSpan,
               pos,
               lst[j].substring(word.length, lst[j].length) + " "
             );
+		*/
+            document.execCommand(
+              "insertText",
+              false,
+              lst[j].substring(word.length, lst[j].length) + " "
+            );
           else {
+            while (i < pos) {
+              document.execCommand("delete");
+              pos--;
+            }
+            document.execCommand(
+              "insertText",
+              false,
+              String.fromCharCode(UCsymbols[lst[j]])
+            );
+            /*
             inputSpan.textContent =
               inputSpan.textContent.substring(0, i) +
               inputSpan.textContent.substring(
@@ -293,6 +324,7 @@ const Shell = function (
                 inputSpan.textContent.length
               );
             addToElement(inputSpan, i, String.fromCharCode(UCsymbols[lst[j]]));
+*/
           }
         } else {
           // more interesting: several solutions
@@ -382,7 +414,13 @@ const Shell = function (
   const closingDelimiters = ')]}"';
 
   const closingDelimiterHandling = function (pos, closing) {
-    if (inputSpan.parentElement != htmlSec) return; // only happens in transitional state in which case highlighting deactivated
+    if (
+      inputSpan.parentElement != htmlSec ||
+      !htmlSec.classList.contains("M2Input")
+    )
+      return;
+    // the first only happens in transitional state; the second if we turned off webapp mode
+    // in both cases it's simpler to deactivate highlighting
     if (pos > 0 && inputSpan.textContent[pos - 1] == "\\") return; // \) does not trigger highlighting
     const index = closingDelimiters.indexOf(closing);
     if (index < 0) return;
@@ -741,14 +779,7 @@ const Shell = function (
     else anc.appendChild(htmlSec);
   };
 
-  /*  obj.onmessage = function (msgDirty) {
-    if (msgDirty === unicodeBell) {
-      return;
-    }
-
-    const msg: string = msgDirty.replace(/\u0007/g, ""); // remove bells -- typically produced by tab characters
-*/
-  obj.onmessage = function (msg: String) {
+  obj.onmessage = function (msg: string) {
     if (procInputSpan !== null) {
       procInputSpan.remove();
       procInputSpan = null;

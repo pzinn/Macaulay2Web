@@ -33,12 +33,16 @@ const placeCaret = function (el, pos) {
   }
 };
 const addToElement = function (el, pos, s) {
-  // insert into a pure text element and move care to end of insertion
+  // insert into a pure text element and move caret to end of insertion
+  /*
   const msg = el.textContent;
   el.textContent = msg.substring(0, pos) + s + msg.substring(pos, msg.length);
   // put the caret where it should be
   //  el.focus();
   placeCaret(el, pos + s.length);
+*/
+  placeCaret(el, pos);
+  document.execCommand("insertText", false, s);
 };
 const placeCaretAtEnd = function (el, flag?) {
   // flag means only do it if not already in input
@@ -82,12 +86,25 @@ const sanitizeElement = function (el) {
 // this one works everywhere
 const caretIsAtEnd = function () {
   const sel = window.getSelection() as any;
+  if (!sel.isCollapsed) return false;
   const offset = sel.focusOffset;
   sel.modify("move", "forward", "character");
   if (offset == sel.focusOffset) return true;
   else {
     sel.modify("move", "backward", "character");
     return false;
+  }
+};
+
+// ~ like innerText, but for document fragments: textContent + <br> -> \n
+const toStringBR = function (frag) {
+  if (frag.nodeName == "BR") return "\n";
+  else if (frag.nodeName == "#text") return frag.textContent;
+  else {
+    let s = "";
+    for (let i = 0; i < frag.childNodes.length; i++)
+      s = s + toStringBR(frag.childNodes[i]);
+    return s;
   }
 };
 
@@ -102,4 +119,5 @@ export {
   attachElement,
   sanitizeElement,
   caretIsAtEnd,
+  toStringBR,
 };
