@@ -180,6 +180,10 @@ h3.rotated .material-icons {
     background-color: #8080FF;
 }
 
+.menuTitle {
+    text-align: left;
+}
+
 .menuTitle:hover {
     background-color: #9070FF;
 }
