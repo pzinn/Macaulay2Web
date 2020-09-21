@@ -46,12 +46,11 @@ const updateTutorialNav = function () {
 };
 
 const loadLesson = function (tutorialid: number, lessonid: number) {
-  if (tutorialid >= 0 && tutorialid < tutorials.length) {
-    tutorialNr = tutorialid;
-  }
-  if (lessonid >= 0 && lessonid < tutorials[tutorialNr].lessons.length) {
-    lessonNr = lessonid;
-  }
+  tutorialNr = tutorialid;
+  lessonNr = lessonid;
+  if (tutorialNr < 0 || tutorialNr >= tutorials.length) tutorialNr = 0;
+  if (lessonNr < 0 || lessonNr >= tutorials[tutorialNr].lessons.length)
+    lessonNr = 0;
   const lessonContent = tutorials[tutorialNr].lessons[lessonNr].html;
   const title = tutorials[tutorialNr].title.innerHTML;
   const lesson = document.getElementById("lesson");
