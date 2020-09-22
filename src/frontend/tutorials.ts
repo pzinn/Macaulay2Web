@@ -88,16 +88,12 @@ const loadLessonIfChanged = function (
     loadLesson(tutorialid, lessonid);
 };
 
-const markdownToTutorial = function (theMD: string) {
-  // input: is a simple markdown text, very little is used or recognized:
-  // lines beginning with "#": title (and author) of the tutorial
-  //   beginning with "##": section name (or "lesson" name)
-  //   M2 code is enclosed by ```, on its own line.
-  //   mathjax code is allowed.
-  // returns an object of class Tutorial
-  const theHtml = markdownToHtml(theMD);
-  return enrichTutorialWithHtml(theHtml);
-};
+// input: is a simple markdown text, very little is used or recognized:
+// lines beginning with "#": title (and author) of the tutorial
+//   beginning with "##": section name (or "lesson" name)
+//   M2 code is enclosed by ```, on its own line.
+//   mathjax code is allowed.
+// returns an object of class Tutorial
 
 const enrichTutorialWithHtml = function (theHtml) {
   const result = {
@@ -152,6 +148,16 @@ const makeTutorialsList = function (tutorialNames) {
     });
 };
 
+const preEscape = function (s: String) {
+  const lookup = {
+    "&": "&amp;",
+    '"': "&quot;",
+    "<": "&lt;",
+    ">": "&gt;",
+  };
+  return s.replace(/[&"<>]/g, (c) => lookup[c]);
+};
+
 const markdownToHtml = function (markdownText) {
   const lines = markdownText.split("\n");
   const output = [];
@@ -185,15 +191,16 @@ const markdownToHtml = function (markdownText) {
       }
       if (inExample) {
         if (exampleLines.length > 1) {
-          output.push("<p><codeblock>" + exampleLines[0]);
+          output.push("<p><codeblock>" + preEscape(exampleLines[0]));
           for (let j = 1; j <= exampleLines.length - 2; j++) {
-            output.push(exampleLines[j]);
+            output.push(preEscape(exampleLines[j]));
           }
           output.push(
-            exampleLines[exampleLines.length - 1] + "</codeblock></p>"
+            preEscape(exampleLines[exampleLines.length - 1]) +
+              "</codeblock></p>"
           );
         } else if (exampleLines.length == 1) {
-          output.push("<p><code>" + exampleLines[0] + "</code></p>");
+          output.push("<p><code>" + preEscape(exampleLines[0]) + "</code></p>");
         }
         inExample = false;
         exampleLines = [];
@@ -224,14 +231,14 @@ const markdownToHtml = function (markdownText) {
 };
 
 const uploadTutorial = function () {
-  const files = this.files;
-  const file = files[0];
+  const file = this.files[0];
   console.log("file name: " + file.name);
   const reader = new FileReader();
   reader.readAsText(file);
   reader.onload = function (event) {
-    const txt = event.target.result;
-    const newTutorial = markdownToTutorial(txt as string);
+    let txt = event.target.result as string;
+    if (file.name.substr(-5) != ".html") txt = markdownToHtml(txt); // by default, assume markdown
+    const newTutorial = enrichTutorialWithHtml(txt);
     tutorials.push(newTutorial);
     const lastIndex = tutorials.length - 1;
     const title = newTutorial.title; // this is an <h3>
