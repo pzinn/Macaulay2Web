@@ -15,7 +15,11 @@ const options = {
       webAppTags.Html +
       '<span class="M2PastInput">listUserSymbols</span>' +
       webAppTags.End +
-      " to print the list of existing symbols.\n\ni* : " +
+      " to print the list of existing symbols.\n" +
+      webAppTags.End +
+      "\n" +
+      webAppTags.Cell +
+      "i* : " +
       webAppTags.Input,
   },
   startInstance: {

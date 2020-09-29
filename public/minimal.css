@@ -224,6 +224,17 @@ does not contain the whole contents (and is possibly empty) */
     color: #C07060;
 }
 
+.M2Cell {
+    display: block; /* is that bad? */
+    border: 1px solid red; /* TEMP */
+/*    padding-left: 5px;
+    border-left: 1px solid transparent;*/
+}
+
+.M2Cell:hover {
+/*    border-left: 1px solid gray;*/
+}
+
 code, codeblock {
     white-space: pre;
     margin-left: 20px;

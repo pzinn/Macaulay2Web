@@ -69,9 +69,15 @@ const Shell = function (
     inputSpan.classList.add("M2Input");
     inputSpan.classList.add("M2CurrentInput");
     inputSpan.classList.add("M2Text");
-    shell.appendChild(inputSpan);
+
+    htmlSec = document.createElement("span");
+    htmlSec.classList.add("M2Cell");
+    htmlSec.classList.add("M2Text");
+    htmlSec.appendChild(inputSpan);
+    shell.appendChild(htmlSec);
+
     inputSpan.focus();
-    htmlSec = shell;
+
     inputSpanParentElement = [];
     inputEndFlag = false;
   };
@@ -93,7 +99,6 @@ const Shell = function (
   const wrapOutput = function () {
     if (window.getSelection().isCollapsed) this.classList.toggle("M2wrapped");
   };
-*/
 
   const hideOutput = function () {
     this.classList.remove("M2wrapped");
@@ -114,6 +119,7 @@ const Shell = function (
     anc.insertBefore(ph, this);
     anc.removeChild(this);
   };
+*/
 
   const removeAutoComplete = function (flag) {
     // flag means insert the selection or not
@@ -578,7 +584,7 @@ const Shell = function (
     }
   };
 
-  shell.ondblclick = function (e) {
+  /*  shell.ondblclick = function (e) {
     // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
     let t = e.target as HTMLElement;
     while (t != shell) {
@@ -590,7 +596,7 @@ const Shell = function (
       }
       t = t.parentElement;
     }
-  };
+  };*/
 
   shell.onkeydown = function (e: KeyboardEvent) {
     removeAutoComplete(false); // remove autocomplete menu if open
@@ -765,16 +771,15 @@ const Shell = function (
     htmlSec = document.createElement(a);
     if (className) {
       htmlSec.className = className;
-      if (className.indexOf("M2Output") >= 0) {
-        //htmlSec.addEventListener("click",wrapOutput);
+      /*      if (className.indexOf("M2Output") >= 0) {
         htmlSec.addEventListener("mousedown", function (e) {
           if (e.detail > 1) e.preventDefault();
         });
         // htmlSec.dataset.code = htmlSec.innerHTML = '<i class="material-icons M2OutputIcon">arrow_left</i>';
-      }
-      if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
-      // even M2Html needs to keep track of innerHTML because html tags may get broken
+	}*/
     }
+    if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
+    // even M2Html needs to keep track of innerHTML because html tags may get broken
     if (inputSpan.parentElement == anc) anc.insertBefore(htmlSec, inputSpan);
     else anc.appendChild(htmlSec);
   };
@@ -851,7 +856,7 @@ const Shell = function (
     console.log("Reset");
     removeAutoComplete(false); // remove autocomplete menu if open
     createInputEl(); // recreate the input area
-    shell.insertBefore(document.createElement("br"), inputSpan);
+    htmlSec.insertBefore(document.createElement("br"), inputSpan); // not quite right: the new line should be outside the cell
   };
 
   obj.interrupt = function () {
@@ -860,6 +865,7 @@ const Shell = function (
     removeDelimiterHighlight();
     postRawMessage("\x03");
   };
+
   inputSpan.focus();
 };
 
