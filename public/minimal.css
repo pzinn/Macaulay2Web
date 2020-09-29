@@ -19,6 +19,7 @@
     position: relative;
     display: inline-block;
     vertical-align: top;
+    text-decoration: inherit; /* for "closed" state */
 }
 
 .M2CurrentInput[data-highlight]::after {
@@ -208,20 +209,43 @@ does not contain the whole contents (and is possibly empty) */
     white-space: nowrap;
 }
 
-.M2-hidden:hover {
-    box-shadow: 1px 1px 2px #006000;
-    text-decoration: none;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-.M2-hidden::after {
-    content: "<hidden>";
-    color: gray;
-}
-
 .KatexError {
     color: #C07060;
+}
+
+.M2Cell {
+    display: block; /* is that bad? */
+    position: relative;
+    padding-left: 10px;
+}
+
+.M2CellBar {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 5px;
+    height:100%;
+    background: transparent;
+}
+
+.M2Cell:hover > .M2CellBar {
+    background: gray;
+}
+
+/*
+.M2Cell.M2CellClosed:hover > .M2CellBar {
+    background: orange;
+}
+*/
+
+.M2CellBar:hover {
+    cursor: pointer;
+}
+
+.M2CellClosed {
+    height: 1.2em;
+    overflow: hidden;
+    text-decoration: underline dotted gray;
 }
 
 code, codeblock {
