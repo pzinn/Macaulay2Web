@@ -54,7 +54,6 @@ const Shell = function (
   // input is a bit messy...
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
-  let inputSpanParentElement = []; // temporary link(s) to parent element when input span moved out of it
 
   const createInputEl = function () {
     // (re)create the input area
@@ -78,7 +77,6 @@ const Shell = function (
 
     inputSpan.focus();
 
-    inputSpanParentElement = [];
     inputEndFlag = false;
   };
 
@@ -674,7 +672,21 @@ const Shell = function (
 
   const closeHtml = function () {
     const anc = htmlSec.parentElement;
-    if (htmlSec.classList.contains("M2Url")) {
+
+    if (htmlSec.classList.contains("M2Input"))
+      anc.appendChild(document.createElement("br")); // this first for spacing purposes
+
+    if (htmlSec.contains(inputSpan)) attachElement(inputSpan, anc);
+    // move back input element to outside htmlSec
+
+    if (htmlSec.classList.contains("M2Input")) {
+      // highlight
+      htmlSec.innerHTML = Prism.highlight(
+        htmlSec.textContent,
+        Prism.languages.macaulay2
+      );
+      htmlSec.classList.add("M2PastInput");
+    } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
       if (url[0] != "/" && url.substr(0, 4) != "http") url = "/relative/" + url; // for relative URLs
       if (iFrame) iFrame.src = url;
@@ -739,31 +751,9 @@ const Shell = function (
         if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
         else anc.dataset.idList += " " + rawList.length;
         rawList.push(htmlSec); // try on { (help det)#2#1#0#1#0#0 }
-        /*
-		anc.dataset.code+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
-		+(baseline/fontSize)+"ce}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"ce}}";
-		*/
       }
     }
     htmlSec = anc;
-  };
-
-  const closeInput = function () {
-    // need to treat input specially because no closing tag
-    htmlSec.parentElement.appendChild(document.createElement("br"));
-    if (inputSpanParentElement.length > 0)
-      attachElement(inputSpan, inputSpanParentElement.pop());
-    // move back input element to outside htmlSec
-    else console.log("Input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
-    // highlight
-    htmlSec.innerHTML = Prism.highlight(
-      htmlSec.textContent,
-      Prism.languages.macaulay2
-    );
-    //htmlSec.addEventListener("click",codeInputAction);
-    htmlSec.classList.add("M2PastInput");
-    //	  htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
-    closeHtml();
   };
 
   const createHtml = function (a, className?) {
@@ -798,14 +788,13 @@ const Shell = function (
         ((i == 0 && txt[i].length > 0) ||
           (i > 0 && txt[i - 1] !== webAppTags.InputContd))
       ) {
-        closeInput();
+        closeHtml();
         inputEndFlag = false;
       }
       if (i > 0) {
         const tag = txt[i - 1];
         if (tag == webAppTags.End) {
           // end of section
-          if (htmlSec.classList.contains("M2Input")) closeInput(); // should never happen but does because of annoying escape sequence garbage bug (see also closeInput fix)
           closeHtml();
         } else if (tag === webAppTags.InputContd) {
           // continuation of input section
@@ -815,7 +804,6 @@ const Shell = function (
           createHtml("span", webAppClasses[tag]);
           if (tag === webAppTags.Input) {
             // input section: a bit special (ends at first \n)
-            inputSpanParentElement.push(inputSpan.parentElement); // not great
             attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
           }
         }
@@ -833,7 +821,7 @@ const Shell = function (
                 inputSpan
               );
               txt[i] = txt[i].substring(ii + 1, txt[i].length);
-              closeInput();
+              closeHtml();
               l = htmlSec.classList;
             } else inputEndFlag = true; // can't tell for sure if it's the end or not, so set a flag to remind us
           }
@@ -856,7 +844,7 @@ const Shell = function (
     console.log("Reset");
     removeAutoComplete(false); // remove autocomplete menu if open
     createInputEl(); // recreate the input area
-    htmlSec.insertBefore(document.createElement("br"), inputSpan); // not quite right: the new line should be outside the cell
+    htmlSec.parentElement.insertBefore(document.createElement("br"), htmlSec);
   };
 
   obj.interrupt = function () {
@@ -864,6 +852,7 @@ const Shell = function (
     inputSpan.textContent = "";
     removeDelimiterHighlight();
     postRawMessage("\x03");
+    placeCaretAtEnd(inputSpan);
   };
 
   inputSpan.focus();
