@@ -21,6 +21,11 @@ body {
     height: calc(100% - 16px);
 }
 
+#right-half {
+    margin-left:0px;
+    width: calc(50% - 8px);
+}
+
 #lesson {
     height: 100%;
     width: 100%;

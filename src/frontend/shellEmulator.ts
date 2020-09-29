@@ -47,14 +47,39 @@ const Shell = function (
   cmdHistory.index = 0;
   let autoComplete = null; // autocomplete HTML element (when tab is pressed)
   let autoCompleteSelection = null; // the currently selected element in the autocomplete list
-  // mathJax/katex related stuff
   const webAppTagsRegExp = new RegExp(
     "(" + Object.values(webAppTags).join("|") + ")"
   );
   // input is a bit messy...
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
-  let inputSpanParentElement = []; // temporary link(s) to parent element when input span moved out of it
+
+  /*    const barClick = function (e) {
+      const t = (e.target as HTMLElement).parentElement;*/
+  const barClick = function () {
+    const t = this.parentElement;
+    if (!t.contains(inputSpan)) t.classList.toggle("M2CellClosed");
+    //	e.preventDefault();
+  };
+
+  const createHtml = function (a, className?) {
+    const anc = htmlSec;
+    htmlSec = document.createElement(a);
+    if (className) {
+      htmlSec.className = className;
+      if (className.indexOf("M2Cell") >= 0) {
+        // insert bar at left
+        const s = document.createElement("span");
+        s.className = "M2CellBar";
+        //        s.onclick = barClick;
+        htmlSec.appendChild(s);
+      }
+    }
+    if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
+    // even M2Html needs to keep track of innerHTML because html tags may get broken
+    if (inputSpan.parentElement == anc) anc.insertBefore(htmlSec, inputSpan);
+    else anc.appendChild(htmlSec);
+  };
 
   const createInputEl = function () {
     // (re)create the input area
@@ -69,10 +94,14 @@ const Shell = function (
     inputSpan.classList.add("M2Input");
     inputSpan.classList.add("M2CurrentInput");
     inputSpan.classList.add("M2Text");
-    shell.appendChild(inputSpan);
-    inputSpan.focus();
+
     htmlSec = shell;
-    inputSpanParentElement = [];
+    createHtml("span", webAppClasses[webAppTags.Cell]);
+
+    htmlSec.appendChild(inputSpan);
+
+    inputSpan.focus();
+
     inputEndFlag = false;
   };
 
@@ -87,32 +116,6 @@ const Shell = function (
       placeCaretAtEnd(inputSpan);
       scrollDown(shell);
     }
-  };
-
-  /*
-  const wrapOutput = function () {
-    if (window.getSelection().isCollapsed) this.classList.toggle("M2wrapped");
-  };
-*/
-
-  const hideOutput = function () {
-    this.classList.remove("M2wrapped");
-    const thisel = this; // because of closure, the element will be saved
-    const anc = thisel.parentElement;
-    const ph = document.createElement("span");
-    ph.classList.add("M2-hidden");
-    ph.addEventListener("click", function (e) {
-      // so we can restore it later
-      anc.insertBefore(thisel, ph);
-      anc.removeChild(ph);
-      e.stopPropagation();
-      return;
-    });
-    ph.addEventListener("mousedown", function (e) {
-      if (e.detail > 1) e.preventDefault();
-    });
-    anc.insertBefore(ph, this);
-    anc.removeChild(this);
   };
 
   const removeAutoComplete = function (flag) {
@@ -526,10 +529,10 @@ const Shell = function (
         codeInputAction.call(t);
         return true;
       }
-      /*      if (t.classList.contains("M2Output")) {
-        wrapOutput.call(t);
+      if (t.classList.contains("M2CellBar")) {
+        barClick.call(t);
         return true;
-      }*/
+      }
       t = t.parentElement;
     }
     return false;
@@ -543,20 +546,6 @@ const Shell = function (
     ) {
       placeCaretAtEnd(inputSpan, true);
       scrollDown(shell);
-    }
-  };
-
-  shell.ondblclick = function (e) {
-    // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
-    let t = e.target as HTMLElement;
-    while (t != shell) {
-      if (t.tagName == "A") return;
-      if (t.classList.contains("M2PastInput")) return;
-      if (t.classList.contains("M2Output")) {
-        hideOutput.call(t);
-        return;
-      }
-      t = t.parentElement;
     }
   };
 
@@ -636,7 +625,21 @@ const Shell = function (
 
   const closeHtml = function () {
     const anc = htmlSec.parentElement;
-    if (htmlSec.classList.contains("M2Url")) {
+
+    if (htmlSec.classList.contains("M2Input"))
+      anc.appendChild(document.createElement("br")); // this first for spacing purposes
+
+    if (htmlSec.contains(inputSpan)) attachElement(inputSpan, anc);
+    // move back input element to outside htmlSec
+
+    if (htmlSec.classList.contains("M2Input")) {
+      // highlight
+      htmlSec.innerHTML = Prism.highlight(
+        htmlSec.textContent,
+        Prism.languages.macaulay2
+      );
+      htmlSec.classList.add("M2PastInput");
+    } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
       if (url[0] != "/" && url.substr(0, 4) != "http") url = "/relative/" + url; // for relative URLs
       if (iFrame) iFrame.src = url;
@@ -668,6 +671,8 @@ const Shell = function (
         htmlSec.innerHTML = err.message;
         console.log(err.message);
       }
+    } else if (htmlSec.classList.contains("M2Html")) {
+      htmlSec.innerHTML = htmlSec.dataset.code; // since we don't update in real time any more, html only updated at the end
     }
     if (anc.classList.contains("M2Html")) {
       // we need to convert to string :/
@@ -700,51 +705,10 @@ const Shell = function (
           "}";
         if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
         else anc.dataset.idList += " " + rawList.length;
-        rawList.push(htmlSec); // try on { (help det)#2#1#0#1#0#0 }
-        /*
-		anc.dataset.code+="{\\rawhtml{"+htmlSec.outerHTML+"}{"
-		+(baseline/fontSize)+"ce}{"+((htmlSec.offsetHeight-baseline)/fontSize)+"ce}}";
-		*/
+        rawList.push(htmlSec); // try on { (help det)#2#1#1#0#0 }
       }
     }
     htmlSec = anc;
-  };
-
-  const closeInput = function () {
-    // need to treat input specially because no closing tag
-    htmlSec.parentElement.appendChild(document.createElement("br"));
-    if (inputSpanParentElement.length > 0)
-      attachElement(inputSpan, inputSpanParentElement.pop());
-    // move back input element to outside htmlSec
-    else console.log("Input error"); // should never happen but does because of annoying escape sequence garbage bug (though maybe fixed by end tag fix below)
-    // highlight
-    htmlSec.innerHTML = Prism.highlight(
-      htmlSec.textContent,
-      Prism.languages.macaulay2
-    );
-    //htmlSec.addEventListener("click",codeInputAction);
-    htmlSec.classList.add("M2PastInput");
-    //	  htmlSec.addEventListener("mousedown", function(e) { if (e.detail>1) e.preventDefault(); });
-    closeHtml();
-  };
-
-  const createHtml = function (a, className?) {
-    const anc = htmlSec;
-    htmlSec = document.createElement(a);
-    if (className) {
-      htmlSec.className = className;
-      if (className.indexOf("M2Output") >= 0) {
-        //htmlSec.addEventListener("click",wrapOutput);
-        htmlSec.addEventListener("mousedown", function (e) {
-          if (e.detail > 1) e.preventDefault();
-        });
-        // htmlSec.dataset.code = htmlSec.innerHTML = '<i class="material-icons M2OutputIcon">arrow_left</i>';
-      }
-      if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
-      // even M2Html needs to keep track of innerHTML because html tags may get broken
-    }
-    if (inputSpan.parentElement == anc) anc.insertBefore(htmlSec, inputSpan);
-    else anc.appendChild(htmlSec);
   };
 
   obj.onmessage = function (msg: string) {
@@ -761,14 +725,13 @@ const Shell = function (
         ((i == 0 && txt[i].length > 0) ||
           (i > 0 && txt[i - 1] !== webAppTags.InputContd))
       ) {
-        closeInput();
+        closeHtml();
         inputEndFlag = false;
       }
       if (i > 0) {
         const tag = txt[i - 1];
         if (tag == webAppTags.End) {
           // end of section
-          if (htmlSec.classList.contains("M2Input")) closeInput(); // should never happen but does because of annoying escape sequence garbage bug (see also closeInput fix)
           closeHtml();
         } else if (tag === webAppTags.InputContd) {
           // continuation of input section
@@ -778,7 +741,6 @@ const Shell = function (
           createHtml("span", webAppClasses[tag]);
           if (tag === webAppTags.Input) {
             // input section: a bit special (ends at first \n)
-            inputSpanParentElement.push(inputSpan.parentElement); // not great
             attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
           }
         }
@@ -796,7 +758,7 @@ const Shell = function (
                 inputSpan
               );
               txt[i] = txt[i].substring(ii + 1, txt[i].length);
-              closeInput();
+              closeHtml();
               l = htmlSec.classList;
             } else inputEndFlag = true; // can't tell for sure if it's the end or not, so set a flag to remind us
           }
@@ -804,7 +766,7 @@ const Shell = function (
 
         if (htmlSec.dataset.code !== undefined) {
           htmlSec.dataset.code += txt[i];
-          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // might as well update in real time
+          //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // might as well update in real time
         }
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
         else if (inputSpan.parentElement == htmlSec)
@@ -819,7 +781,7 @@ const Shell = function (
     console.log("Reset");
     removeAutoComplete(false); // remove autocomplete menu if open
     createInputEl(); // recreate the input area
-    shell.insertBefore(document.createElement("br"), inputSpan);
+    htmlSec.parentElement.insertBefore(document.createElement("br"), htmlSec);
   };
 
   obj.interrupt = function () {
@@ -827,7 +789,9 @@ const Shell = function (
     inputSpan.textContent = "";
     removeDelimiterHighlight();
     postRawMessage("\x03");
+    placeCaretAtEnd(inputSpan);
   };
+
   inputSpan.focus();
 };
 
