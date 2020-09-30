@@ -47,13 +47,39 @@ const Shell = function (
   cmdHistory.index = 0;
   let autoComplete = null; // autocomplete HTML element (when tab is pressed)
   let autoCompleteSelection = null; // the currently selected element in the autocomplete list
-  // mathJax/katex related stuff
   const webAppTagsRegExp = new RegExp(
     "(" + Object.values(webAppTags).join("|") + ")"
   );
   // input is a bit messy...
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
+
+  /*    const barClick = function (e) {
+      const t = (e.target as HTMLElement).parentElement;*/
+  const barClick = function () {
+    const t = this.parentElement;
+    if (!t.contains(inputSpan)) t.classList.toggle("M2CellClosed");
+    //	e.preventDefault();
+  };
+
+  const createHtml = function (a, className?) {
+    const anc = htmlSec;
+    htmlSec = document.createElement(a);
+    if (className) {
+      htmlSec.className = className;
+      if (className.indexOf("M2Cell") >= 0) {
+        // insert bar at left
+        const s = document.createElement("span");
+        s.className = "M2CellBar";
+        //        s.onclick = barClick;
+        htmlSec.appendChild(s);
+      }
+    }
+    if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
+    // even M2Html needs to keep track of innerHTML because html tags may get broken
+    if (inputSpan.parentElement == anc) anc.insertBefore(htmlSec, inputSpan);
+    else anc.appendChild(htmlSec);
+  };
 
   const createInputEl = function () {
     // (re)create the input area
@@ -69,11 +95,10 @@ const Shell = function (
     inputSpan.classList.add("M2CurrentInput");
     inputSpan.classList.add("M2Text");
 
-    htmlSec = document.createElement("span");
-    htmlSec.classList.add("M2Cell");
-    htmlSec.classList.add("M2Text");
+    htmlSec = shell;
+    createHtml("span", webAppClasses[webAppTags.Cell]);
+
     htmlSec.appendChild(inputSpan);
-    shell.appendChild(htmlSec);
 
     inputSpan.focus();
 
@@ -92,32 +117,6 @@ const Shell = function (
       scrollDown(shell);
     }
   };
-
-  /*
-  const wrapOutput = function () {
-    if (window.getSelection().isCollapsed) this.classList.toggle("M2wrapped");
-  };
-
-  const hideOutput = function () {
-    this.classList.remove("M2wrapped");
-    const thisel = this; // because of closure, the element will be saved
-    const anc = thisel.parentElement;
-    const ph = document.createElement("span");
-    ph.classList.add("M2-hidden");
-    ph.addEventListener("click", function (e) {
-      // so we can restore it later
-      anc.insertBefore(thisel, ph);
-      anc.removeChild(ph);
-      e.stopPropagation();
-      return;
-    });
-    ph.addEventListener("mousedown", function (e) {
-      if (e.detail > 1) e.preventDefault();
-    });
-    anc.insertBefore(ph, this);
-    anc.removeChild(this);
-  };
-*/
 
   const removeAutoComplete = function (flag) {
     // flag means insert the selection or not
@@ -562,10 +561,10 @@ const Shell = function (
         codeInputAction.call(t);
         return true;
       }
-      /*      if (t.classList.contains("M2Output")) {
-        wrapOutput.call(t);
+      if (t.classList.contains("M2CellBar")) {
+        barClick.call(t);
         return true;
-      }*/
+      }
       t = t.parentElement;
     }
     return false;
@@ -581,20 +580,6 @@ const Shell = function (
       scrollDown(shell);
     }
   };
-
-  /*  shell.ondblclick = function (e) {
-    // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
-    let t = e.target as HTMLElement;
-    while (t != shell) {
-      if (t.tagName == "A") return;
-      if (t.classList.contains("M2PastInput")) return;
-      if (t.classList.contains("M2Output")) {
-        hideOutput.call(t);
-        return;
-      }
-      t = t.parentElement;
-    }
-  };*/
 
   shell.onkeydown = function (e: KeyboardEvent) {
     removeAutoComplete(false); // remove autocomplete menu if open
@@ -718,6 +703,8 @@ const Shell = function (
         htmlSec.innerHTML = err.message;
         console.log(err.message);
       }
+    } else if (htmlSec.classList.contains("M2Html")) {
+      htmlSec.innerHTML = htmlSec.dataset.code; // since we don't update in real time any more, html only updated at the end
     }
     if (anc.classList.contains("M2Html")) {
       // we need to convert to string :/
@@ -750,28 +737,10 @@ const Shell = function (
           "}";
         if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
         else anc.dataset.idList += " " + rawList.length;
-        rawList.push(htmlSec); // try on { (help det)#2#1#0#1#0#0 }
+        rawList.push(htmlSec); // try on { (help det)#2#1#1#0#0 }
       }
     }
     htmlSec = anc;
-  };
-
-  const createHtml = function (a, className?) {
-    const anc = htmlSec;
-    htmlSec = document.createElement(a);
-    if (className) {
-      htmlSec.className = className;
-      /*      if (className.indexOf("M2Output") >= 0) {
-        htmlSec.addEventListener("mousedown", function (e) {
-          if (e.detail > 1) e.preventDefault();
-        });
-        // htmlSec.dataset.code = htmlSec.innerHTML = '<i class="material-icons M2OutputIcon">arrow_left</i>';
-	}*/
-    }
-    if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
-    // even M2Html needs to keep track of innerHTML because html tags may get broken
-    if (inputSpan.parentElement == anc) anc.insertBefore(htmlSec, inputSpan);
-    else anc.appendChild(htmlSec);
   };
 
   obj.onmessage = function (msg: string) {
@@ -829,7 +798,7 @@ const Shell = function (
 
         if (htmlSec.dataset.code !== undefined) {
           htmlSec.dataset.code += txt[i];
-          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // might as well update in real time
+          //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // might as well update in real time
         }
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
         else if (inputSpan.parentElement == htmlSec)
