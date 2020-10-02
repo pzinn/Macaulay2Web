@@ -162,7 +162,7 @@ const Shell = function (
   const sanitizeRegEx = new RegExp("[^ -~" + UCsymbolValues + "]", "g"); // a bit too restrictive?
   const sanitizeInput = function (msg: string) {
     // sanitize input
-    return msg.replace(sanitizeRegEx, "").replace(/\n$/, "");
+    return msg.replace(sanitizeRegEx, "").replace(/\n+$/, "");
   };
 
   obj.postMessage = function (msg, flag1, flag2) {
