@@ -321,6 +321,20 @@ const socketOnError = function (type) {
   };
 };
 
+const socketOnClientId = function (clientId) {
+  let msg = "";
+  if (clientId.substring(0, 4) === "user")
+    msg =
+      "You are running in user mode, your user id is: " + clientId.substring(4);
+  else if (clientId.substring(0, 6) === "public")
+    msg =
+      "You are running in public mode, your public id is: " +
+      clientId.substring(6);
+  else msg = "You are running in unknown mode, your id is " + clientId;
+  if (document.cookie) msg += "\nYour cookie is: " + document.cookie;
+  alert(msg);
+};
+
 const init = function () {
   if (!navigator.cookieEnabled) {
     alert("This site requires cookies to be enabled.");
@@ -328,8 +342,18 @@ const init = function () {
   }
   const url = new URL(document.location.href);
 
+  let ioParams = "";
   let publicId: any = url.searchParams.get("public");
-  if (publicId === null) publicId = url.pathname == "/minimal.html";
+  const userId: any = url.searchParams.get("user");
+  if (publicId !== null) {
+    if (publicId == "") publicId = "Default";
+    ioParams = "?publicId=" + publicId;
+  } else if (userId !== null && userId != "") {
+    ioParams = "?userId=" + userId;
+  } else if (url.pathname == "/minimal.html") {
+    // minimal interface public by default
+    ioParams = "?publicId=Default";
+  }
 
   const zoom = require("./zooming");
   zoom.attachZoomButtons(
@@ -339,13 +363,14 @@ const init = function () {
     "M2OutZoomOut"
   );
 
-  socket = io("?publicId=" + publicId);
+  socket = io(ioParams);
   socket.on("reconnect_failed", socketOnError("reconnect_fail"));
   socket.on("reconnect_error", socketOnError("reconnect_error"));
   socket.on("connect_error", socketOnError("connect_error"));
   socket.on("result", socketOnMessage);
   socket.on("disconnect", socketOnDisconnect);
   socket.on("cookie", socketOnCookie);
+  socket.on("clientId", socketOnClientId);
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
   //  socket.on("file", fileDialog);
@@ -440,6 +465,12 @@ const init = function () {
       e.preventDefault();
       e.returnValue = "";
     });
+
+  const cookieQuery = document.getElementById("cookieQuery");
+  if (cookieQuery)
+    cookieQuery.onclick = function () {
+      socket.emit("clientId");
+    };
 
   const exec = url.searchParams.get("exec");
   if (exec)

@@ -488,6 +488,13 @@ const socketInputAction = function (socket, client: Client) {
   };
 };
 
+const socketClientIdAction = function (socket, client: Client) {
+  // send to a socket its client id. for information only.
+  return function () {
+    socket.emit("clientId", client.id);
+  };
+};
+
 const socketResetAction = function (client: Client) {
   return function () {
     optLogCmdToFile(client.id, "Resetting.\n");
@@ -520,14 +527,17 @@ const setCookieOnSocket = function (socket, clientId: string): void {
 const listen = function () {
   io.on("connection", function (socket: SocketIO.Socket) {
     logger.info("Incoming new connection!");
+    const publicId = socket.handshake.query.publicId;
+    const userId = socket.handshake.query.userId;
     let clientId: string = getClientIdFromSocket(socket);
-    if (typeof clientId === "undefined") {
-      let publicId = socket.handshake.query.publicId;
-      if (publicId === "false") clientId = initializeClientId(socket);
-      else {
-        if (publicId === "true") publicId = "default";
-        clientId = "public_" + publicId;
-      }
+    if (clientId === undefined && publicId !== undefined) {
+      clientId = "public" + publicId;
+    } else if (userId !== undefined) {
+      clientId = "user" + userId;
+      setCookieOnSocket(socket, clientId); // overwrite cookie if necessary
+    } else if (clientId === undefined) {
+      // need new one
+      clientId = initializeClientId(socket);
     }
     logClient(clientId, "Assigned clientId");
     if (clientId === "deadCookie") {
@@ -543,6 +553,7 @@ const listen = function () {
     socket.on("input", socketInputAction(socket, client));
     socket.on("reset", socketResetAction(client));
     //    socket.on("download", socketDownloadAction(socket, client));
+    socket.on("clientId", socketClientIdAction(socket, client));
   });
 
   const listener = http.listen(serverConfig.port);
