@@ -330,6 +330,13 @@ const socketOnError = function (type) {
   };
 };
 
+const queryCookie = function() {
+    const cookie = document.cookie;
+    const i = cookie.indexOf("user"); // not too subtle
+    if (i<0) alert("You don't have a cookie (presumably, you're in public mode)");
+    else alert("The user id stored in your cookie is: "+cookie.substring(i+4));
+}
+
 const init = function () {
   if (!navigator.cookieEnabled) {
     alert("This site requires cookies to be enabled.");
@@ -337,8 +344,18 @@ const init = function () {
   }
   const url = new URL(document.location.href);
 
+  let ioParams = "";
   let publicId: any = url.searchParams.get("public");
-  if (publicId === null) publicId = url.pathname == "/minimal.html";
+  const userId: any = url.searchParams.get("user");
+  if (publicId !== null) {
+    if (publicId == "") publicId = "Default";
+    ioParams = "?publicId=" + publicId;
+  } else if (userId !== null && userId != "") {
+    ioParams = "?userId=" + userId;
+  } else if (url.pathname == "/minimal.html") {
+    // minimal interface public by default
+    ioParams = "?publicId=Default";
+  }
 
   const zoom = require("./zooming");
   zoom.attachZoomButtons(
@@ -348,7 +365,7 @@ const init = function () {
     "M2OutZoomOut"
   );
 
-  socket = io("?publicId=" + publicId);
+  socket = io(ioParams);
   socket.on("reconnect_failed", socketOnError("reconnect_fail"));
   socket.on("reconnect_error", socketOnError("reconnect_error"));
   socket.on("connect_error", socketOnError("connect_error"));
@@ -449,6 +466,10 @@ const init = function () {
       e.preventDefault();
       e.returnValue = "";
     });
+
+const cookieQuery = document.getElementById("cookieQuery");
+  if (cookieQuery)
+      cookieQuery.onclick = queryCookie;
 
   const exec = url.searchParams.get("exec");
   if (exec)
