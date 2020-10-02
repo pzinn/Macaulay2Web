@@ -521,7 +521,7 @@ const initializeClientId = function (socket): string {
 };
 
 const setCookieOnSocket = function (socket, clientId: string): void {
-  if (clientId != "public") {
+  if (clientId.substring(0, 4) === "user") {
     const expDate = new Date(new Date().getTime() + sevenDays);
     const sessionCookie = Cookie.serialize(options.cookieName, clientId, {
       expires: expDate,
