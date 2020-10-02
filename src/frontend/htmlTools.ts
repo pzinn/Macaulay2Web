@@ -96,14 +96,15 @@ const caretIsAtEnd = function () {
   }
 };
 
-// ~ like innerText, but for document fragments: textContent + <br> -> \n
-const toStringBR = function (frag) {
+// ~ like innerText, but for document fragments: textContent + <br>, </div>, </p> -> \n
+const fragInnerText = function (frag) {
   if (frag.nodeName == "BR") return "\n";
   else if (frag.nodeName == "#text") return frag.textContent;
   else {
     let s = "";
     for (let i = 0; i < frag.childNodes.length; i++)
-      s = s + toStringBR(frag.childNodes[i]);
+      s = s + fragInnerText(frag.childNodes[i]);
+    if (frag.nodeName == "DIV" || frag.nodeName == "P") s = s + "\n";
     return s;
   }
 };
@@ -119,5 +120,5 @@ export {
   attachElement,
   sanitizeElement,
   caretIsAtEnd,
-  toStringBR,
+  fragInnerText,
 };
