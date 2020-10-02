@@ -321,19 +321,12 @@ const socketOnError = function (type) {
   };
 };
 
-const socketOnClientId = function (clientId) {
-  let msg = "";
-  if (clientId.substring(0, 4) === "user")
-    msg =
-      "You are running in user mode, your user id is: " + clientId.substring(4);
-  else if (clientId.substring(0, 6) === "public")
-    msg =
-      "You are running in public mode, your public id is: " +
-      clientId.substring(6);
-  else msg = "You are running in unknown mode, your id is " + clientId;
-  if (document.cookie) msg += "\nYour cookie is: " + document.cookie;
-  alert(msg);
-};
+const queryCookie = function() {
+    const cookie = document.cookie;
+    const i = cookie.indexOf("user"); // not too subtle
+    if (i<0) alert("You don't have a cookie (presumably, you're in public mode)");
+    else alert("The user id stored in your cookie is: "+cookie.substring(i+4));
+}
 
 const init = function () {
   if (!navigator.cookieEnabled) {
@@ -370,7 +363,6 @@ const init = function () {
   socket.on("result", socketOnMessage);
   socket.on("disconnect", socketOnDisconnect);
   socket.on("cookie", socketOnCookie);
-  socket.on("clientId", socketOnClientId);
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
   //  socket.on("file", fileDialog);
@@ -466,11 +458,9 @@ const init = function () {
       e.returnValue = "";
     });
 
-  const cookieQuery = document.getElementById("cookieQuery");
+const cookieQuery = document.getElementById("cookieQuery");
   if (cookieQuery)
-    cookieQuery.onclick = function () {
-      socket.emit("clientId");
-    };
+      cookieQuery.onclick = queryCookie;
 
   const exec = url.searchParams.get("exec");
   if (exec)

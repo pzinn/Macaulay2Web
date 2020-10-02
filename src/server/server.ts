@@ -488,13 +488,6 @@ const socketInputAction = function (socket, client: Client) {
   };
 };
 
-const socketClientIdAction = function (socket, client: Client) {
-  // send to a socket its client id. for information only.
-  return function () {
-    socket.emit("clientId", client.id);
-  };
-};
-
 const socketResetAction = function (client: Client) {
   return function () {
     optLogCmdToFile(client.id, "Resetting.\n");
@@ -553,7 +546,6 @@ const listen = function () {
     socket.on("input", socketInputAction(socket, client));
     socket.on("reset", socketResetAction(client));
     //    socket.on("download", socketDownloadAction(socket, client));
-    socket.on("clientId", socketClientIdAction(socket, client));
   });
 
   const listener = http.listen(serverConfig.port);
