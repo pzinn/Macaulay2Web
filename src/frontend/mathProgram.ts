@@ -3,7 +3,7 @@
 
 import io = require("socket.io-client");
 const SocketIOFileUpload = require("socketio-file-upload");
-const Prism = require("prismjs");
+//const Prism = require("prismjs");
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
@@ -330,12 +330,14 @@ const socketOnError = function (type) {
   };
 };
 
-const queryCookie = function() {
-    const cookie = document.cookie;
-    const i = cookie.indexOf("user"); // not too subtle
-    if (i<0) alert("You don't have a cookie (presumably, you're in public mode)");
-    else alert("The user id stored in your cookie is: "+cookie.substring(i+4));
-}
+const queryCookie = function () {
+  const cookie = document.cookie;
+  const i = cookie.indexOf("user"); // not too subtle
+  if (i < 0)
+    alert("You don't have a cookie (presumably, you're in public mode)");
+  else
+    alert("The user id stored in your cookie is: " + cookie.substring(i + 4));
+};
 
 const init = function () {
   if (!navigator.cookieEnabled) {
@@ -467,9 +469,8 @@ const init = function () {
       e.returnValue = "";
     });
 
-const cookieQuery = document.getElementById("cookieQuery");
-  if (cookieQuery)
-      cookieQuery.onclick = queryCookie;
+  const cookieQuery = document.getElementById("cookieQuery");
+  if (cookieQuery) cookieQuery.onclick = queryCookie;
 
   const exec = url.searchParams.get("exec");
   if (exec)
