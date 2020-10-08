@@ -26,12 +26,12 @@ const getSelected = function () {
     if (sel.isCollapsed) {
       sel.modify("move", "backward", "lineboundary");
       sel.modify("extend", "forward", "lineboundary");
-      const s = fragInnerText(sel.getRangeAt(0).cloneContents()); // can't use toString because ignores BR / DIV which firefox creates
+      const s = sel.toString();
       // sel.modify("move", "forward", "line"); // doesn't work in firefox
       sel.collapseToEnd();
       sel.modify("move", "forward", "character");
-      return s + "\n";
-    } else return fragInnerText(sel.getRangeAt(0).cloneContents());
+      return s;
+    } else return sel.toString(); // fragInnerText(sel.getRangeAt(0).cloneContents()); // toString used to fail because ignored BR / DIV which firefox creates
   } else return "";
 };
 
@@ -55,6 +55,16 @@ const editorEvaluate = function () {
     */
   // sadly, doesn't work either -- cf https://www.w3.org/TR/clipboard-apis/
   // "A synthetic paste event can be manually constructed and dispatched, but it will not affect the contents of the document."
+};
+
+const invokeHelp = function (e) {
+  if (e.key == "F1") {
+    //    const sel = window.getSelection().toString();
+    const sel = e.currentTarget.ownerDocument.getSelection().toString(); // works in iframe too
+    if (sel != "") socket.emit("input", 'viewHelp "' + sel + '"\n');
+    e.preventDefault();
+    e.stopPropagation();
+  }
 };
 
 const editorKeyDown = function (e) {
@@ -183,10 +193,7 @@ const saveFile = function () {
 
 const hilite = function (event) {
   const input = document.getElementById("M2In");
-  input.innerHTML = Prism.highlight(
-    input.textContent,
-    Prism.languages.macaulay2
-  );
+  input.innerHTML = Prism.highlight(input.innerText, Prism.languages.macaulay2);
 
   // what follows doesn't preserve caret location
   /*
@@ -296,10 +303,13 @@ const openBrowseTab = function (event) {
   }
   // try to enable links
   const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
-  if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body)
-    (iFrame as any).contentDocument.body.onclick = function (e) {
-      myshell.ancSearch(e.target as HTMLElement, iFrame.contentDocument.body);
+  if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
+    const bdy = iFrame.contentDocument.body;
+    bdy.onclick = function (e) {
+      myshell.ancSearch(e.target as HTMLElement, bdy);
     };
+    bdy.onkeydown = invokeHelp;
+  }
   // do not follow link
   event.preventDefault();
 };
@@ -470,6 +480,8 @@ const init = function () {
     }, 2000);
 
   if (iFrame) iFrame.onload = openBrowseTab;
+
+  document.body.onkeydown = invokeHelp;
 };
 
 module.exports = function () {
