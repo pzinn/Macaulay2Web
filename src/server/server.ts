@@ -520,14 +520,17 @@ const setCookieOnSocket = function (socket, clientId: string): void {
 const listen = function () {
   io.on("connection", function (socket: SocketIO.Socket) {
     logger.info("Incoming new connection!");
+    const publicId = socket.handshake.query.publicId;
+    const userId = socket.handshake.query.userId;
     let clientId: string = getClientIdFromSocket(socket);
-    if (typeof clientId === "undefined") {
-      let publicId = socket.handshake.query.publicId;
-      if (publicId === "false") clientId = initializeClientId(socket);
-      else {
-        if (publicId === "true") publicId = "default";
-        clientId = "public_" + publicId;
-      }
+    if (clientId === undefined && publicId !== undefined) {
+      clientId = "public" + publicId;
+    } else if (userId !== undefined) {
+      clientId = "user" + userId;
+      setCookieOnSocket(socket, clientId); // overwrite cookie if necessary
+    } else if (clientId === undefined) {
+      // need new one
+      clientId = initializeClientId(socket);
     }
     logClient(clientId, "Assigned clientId");
     if (clientId === "deadCookie") {

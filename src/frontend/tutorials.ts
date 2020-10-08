@@ -148,7 +148,7 @@ const makeTutorialsList = function (tutorialNames) {
     });
 };
 
-const preEscape = function (s: String) {
+const preEscape = function (s: string) {
   const lookup = {
     "&": "&amp;",
     '"': "&quot;",

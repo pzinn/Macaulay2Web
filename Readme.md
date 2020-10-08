@@ -172,9 +172,12 @@ the following:
 <iframe style="background:#A8A8B8;overflow:hidden;resize:both" scrolling="no" src='https://www.unimelb-macaulay2.cloud.edu.au/minimal.html' title="Macaulay2"></iframe>
 ```
 * `#[home|tutorial|editor|about|browse]` to start in a different tab (in the normal interface). `#tutorial-m-n` to go to page `n` of tutorial `m`.
-* `?public=[false|true|name]` -- this option is false (resp. true) by default for the normal (resp. minimal) interface.
-If true or if a name is given, the user does not get his own Macaulay2 process but rather a shared process for all users (the name can be used to specify a particular process for a given page).
-
+* `?public[=name]` -- this option is turned on  by default for the minimal interface.
+The user does not get his own Macaulay2 process but rather a shared process for all users (the name can be used to specify a particular process for a given page).
+Note that this does not overwrite the cookie containing your personal user id.
+* `?user[=name]` to choose one's own user id. This allows e.g. to have the same shell on different computers or share one's shell with someone else.
+Note that if you have already been assigned a user id, this will overwrite it (i.e., it will overwrite the cookie containing it).
+At the moment, the only way to know your current id is to click on the word "cookie" on the home page.
 ## Internal file structure:
 ### Server
 * main file:
