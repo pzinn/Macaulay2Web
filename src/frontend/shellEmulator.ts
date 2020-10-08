@@ -609,7 +609,8 @@ const Shell = function (
       e.altKey ||
       e.metaKey ||
       e.key == "PageUp" ||
-      e.key == "PageDown"
+      e.key == "PageDown" ||
+      e.key == "F1"
     ) {
       // do not move caret on Ctrl or Command combos
       if (e.key == "PageUp" && document.activeElement == inputSpan)
