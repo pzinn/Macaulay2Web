@@ -90,8 +90,9 @@
     font-size: inherit;
 }
 
-.M2Html pre {
-    display: inline;
+.string {
+    /*    display: inline; */
+    white-space: pre;
     margin: 0px;
     font-family: "Roboto Mono";
     font-weight: 500;
@@ -183,7 +184,7 @@ does not contain the whole contents (and is possibly empty) */
     display: inline;
 }
 
-.M2Text.M2wrapped, .M2wrapped pre, .M2wrapped .M2Text {
+.M2Text.M2wrapped, .M2wrapped .string, .M2wrapped .M2Text {
     white-space: pre-wrap;
     word-break: break-all;
 }
