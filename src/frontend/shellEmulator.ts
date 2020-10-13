@@ -561,6 +561,10 @@ const Shell = function (
         codeInputAction.call(t);
         return true;
       }
+      if (t.dataset.M2) {
+        postRawMessage(t.dataset.M2 + "\n"); // semi-TEMP: ideally, just like for help, would use another thread
+        return true;
+      }
       if (t.classList.contains("M2CellBar")) {
         barClick.call(t);
         return true;
