@@ -688,16 +688,16 @@ const Shell = function (
       htmlSec.removeAttribute("data-code");
     } else if (htmlSec.classList.contains("M2Katex")) {
       try {
-        htmlSec.innerHTML = katex
+        const katexRes = katex
           .__renderToHTMLTree(htmlSec.dataset.code, {
             trust: true,
             strict: false,
             maxExpand: Infinity,
           })
-          .toMarkup(); // one could call katex.renderToString instead but mathml causes problems
-        htmlSec.removeAttribute("data-code");
+          .toNode(); // one could call katex.renderToString instead but mathml causes problems
+        htmlSec.appendChild(katexRes); // need to be part of document to use getElementById
         // restore raw stuff
-        if (htmlSec.dataset.idList)
+        if (htmlSec.dataset.idList) {
           htmlSec.dataset.idList.split(" ").forEach(function (id) {
             const el = document.getElementById("raw" + id);
             el.style.display = "contents"; // could put in css but don't want to overreach
@@ -705,22 +705,32 @@ const Shell = function (
             el.innerHTML = "";
             el.appendChild(rawList[+id]);
           });
-        //
-        //htmlSec.dataset.code=htmlSec.innerHTML; // not needed: going to die anyway
+        }
       } catch (err) {
         htmlSec.classList.add("KatexError"); // TODO: better class for this?
         htmlSec.innerHTML = err.message;
         console.log(err.message);
       }
     } else if (htmlSec.classList.contains("M2Html")) {
-      htmlSec.innerHTML = htmlSec.dataset.code; // since we don't update in real time any more, html only updated at the end
+      htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code); // since we don't update in real time any more, html only updated at the end
+      if (htmlSec.dataset.idList)
+        htmlSec.dataset.idList.split(" ").forEach(function (id) {
+          const el = document.getElementById("raw" + id);
+          el.style.display = "contents"; // could put in css but don't want to overreach
+          //            el.style.fontSize = "1em";
+          //            el.innerHTML = "";
+          el.appendChild(rawList[+id]);
+        });
     }
-    if (anc.classList.contains("M2Html")) {
-      // we need to convert to string :/
-      //      anc.innerHTML = anc.dataset.code += htmlSec.outerHTML;
-      anc.dataset.code += htmlSec.outerHTML;
+    htmlSec.removeAttribute("data-code");
+    if (anc.classList.contains("M2Html") && anc.dataset.code != "") {
+      //anc.dataset.code += htmlSec.outerHTML; // used to convert to string which would destroy event listeners
+      // stack instead
+      anc.dataset.code += '<span id="raw' + rawList.length + '"></span>';
+      if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
+      else anc.dataset.idList += " " + rawList.length;
+      rawList.push(htmlSec);
     } else {
-      htmlSec.removeAttribute("data-code");
       if (anc.classList.contains("M2Katex")) {
         // html inside tex
         // 18mu= 1em * mathfont size modifier, here 1.21 factor of KaTeX

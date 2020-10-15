@@ -11,7 +11,7 @@ export { Socket };
 let socket: Socket;
 let serverDisconnect = false;
 const Shell = require("./shellEmulator");
-import { scrollDownLeft, caretIsAtEnd, fragInnerText } from "./htmlTools";
+import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 
 import { webAppTags, webAppClasses } from "../frontend/tags";
 
