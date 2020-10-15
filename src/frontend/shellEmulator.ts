@@ -285,6 +285,8 @@ const Shell = function (
     )
       i--; // would be faster with regex
     const word = msg.substring(i + 1, pos);
+    if (word == "") return false;
+    scrollDown(shell);
     const flag = i < 0 || msg[i] != "\u250B";
     if (flag) i++; // !flag => include the escape symbol
     const lst = flag ? M2symbols : UCsymbolKeys;
@@ -412,6 +414,7 @@ const Shell = function (
         }
       }
     }
+    return true;
   };
 
   const openingDelimiters = '([{"';
@@ -632,6 +635,17 @@ const Shell = function (
       return;
     }
 
+    // auto-completion code
+    if (e.key == "Tab") {
+      // try to avoid disrupting the normal tab use as much as possible
+      if (
+        document.activeElement == inputSpan &&
+        tabKeyHandling(window.getSelection().focusOffset)
+      )
+        e.preventDefault();
+      return;
+    }
+
     placeCaretAtEnd(inputSpan, true);
     const pos = window.getSelection().focusOffset;
     if (pos == 0) scrollLeft(shell);
@@ -643,13 +657,6 @@ const Shell = function (
     else if (e.key == "Escape") {
       scrollDown(shell);
       escapeKeyHandling(pos);
-      e.preventDefault();
-      return;
-    }
-    // auto-completion code
-    else if (e.key == "Tab") {
-      scrollDown(shell);
-      tabKeyHandling(pos);
       e.preventDefault();
       return;
     }

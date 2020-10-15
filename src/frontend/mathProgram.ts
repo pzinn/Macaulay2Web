@@ -264,7 +264,7 @@ const wrapEmitForDisconnect = function (event, msg) {
 const codeClickAction = function (e) {
   if (
     e.target.tagName.substring(0, 4) == "CODE" &&
-    window.getSelection().isCollapsed
+    e.currentTarget.ownerDocument.getSelection().isCollapsed
   )
     myshell.postMessage(e.target.textContent, false, false);
 };
