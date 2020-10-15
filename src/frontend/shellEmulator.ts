@@ -46,7 +46,6 @@ const Shell = function (
   const cmdHistory: any = []; // History of commands for shell-like arrow navigation
   cmdHistory.index = 0;
   let autoComplete = null; // autocomplete HTML element (when tab is pressed)
-  let autoCompleteSelection = null; // the currently selected element in the autocomplete list
   const webAppTagsRegExp = new RegExp(
     "(" + Object.values(webAppTags).join("|") + ")"
   );
@@ -123,11 +122,14 @@ const Shell = function (
     if (autoComplete) {
       const pos = inputSpan.textContent.length;
       inputSpan.textContent += autoComplete.lastChild.textContent;
+      const autoCompleteSelection = document.getElementById(
+        "autocomplete-selection"
+      ); // the currently selected element in the autocomplete list
       if (flag && autoCompleteSelection)
         addToElement(inputSpan, pos, autoCompleteSelection.dataset.fullword);
       else addToElement(inputSpan, pos, autoComplete.dataset.word);
       autoComplete.remove();
-      autoComplete = autoCompleteSelection = null;
+      autoComplete = null;
     }
   };
 
@@ -351,8 +353,7 @@ const Shell = function (
             });
             tabMenu.appendChild(opt);
           }
-          autoCompleteSelection = tabMenu.firstElementChild;
-          autoCompleteSelection.classList.add("autocomplete-selection");
+          tabMenu.firstElementChild.id = "autocomplete-selection";
           autoComplete.appendChild(tabMenu);
           autoComplete.appendChild(
             document.createTextNode(
@@ -375,26 +376,26 @@ const Shell = function (
               return;
             }
             if (e.key == "ArrowDown") {
+              const autoCompleteSelection = document.getElementById(
+                "autocomplete-selection"
+              ); // the currently selected element in the autocomplete list
               if (autoCompleteSelection != this.lastElementChild) {
-                autoCompleteSelection.classList.remove(
-                  "autocomplete-selection"
-                );
-                autoCompleteSelection =
-                  autoCompleteSelection.nextElementSibling;
-                autoCompleteSelection.classList.add("autocomplete-selection");
+                autoCompleteSelection.removeAttribute("id");
+                autoCompleteSelection.nextElementSibling.id =
+                  "autocomplete-selection";
               }
               e.preventDefault();
               e.stopPropagation();
               return;
             }
             if (e.key == "ArrowUp") {
+              const autoCompleteSelection = document.getElementById(
+                "autocomplete-selection"
+              ); // the currently selected element in the autocomplete list
               if (autoCompleteSelection != this.firstElementChild) {
-                autoCompleteSelection.classList.remove(
-                  "autocomplete-selection"
-                );
-                autoCompleteSelection =
-                  autoCompleteSelection.previousElementSibling;
-                autoCompleteSelection.classList.add("autocomplete-selection");
+                autoCompleteSelection.removeAttribute("id");
+                autoCompleteSelection.previousElementSibling.id =
+                  "autocomplete-selection";
               }
               e.preventDefault();
               e.stopPropagation();
