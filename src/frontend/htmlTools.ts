@@ -96,6 +96,7 @@ const caretIsAtEnd = function () {
   }
 };
 
+/*
 // ~ like innerText, but for document fragments: textContent + <br>, </div>, </p> -> \n
 const fragInnerText = function (frag) {
   if (frag.nodeName == "BR") return "\n";
@@ -108,6 +109,7 @@ const fragInnerText = function (frag) {
     return s;
   }
 };
+*/
 
 export {
   scrollDownLeft,
@@ -120,5 +122,5 @@ export {
   attachElement,
   sanitizeElement,
   caretIsAtEnd,
-  fragInnerText,
+  //  fragInnerText,
 };
