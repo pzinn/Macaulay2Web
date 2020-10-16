@@ -53,10 +53,49 @@ const Shell = function (
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
 
-  const barClick = function (e) {
-    const t = (e.target as HTMLElement).parentElement;
-    if (!t.contains(inputSpan)) t.classList.toggle("M2CellClosed");
+  const unselectCells = function () {
+    const lst = Array.from(document.getElementsByClassName("M2CellSelected"));
+    lst.forEach((el) => {
+      el.classList.remove("M2CellSelected");
+    });
+  };
+
+  const barKey = function (e: KeyboardEvent) {
     e.stopPropagation();
+    let fn;
+    if (e.key == " ") fn = (el) => el.classList.toggle("M2CellClosed");
+    else if (e.key == "Delete" || e.key == "Backspace")
+      fn = (el) => el.remove();
+    else if (e.key == "w" || e.key == "W")
+      fn = (el) => el.classList.toggle("M2Wrapped");
+    else return;
+    e.preventDefault();
+    Array.from(document.getElementsByClassName("M2CellSelected")).forEach(fn);
+  };
+
+  const barClick = function (e) {
+    e.stopPropagation();
+  };
+  const barMouseDown = function (e) {
+    const t = this.parentElement;
+    if (!e.shiftKey && !e.ctrlKey) unselectCells();
+    if (e.shiftKey && document.activeElement.classList.contains("M2CellBar")) {
+      const tt = document.activeElement.parentElement;
+      const lst = document.getElementsByClassName("M2Cell");
+      let i = 0;
+      let flag = 0;
+      while (i < lst.length && flag < 2) {
+        if (lst[i] == t || lst[i] == tt) flag++;
+        if (
+          (lst[i] == t || lst[i] == tt || flag == 1) &&
+          !lst[i].contains(inputSpan)
+        )
+          lst[i].classList.add("M2CellSelected"); // we refuse to touch input
+        i++;
+      }
+    } else if (!t.contains(inputSpan)) t.classList.toggle("M2CellSelected"); // we refuse to touch input
+    e.preventDefault();
+    this.focus();
   };
 
   const createHtml = function (a, className?) {
@@ -68,7 +107,12 @@ const Shell = function (
         // insert bar at left
         const s = document.createElement("span");
         s.className = "M2CellBar";
+        s.onmousedown = barMouseDown;
         s.onclick = barClick;
+        s.onkeydown = barKey;
+        s.tabIndex = 0;
+        s.title =
+          "Click to select then\nDelete to delete\nSpace to shrink\nw to wrap";
         htmlSec.appendChild(s);
       }
     }
@@ -568,6 +612,7 @@ const Shell = function (
       (e.target as HTMLElement).tagName != "A" &&
       window.getSelection().isCollapsed
     ) {
+      unselectCells();
       placeCaretAtEnd(inputSpan, true);
       scrollDown(shell);
     }
@@ -600,6 +645,7 @@ const Shell = function (
       e.ctrlKey ||
       e.altKey ||
       e.metaKey ||
+      e.key == "Shift" || // subtly different: shift key pressed (no combo)
       e.key == "PageUp" ||
       e.key == "PageDown" ||
       e.key == "F1"
@@ -634,6 +680,7 @@ const Shell = function (
       return;
     }
 
+    unselectCells();
     placeCaretAtEnd(inputSpan, true);
     const pos = window.getSelection().focusOffset;
     if (pos == 0) scrollLeft(shell);

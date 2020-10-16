@@ -172,40 +172,40 @@ table.examples pre {
 /* the shadow doesn't work in inline mode because the box
 does not contain the whole contents (and is possibly empty) */
 /*
-.M2Output.M2wrapped:hover, .M2wrapped .M2Output:hover {
+.M2Output.M2Wrapped:hover, .M2Wrapped .M2Output:hover {
     box-shadow: none;
 }
 */
 
-.M2Html.M2wrapped, .M2wrapped .M2Html {
+.M2Html.M2Wrapped, .M2Wrapped .M2Html {
     white-space: normal;
     word-break: break-word;
     display: inline;
 }
 
-.M2Text.M2wrapped, .M2wrapped pre, .M2wrapped .M2Text {
+.M2Text.M2Wrapped, .M2Wrapped pre, .M2Wrapped .M2Text {
     white-space: pre-wrap;
     word-break: break-all;
 }
 
 /* this allows katex to wrap */
-.M2wrapped .katex {
+.M2Wrapped .katex {
     white-space: normal;
 }
 
 /* this allows katex to wrap further than it currently wants to... */
-.M2wrapped .katex .base {
+.M2Wrapped .katex .base {
     white-space: normal;
     width: 100%;
     display: inline;
 }
 
 /* ...except it screws up fraction bars */
-.M2wrapped .katex .mfrac {
+.M2Wrapped .katex .mfrac {
     white-space: nowrap;
 }
 /* and anything else that has vertical structure, really */
-.M2wrapped .katex .vlist {
+.M2Wrapped .katex .vlist {
     white-space: nowrap;
 }
 
@@ -229,14 +229,12 @@ does not contain the whole contents (and is possibly empty) */
 }
 
 .M2Cell:hover > .M2CellBar {
-    background: gray;
+    background: grey;
 }
 
-/*
-.M2Cell.M2CellClosed:hover > .M2CellBar {
-    background: orange;
+.M2CellSelected > .M2CellBar {
+    background: orange !important; /* we want this to override the previous one in case of hover */
 }
-*/
 
 .M2CellBar:hover {
     cursor: pointer;

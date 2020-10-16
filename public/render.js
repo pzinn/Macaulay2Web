@@ -25,10 +25,46 @@ const baselinePosition = function(el) {
     return result;
 }
 
-const barClick = function (e) {
-    const t = e.target.parentElement;
-    t.classList.toggle("M2CellClosed");
+const unselectCells = function () {
+    const lst = Array.from(document.getElementsByClassName("M2CellSelected"));
+    lst.forEach((el) => {
+	el.classList.remove("M2CellSelected");
+    });
+};
+
+const barKey = function (e) {
     e.stopPropagation();
+    let fn;
+    if (e.key == " ") fn = (el) => el.classList.toggle("M2CellClosed");
+    else if (e.key == "Delete" || e.key == "Backspace")
+	fn = (el) => el.remove();
+    else if (e.key == "w" || e.key == "W")
+	fn = (el) => el.classList.toggle("M2Wrapped");
+    else return;
+    e.preventDefault();
+    Array.from(document.getElementsByClassName("M2CellSelected")).forEach(fn);
+};
+
+const barClick = function (e) {
+    e.stopPropagation();
+};
+const barMouseDown = function (e) {
+    const t = this.parentElement;
+    if (!e.shiftKey && !e.ctrlKey) unselectCells();
+    if (e.shiftKey && document.activeElement.classList.contains("M2CellBar")) {
+	const tt = document.activeElement.parentElement;
+	const lst = document.getElementsByClassName("M2Cell");
+	let i = 0;
+	let flag = 0;
+	while (i < lst.length && flag < 2) {
+            if (lst[i] == t || lst[i] == tt) flag++;
+            if (lst[i] == t || lst[i] == tt || flag == 1)
+		lst[i].classList.add("M2CellSelected");
+            i++;
+	}
+    } else t.classList.toggle("M2CellSelected");
+    e.preventDefault();
+    this.focus();
 };
 
 function contents(f) {
@@ -159,7 +195,11 @@ document.addEventListener("DOMContentLoaded", function() {
                     // insert bar at left
                     var s = document.createElement("span");
                     s.className = "M2CellBar";
-                    s.onclick = barClick;
+		    s.onmousedown = barMouseDown;
+		    s.onclick = barClick;
+		    s.onkeydown = barKey;
+		    s.tabIndex = 0;
+		    s.title = "Click to select then\nDelete to delete\nSpace to shrink\nw to wrap";
                     htmlSec.appendChild(s);
 		}
             }
