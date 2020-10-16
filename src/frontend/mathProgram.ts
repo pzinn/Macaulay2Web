@@ -263,7 +263,8 @@ const wrapEmitForDisconnect = function (event, msg) {
 
 const codeClickAction = function (e) {
   if (
-    e.target.tagName.substring(0, 4) == "CODE" &&
+    (e.target.tagName.substring(0, 4) == "CODE" ||
+      e.target.classList.contains("M2PastInput")) &&
     e.currentTarget.ownerDocument.getSelection().isCollapsed
   )
     myshell.postMessage(e.target.textContent, false, false);
@@ -301,13 +302,11 @@ const openBrowseTab = function (event) {
     if (ignoreFirstLoad) ignoreFirstLoad = false;
     else el.click();
   }
-  // try to enable links
+  // try to enable actions
   const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
   if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
     const bdy = iFrame.contentDocument.body;
-    bdy.onclick = function (e) {
-      myshell.ancSearch(e.target as HTMLElement, bdy);
-    };
+    bdy.onclick = codeClickAction;
     bdy.onkeydown = invokeHelp;
   }
   // do not follow link

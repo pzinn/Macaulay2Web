@@ -53,12 +53,10 @@ const Shell = function (
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
 
-  /*    const barClick = function (e) {
-      const t = (e.target as HTMLElement).parentElement;*/
-  const barClick = function () {
-    const t = this.parentElement;
+  const barClick = function (e) {
+    const t = (e.target as HTMLElement).parentElement;
     if (!t.contains(inputSpan)) t.classList.toggle("M2CellClosed");
-    //	e.preventDefault();
+    e.stopPropagation();
   };
 
   const createHtml = function (a, className?) {
@@ -70,7 +68,7 @@ const Shell = function (
         // insert bar at left
         const s = document.createElement("span");
         s.className = "M2CellBar";
-        //        s.onclick = barClick;
+        s.onclick = barClick;
         htmlSec.appendChild(s);
       }
     }
@@ -106,7 +104,7 @@ const Shell = function (
 
   createInputEl();
 
-  const codeInputAction = function () {
+  const codeInputAction = function (e) {
     // will only trigger if selection is empty
     if (window.getSelection().isCollapsed) {
       let str = this.textContent;
@@ -115,6 +113,7 @@ const Shell = function (
       placeCaretAtEnd(inputSpan);
       scrollDown(shell);
     }
+    e.stopPropagation();
   };
 
   const removeAutoComplete = function (flag) {
@@ -558,26 +557,15 @@ const Shell = function (
     };
   };
 
-  obj.ancSearch = function (t: HTMLElement, base: HTMLElement) {
-    while (t != base) {
-      if (t.tagName == "A") return true;
-      if (t.classList.contains("M2PastInput")) {
-        codeInputAction.call(t);
-        return true;
-      }
-      if (t.classList.contains("M2CellBar")) {
-        barClick.call(t);
-        return true;
-      }
-      t = t.parentElement;
-    }
-    return false;
-  };
+  /*  obj.restoreInputAction = function (doc) {
+    Array.from(doc.getElementsByClassName("M2PastInput")).forEach((el) => {
+      (el as any).onclick = codeInputAction;
+    });
+  };*/
 
   shell.onclick = function (e) {
-    // we're gonna do manually an ancestor search -- a bit heavy but more efficient than adding a bunch of event listeners
     if (
-      !obj.ancSearch(e.target as HTMLElement, shell) &&
+      (e.target as HTMLElement).tagName != "A" &&
       window.getSelection().isCollapsed
     ) {
       placeCaretAtEnd(inputSpan, true);
@@ -680,12 +668,12 @@ const Shell = function (
         Prism.languages.macaulay2
       );
       htmlSec.classList.add("M2PastInput");
+      htmlSec.onclick = codeInputAction;
     } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
       if (url[0] != "/" && url.substr(0, 4) != "http") url = "/relative/" + url; // for relative URLs
       if (iFrame) iFrame.src = url;
       else window.open(url, "M2 browse");
-      htmlSec.removeAttribute("data-code");
     } else if (htmlSec.classList.contains("M2Katex")) {
       try {
         const katexRes = katex
@@ -730,34 +718,32 @@ const Shell = function (
       if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
       else anc.dataset.idList += " " + rawList.length;
       rawList.push(htmlSec);
-    } else {
-      if (anc.classList.contains("M2Katex")) {
-        // html inside tex
-        // 18mu= 1em * mathfont size modifier, here 1.21 factor of KaTeX
-        const fontSize: number =
-          +window
-            .getComputedStyle(htmlSec, null)
-            .getPropertyValue("font-size")
-            .split("px", 1)[0] * 1.21;
-        const baseline: number = baselinePosition(htmlSec);
-        anc.dataset.code +=
-          "\\htmlId{raw" +
-          rawList.length +
-          "}{\\vphantom{" + // the vphantom ensures proper horizontal space
-          "\\raisebox{" +
-          baseline / fontSize +
-          "ce}{}" +
-          "\\raisebox{" +
-          (baseline - htmlSec.offsetHeight) / fontSize +
-          "ce}{}" +
-          "}\\hspace{" +
-          htmlSec.offsetWidth / fontSize +
-          "ce}" + // the hspace is really just for debugging
-          "}";
-        if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
-        else anc.dataset.idList += " " + rawList.length;
-        rawList.push(htmlSec); // try on { (help det)#2#1#1#0#0 }
-      }
+    } else if (anc.classList.contains("M2Katex")) {
+      // html inside tex
+      // 18mu= 1em * mathfont size modifier, here 1.21 factor of KaTeX
+      const fontSize: number =
+        +window
+          .getComputedStyle(htmlSec, null)
+          .getPropertyValue("font-size")
+          .split("px", 1)[0] * 1.21;
+      const baseline: number = baselinePosition(htmlSec);
+      anc.dataset.code +=
+        "\\htmlId{raw" +
+        rawList.length +
+        "}{\\vphantom{" + // the vphantom ensures proper horizontal space
+        "\\raisebox{" +
+        baseline / fontSize +
+        "ce}{}" +
+        "\\raisebox{" +
+        (baseline - htmlSec.offsetHeight) / fontSize +
+        "ce}{}" +
+        "}\\hspace{" +
+        htmlSec.offsetWidth / fontSize +
+        "ce}" + // the hspace is really just for debugging
+        "}";
+      if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
+      else anc.dataset.idList += " " + rawList.length;
+      rawList.push(htmlSec); // try on { (help det)#2#1#1#0#0 }
     }
     htmlSec = anc;
   };
@@ -815,10 +801,8 @@ const Shell = function (
           }
         }
 
-        if (htmlSec.dataset.code !== undefined) {
-          htmlSec.dataset.code += txt[i];
-          //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // might as well update in real time
-        }
+        if (htmlSec.dataset.code !== undefined) htmlSec.dataset.code += txt[i];
+        //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // used to update in real time
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
         else if (inputSpan.parentElement == htmlSec)
           htmlSec.insertBefore(document.createTextNode(txt[i]), inputSpan);

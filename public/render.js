@@ -1,13 +1,13 @@
 // borrowed from tags.js
 const webAppTagCodes = [
-  ["End", 17, ""], // end of section script
-  ["Html", 18, "M2Html"], // indicates what follows is HTML
-  ["Cell", 19, "M2Text M2Cell"], // cell (bundled input + output)
-  ["Input", 20, "M2Text M2Input"], // it's text but it's input
-  ["InputContd", 28, "M2Text M2Input"], // text, continuation of input
-  ["Url", 29, "M2Url"], // url
-  ["Text", 30, "M2Text"], // indicates what follows is pure text; default mode
-  ["Tex", 31, "M2Katex"] // TeX
+    ["End", 17, ""], // end of section script
+    ["Html", 18, "M2Html"], // indicates what follows is HTML
+    ["Cell", 19, "M2Text M2Cell"], // cell (bundled input + output)
+    ["Input", 20, "M2Text M2Input"], // it's text but it's input
+    ["InputContd", 28, "M2Text M2Input"], // text, continuation of input
+    ["Url", 29, "M2Url"], // url
+    ["Text", 30, "M2Text"], // indicates what follows is pure text; default mode
+    ["Tex", 31, "M2Katex"] // TeX
 ];
 var webAppTags = {};
 var webAppClasses = {};
@@ -24,6 +24,12 @@ const baselinePosition = function(el) {
     probe.remove();
     return result;
 }
+
+const barClick = function (e) {
+    const t = e.target.parentElement;
+    t.classList.toggle("M2CellClosed");
+    e.stopPropagation();
+};
 
 function contents(f) {
     var xhttp = new XMLHttpRequest();
@@ -48,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	b1=msg.indexOf(">");
 	msg = msg.substring(b1+1);
 	
-//	document.body.innerHTML="";
+	//	document.body.innerHTML="";
 
 	const shell = document.body;
 
@@ -70,7 +76,6 @@ document.addEventListener("DOMContentLoaded", function() {
 		if (url[0] != "/" && url.substr(0, 4) != "http") url = "/relative/" + url; // for relative URLs
 		if (iFrame) iFrame.src = url;
 		else window.open(url, "M2 browse");
-		htmlSec.removeAttribute("data-code");
 	    } else if (htmlSec.classList.contains("M2Katex")) {
 		try {
 		    var katexRes = katex
@@ -115,56 +120,54 @@ document.addEventListener("DOMContentLoaded", function() {
 		if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
 		else anc.dataset.idList += " " + rawList.length;
 		rawList.push(htmlSec);
-	    } else {
-		if (anc.classList.contains("M2Katex")) {
-		    // html inside tex
-		    // 18mu= 1em * mathfont size modifier, here 1.21 factor of KaTeX
-		    var fontSize =
-			+window
-			.getComputedStyle(htmlSec, null)
-			.getPropertyValue("font-size")
-			.split("px", 1)[0] * 1.21;
-		    var baseline = baselinePosition(htmlSec);
-		    anc.dataset.code +=
-			"\\htmlId{raw" +
-			rawList.length +
-			"}{\\vphantom{" + // the vphantom ensures proper horizontal space
-			"\\raisebox{" +
-			baseline / fontSize +
-			"ce}{}" +
-			"\\raisebox{" +
-			(baseline - htmlSec.offsetHeight) / fontSize +
-			"ce}{}" +
-			"}\\hspace{" +
-			htmlSec.offsetWidth / fontSize +
-			"ce}" + // the hspace is really just for debugging
-			"}";
-		    if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
-		    else anc.dataset.idList += " " + rawList.length;
-		    rawList.push(htmlSec); // try on { (help det)#2#1#1#0#0 }
-		}
+	    } else if (anc.classList.contains("M2Katex")) {
+		// html inside tex
+		// 18mu= 1em * mathfont size modifier, here 1.21 factor of KaTeX
+		var fontSize =
+		    +window
+		    .getComputedStyle(htmlSec, null)
+		    .getPropertyValue("font-size")
+		    .split("px", 1)[0] * 1.21;
+		var baseline = baselinePosition(htmlSec);
+		anc.dataset.code +=
+		    "\\htmlId{raw" +
+		    rawList.length +
+		    "}{\\vphantom{" + // the vphantom ensures proper horizontal space
+		    "\\raisebox{" +
+		    baseline / fontSize +
+		    "ce}{}" +
+		    "\\raisebox{" +
+		    (baseline - htmlSec.offsetHeight) / fontSize +
+		    "ce}{}" +
+		    "}\\hspace{" +
+		    htmlSec.offsetWidth / fontSize +
+		    "ce}" + // the hspace is really just for debugging
+		    "}";
+		if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
+		else anc.dataset.idList += " " + rawList.length;
+		rawList.push(htmlSec); // try on { (help det)#2#1#1#0#0 }
 	    }
 	    htmlSec = anc;
 	};
 
-    var createHtml = function (a, className) {
-        var anc = htmlSec;
-        htmlSec = document.createElement(a);
-        if (className) {
-            htmlSec.className = className;
-            if (className.indexOf("M2Cell") >= 0) {
-                // insert bar at left
-                var s = document.createElement("span");
-                s.className = "M2CellBar";
-                //        s.onclick = barClick;
-                htmlSec.appendChild(s);
+	var createHtml = function (a, className) {
+            var anc = htmlSec;
+            htmlSec = document.createElement(a);
+            if (className) {
+		htmlSec.className = className;
+		if (className.indexOf("M2Cell") >= 0) {
+                    // insert bar at left
+                    var s = document.createElement("span");
+                    s.className = "M2CellBar";
+                    s.onclick = barClick;
+                    htmlSec.appendChild(s);
+		}
             }
-        }
-        if (className.indexOf("M2Text") < 0)
-            htmlSec.dataset.code = "";
-        // even M2Html needs to keep track of innerHTML because html tags may get broken
-        anc.appendChild(htmlSec);
-    };
+            if (className.indexOf("M2Text") < 0)
+		htmlSec.dataset.code = "";
+            // even M2Html needs to keep track of innerHTML because html tags may get broken
+            anc.appendChild(htmlSec);
+	};
 
 	//createHtml("div","M2Html");
 	shell.classList.add("M2Html"); shell.dataset.code="";
@@ -212,10 +215,8 @@ document.addEventListener("DOMContentLoaded", function() {
 		    }
 		}
 
-		if (htmlSec.dataset.code !== undefined) {
+		if (htmlSec.dataset.code !== undefined)
 		    htmlSec.dataset.code += txt[i];
-		    if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // might as well update in real time
-		}
 		// all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
 		else htmlSec.appendChild(document.createTextNode(txt[i]));
 	    }
