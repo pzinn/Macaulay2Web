@@ -65,12 +65,6 @@
     font-weight: normal;
 }
 
-.M2Text {
-    white-space: pre;
-    font-family: "Roboto Mono"; /* default font */
-    font-weight: normal;
-}
-
 .M2Html {
     display: inline-table; /* to make sure size is as big as content. inline-block is the more obvious choice */
     white-space: nowrap;
@@ -217,6 +211,7 @@ does not contain the whole contents (and is possibly empty) */
     display: block; /* is that bad? */
     position: relative;
     padding-left: 10px;
+    margin-top: 1.2em;
 }
 
 .M2CellBar {
