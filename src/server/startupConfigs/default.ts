@@ -18,7 +18,6 @@ const options = {
       webAppTags.End +
       " to print the list of existing symbols.\n" +
       webAppTags.End +
-      "\n" +
       webAppTags.Cell +
       "i* : " +
       webAppTags.Input,
