@@ -101,7 +101,9 @@
 
 /* from doc.css */
 table.examples {
-     margin-left: 2em;
+    margin-left: 2em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
      width: 50%;
      border-style: solid;
 /*     background-color: #c0ffff;
@@ -119,8 +121,9 @@ table.examples td {
 /*     border-top-color: #50b0b0;
      border-bottom-color: #c0ffff;
      border-left-color: #50b0b0;
-     border-right-color: #a0ffff;*/
-     padding: 1ex;
+     border-right-color: #a0ffff; */
+     padding-right: 0.75em;
+     padding-bottom: 1em;
      border-width: 1px;
 }
 table.examples pre {
