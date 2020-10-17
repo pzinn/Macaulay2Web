@@ -544,15 +544,17 @@ const listen = function () {
       logger.info("Incoming new connection!");
       const publicId = socket.handshake.query.publicId;
       const userId = socket.handshake.query.userId;
-      let clientId: string = getClientIdFromSocket(socket);
-      if (clientId === undefined && publicId !== undefined) {
+      let clientId: string;
+      if (publicId !== undefined) {
         clientId = "public" + publicId;
       } else if (userId !== undefined) {
         clientId = "user" + userId;
         setCookieOnSocket(socket, clientId); // overwrite cookie if necessary
-      } else if (clientId === undefined) {
-        // need new one
-        clientId = initializeClientId(socket);
+      } else {
+        clientId = getClientIdFromSocket(socket);
+        if (clientId === undefined)
+          // need new one
+          clientId = initializeClientId(socket);
       }
       logClient(clientId, "Assigned clientId");
       if (clientId === "deadCookie") {
