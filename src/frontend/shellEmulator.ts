@@ -18,18 +18,16 @@ declare const katex;
 //const Prism = require('prismjs');
 const M2symbols = require("./prism-M2");
 
-/*
 function dehtml(s) {
   // these are all the substitutions performed by M2
-    //  s = s.replace(/&bsol;/g, "\\");
-    s = s.replace(/&dollar;/g,"$");
+  //  s = s.replace(/&bsol;/g, "\\");
+  //s = s.replace(/&dollar;/g,"$");
   s = s.replace(/&lt;/g, "<");
   s = s.replace(/&gt;/g, ">");
   s = s.replace(/&quot;/g, '"');
   s = s.replace(/&amp;/g, "&"); // do this one last
   return s;
 }
-*/
 
 const Shell = function (
   shell: HTMLElement,
@@ -722,7 +720,8 @@ const Shell = function (
     } else if (htmlSec.classList.contains("M2Katex")) {
       try {
         const katexRes = katex
-          .__renderToHTMLTree(htmlSec.dataset.code, {
+          .__renderToHTMLTree(dehtml(htmlSec.dataset.code), {
+            // encoding is *not* compulsory
             displayMode: true,
             trust: true,
             strict: false,
