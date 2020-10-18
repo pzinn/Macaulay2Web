@@ -696,6 +696,11 @@ const Shell = function (
   const rawList = [];
 
   const closeHtml = function () {
+    if (htmlSec.classList.contains("M2KatexDisplayTemp")) {
+      htmlSec.classList.remove("M2KatexDisplayTemp");
+      return;
+    }
+
     const anc = htmlSec.parentElement;
 
     if (htmlSec.classList.contains("M2Input"))
@@ -719,17 +724,18 @@ const Shell = function (
       else window.open(url, "M2 browse");
     } else if (htmlSec.classList.contains("M2Katex")) {
       try {
-        const katexRes = katex
-          .__renderToHTMLTree(dehtml(htmlSec.dataset.code), {
+        // one could call katex.renderToString or whatever instead but mathml causes problems
+        const katexRes = katex.__renderToHTMLTree(
+          dehtml(htmlSec.dataset.code),
+          {
             // encoding is *not* compulsory
             displayMode: true,
             trust: true,
             strict: false,
             maxExpand: Infinity,
-          })
-          .children[0] // bit of a hack: to remove the overall displayMode, keeping just displayStyle
-          .toNode(); // one could call katex.renderToString instead but mathml causes problems
-        htmlSec.appendChild(katexRes); // need to be part of document to use getElementById
+          }
+        ).children[0]; // bit of a hack: to remove the overall displayMode, keeping just displayStyle
+        htmlSec.appendChild(katexRes.toNode());
         // restore raw stuff
         if (htmlSec.dataset.idList) {
           htmlSec.dataset.idList.split(" ").forEach(function (id) {
@@ -815,13 +821,22 @@ const Shell = function (
         const tag = txt[i - 1];
         if (
           tag == webAppTags.End ||
-          (tag == webAppTags.Tex && htmlSec.classList.contains("M2Katex"))
+          (tag == webAppTags.Tex &&
+            htmlSec.classList.contains("M2Katex") &&
+            htmlSec.dataset.code != "") // last condition means, not a $$
         ) {
           // end of section
           closeHtml();
         } else if (tag === webAppTags.InputContd) {
           // continuation of input section
           inputEndFlag = false;
+        } else if (
+          tag == webAppTags.Tex &&
+          htmlSec.classList.contains("M2Katex") &&
+          htmlSec.dataset.code == ""
+        ) {
+          htmlSec.classList.add("M2KatexDisplayTemp"); // second $
+	  htmlSec.classList.add("M2KatexDisplay");
         } else if (
           tag == webAppTags.Tex &&
           !htmlSec.classList.contains("M2Html")
