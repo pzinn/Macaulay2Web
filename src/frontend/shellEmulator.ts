@@ -723,10 +723,12 @@ const Shell = function (
       try {
         const katexRes = katex
           .__renderToHTMLTree(htmlSec.dataset.code, {
+            displayMode: true,
             trust: true,
             strict: false,
             maxExpand: Infinity,
           })
+          .children[0] // bit of a hack: to remove the overall displayMode, keeping just displayStyle
           .toNode(); // one could call katex.renderToString instead but mathml causes problems
         htmlSec.appendChild(katexRes); // need to be part of document to use getElementById
         // restore raw stuff
