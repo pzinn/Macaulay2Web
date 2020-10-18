@@ -6,7 +6,7 @@ const webAppTagCodes = [
   ["InputContd", 28, "M2Text M2Input"], // text, continuation of input
   ["Url", 29, "M2Url"], // url
   ["Text", 30, "M2Text"], // indicates what follows is pure text; default mode
-  ["Tex", 31, "M2Katex"], // TeX
+  ["Tex", 36, "M2Katex"], // TeX
 ];
 const webAppTags = {} as any;
 const webAppClasses = {} as any;
@@ -15,4 +15,8 @@ webAppTagCodes.forEach((x) => {
   webAppClasses[String.fromCharCode(x[1] as number)] = x[2];
 });
 
-export { webAppTags, webAppClasses };
+webAppTags.Tex = "(?<=[^\\\\])\\$";
+const webAppRegex = new RegExp("(" + Object.values(webAppTags).join("|") + ")");
+webAppTags.Tex = "$";
+
+export { webAppTags, webAppClasses, webAppRegex };

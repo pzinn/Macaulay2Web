@@ -1,6 +1,6 @@
 import { Socket } from "./mathProgram";
 
-import { webAppTags, webAppClasses } from "./tags";
+import { webAppTags, webAppClasses, webAppRegex } from "./tags";
 import {
   scrollDownLeft,
   scrollDown,
@@ -21,7 +21,8 @@ const M2symbols = require("./prism-M2");
 /*
 function dehtml(s) {
   // these are all the substitutions performed by M2
-  s = s.replace(/&bsol;/g, "\\");
+    //  s = s.replace(/&bsol;/g, "\\");
+    s = s.replace(/&dollar;/g,"$");
   s = s.replace(/&lt;/g, "<");
   s = s.replace(/&gt;/g, ">");
   s = s.replace(/&quot;/g, '"');
@@ -46,9 +47,6 @@ const Shell = function (
   const cmdHistory: any = []; // History of commands for shell-like arrow navigation
   cmdHistory.index = 0;
   let autoComplete = null; // autocomplete HTML element (when tab is pressed)
-  const webAppTagsRegExp = new RegExp(
-    "(" + Object.values(webAppTags).join("|") + ")"
-  );
   // input is a bit messy...
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
@@ -801,7 +799,7 @@ const Shell = function (
       procInputSpan = null;
     }
 
-    const txt = msg.split(webAppTagsRegExp);
+    const txt = msg.split(webAppRegex);
     for (let i = 0; i < txt.length; i += 2) {
       // if we are at the end of an input section
       if (
@@ -814,12 +812,21 @@ const Shell = function (
       }
       if (i > 0) {
         const tag = txt[i - 1];
-        if (tag == webAppTags.End) {
+        if (
+          tag == webAppTags.End ||
+          (tag == webAppTags.Tex && htmlSec.classList.contains("M2Katex"))
+        ) {
           // end of section
           closeHtml();
         } else if (tag === webAppTags.InputContd) {
           // continuation of input section
           inputEndFlag = false;
+        } else if (
+          tag == webAppTags.Tex &&
+          !htmlSec.classList.contains("M2Html")
+        ) {
+          // false alarm
+          txt[i] = webAppTags.Tex + txt[i];
         } else {
           // new section
           createHtml("span", webAppClasses[tag]);
