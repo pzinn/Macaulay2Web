@@ -87,9 +87,9 @@ which means that no matter what the output mode, <tt>describe</tt>'s actual outp
   <p>Only <i>math</i> is typeset in (La)TeX (this is also the spirit of KaTeX).
     See also the recent discussion on documentation and KaTeX.
   </p>
-  <p>$\Rightarrow$ We use <tt>html</tt> for nonmath (e.g., strings & nets), <tt>texMath</tt> for math. 
-    This is determined by the method <tt>htmlWithTex</tt>. By default,<br/>
-    <tt>htmlWithTex Thing := tex</tt><br/> (or something approaching). Whereas e.g. <br/><tt>htmlWithTex Hypertext := html</tt>.
+  <p>$\Rightarrow$ We use HTML for nonmath (e.g., strings & nets), (La)TeX for math. 
+    This is determined by the method <tt>html</tt>. By default,<br/>
+    <tt>html Thing := tex</tt><br/>. Whereas e.g. <br/><tt>html Hypertext</tt> is redefined to produce HTML output.
   </p>
   <p><i>Good place for a break</i>
   </p>
@@ -279,8 +279,7 @@ blackStroke={&quot;stroke&quot;=&gt;&quot;black&quot;,&quot;stroke-width&quot;=&
 svgtile = hashTable { crossing =&gt; gList(bbox,crossingTile++blackStroke,crossingTile++redStroke), 
     elbows =&gt; gList(bbox,elbowsTile++blackStroke,elbowsTile++redStroke) };
 vg = p -&gt; gList append(flatten table(n,n,(i,j)-&gt;svgtile#(p#i#j)++{TransformMatrix=&gt;translation(j,-i-1)}),SizeX=&gt;n*2.5);
-html PipeDream := p -&gt; html vg p;
-htmlWithTex PipeDream := html;</codeblock></p>
+html PipeDream := p -&gt; html vg p;</codeblock></p>
 <p>see in particular <code>svgtile</code>. The result:
 </p>
 <p><code>apply(cs,pipeDream)</code></p>

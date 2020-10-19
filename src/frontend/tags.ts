@@ -15,7 +15,8 @@ webAppTagCodes.forEach((x) => {
   webAppClasses[String.fromCharCode(x[1] as number)] = x[2];
 });
 
-webAppTags.Tex = "(?<=[^\\\\])\\$";
+//webAppTags.Tex = "(?<=[^\\\\])\\$|^\\$"; // used to escape \$ but all kinds of issues with \ and $ being split by packets
+webAppTags.Tex = "\\$";
 const webAppRegex = new RegExp("(" + Object.values(webAppTags).join("|") + ")");
 webAppTags.Tex = "$";
 

@@ -805,7 +805,6 @@ const Shell = function (
       procInputSpan.remove();
       procInputSpan = null;
     }
-
     const txt = msg.split(webAppRegex);
     for (let i = 0; i < txt.length; i += 2) {
       // if we are at the end of an input section
@@ -836,7 +835,7 @@ const Shell = function (
           htmlSec.dataset.code == ""
         ) {
           htmlSec.classList.add("M2KatexDisplayTemp"); // second $
-	  htmlSec.classList.add("M2KatexDisplay");
+          htmlSec.classList.add("M2KatexDisplay");
         } else if (
           tag == webAppTags.Tex &&
           !htmlSec.classList.contains("M2Html")
