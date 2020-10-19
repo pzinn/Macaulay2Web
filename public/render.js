@@ -7,7 +7,7 @@ const webAppTagCodes = [
     ["InputContd", 28, "M2Text M2Input"], // text, continuation of input
     ["Url", 29, "M2Url"], // url
     ["Text", 30, "M2Text"], // indicates what follows is pure text; default mode
-    ["Tex", 31, "M2Katex"] // TeX
+    ["Tex", 36, "M2Katex"] // TeX
 ];
 var webAppTags = {};
 var webAppClasses = {};
@@ -15,6 +15,21 @@ webAppTagCodes.forEach(function (x) {
     webAppTags[x[0]] = String.fromCharCode(x[1]);
     webAppClasses[String.fromCharCode(x[1])] = x[2];
 });
+webAppTags.Tex = "(?<=[^\\\\])\\$";
+const webAppRegex = new RegExp("(" + Object.values(webAppTags).join("|") + ")");
+webAppTags.Tex = "$";
+
+
+function dehtml(s) {
+    // these are all the substitutions performed by M2
+    //  s = s.replace(/&bsol;/g, "\\");
+    //s = s.replace(/&dollar;/g,"$");
+    s = s.replace(/&lt;/g, "<");
+    s = s.replace(/&gt;/g, ">");
+    s = s.replace(/&quot;/g, '"');
+    s = s.replace(/&amp;/g, "&"); // do this one last
+    return s;
+}
 
 const baselinePosition = function(el) {
     const probe = document.createElement('span');
@@ -96,13 +111,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	var htmlSec; // the current place in shell where new stuff gets written
 	// mathJax/katex related stuff
-	const webAppTagsRegExp = new RegExp("(" + Object.values(webAppTags).join("|") + ")");
 	// input is a bit messy...
 	var inputEndFlag = false;
 
 	var rawList=[];
 
 	var closeHtml = function () {
+            if (htmlSec.classList.contains("M2KatexDisplayTemp")) {
+		htmlSec.classList.remove("M2KatexDisplayTemp");
+		return;
+            }
 	    var anc = htmlSec.parentElement;
 	    if (htmlSec.classList.contains("M2Input")) {
 		anc.appendChild(document.createElement("br")); // this first for spacing purposes
@@ -114,14 +132,14 @@ document.addEventListener("DOMContentLoaded", function() {
 		else window.open(url, "M2 browse");
 	    } else if (htmlSec.classList.contains("M2Katex")) {
 		try {
-		    var katexRes = katex
-			.__renderToHTMLTree(htmlSec.dataset.code, {
-			    trust: true,
-			    strict: false,
-			    maxExpand: Infinity,
-			})
-			.toNode(); // one could call katex.renderToString instead but mathml causes problems
-		    htmlSec.appendChild(katexRes); // need to be part of document to use getElementById
+                    var katexRes = katex.__renderToHTMLTree(dehtml(htmlSec.dataset.code), {
+			// encoding is *not* compulsory
+			displayMode: true,
+			trust: true,
+			strict: false,
+			maxExpand: Infinity,
+                    }).children[0]; // bit of a hack: to remove the overall displayMode, keeping just displayStyle
+		    htmlSec.appendChild(katexRes.toNode()); // need to be part of document to use getElementById
 		    // restore raw stuff
 		    if (htmlSec.dataset.idList) {
 			htmlSec.dataset.idList.split(" ").forEach(function (id) {
@@ -213,7 +231,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	shell.classList.add("M2Html"); shell.dataset.code="";
 	htmlSec=shell;
 	
-	const txt = msg.split(webAppTagsRegExp);
+	const txt = msg.split(webAppRegex);
 	for (let i = 0; i < txt.length; i += 2) {
 	    // if we are at the end of an input section
 	    if (
@@ -226,12 +244,19 @@ document.addEventListener("DOMContentLoaded", function() {
 	    }
 	    if (i > 0) {
 		const tag = txt[i - 1];
-		if (tag == webAppTags.End) {
+		if (tag == webAppTags.End || (tag == webAppTags.Tex && htmlSec.classList.contains("M2Katex") && htmlSec.dataset.code != ""))
+		{ // last condition means, not a $$
 		    // end of section
 		    closeHtml();
 		} else if (tag === webAppTags.InputContd) {
-		    // continuation of input section
+			// continuation of input section
 		    inputEndFlag = false;
+	        } else if ( tag == webAppTags.Tex && htmlSec.classList.contains("M2Katex") && htmlSec.dataset.code == "" ) {
+		    htmlSec.classList.add("M2KatexDisplayTemp"); // second $
+		    htmlSec.classList.add("M2KatexDisplay");
+		} else if ( tag == webAppTags.Tex && !htmlSec.classList.contains("M2Html") ) {
+		    // false alarm
+		    txt[i] = webAppTags.Tex + txt[i];
 		} else {
 		    // new section
 		    createHtml("span", webAppClasses[tag]);
