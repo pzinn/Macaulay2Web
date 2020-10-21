@@ -863,7 +863,6 @@ const Shell = function (
     console.log("Reset");
     removeAutoComplete(false); // remove autocomplete menu if open
     createInputEl(); // recreate the input area
-    htmlSec.parentElement.insertBefore(document.createElement("br"), htmlSec);
   };
 
   obj.interrupt = function () {
