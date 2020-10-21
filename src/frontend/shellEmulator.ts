@@ -885,7 +885,7 @@ const Shell = function (
     console.log("Reset");
     removeAutoComplete(false); // remove autocomplete menu if open
     createInputEl(); // recreate the input area
-    htmlSec.parentElement.insertBefore(document.createElement("br"), htmlSec);
+//    htmlSec.parentElement.insertBefore(document.createElement("hr"), htmlSec); // insert an additional horizontal line to distinguish successive M2  runs
   };
 
   obj.interrupt = function () {
