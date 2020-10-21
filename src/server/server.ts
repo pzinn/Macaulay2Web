@@ -374,9 +374,9 @@ const getHelp = function (req, res, next) {
     <link href="/prism-M2.css" rel="stylesheet" />
     <script src="/render.js"></script>
   </head>
-  <body onload='render(atob("`);
+  <body onload='render("`);
       res.write(data.toString("base64"));
-      res.write(`"));'>
+      res.write(`");'>
   </body>
 </html>
 `);

@@ -82,7 +82,14 @@ const barMouseDown = function (e) {
     this.focus();
 };
 
+function b64DecodeUnicode(str) { // so complicated...
+    return decodeURIComponent(atob(str).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+}
+
 render = function(text) { // borrowed from shellEmulator (TODO: merge of course)
+    text = b64DecodeUnicode(text);
     var b1 = text.indexOf("<body");
     var b2 = text.lastIndexOf("</body>");
     if ((b1<0)||(b2<0)) return;
