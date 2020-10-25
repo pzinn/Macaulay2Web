@@ -184,9 +184,11 @@ a {
     transition: transform 0.5s;
 }
 
+/*
 button.rotated .material-icons {
     transform: translate(-12px,-12px) rotate(90deg);
 }
+*/
 h3.rotated .material-icons {
     transform: rotate(90deg);
 }
