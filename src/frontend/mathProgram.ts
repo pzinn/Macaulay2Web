@@ -135,12 +135,14 @@ const clearOut = function () {
   while (out.childElementCount > 1) out.removeChild(out.firstChild);
 };
 
+/*
 const toggleWrap = function () {
   const out = document.getElementById("M2Out");
   const btn = document.getElementById("wrapBtn");
   btn.classList.toggle("rotated");
   out.classList.toggle("M2Wrapped");
 };
+*/
 
 const attachCtrlBtnActions = function () {
   attachClick("sendBtn", editorEvaluate);
@@ -150,7 +152,7 @@ const attachCtrlBtnActions = function () {
   attachClick("loadBtn", loadFile);
   attachClick("hiliteBtn", hilite);
   attachClick("clearBtn", clearOut);
-  attachClick("wrapBtn", toggleWrap);
+//  attachClick("wrapBtn", toggleWrap);
 };
 
 let fileName = "default.m2";
