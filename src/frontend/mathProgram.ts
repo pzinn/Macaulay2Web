@@ -152,7 +152,7 @@ const attachCtrlBtnActions = function () {
   attachClick("loadBtn", loadFile);
   attachClick("hiliteBtn", hilite);
   attachClick("clearBtn", clearOut);
-//  attachClick("wrapBtn", toggleWrap);
+  //  attachClick("wrapBtn", toggleWrap);
 };
 
 let fileName = "default.m2";
