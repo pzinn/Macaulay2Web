@@ -63,14 +63,25 @@ const Shell = function (
   const barKey = function (e: KeyboardEvent) {
     e.stopPropagation();
     let fn;
+    let s = "";
     if (e.key == " ") fn = (el) => el.classList.toggle("M2CellClosed");
     else if (e.key == "Delete" || e.key == "Backspace")
       fn = (el) => el.remove();
     else if (e.key == "w" || e.key == "W")
       fn = (el) => el.classList.toggle("M2Wrapped");
+    //    else if (e.key == "Enter" && e.shiftKey)
+    else if (e.key == "Enter")
+      fn = (el) => {
+        Array.from(el.children).forEach((el2: HTMLElement) => {
+          if (el2.classList.contains("M2PastInput")) s += el2.textContent;
+        });
+      };
     else return;
     e.preventDefault();
     Array.from(document.getElementsByClassName("M2CellSelected")).forEach(fn);
+    if (s != "") {
+      obj.postMessage(s, editorToggle && editorToggle.checked, true);
+    }
   };
 
   const barClick = function (e) {
@@ -112,7 +123,7 @@ const Shell = function (
         s.onkeydown = barKey;
         s.tabIndex = 0;
         s.title =
-          "Click to select then\nDelete to delete\nSpace to shrink\nw to wrap";
+          "Click to select then\nDelete to delete\nSpace to shrink\nw to wrap\nEnter to run";
         htmlSec.appendChild(s);
       }
     }
