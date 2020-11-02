@@ -136,10 +136,12 @@ render = function(text) { // borrowed from shellEmulator (TODO: merge of course)
 		if (htmlSec.dataset.idList) {
 		    htmlSec.dataset.idList.split(" ").forEach(function (id) {
 			var el = document.getElementById("raw" + id);
-			el.style.display = "contents"; // could put in css but don't want to overreach
-			el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
-			el.innerHTML = "";
-			el.appendChild(rawList[+id]);
+			if (el) {
+			    el.style.display = "contents"; // could put in css but don't want to overreach
+			    el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
+			    el.innerHTML = "";
+			    el.appendChild(rawList[+id]);
+			} else console.log("error restoring html element");
 		    });
 		}
 	    } catch (err) {
@@ -152,10 +154,12 @@ render = function(text) { // borrowed from shellEmulator (TODO: merge of course)
 	    if (htmlSec.dataset.idList)
 		htmlSec.dataset.idList.split(" ").forEach(function (id) {
 		    var el = document.getElementById("raw" + id);
-		    el.style.display = "contents"; // could put in css but don't want to overreach
-		    //            el.style.fontSize = "1em";
-		    //            el.innerHTML = "";
-		    el.appendChild(rawList[+id]);
+		    if (el) {
+			el.style.display = "contents"; // could put in css but don't want to overreach
+			//            el.style.fontSize = "1em";
+			//            el.innerHTML = "";
+			el.appendChild(rawList[+id]);
+		    } else console.log("error restoring html element");
 		});
 	}
 	htmlSec.removeAttribute("data-code");
