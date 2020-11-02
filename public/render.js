@@ -19,6 +19,25 @@ webAppTags.Tex = "(?<=[^\\\\])\\$";
 const webAppRegex = new RegExp("(" + Object.values(webAppTags).join("|") + ")");
 webAppTags.Tex = "$";
 
+var katexMacros = {
+  "\\break": "\\\\",
+  "\\R": "\\mathbb{R}",
+  "\\C": "\\mathbb{C}",
+  "\\ZZ": "\\mathbb{Z}",
+  "\\NN": "\\mathbb{N}",
+  "\\QQ": "\\mathbb{Q}",
+  "\\RR": "\\mathbb{R}",
+  "\\CC": "\\mathbb{C}",
+  "\\PP": "\\mathbb{P}",
+};
+var katexOptions = {
+  macros: katexMacros,
+  displayMode: true,
+  trust: true,
+  strict: false,
+  maxExpand: Infinity,
+};
+
 
 function dehtml(s) {
     // these are all the substitutions performed by M2
@@ -124,22 +143,20 @@ render = function(text) { // borrowed from shellEmulator (TODO: merge of course)
 	    else window.open(url, "M2 browse");
 	} else if (htmlSec.classList.contains("M2Katex")) {
 	    try {
-                var katexRes = katex.__renderToHTMLTree(dehtml(htmlSec.dataset.code), {
-		    // encoding is *not* compulsory
-		    displayMode: true,
-		    trust: true,
-		    strict: false,
-		    maxExpand: Infinity,
-                }).children[0]; // bit of a hack: to remove the overall displayMode, keeping just displayStyle
+                var katexRes = katex.__renderToHTMLTree(
+		    dehtml(htmlSec.dataset.code),// encoding is *not* compulsory
+		    katexOptions).children[0]; // bit of a hack: to remove the overall displayMode, keeping just displayStyle
 		htmlSec.appendChild(katexRes.toNode()); // need to be part of document to use getElementById
 		// restore raw stuff
 		if (htmlSec.dataset.idList) {
 		    htmlSec.dataset.idList.split(" ").forEach(function (id) {
 			var el = document.getElementById("raw" + id);
-			el.style.display = "contents"; // could put in css but don't want to overreach
-			el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
-			el.innerHTML = "";
-			el.appendChild(rawList[+id]);
+			if (el) {
+			    el.style.display = "contents"; // could put in css but don't want to overreach
+			    el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
+			    el.innerHTML = "";
+			    el.appendChild(rawList[+id]);
+			} else console.log("error restoring html element");
 		    });
 		}
 	    } catch (err) {
@@ -152,10 +169,12 @@ render = function(text) { // borrowed from shellEmulator (TODO: merge of course)
 	    if (htmlSec.dataset.idList)
 		htmlSec.dataset.idList.split(" ").forEach(function (id) {
 		    var el = document.getElementById("raw" + id);
-		    el.style.display = "contents"; // could put in css but don't want to overreach
-		    //            el.style.fontSize = "1em";
-		    //            el.innerHTML = "";
-		    el.appendChild(rawList[+id]);
+		    if (el) {
+			el.style.display = "contents"; // could put in css but don't want to overreach
+			//            el.style.fontSize = "1em";
+			//            el.innerHTML = "";
+			el.appendChild(rawList[+id]);
+		    } else console.log("error restoring html element");
 		});
 	}
 	htmlSec.removeAttribute("data-code");

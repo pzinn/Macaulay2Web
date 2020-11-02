@@ -15,6 +15,25 @@ import {
 
 //const unicodeBell = "\u0007";
 declare const katex;
+const katexMacros = {
+  "\\break": "\\\\",
+  "\\R": "\\mathbb{R}",
+  "\\C": "\\mathbb{C}",
+  "\\ZZ": "\\mathbb{Z}",
+  "\\NN": "\\mathbb{N}",
+  "\\QQ": "\\mathbb{Q}",
+  "\\RR": "\\mathbb{R}",
+  "\\CC": "\\mathbb{C}",
+  "\\PP": "\\mathbb{P}",
+};
+const katexOptions = {
+  macros: katexMacros,
+  displayMode: true,
+  trust: true,
+  strict: false,
+  maxExpand: Infinity,
+};
+
 //const Prism = require('prismjs');
 const M2symbols = require("./prism-M2");
 
@@ -740,24 +759,20 @@ const Shell = function (
       try {
         // one could call katex.renderToString or whatever instead but mathml causes problems
         const katexRes = katex.__renderToHTMLTree(
-          dehtml(htmlSec.dataset.code),
-          {
-            // encoding is *not* compulsory
-            displayMode: true,
-            trust: true,
-            strict: false,
-            maxExpand: Infinity,
-          }
+          dehtml(htmlSec.dataset.code), // encoding is *not* compulsory
+          katexOptions
         ).children[0]; // bit of a hack: to remove the overall displayMode, keeping just displayStyle
         htmlSec.appendChild(katexRes.toNode());
         // restore raw stuff
         if (htmlSec.dataset.idList) {
           htmlSec.dataset.idList.split(" ").forEach(function (id) {
             const el = document.getElementById("raw" + id);
-            el.style.display = "contents"; // could put in css but don't want to overreach
-            el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
-            el.innerHTML = "";
-            el.appendChild(rawList[+id]);
+            if (el) {
+              el.style.display = "contents"; // could put in css but don't want to overreach
+              el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
+              el.innerHTML = "";
+              el.appendChild(rawList[+id]);
+            } else console.log("error restoring html element");
           });
         }
       } catch (err) {
@@ -770,10 +785,12 @@ const Shell = function (
       if (htmlSec.dataset.idList)
         htmlSec.dataset.idList.split(" ").forEach(function (id) {
           const el = document.getElementById("raw" + id);
-          el.style.display = "contents"; // could put in css but don't want to overreach
-          //            el.style.fontSize = "1em";
-          //            el.innerHTML = "";
-          el.appendChild(rawList[+id]);
+          if (el) {
+            el.style.display = "contents"; // could put in css but don't want to overreach
+            //            el.style.fontSize = "1em";
+            //            el.innerHTML = "";
+            el.appendChild(rawList[+id]);
+          } else console.log("error restoring html element");
         });
     }
     htmlSec.removeAttribute("data-code");
