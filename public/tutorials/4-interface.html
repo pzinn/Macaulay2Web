@@ -116,10 +116,8 @@
       </p>
       <p>Say your type is<br/>
 	<code>MyType = new Type of BasicList</code><br/>
-	If you want to have (Ka)TeX output with <tt>texMath</tt>, there is nothing more to do.
-	If you want to use HTML output with <tt>html</tt>, you must write:<br/>
-	<code>htmlWithTex MyType := html</code><br/>
-	Let us define the <tt>html</tt> method for our type: (we could define it via <tt>expression</tt> as we did earlier for other modes of output, but for simplicity we define it directly here)<br/>
+	One can define as explained before a <tt>texMath</tt> method.
+	Let us try instead the <tt>html</tt> method for our type: (we could define it via <tt>expression</tt> as we did earlier for other modes of output, but for simplicity we define it directly here)<br/>
 	<code>needsPackage "Text"; html MyType := x -> html ( UL toList x )</code><br/>
 	Let us test it:<br/>
 	<code>new MyType from {"ha","hi",1-ii,QQ[x]}</code>
@@ -127,7 +125,7 @@
       <p>
 	Here we show how an existing package which already has HTML output can be easily converted to the new interface:<br/>
 	<code>needsPackage "Graphs"</code><br/>
-	Thanks to <tt>htmlWithTex Graph := html</tt>, we have<br/>
+	Now check out:
 	<code>help graph</code>
       </p>
     </div>

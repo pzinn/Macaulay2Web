@@ -1,6 +1,6 @@
 import { Socket } from "./mathProgram";
 
-import { webAppTags, webAppClasses } from "./tags";
+import { webAppTags, webAppClasses, webAppRegex } from "./tags";
 import {
   scrollDownLeft,
   scrollDown,
@@ -18,17 +18,16 @@ declare const katex;
 //const Prism = require('prismjs');
 const M2symbols = require("./prism-M2");
 
-/*
 function dehtml(s) {
   // these are all the substitutions performed by M2
-  s = s.replace(/&bsol;/g, "\\");
+  //  s = s.replace(/&bsol;/g, "\\");
+  //s = s.replace(/&dollar;/g,"$");
   s = s.replace(/&lt;/g, "<");
   s = s.replace(/&gt;/g, ">");
   s = s.replace(/&quot;/g, '"');
   s = s.replace(/&amp;/g, "&"); // do this one last
   return s;
 }
-*/
 
 const Shell = function (
   shell: HTMLElement,
@@ -46,9 +45,6 @@ const Shell = function (
   const cmdHistory: any = []; // History of commands for shell-like arrow navigation
   cmdHistory.index = 0;
   let autoComplete = null; // autocomplete HTML element (when tab is pressed)
-  const webAppTagsRegExp = new RegExp(
-    "(" + Object.values(webAppTags).join("|") + ")"
-  );
   // input is a bit messy...
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
@@ -714,6 +710,11 @@ const Shell = function (
   const rawList = [];
 
   const closeHtml = function () {
+    if (htmlSec.classList.contains("M2KatexDisplayTemp")) {
+      htmlSec.classList.remove("M2KatexDisplayTemp");
+      return;
+    }
+
     const anc = htmlSec.parentElement;
 
     if (htmlSec.classList.contains("M2Input"))
@@ -737,14 +738,18 @@ const Shell = function (
       else window.open(url, "M2 browse");
     } else if (htmlSec.classList.contains("M2Katex")) {
       try {
-        const katexRes = katex
-          .__renderToHTMLTree(htmlSec.dataset.code, {
+        // one could call katex.renderToString or whatever instead but mathml causes problems
+        const katexRes = katex.__renderToHTMLTree(
+          dehtml(htmlSec.dataset.code),
+          {
+            // encoding is *not* compulsory
+            displayMode: true,
             trust: true,
             strict: false,
             maxExpand: Infinity,
-          })
-          .toNode(); // one could call katex.renderToString instead but mathml causes problems
-        htmlSec.appendChild(katexRes); // need to be part of document to use getElementById
+          }
+        ).children[0]; // bit of a hack: to remove the overall displayMode, keeping just displayStyle
+        htmlSec.appendChild(katexRes.toNode());
         // restore raw stuff
         if (htmlSec.dataset.idList) {
           htmlSec.dataset.idList.split(" ").forEach(function (id) {
@@ -814,8 +819,7 @@ const Shell = function (
       procInputSpan.remove();
       procInputSpan = null;
     }
-
-    const txt = msg.split(webAppTagsRegExp);
+    const txt = msg.split(webAppRegex);
     for (let i = 0; i < txt.length; i += 2) {
       // if we are at the end of an input section
       if (
@@ -828,12 +832,30 @@ const Shell = function (
       }
       if (i > 0) {
         const tag = txt[i - 1];
-        if (tag == webAppTags.End) {
+        if (
+          tag == webAppTags.End ||
+          (tag == webAppTags.Tex &&
+            htmlSec.classList.contains("M2Katex") &&
+            htmlSec.dataset.code != "") // last condition means, not a $$
+        ) {
           // end of section
           closeHtml();
         } else if (tag === webAppTags.InputContd) {
           // continuation of input section
           inputEndFlag = false;
+        } else if (
+          tag == webAppTags.Tex &&
+          htmlSec.classList.contains("M2Katex") &&
+          htmlSec.dataset.code == ""
+        ) {
+          htmlSec.classList.add("M2KatexDisplayTemp"); // second $
+          htmlSec.classList.add("M2KatexDisplay");
+        } else if (
+          tag == webAppTags.Tex &&
+          !htmlSec.classList.contains("M2Html")
+        ) {
+          // false alarm
+          txt[i] = webAppTags.Tex + txt[i];
         } else {
           // new section
           createHtml("span", webAppClasses[tag]);
