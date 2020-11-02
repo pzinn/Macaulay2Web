@@ -183,7 +183,7 @@ const Shell = function (
       // placeCaretAtEnd(inputSpan);
       inputSpan.focus();
       document.execCommand("selectAll");
-      document.execCommand("insertHTML", false, str);
+      document.execCommand("insertText", false, str);
       scrollDown(shell);
     }
     e.stopPropagation();
