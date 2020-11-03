@@ -239,7 +239,7 @@ const socketOnDisconnect = function (msg) {
   myshell.onmessage(
     webAppTags.Text +
       "Sorry, your session was disconnected" +
-      " by the server.\n\n"
+      " by the server.\n"
   );
   myshell.reset();
   serverDisconnect = true;
