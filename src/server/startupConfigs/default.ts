@@ -12,11 +12,14 @@ const options = {
     port: 80,
     port2: 443,
     resumeString:
-      "Type " +
-      webAppTags.Html +
-      '<span class="M2PastInput">listUserSymbols</span>' +
+      webAppTags.Text +
+      "Session resumed.\n" +
       webAppTags.End +
-      " to print the list of existing symbols.\n" +
+      webAppTags.Html +
+      "Type " +
+      '<span class="M2PastInput">listUserSymbols</span>' +
+      " to print the list of existing symbols." +
+      webAppTags.End +
       webAppTags.End +
       webAppTags.Cell +
       "i* : " +

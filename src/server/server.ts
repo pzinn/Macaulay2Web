@@ -451,7 +451,7 @@ const clientExistenceCheck = function (clientId: string, socket): Client {
     emitDataSafelyViaSocket(
       socket,
       SocketEvent.result,
-      "Session resumed.\n" + serverConfig.resumeString
+      serverConfig.resumeString
     );
   }
   return clients[clientId];
