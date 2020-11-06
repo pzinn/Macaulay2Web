@@ -399,6 +399,7 @@ const init = function () {
 
   let tab = url.hash;
 
+  const loadtute = url.searchParams.get("loadtutorial");
   const upTutorial = document.getElementById("uptutorial");
   if (upTutorial) {
     const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab);
@@ -410,7 +411,7 @@ const init = function () {
     }
     tutorialManager = require("./tutorials")(tute, page - 1);
     const fetchTutorials = require("./fetchTutorials");
-    fetchTutorials(tutorialManager.makeTutorialsList);
+    fetchTutorials(tutorialManager.makeTutorialsList, loadtute);
     upTutorial.onchange = tutorialManager.uploadTutorial;
   }
 
@@ -418,7 +419,9 @@ const init = function () {
   if (tabs) {
     document.location.hash = "";
     window.addEventListener("hashchange", openTab);
-    if (tab === "") tab = "#home";
+    if (tab === "")
+      if (loadtute) tab = "#tutorial";
+      else tab = "#home";
     document.location.hash = tab;
   }
 

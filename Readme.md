@@ -179,6 +179,7 @@ Note that this does not overwrite the cookie containing your personal user id.
 Note that if you have already been assigned a user id, this will overwrite it (i.e., it will overwrite the cookie containing it), so use with caution
 (if you don't know your previous user id, you will lose access to your previous session).
 At the moment, the only way to know your current user id is to click on the word "cookie" on the home page.
+* `?loadtutorial=[filename]` to load a tutorial that's stored in your Macaulay2 docker (rather than locally).
 ## Internal file structure:
 ### Server
 * main file:

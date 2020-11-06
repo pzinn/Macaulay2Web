@@ -1,5 +1,5 @@
 /* global fetch */
-module.exports = function (callback) {
+module.exports = function (callback, extra) {
   console.log("Fetch tutorials.");
   fetch("/getListOfTutorials", {
     credentials: "same-origin",
@@ -9,6 +9,7 @@ module.exports = function (callback) {
     })
     .then(function (tutorialPaths) {
       console.log("Obtaining list of tutorials successful: " + tutorialPaths);
+      if (extra) tutorialPaths.unshift(extra);
       callback(tutorialPaths);
     })
     .catch(function (error) {
