@@ -4,18 +4,6 @@ const logger = require("./logger");
 type Tutorial = string;
 type Tutorials = Tutorial[];
 
-function moveWelcomeTutorialToBeginning(
-  tutorials: Tutorials,
-  firstTutorial: Tutorial
-): Tutorials {
-  const index: number = tutorials.indexOf(firstTutorial);
-  if (index > -1) {
-    tutorials.splice(index, 1);
-    tutorials.unshift(firstTutorial);
-  }
-  return tutorials;
-}
-
 type GetListFunction = (
   request: any,
   response: { writeHead: any; end: any }
@@ -49,10 +37,6 @@ function tutorialReader(prefix: string, fs): GetListFunction {
         tutorials = tutorials.filter(function (filename: Tutorial): Tutorials {
           return filename.match(/\.html$/);
         });
-        tutorials = moveWelcomeTutorialToBeginning(
-          tutorials,
-          "tutorials/welcome2.html"
-        );
 
         response.writeHead(200, {
           "Content-Type": "text/html",
@@ -66,7 +50,6 @@ function tutorialReader(prefix: string, fs): GetListFunction {
 }
 
 export { tutorialReader };
-export { moveWelcomeTutorialToBeginning as sortTutorials };
 export { Tutorials };
 export { Tutorial };
 export { GetListFunction };

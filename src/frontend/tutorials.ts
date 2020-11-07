@@ -119,18 +119,23 @@ const enrichTutorialWithHtml = function (theHtml) {
 const getTutorial = function (url) {
   return fetch(url, {
     credentials: "same-origin",
-  }).then(
-    function (response) {
-      if (response.status !== 200) {
-        throw new Error("Fetching tutorial failed: " + url);
+  })
+    .then(
+      function (response) {
+        if (response.status !== 200) {
+          throw new Error("Fetching tutorial failed: " + url);
+        }
+        return response.text();
+      },
+      function (error) {
+        console.log("Error in fetch: " + error);
+        throw error;
       }
-      return response.text();
-    },
-    function (error) {
-      console.log("Error in fetch: " + error);
-      throw error;
-    }
-  );
+    )
+    .then(function (txt) {
+      if (url.substr(-3) == ".md") txt = markdownToHtml(txt); // by default, assume html
+      return txt;
+    });
 };
 
 const makeTutorialsList = function (tutorialNames) {
@@ -226,7 +231,7 @@ const markdownToHtml = function (markdownText) {
     output.push("</div>");
   }
   const txt = output.join("\n");
-  console.log(txt);
+  //  console.log(txt);
   return txt;
 };
 
@@ -237,7 +242,7 @@ const uploadTutorial = function () {
   reader.readAsText(file);
   reader.onload = function (event) {
     let txt = event.target.result as string;
-    if (file.name.substr(-5) != ".html") txt = markdownToHtml(txt); // by default, assume markdown
+    if (file.name.substr(-3) == ".md") txt = markdownToHtml(txt); // by default, assume html
     const newTutorial = enrichTutorialWithHtml(txt);
     tutorials.push(newTutorial);
     const lastIndex = tutorials.length - 1;
