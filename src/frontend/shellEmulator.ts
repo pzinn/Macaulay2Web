@@ -500,7 +500,6 @@ const Shell = function (
       return;
     // the first only happens in transitional state; the second if we turned off webapp mode
     // in both cases it's simpler to deactivate highlighting
-    if (pos > 0 && inputSpan.textContent[pos - 1] == "\\") return; // \) does not trigger highlighting
     const index = closingDelimiters.indexOf(closing);
     if (index < 0) return;
     removeDelimiterHighlight();
@@ -510,6 +509,7 @@ const Shell = function (
     const highlight = input.replace(/./g, " "); // only newlines left
     if (openingDelimiters[index] == closing) {
       // quotes need to be treated separately
+      if (pos > 0 && inputSpan.textContent[pos - 1] == "\\") return; // \" does not trigger highlighting
       let flag = 0;
       let last = -1;
       let i;
@@ -545,19 +545,19 @@ const Shell = function (
       i = len;
       while (i > 0 && depth[index] > 0) {
         i--;
-        if (i == 0 || input[i - 1] != "\\") {
-          j = openingDelimiters.indexOf(input[i]);
-          if (j >= 0) {
-            if (openingDelimiters[j] == closingDelimiters[j]) {
+        j = openingDelimiters.indexOf(input[i]);
+        if (j >= 0) {
+          if (openingDelimiters[j] == closingDelimiters[j]) {
+            if (i == 0 || input[i - 1] != "\\")
+              // ignore \"
               depth[j] = 1 - depth[j];
-            } else {
-              depth[j]--;
-              if (depth[j] < 0) break;
-            }
           } else {
-            j = closingDelimiters.indexOf(input[i]);
-            if (j >= 0) depth[j]++;
+            depth[j]--;
+            if (depth[j] < 0) break;
           }
+        } else {
+          j = closingDelimiters.indexOf(input[i]);
+          if (j >= 0) depth[j]++;
         }
       }
       if (depth.every((val) => val == 0)) {
@@ -579,8 +579,12 @@ const Shell = function (
   };
 
   const openingDelimiterHandling = function (pos, opening) {
-    if (inputSpan.parentElement != htmlSec) return; // only happens in transitional state in which case highlighting deactivated
-    if (pos > 0 && inputSpan.textContent[pos - 1] == "\\") return; // \) does not trigger highlighting
+    if (
+      inputSpan.parentElement != htmlSec ||
+      !htmlSec.classList.contains("M2Input")
+    )
+      return;
+    // the first only happens in transitional state; the second if we turned off webapp mode
     const index = openingDelimiters.indexOf(opening);
     if (index < 0) return;
     removeDelimiterHighlight();
@@ -595,19 +599,19 @@ const Shell = function (
     i = len - 1;
     while (i < input.length - 1 && depth[index] > 0) {
       i++;
-      if (i == 0 || input[i - 1] != "\\") {
-        j = closingDelimiters.indexOf(input[i]);
-        if (j >= 0) {
-          if (openingDelimiters[j] == closingDelimiters[j]) {
+      j = closingDelimiters.indexOf(input[i]);
+      if (j >= 0) {
+        if (openingDelimiters[j] == closingDelimiters[j]) {
+          if (i == 0 || input[i - 1] != "\\")
+            // ignore \"
             depth[j] = 1 - depth[j];
-          } else {
-            depth[j]--;
-            if (depth[j] < 0) break;
-          }
         } else {
-          j = openingDelimiters.indexOf(input[i]);
-          if (j >= 0) depth[j]++;
+          depth[j]--;
+          if (depth[j] < 0) break;
         }
+      } else {
+        j = openingDelimiters.indexOf(input[i]);
+        if (j >= 0) depth[j]++;
       }
     }
     if (depth.every((val) => val == 0)) {
