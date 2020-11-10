@@ -445,7 +445,8 @@ const init = function () {
   attachClick("uploadBtn", siofu.prompt);
   siofu.addEventListener("complete", showUploadSuccessDialog);
 
-  attachClick("content", codeClickAction);
+  //  attachClick("content", codeClickAction);
+  document.body.onclick = codeClickAction;
 
   // must add this due to failure of mdl, see https://stackoverflow.com/questions/31536467/how-to-hide-drawer-upon-user-click
   const drawer = document.querySelector(".mdl-layout__drawer");
