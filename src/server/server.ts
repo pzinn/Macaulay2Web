@@ -371,7 +371,6 @@ const getHelp = function (req, res, next) {
     <link rel="stylesheet" href="/VectorGraphics/VectorGraphics.css"/>
     <link rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
     <link rel="stylesheet" href="/minimal.css" type="text/css"/>
-    <link href="/prism-M2.css" rel="stylesheet" />
     <script src="/render.js"></script>
   </head>
   <body onload='render("`);
