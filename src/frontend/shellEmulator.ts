@@ -123,15 +123,27 @@ const Shell = function (
   createInputEl();
 
   obj.codeInputAction = function (e) {
-    let str = this.textContent;
-    if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
-    // inputSpan.textContent = str;
-    // placeCaretAtEnd(inputSpan);
-    inputSpan.focus();
-    document.execCommand("selectAll");
-    document.execCommand("insertText", false, str);
-    scrollDown(shell);
-    e.stopPropagation();
+    if (e.currentTarget.ownerDocument.getSelection().isCollapsed) {
+      // will only trigger if selection is empty
+      this.classList.add("codetrigger");
+      if (e.target.tagName.substring(0, 4) == "CODE")
+        obj.postMessage(e.target.textContent, false, false);
+      else {
+        // past input: almost the same but not quite: code not sent, just replaces input
+        let str = this.textContent;
+        if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
+        // inputSpan.textContent = str;
+        // placeCaretAtEnd(inputSpan);
+        inputSpan.focus();
+        document.execCommand("selectAll");
+        document.execCommand("insertText", false, str);
+        scrollDown(shell);
+      }
+      e.stopPropagation();
+      setTimeout(() => {
+        this.classList.remove("codetrigger");
+      }, 100);
+    }
   };
 
   const removeAutoComplete = function (flag) {

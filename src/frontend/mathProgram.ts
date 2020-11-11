@@ -274,7 +274,7 @@ const unselectCells = function (doc: Document) {
 const barKey = function (e) {
   e.stopPropagation();
   let fn;
-  let s = "";
+  const selInput = [];
   if (e.key == " ") fn = (el) => el.classList.toggle("M2CellClosed");
   else if (e.key == "Delete" || e.key == "Backspace") fn = (el) => el.remove();
   else if (e.key == "w" || e.key == "W")
@@ -283,7 +283,10 @@ const barKey = function (e) {
   else if (e.key == "Enter")
     fn = (el) => {
       Array.from(el.children).forEach((el2: HTMLElement) => {
-        if (el2.classList.contains("M2PastInput")) s += el2.textContent;
+        if (el2.classList.contains("M2PastInput")) {
+          selInput.push(el2);
+          el2.classList.add("codetrigger");
+        }
       });
     };
   else return;
@@ -291,8 +294,21 @@ const barKey = function (e) {
   Array.from(
     e.currentTarget.ownerDocument.getElementsByClassName("M2CellSelected")
   ).forEach(fn);
-  if (s != "") {
-    myshell.postMessage(s, false, true);
+  if (selInput.length > 0) {
+    myshell.postMessage(
+      selInput
+        .map((el) => {
+          return el.textContent;
+        })
+        .join(""),
+      false,
+      true
+    );
+    setTimeout(() => {
+      selInput.forEach((el) => {
+        el.classList.remove("codetrigger");
+      });
+    }, 200);
   }
 };
 
@@ -327,14 +343,11 @@ const clickAction = function (e) {
     e.stopPropagation();
   else {
     unselectCells(e.currentTarget.ownerDocument);
-    if (e.currentTarget.ownerDocument.getSelection().isCollapsed) {
-      // will only trigger if selection is empty
-      if (e.target.tagName.substring(0, 4) == "CODE")
-        myshell.postMessage(e.target.textContent, false, false);
-      // post code
-      else if (e.target.classList.contains("M2PastInput"))
-        myshell.codeInputAction.call(e.target, e); // almost the same but not quite: code not sent, just replaces input
-    }
+    if (
+      e.target.tagName.substring(0, 4) == "CODE" ||
+      e.target.classList.contains("M2PastInput")
+    )
+      myshell.codeInputAction.call(e.target, e);
   }
 };
 

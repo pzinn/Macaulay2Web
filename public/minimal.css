@@ -252,36 +252,38 @@ code, codeblock {
     font-weight: normal;
     display: inline-block;
     line-height: 1.5;
+    background-color: lightyellow;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 200ms;
+    box-shadow: 1px 1px 2px 0px black;
 }
 
-code, codeblock, .M2PastInput:hover {
+.M2PastInput {
     transition: background-color 200ms;
-    background-color: lightyellow;
+    border-radius: 5px;
+}
+
+.M2PastInput:hover {
+    background-color: #E0FFC0;
     box-shadow: 1px 1px 2px 0px black;
-    text-decoration: none;
     cursor: pointer;
 }
 
 code {
     padding: 1px 3px;
+    border-radius: 5px;
 }
 
 codeblock {
     padding: 3px 6px;
     border-radius: 10px;
 }
-
-code, .M2PastInput:hover {
-    border-radius: 5px;
-}
  
-code:active, codeblock:active, .M2PastInput:active {
+/*code:active, codeblock:active, .M2PastInput:active {*/
+.codetrigger { /* modified so can be actived or not programmatically */
     transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */
-    background-color: red;
-    box-shadow: 1px 1px 2px #000;
-    text-decoration: none;
-    border-radius: 5px;
-    cursor: pointer;
+    background-color: red !important;
 }
 
 .autocomplete ul {
