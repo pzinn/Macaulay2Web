@@ -316,24 +316,28 @@ const barMouseDown = function (e) {
   //  const t = this.parentElement;
   const t = e.target.parentElement;
   const doc = e.currentTarget.ownerDocument;
-  if (!e.shiftKey && !e.ctrlKey) unselectCells(doc);
+  const curInput = doc.getElementsByClassName("M2CurrentInput")[0]; // OK if undefined
   if (e.shiftKey && doc.activeElement.classList.contains("M2CellBar")) {
     const tt = doc.activeElement.parentElement;
     const lst = doc.getElementsByClassName("M2Cell");
     let i = 0;
     let flag = 0;
     while (i < lst.length && flag < 2) {
-      if (lst[i] == t || lst[i] == tt) flag++;
+      if (lst[i] == t) flag++;
+      if (lst[i] == tt) flag++;
       if (
         (lst[i] == t || lst[i] == tt || flag == 1) &&
-        //          !lst[i].contains(inputSpan)
-        true
+        !lst[i].contains(curInput) // we refuse to touch input
       )
-        lst[i].classList.add("M2CellSelected"); // we refuse to touch input
+        lst[i].classList.add("M2CellSelected");
       i++;
     }
-  } //if (!t.contains(inputSpan))
-  else t.classList.toggle("M2CellSelected"); // we refuse to touch input
+  } else {
+    if (!e.ctrlKey) unselectCells(doc);
+    if (!t.contains(curInput))
+      // we refuse to touch input
+      t.classList.toggle("M2CellSelected");
+  }
   e.preventDefault();
   e.target.focus();
 };
