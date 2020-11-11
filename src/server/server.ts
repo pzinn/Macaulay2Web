@@ -363,42 +363,6 @@ const unhandled = function (request, response) {
   response.write("404");
   response.end();
 };
-const getHelp = function (req, res, next) {
-  const filePath = decodeURIComponent(req.path);
-
-  fs.readFile(filePath, function (err, data) {
-    if (!err) {
-      logger.info("Help served");
-      res.writeHead(200, {
-        "Content-Type": "text/html",
-      });
-      // work a bit to make it more palatable (maybe one day this will be done by M2 but for now done by server)
-      res.write(`<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<html>
-  <head>
-    <link href='https://fonts.googleapis.com/css?family=Roboto+Mono:regular,medium,bold' rel='stylesheet' type='text/css'/>
-    <link rel="stylesheet" href="/katex/katex.css"/>
-    <script src="/katex/katex.js"></script>
-    <script src="/VectorGraphics/VectorGraphics.js"></script>
-    <link rel="stylesheet" href="/VectorGraphics/VectorGraphics.css"/>
-    <link rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
-    <link rel="stylesheet" href="/minimal.css" type="text/css"/>
-    <link href="/prism-M2.css" rel="stylesheet" />
-    <script src="/render.js"></script>
-  </head>
-  <body onload='render("`);
-      res.write(data.toString("base64"));
-      res.write(`");'>
-  </body>
-</html>
-`);
-      res.end();
-    } else {
-      res.statusCode = 404;
-      res.send("404 -- file not found");
-    }
-  });
-};
 
 const adminBroadcast = function (req, res, next) {
   if (req.query.message) {
@@ -430,9 +394,6 @@ const initializeServer = function () {
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
   app.use(SocketIOFileUpload.router);
-  // help html files get processed
-  app.get(/\/usr\/share\/.+\.html/, getHelp);
-  // rest is fine
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use(serveStatic(staticFolder));
   app.use("/admin", adminBroadcast);

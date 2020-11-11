@@ -299,4 +299,9 @@ render = function(text) { // borrowed from shellEmulator (TODO: merge of course)
     }
     closeHtml();
     shell.classList.remove("M2Html");
+    // now cleanup for prerendering
+    document.body.removeAttribute("onload");
+    document.querySelector('script[src="/katex/katex.js"]').remove();
+    document.querySelector('script[src="/render.js"]').remove();
+    document.querySelector('base').remove();
 };
