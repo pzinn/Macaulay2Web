@@ -57,14 +57,14 @@ const editorEvaluate = function () {
   // "A synthetic paste event can be manually constructed and dispatched, but it will not affect the contents of the document."
 };
 
-const invokeHelp = function (e) {
+const keydownAction = function (e) {
   if (e.key == "F1") {
     //    const sel = window.getSelection().toString();
     const sel = e.currentTarget.ownerDocument.getSelection().toString(); // works in iframe too
     if (sel != "") socket.emit("input", 'viewHelp "' + sel + '"\n');
     e.preventDefault();
     e.stopPropagation();
-  }
+  } else if (e.target.classList.contains("M2CellBar")) barKey(e);
 };
 
 const editorKeyDown = function (e) {
@@ -263,13 +263,83 @@ const wrapEmitForDisconnect = function (event, msg) {
   return socket;
 };
 
-const codeClickAction = function (e) {
-  if (
-    (e.target.tagName.substring(0, 4) == "CODE" ||
-      e.target.classList.contains("M2PastInput")) &&
-    e.currentTarget.ownerDocument.getSelection().isCollapsed
-  )
-    myshell.postMessage(e.target.textContent, false, false);
+// bar handling
+const unselectCells = function (doc: Document) {
+  const lst = Array.from(doc.getElementsByClassName("M2CellSelected"));
+  lst.forEach((el) => {
+    el.classList.remove("M2CellSelected");
+  });
+};
+
+const barKey = function (e) {
+  e.stopPropagation();
+  let fn;
+  let s = "";
+  if (e.key == " ") fn = (el) => el.classList.toggle("M2CellClosed");
+  else if (e.key == "Delete" || e.key == "Backspace") fn = (el) => el.remove();
+  else if (e.key == "w" || e.key == "W")
+    fn = (el) => el.classList.toggle("M2Wrapped");
+  //    else if (e.key == "Enter" && e.shiftKey)
+  else if (e.key == "Enter")
+    fn = (el) => {
+      Array.from(el.children).forEach((el2: HTMLElement) => {
+        if (el2.classList.contains("M2PastInput")) s += el2.textContent;
+      });
+    };
+  else return;
+  e.preventDefault();
+  Array.from(
+    e.currentTarget.ownerDocument.getElementsByClassName("M2CellSelected")
+  ).forEach(fn);
+  if (s != "") {
+    myshell.postMessage(s, false, true);
+  }
+};
+
+const barMouseDown = function (e) {
+  //  const t = this.parentElement;
+  const t = e.target.parentElement;
+  const doc = e.currentTarget.ownerDocument;
+  if (!e.shiftKey && !e.ctrlKey) unselectCells(doc);
+  if (e.shiftKey && doc.activeElement.classList.contains("M2CellBar")) {
+    const tt = doc.activeElement.parentElement;
+    const lst = doc.getElementsByClassName("M2Cell");
+    let i = 0;
+    let flag = 0;
+    while (i < lst.length && flag < 2) {
+      if (lst[i] == t || lst[i] == tt) flag++;
+      if (
+        (lst[i] == t || lst[i] == tt || flag == 1) &&
+        //          !lst[i].contains(inputSpan)
+        true
+      )
+        lst[i].classList.add("M2CellSelected"); // we refuse to touch input
+      i++;
+    }
+  } //if (!t.contains(inputSpan))
+  else t.classList.toggle("M2CellSelected"); // we refuse to touch input
+  e.preventDefault();
+  e.target.focus();
+};
+
+const clickAction = function (e) {
+  if ((e.target as HTMLElement).classList.contains("M2CellBar"))
+    e.stopPropagation();
+  else {
+    unselectCells(e.currentTarget.ownerDocument);
+    if (e.currentTarget.ownerDocument.getSelection().isCollapsed) {
+      // will only trigger if selection is empty
+      if (e.target.tagName.substring(0, 4) == "CODE")
+        myshell.postMessage(e.target.textContent, false, false);
+      // post code
+      else if (e.target.classList.contains("M2PastInput"))
+        myshell.codeInputAction.call(e.target, e); // almost the same but not quite: code not sent, just replaces input
+    }
+  }
+};
+
+const mousedownAction = function (e) {
+  if (e.target.classList.contains("M2CellBar")) barMouseDown(e);
 };
 
 // supersedes mdl's internal tab handling
@@ -308,8 +378,9 @@ const openBrowseTab = function (event) {
   const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
   if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
     const bdy = iFrame.contentDocument.body;
-    bdy.onclick = codeClickAction;
-    bdy.onkeydown = invokeHelp;
+    bdy.onclick = clickAction;
+    bdy.onkeydown = keydownAction;
+    bdy.onmousedown = mousedownAction;
   }
   // do not follow link
   event.preventDefault();
@@ -445,9 +516,6 @@ const init = function () {
   attachClick("uploadBtn", siofu.prompt);
   siofu.addEventListener("complete", showUploadSuccessDialog);
 
-  //  attachClick("content", codeClickAction);
-  document.body.onclick = codeClickAction;
-
   // must add this due to failure of mdl, see https://stackoverflow.com/questions/31536467/how-to-hide-drawer-upon-user-click
   const drawer = document.querySelector(".mdl-layout__drawer");
   if (drawer)
@@ -486,7 +554,10 @@ const init = function () {
 
   if (iFrame) iFrame.onload = openBrowseTab;
 
-  document.body.onkeydown = invokeHelp;
+  //  attachClick("content", codeClickAction);
+  document.body.onclick = clickAction;
+  document.body.onkeydown = keydownAction;
+  document.body.onmousedown = mousedownAction;
 };
 
 module.exports = function () {

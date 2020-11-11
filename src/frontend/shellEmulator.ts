@@ -48,6 +48,13 @@ function dehtml(s) {
   return s;
 }
 
+const unselectCells = function () {
+  const lst = Array.from(document.getElementsByClassName("M2CellSelected"));
+  lst.forEach((el) => {
+    el.classList.remove("M2CellSelected");
+  });
+};
+
 const Shell = function (
   shell: HTMLElement,
   socket: Socket,
@@ -68,62 +75,6 @@ const Shell = function (
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
 
-  const unselectCells = function () {
-    const lst = Array.from(document.getElementsByClassName("M2CellSelected"));
-    lst.forEach((el) => {
-      el.classList.remove("M2CellSelected");
-    });
-  };
-
-  const barKey = function (e: KeyboardEvent) {
-    e.stopPropagation();
-    let fn;
-    let s = "";
-    if (e.key == " ") fn = (el) => el.classList.toggle("M2CellClosed");
-    else if (e.key == "Delete" || e.key == "Backspace")
-      fn = (el) => el.remove();
-    else if (e.key == "w" || e.key == "W")
-      fn = (el) => el.classList.toggle("M2Wrapped");
-    //    else if (e.key == "Enter" && e.shiftKey)
-    else if (e.key == "Enter")
-      fn = (el) => {
-        Array.from(el.children).forEach((el2: HTMLElement) => {
-          if (el2.classList.contains("M2PastInput")) s += el2.textContent;
-        });
-      };
-    else return;
-    e.preventDefault();
-    Array.from(document.getElementsByClassName("M2CellSelected")).forEach(fn);
-    if (s != "") {
-      obj.postMessage(s, editorToggle && editorToggle.checked, true);
-    }
-  };
-
-  const barClick = function (e) {
-    e.stopPropagation();
-  };
-  const barMouseDown = function (e) {
-    const t = this.parentElement;
-    if (!e.shiftKey && !e.ctrlKey) unselectCells();
-    if (e.shiftKey && document.activeElement.classList.contains("M2CellBar")) {
-      const tt = document.activeElement.parentElement;
-      const lst = document.getElementsByClassName("M2Cell");
-      let i = 0;
-      let flag = 0;
-      while (i < lst.length && flag < 2) {
-        if (lst[i] == t || lst[i] == tt) flag++;
-        if (
-          (lst[i] == t || lst[i] == tt || flag == 1) &&
-          !lst[i].contains(inputSpan)
-        )
-          lst[i].classList.add("M2CellSelected"); // we refuse to touch input
-        i++;
-      }
-    } else if (!t.contains(inputSpan)) t.classList.toggle("M2CellSelected"); // we refuse to touch input
-    e.preventDefault();
-    this.focus();
-  };
-
   const createHtml = function (a, className?) {
     const anc = htmlSec;
     htmlSec = document.createElement(a);
@@ -133,9 +84,6 @@ const Shell = function (
         // insert bar at left
         const s = document.createElement("span");
         s.className = "M2CellBar";
-        s.onmousedown = barMouseDown;
-        s.onclick = barClick;
-        s.onkeydown = barKey;
         s.tabIndex = 0;
         s.title =
           "Click to select then\nDelete to delete\nSpace to shrink\nw to wrap\nEnter to run";
@@ -174,18 +122,15 @@ const Shell = function (
 
   createInputEl();
 
-  const codeInputAction = function (e) {
-    // will only trigger if selection is empty
-    if (window.getSelection().isCollapsed) {
-      let str = this.textContent;
-      if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
-      // inputSpan.textContent = str;
-      // placeCaretAtEnd(inputSpan);
-      inputSpan.focus();
-      document.execCommand("selectAll");
-      document.execCommand("insertText", false, str);
-      scrollDown(shell);
-    }
+  obj.codeInputAction = function (e) {
+    let str = this.textContent;
+    if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
+    // inputSpan.textContent = str;
+    // placeCaretAtEnd(inputSpan);
+    inputSpan.focus();
+    document.execCommand("selectAll");
+    document.execCommand("insertText", false, str);
+    scrollDown(shell);
     e.stopPropagation();
   };
 
@@ -641,7 +586,9 @@ const Shell = function (
   };*/
 
   shell.onclick = function (e) {
-    if (
+    if ((e.target as HTMLElement).classList.contains("M2CellBar"))
+      e.stopPropagation();
+    else if (
       (e.target as HTMLElement).tagName != "A" &&
       window.getSelection().isCollapsed
     ) {
@@ -654,6 +601,7 @@ const Shell = function (
   shell.onkeydown = function (e: KeyboardEvent) {
     removeAutoComplete(false); // remove autocomplete menu if open
     removeDelimiterHighlight();
+    if ((e.target as HTMLElement).classList.contains("M2CellBar")) return;
     if (e.key == "Enter") {
       obj.postMessage(
         inputSpan.textContent,
@@ -753,7 +701,7 @@ const Shell = function (
         Prism.languages.macaulay2
       );
       htmlSec.classList.add("M2PastInput");
-      htmlSec.onclick = codeInputAction;
+      htmlSec.onclick = obj.codeInputAction;
     } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
       if (url[0] != "/" && url.substr(0, 4) != "http") url = "/relative/" + url; // for relative URLs
