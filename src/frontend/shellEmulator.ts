@@ -693,6 +693,7 @@ const Shell = function (
   const rawList = [];
 
   const closeHtml = function () {
+    if (htmlSec == shell) return;
     if (htmlSec.classList.contains("M2KatexDisplayTemp")) {
       htmlSec.classList.remove("M2KatexDisplayTemp");
       return;

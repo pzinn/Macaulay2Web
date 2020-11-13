@@ -11,6 +11,9 @@ const options = {
       "stty cols 1000000000; M2MODE=default WWWBROWSER=open M2 --webapp",
     port: "8002",
     resumeString:
+      webAppTags.End +
+      webAppTags.End +
+      webAppTags.Cell +
       webAppTags.Text +
       "Session resumed.\n" +
       webAppTags.End +
