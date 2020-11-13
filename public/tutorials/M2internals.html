@@ -21,7 +21,7 @@
   <p>If you revert to
   </p>
   <p><code>topLevelMode=Standard</code></p>
-  <p>then the interace will behave more or less like the original InteractiveShell.
+  <p>then the interface will behave more or less like the original InteractiveShell.
     Let's go back to
   </p>
   <p><code>topLevelMode=WebApp</code></p>
@@ -58,7 +58,7 @@ o2 = Net
 
 o2 : Type
 </pre>
-which means that no matter what the output mode, <tt>describe</tt>'s actual output would look like the above.
+which meant that no matter what the output mode, <tt>describe</tt>'s actual output would look like the above.
   </p>
   <p>One way to resolve these issues is via <b>expressions</b> (more on that later):
   </p>
@@ -80,7 +80,7 @@ which means that no matter what the output mode, <tt>describe</tt>'s actual outp
     One must resort to low-level output:
   </p>
   <p><code><< s</code></p>
-  <p><code><< webAppUrlTag | "http://macaulay2.com/" | webAppEndTag</code></p>
+  <p><code><< webAppUrlTag | "https://blogs.unimelb.edu.au/paul-zinn-justin/" | webAppEndTag</code></p>
   <p><code><< endl << webAppTexTag | "\\bigoplus_{i=1}^n V^{\\otimes i}" | webAppTexEndTag << endl</code></p>
 </div>
 <div><h4> HTML vs (La)TeX</h4>
@@ -125,11 +125,11 @@ which means that no matter what the output mode, <tt>describe</tt>'s actual outp
   <p>[switch to my experimental branch to show expression structure]
   </p>
 </div>
-<div><h4> The proposed change [on refactor/expression]</h4>
+<div><h4> The pitfalls of expressionifying</h4>
   <p>In the current version of Macaulay2, expressions are "turned off" for <tt>BasicList</tt> and <tt>HashTable</tt>. The reason I did not expressionify these types is
     that most user-defined types are descendants of those and it might confuse users (and create backward compatibility issues with existing packages).
     
-  <p>On the branch <tt>refactor/expression</tt>, expressions are now by default turned on for (almost) all types. Let us take an example to see what the problem is.
+  <p>On the branch <tt>refactor/expression</tt>, expressions are now by default turned on for many more types including the two above. Let us take an example to see what the problem is.
     Say you define a new type
   </p>
   <p><code>MyType = new Type of BasicList</code></p>
@@ -146,8 +146,9 @@ texMath MyType := x -> texMath x#0 | "\\vdash " | texMath x#1;
 <p>but now you use <tt>X</tt> somewhere, say
 </p>
 <p><code>someOption => X</code></p>
-<p>and surprise, instead of the expected \( \textit{someOption}\ \Rightarrow\ (a\vdash b)\),
-  it says \( \textit{someOption}\ \Rightarrow\ \texttt{MyType}\{a,\,b\} \).
+<p>and surprise, instead of the expected \( \textit{someOption}\ \Rightarrow\ (a\vdash b)\)
+  (which is what you will get with the current version of Macaulay2, in particular if you run it on the cloud),
+  on the <tt>refactor/expression</tt> branch it says \( \textit{someOption}\ \Rightarrow\ \texttt{MyType}\{a,\,b\} \).
 </p>
   <p>Why? because <tt>expression</tt> has not been redefined, so
   </p>
@@ -287,6 +288,7 @@ html PipeDream := p -&gt; html vg p;</codeblock></p>
 </p>
 <p>In fact, we obtain this way every <i>reduced</i> pipe dream with connectivity $\pi$, where reduced means that no two lines cross twice.
 </p>
-<p>In particular the <i>degree</i> of $X_\pi$ is the number of reduced pipe dreams with connectivity $\pi$.
+<p>In particular the <i>degree</i> of $X_\pi$ is the number of reduced pipe dreams with connectivity $\pi$:
 </p>
+<p><code>degree ex</code></p>
 </div>
