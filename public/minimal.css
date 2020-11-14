@@ -286,21 +286,6 @@ codeblock {
     background-color: red !important;
 }
 
-.autocomplete ul {
-    list-style: none;
-    padding: 0px;
-    margin: 0px;
-    outline: none;
-    line-height: inherit;
-    display: inline-table; /* for firefox */
-    font-size: inherit;
-}
-
-#autocomplete-selection {
-    background-color: rgb(255,110,64);
-    cursor: pointer;
-}
-
 tt {
     font-family: "Roboto Mono";
     font-weight: 500;
@@ -309,4 +294,32 @@ tt {
 .M2KatexDisplay {
     display: block;
     margin-left: 2em;
+}
+
+/* menu stuff */
+ul.menu {
+    list-style: none;
+    padding: 0px;
+    margin: 0px;
+    outline: none;
+    line-height: inherit;
+    display: inline-table; /* for firefox */
+    font-size: inherit;
+    cursor: pointer;
+    user-select: none;
+}
+
+.menu .selected {
+    background-color: rgb(255,110,64);
+}
+
+#contextmenu {
+    padding: 5px;
+    background: #f0f0f0;
+    box-shadow: 4px 4px 3px -2px #888888;
+    border: 1px solid #b1b1b1;
+    border-radius: 1px;
+    display: none;
+    position: absolute;
+    z-index: 10;
 }
