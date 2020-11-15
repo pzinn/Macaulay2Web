@@ -217,28 +217,28 @@
             <div id="M2OutCtrlBtns">
               <div id="M2OutZoomBtns">
 		<!--
-                <button id="wrapBtn" class="mdl-button mdl-js-button mdl-button--icon">
-                  <i class="material-icons" id="wrapBtnIcon">arrow_right</i>
-		</button>
-		-->
-                <button id="M2OutZoomIn" class="mdl-button mdl-js-button mdl-button--icon">
-                  <i class="material-icons">zoom_in</i>
-		</button>
-                <button id="M2OutResetZoom" class="mdl-button mdl-js-button mdl-button--icon">
-                  <i class="material-icons">find_replace</i>
-		</button>
-                <button id="M2OutZoomOut" class="mdl-button mdl-js-button mdl-button--icon">
-                  <i class="material-icons">zoom_out</i>
-		</button>
-                <button id="clearBtn" class="mdl-button mdl-js-button mdl-button--icon">
-		  <i class="material-icons">delete</i>
-		</button>
-		<div style="min-height:5pt"></div>
-		<span style="float:right"><label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="editorToggle">
-		    <span class="mdl-switch__label" style="font-size:10px">copy to editor</span>
-		    <input type="checkbox" id="editorToggle" class="mdl-switch__input">
-		  </label>
-		</span>
+                    <button id="wrapBtn" class="mdl-button mdl-js-button mdl-button--icon">
+                      <i class="material-icons" id="wrapBtnIcon">arrow_right</i>
+		    </button>
+		    -->
+                    <button id="M2OutZoomIn" class="mdl-button mdl-js-button mdl-button--icon">
+                      <i class="material-icons">zoom_in</i>
+		    </button>
+                    <button id="M2OutResetZoom" class="mdl-button mdl-js-button mdl-button--icon">
+                      <i class="material-icons">find_replace</i>
+		    </button>
+                    <button id="M2OutZoomOut" class="mdl-button mdl-js-button mdl-button--icon">
+                      <i class="material-icons">zoom_out</i>
+		    </button>
+                    <button id="clearBtn" class="mdl-button mdl-js-button mdl-button--icon">
+		      <i class="material-icons">delete</i>
+		    </button>
+		    <div style="min-height:5pt"></div>
+		    <span style="float:right"><label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="editorToggle">
+			<span class="mdl-switch__label" style="font-size:10px">copy to editor</span>
+			<input type="checkbox" id="editorToggle" class="mdl-switch__input">
+		      </label>
+		    </span>
               </div>
               <button id="maximizeOutput" class="mdl-button mdl-js-button mdl-button--icon">
                 <i class="material-icons">fullscreen</i>
@@ -260,5 +260,22 @@
 								 type="file"
 								 value="upload"/>
     </div>
+
+    <dialog>
+      <ul id="contextmenu" class="menu" tabindex="0">
+	<li data-key="Delete">
+          <tt style="text-decoration:underline">Del</tt> Delete
+	</li>
+	<li data-key=" ">
+          <tt style="text-decoration:underline">Spc</tt> Shrink
+	</li>
+	<li data-key="w">
+          <tt style="text-decoration:underline">&nbsp;W&nbsp;</tt> Wrap
+	</li>
+	<li data-key="Enter">
+          <tt style="text-decoration:underline">&nbsp;&#9166;&nbsp;</tt> Run
+	</li>
+      </ul>
+    </dialog>
   </body>
 </html>

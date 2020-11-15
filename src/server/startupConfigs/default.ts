@@ -12,6 +12,9 @@ const options = {
     port: 80,
     port2: 443,
     resumeString:
+      webAppTags.End +
+      webAppTags.End +
+      webAppTags.Cell +
       webAppTags.Text +
       "Session resumed.\n" +
       webAppTags.End +
