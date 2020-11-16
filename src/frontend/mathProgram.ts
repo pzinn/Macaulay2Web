@@ -273,13 +273,14 @@ const unselectCells = function (doc: Document) {
   });
 };
 
-const contextMenu = document.getElementById("contextmenu");
+let contextMenu = null; // make that local
 
 const hideContextMenu = function () {
-  contextMenu.style.display = "none";
-  Array.from(contextMenu.children).forEach((el) => {
-    el.classList.remove("selected");
-  });
+  if (contextMenu) {
+    contextMenu.onblur = null;
+    contextMenu.remove();
+    contextMenu = null;
+  }
 };
 
 const barAction = function (action: string, doc: Document) {
@@ -323,6 +324,7 @@ const barAction = function (action: string, doc: Document) {
 };
 
 const barKey = function (e) {
+  hideContextMenu();
   e.stopPropagation();
   if (barAction(e.key, e.currentTarget.ownerDocument)) e.preventDefault();
 };
@@ -358,12 +360,34 @@ const barMouseDown = function (e) {
 };
 
 const barRightClick = function (e) {
-  const doc = e.currentTarget.ownerDocument;
-  doc.body.appendChild(contextMenu); // in case of iframe
+  const barMenu = {
+    Delete: ["Del", "Delete"],
+    Enter: ["&nbsp;&#9166;&nbsp;", "Run"],
+    w: ["&nbsp;W&nbsp;", "Wrap"],
+    " ": ["Spc", "Shrink"],
+  };
+
+  const doc = e.currentTarget.ownerDocument; // in case of iframe
+
+  contextMenu = doc.createElement("ul");
+  contextMenu.id = "contextmenu";
+  contextMenu.classList.add("menu");
+  contextMenu.tabIndex = 0;
+  let li, tt;
+  for (const key in barMenu) {
+    li = doc.createElement("li");
+    li.dataset.key = key;
+    tt = doc.createElement("tt");
+    tt.style.textDecoration = "underline";
+    tt.innerHTML = barMenu[key][0];
+    li.appendChild(tt);
+    li.appendChild(doc.createTextNode(" " + barMenu[key][1]));
+    contextMenu.appendChild(li);
+  }
 
   contextMenu.style.left = e.pageX + "px";
   contextMenu.style.top = e.pageY + "px";
-  contextMenu.style.display = "block";
+  doc.body.appendChild(contextMenu);
 
   if (doc.getElementsByClassName("M2CellSelected").length == 0) {
     const curInput = doc.getElementsByClassName("M2CurrentInput")[0]; // OK if undefined
@@ -371,10 +395,11 @@ const barRightClick = function (e) {
     if (!el.contains(curInput)) el.classList.add("M2CellSelected"); // if nothing selected, select current
   }
   setupMenu(contextMenu, (sel) => {
-    hideContextMenu();
     if (sel) barAction(sel.dataset.key, doc);
+    hideContextMenu();
   });
   contextMenu.onblur = hideContextMenu;
+  contextMenu.onkeydown = barKey;
   e.preventDefault();
 };
 

@@ -362,7 +362,7 @@ const Shell = function (
           autoComplete.dataset.word = flag ? word : "\u250B" + word;
           const tabMenu = document.createElement("ul");
           tabMenu.classList.add("menu");
-          tabMenu.setAttribute("tabindex", "0"); // hack
+          tabMenu.tabIndex = 0;
           for (let l = j; l < k; l++) {
             const opt = document.createElement("li");
             opt.textContent = lst[l];
