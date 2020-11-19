@@ -36,7 +36,7 @@
   <p><code>code Thing#{WebApp,Print}</code></p>
   <p>Two things to notice for now:
     <ul>
-      <li> The output is a mixture of HTML and TeX.</li>
+      <li> The output is HTML (with embedded TeX).</li>
       <li> The interaction with the browser is controlled by "tags".</li>
     </ul>
   </p>
@@ -89,7 +89,9 @@ which meant that no matter what the output mode, <tt>describe</tt>'s actual outp
   </p>
   <p>$\Rightarrow$ We use HTML for nonmath (e.g., strings & nets), (La)TeX for math. 
     This is determined by the method <tt>html</tt>. By default,<br/>
-    <tt>html Thing := tex</tt><br/>. Whereas e.g. <br/><tt>html Hypertext</tt> is redefined to produce HTML output.
+    <tt>html Thing := tex</tt><br/>
+    (or something approaching);
+    whereas e.g. <br/><tt>html Hypertext</tt> is redefined to produce HTML output.
   </p>
   <p><i>Good place for a break</i>
   </p>
