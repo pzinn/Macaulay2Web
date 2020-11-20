@@ -291,9 +291,15 @@ tt {
     font-weight: 500;
 }
 
+/*
 .M2KatexDisplay {
     display: block;
     margin-left: 2em;
+}
+*/
+.katex-display > .katex {
+    margin-left: 2em;
+    text-align: left;
 }
 
 /* menu stuff */

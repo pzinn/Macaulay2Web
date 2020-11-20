@@ -1,5 +1,6 @@
 import { Socket } from "./mathProgram";
 
+import { autorender } from "./autorender";
 import { webAppTags, webAppClasses, webAppRegex } from "./tags";
 import { setupMenu } from "./menu";
 import {
@@ -15,26 +16,6 @@ import {
 } from "./htmlTools";
 
 //const unicodeBell = "\u0007";
-declare const katex;
-const katexMacros = {
-  "\\break": "\\\\",
-  "\\R": "\\mathbb{R}",
-  "\\C": "\\mathbb{C}",
-  "\\ZZ": "\\mathbb{Z}",
-  "\\NN": "\\mathbb{N}",
-  "\\QQ": "\\mathbb{Q}",
-  "\\RR": "\\mathbb{R}",
-  "\\CC": "\\mathbb{C}",
-  "\\PP": "\\mathbb{P}",
-};
-const katexOptions = {
-  macros: katexMacros,
-  displayMode: true,
-  trust: true,
-  strict: false,
-  maxExpand: Infinity,
-};
-
 //const Prism = require('prismjs');
 const M2symbols = require("./prism-M2");
 
@@ -629,12 +610,30 @@ const Shell = function (
 
   const rawList = [];
 
+  const recurseReplace = function (container, str, el) {
+    for (let i = 0; i < container.childNodes.length; i++) {
+      let sub = container.childNodes[i];
+      if (sub.nodeType === 3) {
+        let pos = sub.textContent.indexOf(str);
+        if (pos >= 0) {
+          const node = document.createTextNode(
+            sub.textContent.substring(pos + str.length)
+          );
+          sub.textContent = sub.textContent.substring(0, pos);
+          const next = sub.nextSibling; // really, #i+1 except if last
+          container.insertBefore(el, next);
+          container.insertBefore(node, next);
+          return true;
+        }
+      } else if (sub.nodeType === 1) {
+        if (recurseReplace(sub, str, el)) return true;
+      }
+    }
+    return false;
+  };
+
   const closeHtml = function () {
     if (htmlSec == shell) return;
-    if (htmlSec.classList.contains("M2KatexDisplayTemp")) {
-      htmlSec.classList.remove("M2KatexDisplayTemp");
-      return;
-    }
 
     const anc = htmlSec.parentElement;
 
@@ -657,54 +656,28 @@ const Shell = function (
       if (url[0] != "/" && url.substr(0, 4) != "http") url = "/relative/" + url; // for relative URLs
       if (iFrame) iFrame.src = url;
       else window.open(url, "M2 browse");
-    } else if (htmlSec.classList.contains("M2Katex")) {
-      try {
-        // one could call katex.renderToString or whatever instead but mathml causes problems
-        const katexRes = katex.__renderToHTMLTree(
-          dehtml(htmlSec.dataset.code), // encoding is *not* compulsory
-          katexOptions
-        ).children[0]; // bit of a hack: to remove the overall displayMode, keeping just displayStyle
-        htmlSec.appendChild(katexRes.toNode());
-        // restore raw stuff
-        if (htmlSec.dataset.idList) {
-          htmlSec.dataset.idList.split(" ").forEach(function (id) {
-            const el = document.getElementById("raw" + id);
-            if (el) {
-              el.style.display = "contents"; // could put in css but don't want to overreach
-              el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
-              el.innerHTML = "";
-              el.appendChild(rawList[+id]);
-            } else console.log("error restoring html element");
-          });
-        }
-      } catch (err) {
-        htmlSec.classList.add("KatexError"); // TODO: better class for this?
-        htmlSec.innerHTML = err.message;
-        console.log(err.message);
-      }
     } else if (htmlSec.classList.contains("M2Html")) {
-      htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code); // since we don't update in real time any more, html only updated at the end
+      htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code); // ?
+      autorender(htmlSec);
       if (htmlSec.dataset.idList)
         htmlSec.dataset.idList.split(" ").forEach(function (id) {
           const el = document.getElementById("raw" + id);
           if (el) {
             el.style.display = "contents"; // could put in css but don't want to overreach
-            //            el.style.fontSize = "1em";
-            //            el.innerHTML = "";
-            el.appendChild(rawList[+id]);
-          } else console.log("error restoring html element");
+            el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
+            el.innerHTML = "";
+            el.appendChild(rawList[+id][1]);
+          } else {
+            // more complicated
+            if (!recurseReplace(htmlSec, rawList[+id][0], rawList[+id][1]))
+              console.log("error restoring html element");
+          }
         });
     }
     htmlSec.removeAttribute("data-code");
     if (anc.classList.contains("M2Html") && anc.dataset.code != "") {
-      //anc.dataset.code += htmlSec.outerHTML; // used to convert to string which would destroy event listeners
-      // stack instead
-      anc.dataset.code += '<span id="raw' + rawList.length + '"></span>';
-      if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
-      else anc.dataset.idList += " " + rawList.length;
-      rawList.push(htmlSec);
-    } else if (anc.classList.contains("M2Katex")) {
-      // html inside tex
+      // stack
+      // in case it's inside TeX, we compute dimensions
       // 18mu= 1em * mathfont size modifier, here 1.21 factor of KaTeX
       const fontSize: number =
         +window
@@ -712,7 +685,7 @@ const Shell = function (
           .getPropertyValue("font-size")
           .split("px", 1)[0] * 1.21;
       const baseline: number = baselinePosition(htmlSec);
-      anc.dataset.code +=
+      let str =
         "\\htmlId{raw" +
         rawList.length +
         "}{\\vphantom{" + // the vphantom ensures proper horizontal space
@@ -726,9 +699,10 @@ const Shell = function (
         htmlSec.offsetWidth / fontSize +
         "ce}" + // the hspace is really just for debugging
         "}";
+      anc.dataset.code += str;
       if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
       else anc.dataset.idList += " " + rawList.length;
-      rawList.push(htmlSec); // try on { (help det)#2#1#1#0#0 }
+      rawList.push([str, htmlSec]);
     }
     htmlSec = anc;
   };
@@ -751,30 +725,12 @@ const Shell = function (
       }
       if (i > 0) {
         const tag = txt[i - 1];
-        if (
-          tag == webAppTags.End ||
-          (tag == webAppTags.Tex &&
-            htmlSec.classList.contains("M2Katex") &&
-            htmlSec.dataset.code != "") // last condition means, not a $$
-        ) {
+        if (tag == webAppTags.End) {
           // end of section
           closeHtml();
         } else if (tag === webAppTags.InputContd) {
           // continuation of input section
           inputEndFlag = false;
-        } else if (
-          tag == webAppTags.Tex &&
-          htmlSec.classList.contains("M2Katex") &&
-          htmlSec.dataset.code == ""
-        ) {
-          htmlSec.classList.add("M2KatexDisplayTemp"); // second $
-          htmlSec.classList.add("M2KatexDisplay");
-        } else if (
-          tag == webAppTags.Tex &&
-          !htmlSec.classList.contains("M2Html")
-        ) {
-          // false alarm
-          txt[i] = webAppTags.Tex + txt[i];
         } else {
           // new section
           createHtml("span", webAppClasses[tag]);
