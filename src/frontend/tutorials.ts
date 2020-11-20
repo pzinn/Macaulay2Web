@@ -1,9 +1,9 @@
 /* eslint-env browser */
 /* eslint "new-cap": "off" */
 
-declare const renderMathInElement; // for technical reasons we choose to *not* integrate KaTeX in npm
 //const Prism = require('prismjs');
 const accordion = require("./accordion")();
+import { autoRender } from "./autoRender";
 
 interface Lesson {
   title: string;
@@ -60,23 +60,7 @@ const loadLesson = function (tutorialid: number, lessonid: number) {
   // the next line colorized the tutorials
   // $("code").each(function() { this.innerHTML=Prism.highlight(this.textContent,Prism.languages.macaulay2)});
 
-  renderMathInElement(lesson, {
-    delimiters: [
-      { left: "$$", right: "$$", display: true },
-      { left: "\\[", right: "\\]", display: true },
-      { left: "$", right: "$", display: false },
-      { left: "\\(", right: "\\)", display: false },
-    ],
-    macros: {
-      "\\PP": "{\\mathbb{P}}",
-      "\\ZZ": "{\\mathbb{Z}}",
-      "\\QQ": "{\\mathbb{Q}}",
-      "\\RR": "{\\mathbb{R}}",
-      "\\CC": "{\\mathbb{C}}",
-      "\\mac": "\\textsf{Macaulay2}", // can't use italic because KaTeX doesn't know about italic correction
-      "\\bold": "{\\bf #1}",
-    },
-  });
+  autoRender(lesson);
   updateTutorialNav();
 };
 
