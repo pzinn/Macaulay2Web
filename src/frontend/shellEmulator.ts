@@ -608,7 +608,7 @@ const Shell = function (
     }
   };
 
-  const rawList = [];
+  const subList = [];
 
   const recurseReplace = function (container, str, el) {
     for (let i = 0; i < container.childNodes.length; i++) {
@@ -616,13 +616,14 @@ const Shell = function (
       if (sub.nodeType === 3) {
         let pos = sub.textContent.indexOf(str);
         if (pos >= 0) {
-          const node = document.createTextNode(
-            sub.textContent.substring(pos + str.length)
-          );
-          sub.textContent = sub.textContent.substring(0, pos);
+          const rest = sub.textContent.substring(pos + str.length);
           const next = sub.nextSibling; // really, #i+1 except if last
-          container.insertBefore(el, next);
-          container.insertBefore(node, next);
+          if (pos > 0) {
+            sub.textContent = sub.textContent.substring(0, pos);
+            container.insertBefore(el, next);
+          } else container.replaceChild(el, sub);
+          if (rest.length > 0)
+            container.insertBefore(document.createTextNode(rest), next);
           return true;
         }
       } else if (sub.nodeType === 1) {
@@ -659,20 +660,22 @@ const Shell = function (
     } else if (htmlSec.classList.contains("M2Html")) {
       htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code); // ?
       autorender(htmlSec);
-      if (htmlSec.dataset.idList)
+      if (htmlSec.dataset.idList) {
         htmlSec.dataset.idList.split(" ").forEach(function (id) {
           const el = document.getElementById("raw" + id);
           if (el) {
             el.style.display = "contents"; // could put in css but don't want to overreach
             el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
             el.innerHTML = "";
-            el.appendChild(rawList[+id][1]);
+            el.appendChild(subList[+id][1]);
           } else {
             // more complicated
-            if (!recurseReplace(htmlSec, rawList[+id][0], rawList[+id][1]))
+            if (!recurseReplace(htmlSec, subList[+id][0], subList[+id][1]))
               console.log("error restoring html element");
           }
         });
+        htmlSec.removeAttribute("data-id-list");
+      }
     }
     htmlSec.removeAttribute("data-code");
     if (anc.classList.contains("M2Html") && anc.dataset.code != "") {
@@ -687,7 +690,7 @@ const Shell = function (
       const baseline: number = baselinePosition(htmlSec);
       let str =
         "\\htmlId{raw" +
-        rawList.length +
+        subList.length +
         "}{\\vphantom{" + // the vphantom ensures proper horizontal space
         "\\raisebox{" +
         baseline / fontSize +
@@ -700,9 +703,9 @@ const Shell = function (
         "ce}" + // the hspace is really just for debugging
         "}";
       anc.dataset.code += str;
-      if (!anc.dataset.idList) anc.dataset.idList = rawList.length;
-      else anc.dataset.idList += " " + rawList.length;
-      rawList.push([str, htmlSec]);
+      if (!anc.dataset.idList) anc.dataset.idList = subList.length;
+      else anc.dataset.idList += " " + subList.length;
+      subList.push([str, htmlSec]);
     }
     htmlSec = anc;
   };
