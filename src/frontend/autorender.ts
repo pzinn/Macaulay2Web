@@ -205,12 +205,23 @@ const renderMathInText = function (text, optionsCopy: any) {
 
 const renderElem = function (elem, optionsCopy: any) {
   for (let i = 0; i < elem.childNodes.length; i++) {
-    const childNode = elem.childNodes[i];
+    let childNode = elem.childNodes[i];
     if (childNode.nodeType === 3) {
       // Text node
-      const frag = renderMathInText(childNode.textContent, optionsCopy);
+      let str = childNode.textContent;
+      let i0 = i;
+      while (
+        i < elem.childNodes.length - 1 &&
+        elem.childNodes[i + 1].nodeType === 3
+      ) {
+        i++;
+        childNode = elem.childNodes[i];
+        str += childNode.textContent; // in case text nodes get split because of max length
+      }
+      const frag = renderMathInText(str, optionsCopy);
       if (frag) {
-        i += frag.childNodes.length - 1;
+        for (let j = i0; j < i; j++) elem.removeChild(elem.childNodes[i0]);
+        i = i0 + frag.childNodes.length - 1;
         elem.replaceChild(frag, childNode);
       }
     } else if (childNode.nodeType === 1) {
