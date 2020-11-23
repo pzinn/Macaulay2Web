@@ -22,7 +22,7 @@ const http = httpModule.createServer(app);
 import fs = require("fs");
 import Cookie = require("cookie");
 import ioModule = require("socket.io");
-const io: SocketIO.Server = ioModule(http);
+const io: SocketIO.Server = ioModule(http, { pingTimeout: 30000 });
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
 
