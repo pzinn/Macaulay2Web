@@ -10,6 +10,7 @@ const katexMacros = {
   "\\RR": "\\mathbb{R}",
   "\\CC": "\\mathbb{C}",
   "\\PP": "\\mathbb{P}",
+  "\\mac": "\\textsf{Macaulay2}", // can't use italic because KaTeX doesn't know about italic correction
 };
 const katexDelimiters = [
   { left: "$$", right: "$$", display: true },
@@ -30,7 +31,7 @@ const katexOptions = {
   trust: true,
   strict: false,
   maxExpand: Infinity,
-  output: "html",
+  output: "html", // not needed: renderToHTMLTree called below
   ignoredTags: [
     "script",
     "noscript",
