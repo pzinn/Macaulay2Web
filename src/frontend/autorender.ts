@@ -39,8 +39,8 @@ const katexOptions = {
     "pre",
     "code",
     "option",
-  ],
-  ignoredClasses: [], // remove?
+  ].map((x) => x.toUpperCase()),
+  ignoredClasses: ["M2Text"],
   errorCallback: console.error,
 };
 
@@ -175,8 +175,8 @@ const renderMathInText = function (text, optionsCopy: any) {
     if (data[i].type === "text") {
       fragment.appendChild(document.createTextNode(data[i].data));
     } else {
-      const span = document.createElement("span");
       let math = data[i].data;
+      let span;
       // Override any display mode defined in the settings with that
       // defined by the text itself
       optionsCopy.displayMode = data[i].display;
@@ -184,7 +184,9 @@ const renderMathInText = function (text, optionsCopy: any) {
         if (optionsCopy.preProcess) {
           math = optionsCopy.preProcess(math);
         }
-        katex.render("\\displaystyle " + math, span, optionsCopy); // TEMP?
+        span = katex
+          .__renderToHTMLTree("\\displaystyle " + math, optionsCopy)
+          .toNode();
       } catch (e) {
         if (!(e instanceof katex.ParseError)) {
           throw e;
@@ -193,8 +195,9 @@ const renderMathInText = function (text, optionsCopy: any) {
           "KaTeX auto-render: Failed to parse `" + data[i].data + "` with ",
           e
         );
-        fragment.appendChild(document.createTextNode(data[i].rawData));
-        continue;
+        span = document.createElement("span");
+        span.textContent = data[i].rawData;
+        span.classList.add("KatexError");
       }
       fragment.appendChild(span);
     }
@@ -226,13 +229,10 @@ const renderElem = function (elem, optionsCopy: any) {
       }
     } else if (childNode.nodeType === 1) {
       // Element node
-      const className = " " + childNode.className + " ";
+      const classList = childNode.classList;
       const shouldRender =
-        optionsCopy.ignoredTags.indexOf(childNode.nodeName.toLowerCase()) ===
-          -1 &&
-        optionsCopy.ignoredClasses.every(
-          (x) => className.indexOf(" " + x + " ") === -1
-        );
+        optionsCopy.ignoredTags.indexOf(childNode.nodeName) === -1 &&
+        optionsCopy.ignoredClasses.every((x) => !classList.contains(x));
 
       if (shouldRender) {
         renderElem(childNode, optionsCopy);
