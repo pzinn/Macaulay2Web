@@ -1,6 +1,6 @@
 import { Socket } from "./mathProgram";
 
-import { autorender } from "./autorender";
+import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "./tags";
 import { setupMenu } from "./menu";
 import {
@@ -658,11 +658,11 @@ const Shell = function (
       if (iFrame) iFrame.src = url;
       else window.open(url, "M2 browse");
     } else if (htmlSec.classList.contains("M2Html")) {
-      htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code); // ?
-      autorender(htmlSec);
+      htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code);
+      autoRender(htmlSec);
       if (htmlSec.dataset.idList) {
         htmlSec.dataset.idList.split(" ").forEach(function (id) {
-          const el = document.getElementById("raw" + id);
+          const el = document.getElementById("sub" + id);
           if (el) {
             el.style.display = "contents"; // could put in css but don't want to overreach
             el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
@@ -689,7 +689,7 @@ const Shell = function (
           .split("px", 1)[0] * 1.21;
       const baseline: number = baselinePosition(htmlSec);
       let str =
-        "\\htmlId{raw" +
+        "\\htmlId{sub" +
         subList.length +
         "}{\\vphantom{" + // the vphantom ensures proper horizontal space
         "\\raisebox{" +

@@ -1,4 +1,4 @@
-// based on katex autorender
+// based on katex auto-render
 declare const katex;
 const katexMacros = {
   "\\break": "\\\\",
@@ -88,10 +88,11 @@ const splitAtDelimiters = function (startData, leftDelim, rightDelim, display) {
       nextIndex = text.indexOf(leftDelim);
       if (nextIndex !== -1) {
         currIndex = nextIndex;
-        finalData.push({
-          type: "text",
-          data: text.slice(0, currIndex),
-        });
+        if (currIndex > 0)
+          finalData.push({
+            type: "text",
+            data: text.slice(0, currIndex),
+          });
         lookingForLeft = false;
       }
 
@@ -101,11 +102,11 @@ const splitAtDelimiters = function (startData, leftDelim, rightDelim, display) {
           if (nextIndex === -1) {
             break;
           }
-
-          finalData.push({
-            type: "text",
-            data: text.slice(currIndex, nextIndex),
-          });
+          if (currIndex < nextIndex)
+            finalData.push({
+              type: "text",
+              data: text.slice(currIndex, nextIndex),
+            });
 
           currIndex = nextIndex;
         } else {
@@ -131,10 +132,11 @@ const splitAtDelimiters = function (startData, leftDelim, rightDelim, display) {
         lookingForLeft = !lookingForLeft;
       }
 
-      finalData.push({
-        type: "text",
-        data: text.slice(currIndex),
-      });
+      if (currIndex < text.length)
+        finalData.push({
+          type: "text",
+          data: text.slice(currIndex),
+        });
     } else {
       finalData.push(startData[i]);
     }
@@ -185,18 +187,19 @@ const renderMathInText = function (text, optionsCopy: any) {
           math = optionsCopy.preProcess(math);
         }
         span = katex
-          .__renderToHTMLTree("\\displaystyle " + math, optionsCopy)
+          .__renderToHTMLTree("\\displaystyle " + math, optionsCopy) // move displaystyle elsewhere
           .toNode();
-      } catch (e) {
-        if (!(e instanceof katex.ParseError)) {
-          throw e;
+      } catch (err) {
+        if (!(err instanceof katex.ParseError)) {
+          throw err;
         }
         optionsCopy.errorCallback(
           "KaTeX auto-render: Failed to parse `" + data[i].data + "` with ",
-          e
+          err
         );
         span = document.createElement("span");
         span.textContent = data[i].rawData;
+        span.title = err;
         span.classList.add("KatexError");
       }
       fragment.appendChild(span);
@@ -223,8 +226,11 @@ const renderElem = function (elem, optionsCopy: any) {
       }
       const frag = renderMathInText(str, optionsCopy);
       if (frag) {
-        for (let j = i0; j < i; j++) elem.removeChild(elem.childNodes[i0]);
-        i = i0 + frag.childNodes.length - 1;
+        while (i > i0) {
+          elem.removeChild(elem.childNodes[i0]);
+          i--;
+        }
+        i += frag.childNodes.length - 1;
         elem.replaceChild(frag, childNode);
       }
     } else if (childNode.nodeType === 1) {
@@ -242,8 +248,8 @@ const renderElem = function (elem, optionsCopy: any) {
   }
 };
 
-const autorender = function (el) {
+const autoRender = function (el) {
   renderElem(el, katexOptions);
 };
 
-export { autorender };
+export { autoRender };
