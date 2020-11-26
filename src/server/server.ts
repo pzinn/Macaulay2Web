@@ -524,7 +524,7 @@ const listen = function () {
   const httpsWorker = function (glx) {
     const server = glx.httpsServer();
 
-    io = socketio(server);
+    io = socketio(server, { pingTimeout: 30000 });
 
     io.on("connection", function (socket: SocketIO.Socket) {
       logger.info("Incoming new connection!");
