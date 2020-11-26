@@ -19,6 +19,7 @@ import {
 //const Prism = require('prismjs');
 const M2symbols = require("./prism-M2");
 
+/*
 function dehtml(s) {
   // these are all the substitutions performed by M2
   //  s = s.replace(/&bsol;/g, "\\");
@@ -29,6 +30,7 @@ function dehtml(s) {
   s = s.replace(/&amp;/g, "&"); // do this one last
   return s;
 }
+*/
 
 const Shell = function (
   shell: HTMLElement,
