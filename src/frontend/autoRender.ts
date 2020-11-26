@@ -216,7 +216,7 @@ const renderElem = function (elem, optionsCopy: any) {
     if (childNode.nodeType === 3) {
       // Text node
       let str = childNode.textContent;
-      let i0 = i;
+      const i0 = i;
       while (
         i < elem.childNodes.length - 1 &&
         elem.childNodes[i + 1].nodeType === 3

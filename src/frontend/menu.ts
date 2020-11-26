@@ -9,7 +9,7 @@ const setupMenu = function (menuElement, menuFunction) {
   };
 
   Array.from(menuElement.children).forEach((el) => {
-    (el as HTMLElement).onmouseover = function (e) {
+    (el as HTMLElement).onmouseover = function () {
       menuSelection.classList.remove("selected");
       menuSelection = el;
       menuSelection.classList.add("selected");

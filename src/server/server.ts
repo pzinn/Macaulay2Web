@@ -154,23 +154,23 @@ const getInstance = function (client: Client, next) {
     next(client.instance);
   } else {
     try {
-      instanceManager.getNewInstance(client.id, function (
-        err,
-        instance: Instance
-      ) {
-        if (err) {
-          emitDataViaClientSockets(
-            client,
-            SocketEvent.result,
-            "Sorry, there was an error. Please come back later.\n" +
-              err +
-              "\n\n"
-          );
-          deleteClientData(client);
-        } else {
-          next(instance);
+      instanceManager.getNewInstance(
+        client.id,
+        function (err, instance: Instance) {
+          if (err) {
+            emitDataViaClientSockets(
+              client,
+              SocketEvent.result,
+              "Sorry, there was an error. Please come back later.\n" +
+                err +
+                "\n\n"
+            );
+            deleteClientData(client);
+          } else {
+            next(instance);
+          }
         }
-      });
+      );
     } catch (error) {
       logClient(
         client.id,
