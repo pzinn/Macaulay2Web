@@ -13,7 +13,7 @@ let serverDisconnect = false;
 const Shell = require("./shellEmulator");
 import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 
-import { webAppTags, webAppClasses } from "../frontend/tags";
+import { webAppTags } from "../frontend/tags";
 import { setupMenu } from "./menu";
 
 let myshell;
@@ -158,7 +158,7 @@ const attachCtrlBtnActions = function () {
 
 let fileName = "default.m2";
 
-const loadFile = function (event) {
+const loadFile = function () {
   const dialog = document.createElement("input");
   dialog.setAttribute("type", "file"),
     dialog.addEventListener("change", loadFileProcess, false);
@@ -170,7 +170,7 @@ const loadFileProcess = function (event) {
     const fileToLoad = event.target.files[0];
     fileName = fileToLoad.name;
     const fileReader = new FileReader();
-    fileReader.onload = function (e) {
+    fileReader.onload = function () {
       // var textFromFileLoaded = e.target.result;
       const textFromFileLoaded = fileReader.result;
       document.getElementById("M2In").innerHTML = Prism.highlight(
@@ -194,7 +194,7 @@ const saveFile = function () {
   inputParagraph.click();
 };
 
-const hilite = function (event) {
+const hilite = function () {
   const input = document.getElementById("M2In");
   input.innerHTML = Prism.highlight(input.innerText, Prism.languages.macaulay2);
 

@@ -9,7 +9,6 @@ import {
   scrollLeft,
   baselinePosition,
   placeCaret,
-  addToElement,
   placeCaretAtEnd,
   attachElement,
   sanitizeElement,
@@ -614,9 +613,9 @@ const Shell = function (
 
   const recurseReplace = function (container, str, el) {
     for (let i = 0; i < container.childNodes.length; i++) {
-      let sub = container.childNodes[i];
+      const sub = container.childNodes[i];
       if (sub.nodeType === 3) {
-        let pos = sub.textContent.indexOf(str);
+        const pos = sub.textContent.indexOf(str);
         if (pos >= 0) {
           const rest = sub.textContent.substring(pos + str.length);
           const next = sub.nextSibling; // really, #i+1 except if last
@@ -690,7 +689,7 @@ const Shell = function (
           .getPropertyValue("font-size")
           .split("px", 1)[0] * 1.21;
       const baseline: number = baselinePosition(htmlSec);
-      let str =
+      const str =
         "\\htmlId{sub" +
         subList.length +
         "}{\\vphantom{" + // the vphantom ensures proper horizontal space
