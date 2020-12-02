@@ -328,3 +328,22 @@ ul.menu {
     border-radius: 1px;
     position: absolute;
 }
+
+.M2Debug[data-type] {
+    display: contents;
+}
+.M2Debug[data-type]::after {
+/*    color: red;
+    position: absolute;
+    right: 0px;
+    top: 0px;*/
+    font-family: "Roboto Mono";
+    font-size:0.5em;
+    content: ":" attr(data-type);
+}
+
+.M2Debug[data-type] > * {
+    border: 1px solid gray;
+    margin:1px;
+    padding:1px;
+}

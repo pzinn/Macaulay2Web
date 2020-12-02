@@ -665,10 +665,13 @@ const Shell = function (
         htmlSec.dataset.idList.split(" ").forEach(function (id) {
           const el = document.getElementById("sub" + id);
           if (el) {
-            el.style.display = "contents"; // could put in css but don't want to overreach
-            el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
-            el.innerHTML = "";
-            el.appendChild(subList[+id][1]);
+            if (el.style.color == "transparent") subList[+id][1].remove(); // e.g. inside \vphantom{}
+            else {
+              el.style.display = "contents"; // could put in css but don't want to overreach
+              el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
+              el.innerHTML = "";
+              el.appendChild(subList[+id][1]);
+            }
           } else {
             // more complicated
             if (!recurseReplace(htmlSec, subList[+id][0], subList[+id][1]))
