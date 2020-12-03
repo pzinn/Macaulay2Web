@@ -11,9 +11,10 @@ export { Socket };
 let socket: Socket;
 let serverDisconnect = false;
 const Shell = require("./shellEmulator");
-import { scrollDownLeft, caretIsAtEnd, fragInnerText } from "./htmlTools";
+import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 
-import { webAppTags, webAppClasses } from "../frontend/tags";
+import { webAppTags } from "../frontend/tags";
+import { setupMenu } from "./menu";
 
 let myshell;
 let tutorialManager;
@@ -57,14 +58,14 @@ const editorEvaluate = function () {
   // "A synthetic paste event can be manually constructed and dispatched, but it will not affect the contents of the document."
 };
 
-const invokeHelp = function (e) {
+const keydownAction = function (e) {
   if (e.key == "F1") {
     //    const sel = window.getSelection().toString();
     const sel = e.currentTarget.ownerDocument.getSelection().toString(); // works in iframe too
     if (sel != "") socket.emit("input", 'viewHelp "' + sel + '"\n');
     e.preventDefault();
     e.stopPropagation();
-  }
+  } else if (e.target.classList.contains("M2CellBar")) barKey(e);
 };
 
 const editorKeyDown = function (e) {
@@ -135,12 +136,14 @@ const clearOut = function () {
   while (out.childElementCount > 1) out.removeChild(out.firstChild);
 };
 
+/*
 const toggleWrap = function () {
   const out = document.getElementById("M2Out");
   const btn = document.getElementById("wrapBtn");
   btn.classList.toggle("rotated");
-  out.classList.toggle("M2wrapped");
+  out.classList.toggle("M2Wrapped");
 };
+*/
 
 const attachCtrlBtnActions = function () {
   attachClick("sendBtn", editorEvaluate);
@@ -150,12 +153,12 @@ const attachCtrlBtnActions = function () {
   attachClick("loadBtn", loadFile);
   attachClick("hiliteBtn", hilite);
   attachClick("clearBtn", clearOut);
-  attachClick("wrapBtn", toggleWrap);
+  //  attachClick("wrapBtn", toggleWrap);
 };
 
 let fileName = "default.m2";
 
-const loadFile = function (event) {
+const loadFile = function () {
   const dialog = document.createElement("input");
   dialog.setAttribute("type", "file"),
     dialog.addEventListener("change", loadFileProcess, false);
@@ -167,7 +170,7 @@ const loadFileProcess = function (event) {
     const fileToLoad = event.target.files[0];
     fileName = fileToLoad.name;
     const fileReader = new FileReader();
-    fileReader.onload = function (e) {
+    fileReader.onload = function () {
       // var textFromFileLoaded = e.target.result;
       const textFromFileLoaded = fileReader.result;
       document.getElementById("M2In").innerHTML = Prism.highlight(
@@ -191,7 +194,7 @@ const saveFile = function () {
   inputParagraph.click();
 };
 
-const hilite = function (event) {
+const hilite = function () {
   const input = document.getElementById("M2In");
   input.innerHTML = Prism.highlight(input.innerText, Prism.languages.macaulay2);
 
@@ -237,7 +240,7 @@ const socketOnDisconnect = function (msg) {
   myshell.onmessage(
     webAppTags.Text +
       "Sorry, your session was disconnected" +
-      " by the server.\n\n"
+      " by the server.\n"
   );
   myshell.reset();
   serverDisconnect = true;
@@ -261,12 +264,168 @@ const wrapEmitForDisconnect = function (event, msg) {
   return socket;
 };
 
-const codeClickAction = function (e) {
-  if (
-    e.target.tagName.substring(0, 4) == "CODE" &&
-    window.getSelection().isCollapsed
-  )
-    myshell.postMessage(e.target.textContent, false, false);
+// bar handling
+
+const unselectCells = function (doc: Document) {
+  const lst = Array.from(doc.getElementsByClassName("M2CellSelected"));
+  lst.forEach((el) => {
+    el.classList.remove("M2CellSelected");
+  });
+};
+
+let contextMenu = null; // make that local
+
+const hideContextMenu = function () {
+  if (contextMenu) {
+    contextMenu.onblur = null;
+    contextMenu.remove();
+    contextMenu = null;
+  }
+};
+
+const barAction = function (action: string, doc: Document) {
+  const selInput = [];
+  const barActions = {
+    Enter: (el) => {
+      Array.from(el.children).forEach((el2: HTMLElement) => {
+        if (el2.classList.contains("M2PastInput")) {
+          selInput.push(el2);
+          el2.classList.add("codetrigger");
+        }
+      });
+    },
+    Delete: (el) => el.remove(),
+    Backspace: (el) => el.remove(),
+    w: (el) => el.classList.toggle("M2Wrapped"),
+    W: (el) => el.classList.toggle("M2Wrapped"),
+    " ": (el) => el.classList.toggle("M2CellClosed"),
+  };
+
+  const fn = barActions[action];
+  if (!fn) return false;
+  Array.from(doc.getElementsByClassName("M2CellSelected")).forEach(fn);
+  if (selInput.length > 0) {
+    myshell.postMessage(
+      selInput
+        .map((el) => {
+          return el.textContent;
+        })
+        .join(""),
+      false,
+      true
+    );
+    setTimeout(() => {
+      selInput.forEach((el) => {
+        el.classList.remove("codetrigger");
+      });
+    }, 200);
+  }
+  return true;
+};
+
+const barKey = function (e) {
+  hideContextMenu();
+  e.stopPropagation();
+  if (barAction(e.key, e.currentTarget.ownerDocument)) e.preventDefault();
+};
+
+const barMouseDown = function (e) {
+  //  const t = this.parentElement;
+  const t = e.target.parentElement;
+  const doc = e.currentTarget.ownerDocument;
+  const curInput = doc.getElementsByClassName("M2CurrentInput")[0]; // OK if undefined
+  if (e.shiftKey && doc.activeElement.classList.contains("M2CellBar")) {
+    const tt = doc.activeElement.parentElement;
+    const lst = doc.getElementsByClassName("M2Cell");
+    let i = 0;
+    let flag = 0;
+    while (i < lst.length && flag < 2) {
+      if (lst[i] == t) flag++;
+      if (lst[i] == tt) flag++;
+      if (
+        (lst[i] == t || lst[i] == tt || flag == 1) &&
+        !lst[i].contains(curInput) // we refuse to touch input
+      )
+        lst[i].classList.add("M2CellSelected");
+      i++;
+    }
+  } else {
+    if (!e.ctrlKey) unselectCells(doc);
+    if (!t.contains(curInput))
+      // we refuse to touch input
+      t.classList.toggle("M2CellSelected");
+  }
+  e.preventDefault();
+  e.target.focus();
+};
+
+const barRightClick = function (e) {
+  const barMenu = {
+    Delete: ["Del", "Delete"],
+    Enter: ["&nbsp;&#9166;&nbsp;", "Run"],
+    w: ["&nbsp;W&nbsp;", "Wrap"],
+    " ": ["Spc", "Shrink"],
+  };
+
+  const doc = e.currentTarget.ownerDocument; // in case of iframe
+
+  contextMenu = doc.createElement("ul");
+  contextMenu.id = "contextmenu";
+  contextMenu.classList.add("menu");
+  contextMenu.tabIndex = 0;
+  let li, tt;
+  for (const key in barMenu) {
+    li = doc.createElement("li");
+    li.dataset.key = key;
+    tt = doc.createElement("tt");
+    tt.style.textDecoration = "underline";
+    tt.innerHTML = barMenu[key][0];
+    li.appendChild(tt);
+    li.appendChild(doc.createTextNode(" " + barMenu[key][1]));
+    contextMenu.appendChild(li);
+  }
+
+  contextMenu.style.left = e.pageX + "px";
+  contextMenu.style.top = e.pageY + "px";
+  doc.body.appendChild(contextMenu);
+
+  if (doc.getElementsByClassName("M2CellSelected").length == 0) {
+    const curInput = doc.getElementsByClassName("M2CurrentInput")[0]; // OK if undefined
+    const el = e.target.parentElement;
+    if (!el.contains(curInput)) el.classList.add("M2CellSelected"); // if nothing selected, select current
+  }
+  setupMenu(contextMenu, (sel) => {
+    if (sel) barAction(sel.dataset.key, doc);
+    hideContextMenu();
+  });
+  contextMenu.onblur = hideContextMenu;
+  contextMenu.onkeydown = barKey;
+  e.preventDefault();
+};
+
+const clickAction = function (e) {
+  if (e.button != 0) return;
+  hideContextMenu();
+  if ((e.target as HTMLElement).classList.contains("M2CellBar"))
+    e.stopPropagation();
+  // bar stuff is handled my mousedown, not click (needed for shift-click)
+  else {
+    unselectCells(e.currentTarget.ownerDocument);
+    if (
+      e.target.tagName.substring(0, 4) == "CODE" ||
+      e.target.classList.contains("M2PastInput") // a bit weak: no propagation
+    )
+      myshell.codeInputAction.call(e.target, e);
+  }
+};
+
+const mousedownAction = function (e) {
+  if (e.button != 0) return;
+  if (e.target.classList.contains("M2CellBar")) barMouseDown(e);
+};
+
+const rightclickAction = function (e) {
+  if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
 // supersedes mdl's internal tab handling
@@ -301,14 +460,14 @@ const openBrowseTab = function (event) {
     if (ignoreFirstLoad) ignoreFirstLoad = false;
     else el.click();
   }
-  // try to enable links
+  // try to enable actions
   const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
   if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
     const bdy = iFrame.contentDocument.body;
-    bdy.onclick = function (e) {
-      myshell.ancSearch(e.target as HTMLElement, bdy);
-    };
-    bdy.onkeydown = invokeHelp;
+    bdy.onclick = clickAction;
+    bdy.onkeydown = keydownAction;
+    bdy.onmousedown = mousedownAction;
+    bdy.oncontextmenu = rightclickAction;
   }
   // do not follow link
   event.preventDefault();
@@ -398,6 +557,7 @@ const init = function () {
 
   let tab = url.hash;
 
+  const loadtute = url.searchParams.get("loadtutorial");
   const upTutorial = document.getElementById("uptutorial");
   if (upTutorial) {
     const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab);
@@ -409,7 +569,7 @@ const init = function () {
     }
     tutorialManager = require("./tutorials")(tute, page - 1);
     const fetchTutorials = require("./fetchTutorials");
-    fetchTutorials(tutorialManager.makeTutorialsList);
+    fetchTutorials(tutorialManager.makeTutorialsList, loadtute);
     upTutorial.onchange = tutorialManager.uploadTutorial;
   }
 
@@ -417,7 +577,9 @@ const init = function () {
   if (tabs) {
     document.location.hash = "";
     window.addEventListener("hashchange", openTab);
-    if (tab === "") tab = "#home";
+    if (tab === "")
+      if (loadtute) tab = "#tutorial";
+      else tab = "#home";
     document.location.hash = tab;
   }
 
@@ -440,8 +602,6 @@ const init = function () {
   const siofu = new SocketIOFileUpload(socket);
   attachClick("uploadBtn", siofu.prompt);
   siofu.addEventListener("complete", showUploadSuccessDialog);
-
-  attachClick("content", codeClickAction);
 
   // must add this due to failure of mdl, see https://stackoverflow.com/questions/31536467/how-to-hide-drawer-upon-user-click
   const drawer = document.querySelector(".mdl-layout__drawer");
@@ -481,7 +641,11 @@ const init = function () {
 
   if (iFrame) iFrame.onload = openBrowseTab;
 
-  document.body.onkeydown = invokeHelp;
+  //  attachClick("content", codeClickAction);
+  document.body.onclick = clickAction;
+  document.body.onkeydown = keydownAction;
+  document.body.onmousedown = mousedownAction;
+  document.body.oncontextmenu = rightclickAction;
 };
 
 module.exports = function () {

@@ -172,12 +172,14 @@ the following:
 <iframe style="background:#A8A8B8;overflow:hidden;resize:both" scrolling="no" src='https://www.unimelb-macaulay2.cloud.edu.au/minimal.html' title="Macaulay2"></iframe>
 ```
 * `#[home|tutorial|editor|about|browse]` to start in a different tab (in the normal interface). `#tutorial-m-n` to go to page `n` of tutorial `m`.
-* `?public[=name]` -- this option is turned on  by default for the minimal interface.
+* `?public[=name]` -- this option is turned on by default for the minimal interface.
 The user does not get his own Macaulay2 process but rather a shared process for all users (the name can be used to specify a particular process for a given page).
 Note that this does not overwrite the cookie containing your personal user id.
 * `?user[=name]` to choose one's own user id. This allows e.g. to have the same shell on different computers or share one's shell with someone else.
-Note that if you have already been assigned a user id, this will overwrite it (i.e., it will overwrite the cookie containing it).
-At the moment, the only way to know your current id is to click on the word "cookie" on the home page.
+Note that if you have already been assigned a user id, this will overwrite it (i.e., it will overwrite the cookie containing it), so use with caution
+(if you don't know your previous user id, you will lose access to your previous session).
+At the moment, the only way to know your current user id is to click on the word "cookie" on the home page.
+* `?loadtutorial=[filename]` to load a tutorial that's stored in your Macaulay2 docker (rather than locally).
 ## Internal file structure:
 ### Server
 * main file:

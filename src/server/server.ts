@@ -22,7 +22,7 @@ const http = httpModule.createServer(app);
 import fs = require("fs");
 import Cookie = require("cookie");
 import ioModule = require("socket.io");
-const io: SocketIO.Server = ioModule(http);
+const io: SocketIO.Server = ioModule(http, { pingTimeout: 30000 });
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
 
@@ -154,23 +154,23 @@ const getInstance = function (client: Client, next) {
     next(client.instance);
   } else {
     try {
-      instanceManager.getNewInstance(client.id, function (
-        err,
-        instance: Instance
-      ) {
-        if (err) {
-          emitDataViaClientSockets(
-            client,
-            SocketEvent.result,
-            "Sorry, there was an error. Please come back later.\n" +
-              err +
-              "\n\n"
-          );
-          deleteClientData(client);
-        } else {
-          next(instance);
+      instanceManager.getNewInstance(
+        client.id,
+        function (err, instance: Instance) {
+          if (err) {
+            emitDataViaClientSockets(
+              client,
+              SocketEvent.result,
+              "Sorry, there was an error. Please come back later.\n" +
+                err +
+                "\n\n"
+            );
+            deleteClientData(client);
+          } else {
+            next(instance);
+          }
         }
-      });
+      );
     } catch (error) {
       logClient(
         client.id,
@@ -350,20 +350,6 @@ const unhandled = function (request, response) {
   response.write("404");
   response.end();
 };
-/*
-// the old way: just redirect help with
-// app.use("/usr/share/doc/Macaulay2",getHelp);
-const getHelp = function(req, res, next) {
-    logger.info("redirecting help");
-    res.redirect(301, 'http://www2.macaulay2.com/Macaulay2/doc/Macaulay2/share/doc/Macaulay2'+req.path);
-    }
-*/
-const getHelp = function (req, res, next) {
-  if (req.query.force === undefined) {
-    logger.info("help served");
-    res.sendFile(staticFolder + "help.html");
-  } else next();
-};
 
 const adminBroadcast = function (req, res, next) {
   if (req.query.message) {
@@ -385,7 +371,9 @@ const adminBroadcast = function (req, res, next) {
 const initializeServer = function () {
   const favicon = require("serve-favicon");
   const serveStatic = require("serve-static");
+  const serveIndex = require("serve-index");
   const expressWinston = require("express-winston");
+  serveStatic.mime.define({ "text/plain": ["m2"] }); // declare m2 files as plain text for browsing purposes
 
   const getList: reader.GetListFunction = reader.tutorialReader(
     staticFolder,
@@ -395,10 +383,8 @@ const initializeServer = function () {
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
   app.use(SocketIOFileUpload.router);
-  // help html files get processed
-  app.get(/\/usr\/share\/.+\.html/, getHelp);
-  // rest is fine
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
+  app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
   app.use(serveStatic(staticFolder));
   app.use("/admin", adminBroadcast);
   app.use("/admin", admin.stats);
@@ -416,7 +402,7 @@ const clientExistenceCheck = function (clientId: string, socket): Client {
     emitDataSafelyViaSocket(
       socket,
       SocketEvent.result,
-      "Session resumed.\n" + serverConfig.resumeString
+      serverConfig.resumeString
     );
   }
   return clients[clientId];
@@ -522,15 +508,17 @@ const listen = function () {
     logger.info("Incoming new connection!");
     const publicId = socket.handshake.query.publicId;
     const userId = socket.handshake.query.userId;
-    let clientId: string = getClientIdFromSocket(socket);
-    if (clientId === undefined && publicId !== undefined) {
+    let clientId: string;
+    if (publicId !== undefined) {
       clientId = "public" + publicId;
     } else if (userId !== undefined) {
       clientId = "user" + userId;
       setCookieOnSocket(socket, clientId); // overwrite cookie if necessary
-    } else if (clientId === undefined) {
-      // need new one
-      clientId = initializeClientId(socket);
+    } else {
+      clientId = getClientIdFromSocket(socket);
+      if (clientId === undefined)
+        // need new one
+        clientId = initializeClientId(socket);
     }
     logClient(clientId, "Assigned clientId");
     if (clientId === "deadCookie") {

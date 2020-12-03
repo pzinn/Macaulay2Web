@@ -8,7 +8,6 @@
 
     <link rel="stylesheet" href="katex/katex.min.css"/>
     <script src="katex/katex.min.js"></script>
-    <script src="katex/contrib/auto-render.min.js"></script>
 
     <script src="VectorGraphics/VectorGraphics.js"></script>
     <link rel="stylesheet" href="VectorGraphics/VectorGraphics.css"/>
@@ -137,7 +136,7 @@
 		</p>
               </div>
 	      <div class="mdl-tabs__panel" id="browse">
-		<iframe name="browse" style="width:100%;height:100%" id="browseFrame"></iframe>
+		<iframe name="browse" style="width:100%;height:100%" id="browseFrame" src="/usr/share/doc/Macaulay2/Macaulay2Doc/html/index.html"></iframe>
 	      </div>
               <div class="mdl-tabs__panel" id="tutorial">
                 <div id="lesson">
@@ -191,22 +190,23 @@
                 </p>
                 <p>
                   If you have tutorials that you would like to
-                  contribute, please contact us.
+                  contribute, please contact one of the people below.
                 </p>
 
                 <h4>Authors</h4>
                 <p>
 		  Written by <a href="http://blogs.unimelb.edu.au/paul-zinn-justin/">Paul Zinn-Justin</a> (2018-2020).
 		  <br/>
-		  PZJ is funded by ARC grants FT150100232 and DP180100860, and acknoweledges the Melbourne Research Cloud for hosting this site.
+		  PZJ is funded by ARC grants FT150100232 and DP180100860, by NSF grant <small>``Collaborative Research: A Software System for Research in Algebraic Geometry, Commutative Algebra, and their Applications, David Eisenbud, Daniel R. Grayson, Michael E. Stillman, 2015-2020,
+<a href="http://www.nsf.gov/awardsearch/showAward.do?AwardNumber=1502209">NSF DMS 15-02209</a>''</small>, and acknowledges the support of the Melbourne Research Cloud in hosting this site.
 		</p>
 		<p>
                   Based on <a href="https://travis-ci.org/fhinkel/InteractiveShell">earlier work</a>
                   by <a href="http://twitter.com/fhinkel">Franziska
                     Hinkelmann</a>, <a href="http://page.mi.fu-berlin.de/lkastner/">Lars Kastner</a>,
-                  <a href="http://www.math.cornell.edu/~mike/">Mike Stillman</a> (2013-2017).<br/>
-                  Funding provided by
-                  the NSF, <a href="http://www.math.uiuc.edu/Macaulay2/Funding/" target='_blank'>see here</a> and through Award 0635561, and DFG grant <a target='_blank' href="http://www.computeralgebra.de">SPP1489</a>.
+                  <a href="http://www.math.cornell.edu/~mike/">Mike Stillman</a> (2013-2017;
+                  funding provided by
+                  the NSF, <a href="http://www.math.uiuc.edu/Macaulay2/Funding/" target='_blank'>see here</a>, and through Award 0635561, and DFG grant <a target='_blank' href="http://www.computeralgebra.de">SPP1489</a>).
                 </p>
               </div>
             </div>
@@ -216,33 +216,35 @@
                id="right-half">
             <div id="M2OutCtrlBtns">
               <div id="M2OutZoomBtns">
-                <button id="wrapBtn" class="mdl-button mdl-js-button mdl-button--icon">
-                  <i class="material-icons" id="wrapBtnIcon">arrow_right</i>
-		</button>
-                <button id="M2OutZoomIn" class="mdl-button mdl-js-button mdl-button--icon">
-                  <i class="material-icons">zoom_in</i>
-		</button>
-                <button id="M2OutResetZoom" class="mdl-button mdl-js-button mdl-button--icon">
-                  <i class="material-icons">find_replace</i>
-		</button>
-                <button id="M2OutZoomOut" class="mdl-button mdl-js-button mdl-button--icon">
-                  <i class="material-icons">zoom_out</i>
-		</button>
-                <button id="clearBtn" class="mdl-button mdl-js-button mdl-button--icon">
-		  <i class="material-icons">delete</i>
-		</button>
-		<div style="min-height:5pt"></div>
-		<span style="float:right"><label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="editorToggle">
-		    <span class="mdl-switch__label" style="font-size:10px">copy to editor</span>
-		    <input type="checkbox" id="editorToggle" class="mdl-switch__input">
-		  </label>
-		</span>
+		<!--
+                    <button id="wrapBtn" class="mdl-button mdl-js-button mdl-button--icon">
+                      <i class="material-icons" id="wrapBtnIcon">arrow_right</i>
+		    </button>
+		    -->
+                    <button id="M2OutZoomIn" class="mdl-button mdl-js-button mdl-button--icon">
+                      <i class="material-icons">zoom_in</i>
+		    </button>
+                    <button id="M2OutResetZoom" class="mdl-button mdl-js-button mdl-button--icon">
+                      <i class="material-icons">find_replace</i>
+		    </button>
+                    <button id="M2OutZoomOut" class="mdl-button mdl-js-button mdl-button--icon">
+                      <i class="material-icons">zoom_out</i>
+		    </button>
+                    <button id="clearBtn" class="mdl-button mdl-js-button mdl-button--icon">
+		      <i class="material-icons">delete</i>
+		    </button>
+		    <div style="min-height:5pt"></div>
+		    <span style="float:right"><label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="editorToggle">
+			<span class="mdl-switch__label" style="font-size:10px">copy to editor</span>
+			<input type="checkbox" id="editorToggle" class="mdl-switch__input">
+		      </label>
+		    </span>
               </div>
               <button id="maximizeOutput" class="mdl-button mdl-js-button mdl-button--icon">
                 <i class="material-icons">fullscreen</i>
 	      </button>
             </div>
-            <div id="M2Out" tabindex="0" class="M2Text"></div>
+            <div id="M2Out" class="M2Text"></div>
           </div>
 
         </div>
@@ -258,5 +260,6 @@
 								 type="file"
 								 value="upload"/>
     </div>
+
   </body>
 </html>

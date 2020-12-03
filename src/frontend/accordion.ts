@@ -59,7 +59,7 @@ const appendTutorialToAccordion = function (
   if (index >= 0) {
     titlea.href = "#tutorial-" + index;
     titlea.target = "_self";
-  }
+  } else titlea.tabIndex = 0; // still want focus
   titlea.onclick = clickAction;
   titlea.innerHTML = tmptitle.innerHTML;
   title.appendChild(icon);

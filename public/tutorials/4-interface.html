@@ -13,9 +13,8 @@
 	<li>Static syntax highlighting in editor and input; delimiter matching in input
 	<li>Auto-complete in input with [Tab]</li>
 	<li>Click on past input (including help input) to make it the current input</li>
-	<li>Click on bar left of a cell to hide it</li>
+	<li>Click on bar left of a cell to delete/shrink/wrap/run it</li>
 	<li>Press F1 to get help on selection</li>
-	<li>The triangular icon in the top right (next to the zoom icons) toggles wrapping of output</li>
 	<li>Native support for HTML classes</li>
 	<li>You may jump directly to a particular lesson by adding e.g. <a href="#tutorial-4-2" target="_self">#tutorial-4-2</a> to the URL.
 	<li>In order to work, this web interface uses <code>topLevelMode=WebApp</code>, a special output mode of Macaulay2 adapted to mixing TeX and HTML.
@@ -117,10 +116,8 @@
       </p>
       <p>Say your type is<br/>
 	<code>MyType = new Type of BasicList</code><br/>
-	If you want to have (Ka)TeX output with <tt>texMath</tt>, there is nothing more to do.
-	If you want to use HTML output with <tt>html</tt>, you must write:<br/>
-	<code>htmlWithTex MyType := html</code><br/>
-	Let us define the <tt>html</tt> method for our type: (we could define it via <tt>expression</tt> as we did earlier for other modes of output, but for simplicity we define it directly here)<br/>
+	One can define as explained before a <tt>texMath</tt> method.
+	Let us try instead the <tt>html</tt> method for our type: (we could define it via <tt>expression</tt> as we did earlier for other modes of output, but for simplicity we define it directly here)<br/>
 	<code>needsPackage "Text"; html MyType := x -> html ( UL toList x )</code><br/>
 	Let us test it:<br/>
 	<code>new MyType from {"ha","hi",1-ii,QQ[x]}</code>
@@ -128,7 +125,7 @@
       <p>
 	Here we show how an existing package which already has HTML output can be easily converted to the new interface:<br/>
 	<code>needsPackage "Graphs"</code><br/>
-	Thanks to <tt>htmlWithTex Graph := html</tt>, we have<br/>
+	Now check out:
 	<code>help graph</code>
       </p>
     </div>

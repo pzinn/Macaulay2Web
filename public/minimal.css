@@ -65,12 +65,6 @@
     font-weight: normal;
 }
 
-.M2Text {
-    white-space: pre;
-    font-family: "Roboto Mono"; /* default font */
-    font-weight: normal;
-}
-
 .M2Html {
     display: inline-table; /* to make sure size is as big as content. inline-block is the more obvious choice */
     white-space: nowrap;
@@ -90,9 +84,8 @@
     font-size: inherit;
 }
 
-.string {
-    /*    display: inline; */
-    white-space: pre;
+.M2Html pre {
+    display: inline;
     margin: 0px;
     font-family: "Roboto Mono";
     font-weight: 500;
@@ -108,7 +101,9 @@
 
 /* from doc.css */
 table.examples {
-     margin-left: 2em;
+    margin-left: 2em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
      width: 50%;
      border-style: solid;
 /*     background-color: #c0ffff;
@@ -126,8 +121,9 @@ table.examples td {
 /*     border-top-color: #50b0b0;
      border-bottom-color: #c0ffff;
      border-left-color: #50b0b0;
-     border-right-color: #a0ffff;*/
-     padding: 1ex;
+     border-right-color: #a0ffff; */
+     padding-right: 0.75em;
+     padding-bottom: 1em;
      border-width: 1px;
 }
 table.examples pre {
@@ -173,40 +169,40 @@ table.examples pre {
 /* the shadow doesn't work in inline mode because the box
 does not contain the whole contents (and is possibly empty) */
 /*
-.M2Output.M2wrapped:hover, .M2wrapped .M2Output:hover {
+.M2Output.M2Wrapped:hover, .M2Wrapped .M2Output:hover {
     box-shadow: none;
 }
 */
 
-.M2Html.M2wrapped, .M2wrapped .M2Html {
+.M2Html.M2Wrapped, .M2Wrapped .M2Html {
     white-space: normal;
     word-break: break-word;
     display: inline;
 }
 
-.M2Text.M2wrapped, .M2wrapped .string, .M2wrapped .M2Text {
+.M2Text.M2Wrapped, .M2Wrapped pre, .M2Wrapped .M2Text {
     white-space: pre-wrap;
     word-break: break-all;
 }
 
 /* this allows katex to wrap */
-.M2wrapped .katex {
+.M2Wrapped .katex {
     white-space: normal;
 }
 
 /* this allows katex to wrap further than it currently wants to... */
-.M2wrapped .katex .base {
+.M2Wrapped .katex .base {
     white-space: normal;
     width: 100%;
     display: inline;
 }
 
 /* ...except it screws up fraction bars */
-.M2wrapped .katex .mfrac {
+.M2Wrapped .katex .mfrac {
     white-space: nowrap;
 }
 /* and anything else that has vertical structure, really */
-.M2wrapped .katex .vlist {
+.M2Wrapped .katex .vlist {
     white-space: nowrap;
 }
 
@@ -218,6 +214,7 @@ does not contain the whole contents (and is possibly empty) */
     display: block; /* is that bad? */
     position: relative;
     padding-left: 10px;
+    margin-top: 1.2em;
 }
 
 .M2CellBar {
@@ -230,14 +227,12 @@ does not contain the whole contents (and is possibly empty) */
 }
 
 .M2Cell:hover > .M2CellBar {
-    background: gray;
+    background: grey;
 }
 
-/*
-.M2Cell.M2CellClosed:hover > .M2CellBar {
-    background: orange;
+.M2CellSelected > .M2CellBar {
+    background: orange !important; /* we want this to override the previous one in case of hover */
 }
-*/
 
 .M2CellBar:hover {
     cursor: pointer;
@@ -257,39 +252,58 @@ code, codeblock {
     font-weight: normal;
     display: inline-block;
     line-height: 1.5;
+    background-color: lightyellow;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 200ms;
+    box-shadow: 1px 1px 2px 0px black;
 }
 
-code, codeblock, .M2PastInput:hover {
+.M2PastInput {
     transition: background-color 200ms;
-    background-color: lightyellow;
+    border-radius: 5px;
+}
+
+.M2PastInput:hover {
+    background-color: #E0FFC0;
     box-shadow: 1px 1px 2px 0px black;
-    text-decoration: none;
     cursor: pointer;
 }
 
 code {
     padding: 1px 3px;
+    border-radius: 5px;
 }
 
 codeblock {
     padding: 3px 6px;
     border-radius: 10px;
 }
-
-code, .M2PastInput:hover {
-    border-radius: 5px;
-}
  
-code:active, codeblock:active, .M2PastInput:active {
+/*code:active, codeblock:active, .M2PastInput:active {*/
+.codetrigger { /* modified so can be actived or not programmatically */
     transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */
-    background-color: red;
-    box-shadow: 1px 1px 2px #000;
-    text-decoration: none;
-    border-radius: 5px;
-    cursor: pointer;
+    background-color: red !important;
 }
 
-.autocomplete ul {
+tt {
+    font-family: "Roboto Mono";
+    font-weight: 500;
+}
+
+/*
+.M2KatexDisplay {
+    display: block;
+    margin-left: 2em;
+}
+*/
+.katex-display > .katex {
+    margin-left: 2em;
+    text-align: left;
+}
+
+/* menu stuff */
+ul.menu {
     list-style: none;
     padding: 0px;
     margin: 0px;
@@ -297,14 +311,39 @@ code:active, codeblock:active, .M2PastInput:active {
     line-height: inherit;
     display: inline-table; /* for firefox */
     font-size: inherit;
-}
-
-.autocomplete-selection {
-    background-color: rgb(255,110,64);
     cursor: pointer;
+    user-select: none;
+    z-index: 10;
 }
 
-tt {
+.menu .selected {
+    background-color: rgb(255,110,64);
+}
+
+#contextmenu {
+    padding: 5px;
+    background: #f0f0f0;
+    box-shadow: 4px 4px 3px -2px #888888;
+    border: 1px solid #b1b1b1;
+    border-radius: 1px;
+    position: absolute;
+}
+
+.M2Debug[data-type] {
+    display: contents;
+}
+.M2Debug[data-type]::after {
+/*    color: red;
+    position: absolute;
+    right: 0px;
+    top: 0px;*/
     font-family: "Roboto Mono";
-    font-weight: 500;
+    font-size:0.5em;
+    content: ":" attr(data-type);
+}
+
+.M2Debug[data-type] > * {
+    border: 1px solid gray;
+    margin:1px;
+    padding:1px;
 }

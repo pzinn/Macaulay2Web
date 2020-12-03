@@ -32,18 +32,18 @@ const placeCaret = function (el, pos) {
     sel.collapse(el.lastChild, pos);
   }
 };
+/*
 const addToElement = function (el, pos, s) {
   // insert into a pure text element and move caret to end of insertion
-  /*
-  const msg = el.textContent;
-  el.textContent = msg.substring(0, pos) + s + msg.substring(pos, msg.length);
+  //  const msg = el.textContent;
+  //  el.textContent = msg.substring(0, pos) + s + msg.substring(pos, msg.length);
   // put the caret where it should be
   //  el.focus();
-  placeCaret(el, pos + s.length);
-*/
+  //  placeCaret(el, pos + s.length);
   placeCaret(el, pos);
   document.execCommand("insertText", false, s);
 };
+*/
 const placeCaretAtEnd = function (el, flag?) {
   // flag means only do it if not already in input
   if (!flag || document.activeElement != el) {
@@ -96,6 +96,7 @@ const caretIsAtEnd = function () {
   }
 };
 
+/*
 // ~ like innerText, but for document fragments: textContent + <br>, </div>, </p> -> \n
 const fragInnerText = function (frag) {
   if (frag.nodeName == "BR") return "\n";
@@ -108,6 +109,7 @@ const fragInnerText = function (frag) {
     return s;
   }
 };
+*/
 
 export {
   scrollDownLeft,
@@ -115,10 +117,10 @@ export {
   scrollLeft,
   baselinePosition,
   placeCaret,
-  addToElement,
+  //  addToElement,
   placeCaretAtEnd,
   attachElement,
   sanitizeElement,
   caretIsAtEnd,
-  fragInnerText,
+  //  fragInnerText,
 };
