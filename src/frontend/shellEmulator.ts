@@ -44,7 +44,10 @@ Array.prototype.sortedPush = function (el: any) {
     const k = (n + m) >> 1;
     if (el > this[k]) m = k + 1;
     else if (el < this[k]) n = k - 1;
-      else { m = -1; n = -2; }
+    else {
+      m = -1;
+      n = -2;
+    }
   }
   if (m >= 0) this.splice(m, 0, el);
 
@@ -317,8 +320,7 @@ const Shell = function (
     const flag = i < 0 || msg[i] != "\u250B";
     if (flag) i++; // !flag => include the escape symbol
     const lst =
-      key == "ArrowRight" ? cmdHistory.sorted
-        : flag ? M2symbols : UCsymbolKeys;
+      key == "ArrowRight" ? cmdHistory.sorted : flag ? M2symbols : UCsymbolKeys;
 
     // find all symbols starting with last word of msg
     let j = 0;
@@ -540,9 +542,10 @@ const Shell = function (
   };*/
 
   shell.onclick = function (e) {
+    const t = e.target as HTMLElement;
     if (
-      !(e.target as HTMLElement).classList.contains("M2CellBar") &&
-      (e.target as HTMLElement).tagName != "A" &&
+      !t.classList.contains("M2CellBar") &&
+      t.tagName != "A" &&
       window.getSelection().isCollapsed
     ) {
       placeCaretAtEnd(inputSpan, true);
