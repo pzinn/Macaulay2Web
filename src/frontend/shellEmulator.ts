@@ -31,6 +31,26 @@ function dehtml(s) {
 }
 */
 
+declare global {
+  interface Array<T> {
+    sortedPush(el: any): number;
+  }
+}
+Array.prototype.sortedPush = function (el: any) {
+  let m = 0;
+  let n = this.length - 1;
+
+  while (m <= n) {
+    const k = (n + m) >> 1;
+    if (el > this[k]) m = k + 1;
+    else if (el < this[k]) n = k - 1;
+      else { m = -1; n = -2; }
+  }
+  if (m >= 0) this.splice(m, 0, el);
+
+  return this.length;
+};
+
 const Shell = function (
   shell: HTMLElement,
   socket: Socket,
@@ -46,6 +66,7 @@ const Shell = function (
   let inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
   const cmdHistory: any = []; // History of commands for shell-like arrow navigation
   cmdHistory.index = 0;
+  cmdHistory.sorted = []; // a sorted version
   let autoComplete = null; // autocomplete HTML element (when tab is pressed)
   // input is a bit messy...
   let inputEndFlag = false;
@@ -207,6 +228,7 @@ const Shell = function (
     for (let line = 0; line < input.length; line++) {
       if (input[line].length > 0) {
         cmdHistory.index = cmdHistory.push(input[line]);
+        cmdHistory.sorted.sortedPush(input[line].trim());
       }
     }
   };
@@ -278,20 +300,25 @@ const Shell = function (
     }
   };
 
-  const tabKeyHandling = function (pos) {
+  const autoCompleteHandling = function (key, pos) {
     const msg = inputSpan.textContent;
-    let i = pos - 1;
-    while (
-      i >= 0 &&
-      ((msg[i] >= "A" && msg[i] <= "Z") || (msg[i] >= "a" && msg[i] <= "z"))
-    )
-      i--; // would be faster with regex
+    let i = -1;
+    if (key == "Tab") {
+      i = pos - 1;
+      while (
+        i >= 0 &&
+        ((msg[i] >= "A" && msg[i] <= "Z") || (msg[i] >= "a" && msg[i] <= "z"))
+      )
+        i--; // would be faster with regex
+    }
     const word = msg.substring(i + 1, pos);
     if (word == "") return false;
     scrollDown(shell);
     const flag = i < 0 || msg[i] != "\u250B";
     if (flag) i++; // !flag => include the escape symbol
-    const lst = flag ? M2symbols : UCsymbolKeys;
+    const lst =
+      key == "ArrowRight" ? cmdHistory.sorted
+        : flag ? M2symbols : UCsymbolKeys;
 
     // find all symbols starting with last word of msg
     let j = 0;
@@ -302,20 +329,11 @@ const Shell = function (
       if (k > j) {
         if (k == j + 1) {
           // yay, one solution
-          if (flag)
-            /*
-            addToElement(
-              inputSpan,
-              pos,
-              lst[j].substring(word.length, lst[j].length) + " "
-            );
-		*/
-            document.execCommand(
-              "insertText",
-              false,
-              lst[j].substring(word.length, lst[j].length) + " "
-            );
-          else {
+          if (flag) {
+            let ins = lst[j].substring(word.length, lst[j].length);
+            if (key == "Tab") ins += " ";
+            document.execCommand("insertText", false, ins);
+          } else {
             while (i < pos) {
               document.execCommand("delete");
               pos--;
@@ -349,7 +367,9 @@ const Shell = function (
             const opt = document.createElement("li");
             opt.textContent = lst[l];
             opt.dataset.fullword = flag
-              ? lst[l] + " "
+              ? key == "Tab"
+                ? lst[l] + " "
+                : lst[l]
               : String.fromCharCode(UCsymbols[lst[l]]);
             tabMenu.appendChild(opt);
           }
@@ -359,7 +379,7 @@ const Shell = function (
               inputSpan.textContent.substring(pos, inputSpan.textContent.length)
             )
           );
-          inputSpan.textContent = inputSpan.textContent.substring(0, i);
+          inputSpan.textContent = inputSpan.textContent.substring(0, i); // not ctrl-Z friendly
           inputSpan.parentElement.appendChild(autoComplete);
           setupMenu(tabMenu, removeAutoComplete);
         }
@@ -591,10 +611,20 @@ const Shell = function (
       // try to avoid disrupting the normal tab use as much as possible
       if (
         document.activeElement == inputSpan &&
-        tabKeyHandling(window.getSelection().focusOffset)
+        autoCompleteHandling(e.key, window.getSelection().focusOffset)
       )
         e.preventDefault();
       return;
+    }
+    if (e.key == "ArrowRight" && document.activeElement == inputSpan) {
+      const pos = window.getSelection().focusOffset;
+      if (
+        pos == inputSpan.textContent.length &&
+        autoCompleteHandling(e.key, pos)
+      ) {
+        e.preventDefault();
+        return;
+      }
     }
 
     placeCaretAtEnd(inputSpan, true);
@@ -669,7 +699,8 @@ const Shell = function (
         htmlSec.dataset.idList.split(" ").forEach(function (id) {
           const el = document.getElementById("sub" + id);
           if (el) {
-            if (el.style.color == "transparent") subList[+id][1].remove(); // e.g. inside \vphantom{}
+            if (el.style.color == "transparent") subList[+id][1].remove();
+            // e.g. inside \vphantom{}
             else {
               el.style.display = "contents"; // could put in css but don't want to overreach
               el.style.fontSize = "0.826446280991736em"; // to compensate for katex's 1.21 factor
