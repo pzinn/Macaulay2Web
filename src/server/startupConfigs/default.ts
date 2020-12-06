@@ -15,13 +15,11 @@ const options = {
       webAppTags.End +
       webAppTags.End +
       webAppTags.Cell +
-      webAppTags.Text +
-      "Session resumed.\n" +
-      webAppTags.End +
       webAppTags.Html +
+      "<span>Session resumed.<br/>" +
       "Type " +
-      '<span class="M2PastInput">listUserSymbols</span>' +
-      " to print the list of existing symbols." +
+      '<span class="M2PastInput M2Text">listUserSymbols</span>' +
+      " to print the list of existing symbols.</span>" +
       webAppTags.End +
       webAppTags.End +
       webAppTags.Cell +
