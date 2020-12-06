@@ -1,3 +1,7 @@
+body {
+    font-family: "Epilogue";
+}
+
 #M2Out {
     overflow: scroll;
     /*background: #F8FAE8;*/ /* var(--left-color); */
@@ -6,8 +10,6 @@
     height: 100%;
     z-index: 1;
     box-sizing: border-box;
-    font-family: "Roboto Mono";
-    font-weight: normal;
     position: relative;
     outline: none;
     line-height: 1.14286;
@@ -61,7 +63,7 @@
 
 .M2Text {
     white-space: pre;
-    font-family: "Roboto Mono"; /* default font */
+    font-family: "Roboto Mono";
     font-weight: normal;
 }
 
@@ -69,7 +71,7 @@
     display: inline-table; /* to make sure size is as big as content. inline-block is the more obvious choice */
     white-space: nowrap;
     line-height: 0; /* necessary for exotic stuff. for all standard HTML elements need to redefine it to something more sensible */
-    font-family: "Roboto Mono"; /* default font */
+    font-family: "Epilogue";
     font-weight: normal;
     position: relative;
 }
@@ -132,6 +134,9 @@ table.examples pre {
 }
 
 
+h1,h2,h3,h4,h5,h6 {
+    font-family: "Epilogue";
+}
 
 .M2Html h1 {
     font-size: 2.2em;
