@@ -220,7 +220,9 @@ const Shell = function (
     // add command to editor area
     if (typeof msg !== "undefined") {
       if (editor !== null) {
-        editor.appendChild(document.createTextNode(msg));
+        const span = document.createElement("span");
+        span.innerHTML = Prism.highlight(msg, Prism.languages.macaulay2);
+        editor.appendChild(span);
         scrollDownLeft(editor);
       }
     }
