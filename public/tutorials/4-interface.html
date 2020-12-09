@@ -17,7 +17,7 @@
 	<li>Press F1 to get help on selection</li>
 	<li>Native support for HTML classes</li>
 	<li>You may jump directly to a particular lesson by adding e.g. <a href="#tutorial-4-2" target="_self">#tutorial-4-2</a> to the URL.
-	<li>In order to work, this web interface uses <code>topLevelMode=WebApp</code>, a special output mode of Macaulay2 adapted to mixing TeX and HTML.
+	<li>In order to work, this web interface uses <code>topLevelMode=WebApp</code>, a special output mode of \(\mac\) adapted to mixing TeX and HTML.
 	  If you're nostalgic, you can always revert to <code>topLevelMode=Standard</code> for your usual terminal/ascii output.</li>
       </ul>
       <p>Some of these points are developed in the next pages.</p>
@@ -25,7 +25,7 @@
     </div>
     <div>
       <h4>KaTeX</h4>
-      <p>By default, all output is processed by the Macaulay2 command <tt>texMath</tt> and then rendered to the browser using <a href="https://katex.org/">KaTeX</a>:<br/>
+      <p>By default, all output is processed by the \(\mac\) command <tt>texMath</tt> and then rendered to the browser using <a href="https://katex.org/">KaTeX</a>:<br/>
 	<code>matrix table(5,5,(i,j)->i*j)</code>
       </p>
       <p>All built-in types have a method <tt>texMath</tt> (or at least they should!). If you define your own type, say,<br/>
@@ -45,14 +45,14 @@
 	<code>net A</code><br/>
 	<code>toString A</code>
       </p>
-      <p><small><i>Remark:</i> In future versions of Macaulay2, it may not even be needed to write <tt>texMath MyType := x -> texMath expression x</tt>
+      <p><small><i>Remark:</i> In future versions of \(\mac\), it may not even be needed to write <tt>texMath MyType := x -> texMath expression x</tt>
 	  and similarly for other outputs. Stay tuned!</small></p>
     </div>
     <div>
       <h4>Hypertext</h4>
       <p>This interface has native support for HTML output.</p>
       <p>
-	Here is how one can create HTML classes in Macaulay2; they are <tt>MarkUpType</tt>s with common ancestor the type <tt>Hypertext</tt>.
+	Here is how one can create HTML classes in \(\mac\); they are <tt>MarkUpType</tt>s with common ancestor the type <tt>Hypertext</tt>.
       </p>
       <p>
       The package <tt>Text</tt> must be (re)loaded:<br/>
