@@ -12,26 +12,23 @@ const katexMacros = {
   "\\PP": "\\mathbb{P}",
   "\\mac": "\\textsf{Macaulay2}", // can't use italic because KaTeX doesn't know about italic correction
 };
-const katexDelimiters = [
+const delimiters = [
   { left: "$$", right: "$$", display: true },
-  { left: "\\(", right: "\\)", display: false },
   // LaTeX uses $…$, but it ruins the display of normal `$` in text:
   { left: "$", right: "$", display: false },
-  //  \[…\] must come last in this array. Otherwise, renderMathInElement
-  //  will search for \[ before it searches for $$ or  \(
-  // That makes it susceptible to finding a \\[0.3em] row delimiter and
-  // treating it as if it were the start of a KaTeX math zone.
+  // $ must come after $$
+  { left: "\\(", right: "\\)", display: false },
   { left: "\\[", right: "\\]", display: true },
 ];
 
 const katexOptions = {
   macros: katexMacros,
-  delimiters: katexDelimiters,
+  //  delimiters: delimiters, // not needed: auto-render bypassed
   displayMode: true,
   trust: true,
   strict: false,
   maxExpand: Infinity,
-  output: "html", // not needed: renderToHTMLTree called below
+  //  output: "html", // not needed: renderToHTMLTree called below
   ignoredTags: [
     "script",
     "noscript",
@@ -75,88 +72,69 @@ const findEndOfMath = function (delimiter, text, startIndex) {
   return -1;
 };
 
-const splitAtDelimiters = function (startData, leftDelim, rightDelim, display) {
-  const finalData = [];
+function escapeRegex(string) {
+  return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+}
 
-  for (let i = 0; i < startData.length; i++) {
-    if (startData[i].type === "text") {
-      const text = startData[i].data;
+let regexLeft;
+for (let i = 0; i < delimiters.length; i++) {
+  if (i == 0) {
+    regexLeft = "(";
+  } else {
+    regexLeft += "|";
+  }
+  regexLeft += escapeRegex(delimiters[i].left);
+}
+regexLeft = new RegExp(regexLeft + ")");
 
-      let lookingForLeft = true;
-      let currIndex = 0;
-      let nextIndex;
+const splitAtDelimiters = function (text) {
+  let lookingForLeft = true;
+  let index;
+  const data = [];
 
-      nextIndex = text.indexOf(leftDelim);
-      if (nextIndex !== -1) {
-        currIndex = nextIndex;
-        if (currIndex > 0)
-          finalData.push({
-            type: "text",
-            data: text.slice(0, currIndex),
-          });
-        lookingForLeft = false;
+  while (true) {
+    if (lookingForLeft) {
+      index = text.search(regexLeft);
+      if (index === -1) {
+        break;
       }
-
-      while (true) {
-        if (lookingForLeft) {
-          nextIndex = text.indexOf(leftDelim, currIndex);
-          if (nextIndex === -1) {
-            break;
-          }
-          if (currIndex < nextIndex)
-            finalData.push({
-              type: "text",
-              data: text.slice(currIndex, nextIndex),
-            });
-
-          currIndex = nextIndex;
-        } else {
-          nextIndex = findEndOfMath(
-            rightDelim,
-            text,
-            currIndex + leftDelim.length
-          );
-          if (nextIndex === -1) {
-            break;
-          }
-
-          finalData.push({
-            type: "math",
-            data: text.slice(currIndex + leftDelim.length, nextIndex),
-            rawData: text.slice(currIndex, nextIndex + rightDelim.length),
-            display: display,
-          });
-
-          currIndex = nextIndex + rightDelim.length;
-        }
-
-        lookingForLeft = !lookingForLeft;
-      }
-
-      if (currIndex < text.length)
-        finalData.push({
+      if (index > 0) {
+        data.push({
           type: "text",
-          data: text.slice(currIndex),
+          data: text.slice(0, index),
         });
+        text = text.slice(index);
+      }
     } else {
-      finalData.push(startData[i]);
+      let i = 0;
+      while (!text.startsWith(delimiters[i].left)) i++;
+      index = findEndOfMath(
+        delimiters[i].right,
+        text,
+        delimiters[i].left.length
+      );
+      if (index === -1) {
+        break;
+      }
+
+      data.push({
+        type: "math",
+        data: text.slice(delimiters[i].left.length, index),
+        rawData: text.slice(0, index + delimiters[i].right.length),
+        display: delimiters[i].display,
+      });
+      text = text.slice(index + delimiters[i].right.length);
     }
+
+    lookingForLeft = !lookingForLeft;
   }
 
-  return finalData;
-};
+  if (text != "")
+    data.push({
+      type: "text",
+      data: text,
+    });
 
-const splitWithDelimiters = function (text, delimiters) {
-  let data = [{ type: "text", data: text, display: null, rawData: null }];
-  for (let i = 0; i < delimiters.length; i++) {
-    const delimiter = delimiters[i];
-    data = splitAtDelimiters(
-      data,
-      delimiter.left,
-      delimiter.right,
-      delimiter.display || false
-    );
-  }
   return data;
 };
 
@@ -164,7 +142,7 @@ const splitWithDelimiters = function (text, delimiters) {
  * API, we should copy it before mutating.
  */
 const renderMathInText = function (text, optionsCopy: any) {
-  const data = splitWithDelimiters(text, optionsCopy.delimiters);
+  const data = splitAtDelimiters(text);
   if (data.length === 1 && data[0].type === "text") {
     // There is no formula in the text.
     // Let's return null which means there is no need to replace
