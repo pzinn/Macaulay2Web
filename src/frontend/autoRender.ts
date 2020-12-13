@@ -42,6 +42,8 @@ const katexOptions = {
   errorCallback: console.error,
 };
 
+katexOptions.ignoredTags.push("text"); // svg text
+
 const findEndOfMath = function (delimiter, text, startIndex) {
   // Adapted from
   // https://github.com/Khan/perseus/blob/master/src/perseus-markdown.jsx
