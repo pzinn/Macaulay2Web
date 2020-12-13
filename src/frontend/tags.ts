@@ -14,6 +14,8 @@ webAppTagCodes.forEach((x) => {
   webAppClasses[String.fromCharCode(x[1] as number)] = x[2];
 });
 
-const webAppRegex = new RegExp("(" + Object.values(webAppTags).join("|") + ")");
+const webAppRegex = new RegExp(
+  "([" + Object.values(webAppTags).join("") + "])"
+);
 
 export { webAppTags, webAppClasses, webAppRegex };
