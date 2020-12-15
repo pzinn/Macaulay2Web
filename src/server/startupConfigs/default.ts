@@ -3,6 +3,7 @@ import { AuthOption } from "../enums";
 
 const options = {
   cookieName: "Macaulay2Web",
+  cookieDuration: 1000 * 60 * 60 * 24 * 31, // one month
   authentication: AuthOption.none,
   serverConfig: {
     CONTAINERS: "../LocalContainerManager",

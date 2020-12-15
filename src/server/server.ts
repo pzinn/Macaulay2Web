@@ -485,8 +485,6 @@ const socketResetAction = function (client: Client) {
   };
 };
 
-const sevenDays = 7 * 86409000;
-
 const initializeClientId = function (socket): string {
   const clientId = clientIdHelper(clients, logger.info).getNewId();
   setCookieOnSocket(socket, clientId);
@@ -495,7 +493,7 @@ const initializeClientId = function (socket): string {
 
 const setCookieOnSocket = function (socket, clientId: string): void {
   if (clientId.substring(0, 4) === "user") {
-    const expDate = new Date(new Date().getTime() + sevenDays);
+    const expDate = new Date(new Date().getTime() + options.cookieDuration);
     const sessionCookie = Cookie.serialize(options.cookieName, clientId, {
       expires: expDate,
     });
