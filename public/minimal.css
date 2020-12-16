@@ -1,8 +1,9 @@
 body {
     font-family: "Epilogue";
+    font-size: 14px;
 }
 
-#M2Out {
+#terminal {
     overflow: scroll;
     /*background: #F8FAE8;*/ /* var(--left-color); */
 /*    box-shadow: 0px 0px 15px 5px #F8FAE8;*/

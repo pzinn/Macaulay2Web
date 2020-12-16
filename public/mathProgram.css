@@ -60,7 +60,7 @@ body {
     vertical-align: middle;
 }
 
-#M2In {
+#editorDiv {
     /* position: absolute; */ /* otherwise 2 scrollbars appear... fixed instead by inline style hack */
     display: inline-block; /* prevents chrome from creating new <div> when hitting \n.
 			      doesn't prevent firefox from inserting <br>, though.
@@ -88,20 +88,26 @@ body {
 #sendBtn {
     position: absolute;
     z-index: 2;
-    top: 8px;
-    right: 24px;
+    top: 54px;
+    right: 100px;
 }
 #loadBtn {
     position: absolute;
     z-index: 2;
     top: 8px;
-    right: 205px;
+    right: 230px;
 }
 #saveBtn {
     position: absolute;
     z-index: 2;
     top: 8px;
-    right: 132px;
+    right: 150px;
+}
+#autoUploadSpan {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    right: 50px;
 }
 #hiliteBtn {
     position: absolute;
@@ -122,7 +128,7 @@ body {
     box-sizing: border-box;
 }
 
-#M2OutZoomBtns {
+#terminalZoomBtns {
     z-index: 2;
     position: absolute;
     top: 5px;

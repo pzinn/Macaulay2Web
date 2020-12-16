@@ -18,11 +18,12 @@ import { setupMenu } from "./menu";
 
 let myshell;
 let tutorialManager;
+let siofu;
 
 const getSelected = function () {
   // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
   const sel = window.getSelection() as any; // modify is still "experimental"
-  if (document.getElementById("M2In").contains(sel.focusNode)) {
+  if (document.getElementById("editorDiv").contains(sel.focusNode)) {
     // only if we're inside the editor
     if (sel.isCollapsed) {
       sel.modify("move", "backward", "lineboundary");
@@ -39,7 +40,7 @@ const getSelected = function () {
 const editorEvaluate = function () {
   const msg = getSelected();
   myshell.postMessage(msg, false, false); // important not to move the pointer so can move to next line
-  document.getElementById("M2In").focus(); // in chrome, this.blur() would be enough, but not in firefox
+  document.getElementById("editorDiv").focus(); // in chrome, this.blur() would be enough, but not in firefox
   /*
     const input = msg.split("\n");
     for (var line=0; line<input.length; line++) {
@@ -52,7 +53,7 @@ const editorEvaluate = function () {
     var dataTrans = new DataTransfer();
     dataTrans.setData("text/plain",msg);
     var event = new ClipboardEvent('paste',{clipboardData: dataTrans});
-    document.getElementById("M2Out").dispatchEvent(event);
+    document.getElementById("terminal").dispatchEvent(event);
     */
   // sadly, doesn't work either -- cf https://www.w3.org/TR/clipboard-apis/
   // "A synthetic paste event can be manually constructed and dispatched, but it will not affect the contents of the document."
@@ -78,16 +79,6 @@ const editorKeyDown = function (e) {
     e.preventDefault();
     document.execCommand("insertHTML", false, "&#009"); // tab inserts an actual tab for now (auto-complete?)
   }
-  /*
-    if (!prismInvoked) {
-	prismInvoked=true;
-	window.setTimeout( function() {
-	    // the trickiest part is to preserve the selection/caret
-	    $("#M2In").html(Prism.highlight($("#M2In").text(),Prism.languages.macaulay2));
-	    prismInvoked=false;
-	}, 1000 );
-    };
-*/
 };
 
 const attachClick = function (id: string, f) {
@@ -100,17 +91,17 @@ const attachMinMaxBtnActions = function () {
   if (dialog) {
     const maximize = document.getElementById("maximizeOutput");
     const downsize = document.getElementById("downsizeOutput");
-    const zoomBtns = document.getElementById("M2OutZoomBtns");
-    const output = document.getElementById("M2Out");
+    const zoomBtns = document.getElementById("terminalZoomBtns");
+    const output = document.getElementById("terminal");
     dialog.onclose = function () {
       const oldPosition = document.getElementById("right-half");
-      const ctrl = document.getElementById("M2OutCtrlBtns");
+      const ctrl = document.getElementById("terminalCtrlBtns");
       oldPosition.appendChild(output);
       ctrl.insertBefore(zoomBtns, maximize);
       scrollDownLeft(output);
     };
     attachClick("maximizeOutput", function () {
-      const maxCtrl = document.getElementById("M2OutCtrlBtnsMax");
+      const maxCtrl = document.getElementById("terminalCtrlBtnsMax");
       /*    if (!dialog.showModal) {
 		  dialogPolyfill.registerDialog(dialog);
 		  }*/
@@ -132,13 +123,13 @@ const emitReset = function () {
 };
 
 const clearOut = function () {
-  const out = document.getElementById("M2Out");
+  const out = document.getElementById("terminal");
   while (out.childElementCount > 1) out.removeChild(out.firstChild);
 };
 
 /*
 const toggleWrap = function () {
-  const out = document.getElementById("M2Out");
+  const out = document.getElementById("terminal");
   const btn = document.getElementById("wrapBtn");
   btn.classList.toggle("rotated");
   out.classList.toggle("M2Wrapped");
@@ -173,21 +164,33 @@ const loadFileProcess = function (event) {
     fileReader.onload = function () {
       // var textFromFileLoaded = e.target.result;
       const textFromFileLoaded = fileReader.result;
-      document.getElementById("M2In").innerHTML = Prism.highlight(
+      document.getElementById("editorDiv").innerHTML = Prism.highlight(
         textFromFileLoaded,
         Prism.languages.macaulay2
       );
       document.getElementById("editorTitle").click();
     };
     fileReader.readAsText(fileToLoad, "UTF-8");
+
+    if ((document.getElementById("autoUpload") as HTMLInputElement).checked) {
+      event.target.files[0].auto = true;
+      siofu.submitFiles(event.target.files);
+    }
   }
 };
 
 const saveFile = function () {
-  const input = document.getElementById("M2In");
+  const input = document.getElementById("editorDiv");
+  const content = input.innerText as string;
+
+  if ((document.getElementById("autoUpload") as HTMLInputElement).checked) {
+    const file = new File([content], fileName);
+    (file as any).auto = true;
+    siofu.submitFiles([file]);
+  }
+
   const inputLink =
-    "data:application/octet-stream," +
-    encodeURIComponent(input.innerText as string);
+    "data:application/octet-stream," + encodeURIComponent(content);
   const inputParagraph = document.createElement("a");
   inputParagraph.setAttribute("href", inputLink);
   inputParagraph.setAttribute("download", fileName); // reuses the last loaded file name
@@ -195,7 +198,7 @@ const saveFile = function () {
 };
 
 const hilite = function () {
-  const input = document.getElementById("M2In");
+  const input = document.getElementById("editorDiv");
   input.innerHTML = Prism.highlight(input.innerText, Prism.languages.macaulay2);
 
   // what follows doesn't preserve caret location
@@ -212,18 +215,20 @@ const hilite = function () {
 };
 
 const showUploadSuccessDialog = function (event) {
-  const dialog: any = document.getElementById("uploadSuccessDialog");
-  // console.log('we uploaded the file: ' + event.success);
-  // console.log(event.file);
-  const filename = event.file.name;
-  // console.log("File uploaded successfully!" + filename);
-  const successSentence =
-    filename +
-    " has been uploaded and you can use it by loading it into your session.";
-  document.getElementById(
-    "uploadSuccessDialogContent"
-  ).innerText = successSentence;
-  dialog.showModal();
+  if (!event.file.auto) {
+    const dialog: any = document.getElementById("uploadSuccessDialog");
+    // console.log('we uploaded the file: ' + event.success);
+    // console.log(event.file);
+    const filename = event.file.name;
+    // console.log("File uploaded successfully!" + filename);
+    const successSentence =
+      filename +
+      " has been uploaded and you can use it by loading it into your session.";
+    document.getElementById(
+      "uploadSuccessDialogContent"
+    ).innerText = successSentence;
+    dialog.showModal();
+  }
 };
 
 const attachCloseDialogBtns = function () {
@@ -521,10 +526,10 @@ const init = function () {
 
   const zoom = require("./zooming");
   zoom.attachZoomButtons(
-    "M2Out",
-    "M2OutZoomIn",
-    "M2OutResetZoom",
-    "M2OutZoomOut"
+    "terminal",
+    "terminalZoomIn",
+    "terminalResetZoom",
+    "terminalZoomOut"
   );
 
   socket = io(ioParams);
@@ -538,7 +543,7 @@ const init = function () {
   socket.emit = wrapEmitForDisconnect;
   //  socket.on("file", fileDialog);
 
-  const editor = document.getElementById("M2In");
+  const editor = document.getElementById("editorDiv");
 
   // take care of default editor text
   if (editor) {
@@ -584,7 +589,7 @@ const init = function () {
   }
 
   const iFrame = document.getElementById("browseFrame");
-  const terminal = document.getElementById("M2Out");
+  const terminal = document.getElementById("terminal");
   myshell = new Shell(
     terminal,
     socket,
@@ -599,7 +604,7 @@ const init = function () {
 
   if (editor) editor.onkeydown = editorKeyDown;
 
-  const siofu = new SocketIOFileUpload(socket);
+  siofu = new SocketIOFileUpload(socket);
   attachClick("uploadBtn", siofu.prompt);
   siofu.addEventListener("complete", showUploadSuccessDialog);
 
