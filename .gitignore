@@ -5,6 +5,8 @@ public/user*
 public/katex
 public/VectorGraphics
 public/mdl
+public/minimal.css
+public/normal.css
 *.log
 .idea
 *~
