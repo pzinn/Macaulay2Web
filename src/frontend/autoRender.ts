@@ -2,8 +2,6 @@
 declare const katex;
 const katexMacros = {
   "\\break": "\\\\",
-  //  "\\R": "\\mathbb{R}",
-  //  "\\C": "\\mathbb{C}",
   "\\ZZ": "\\mathbb{Z}",
   "\\NN": "\\mathbb{N}",
   "\\QQ": "\\mathbb{Q}",
@@ -37,6 +35,7 @@ const katexOptions = {
     "pre",
     "code",
     "option",
+    "tt",
   ].map((x) => x.toUpperCase()),
   ignoredClasses: ["M2Text"],
   errorCallback: console.error,
