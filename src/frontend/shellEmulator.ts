@@ -1,4 +1,4 @@
-import { Socket } from "./mathProgram";
+import { Socket } from "./main";
 
 import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "./tags";

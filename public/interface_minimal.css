@@ -262,7 +262,7 @@ does not contain the whole contents (and is possibly empty) */
 }
 
 .M2Separator:hover ~ .M2Left {
-    background: transparent !important;
+    background: transparent;
 }
 
 
