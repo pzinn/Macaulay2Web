@@ -12,9 +12,14 @@ let socket: Socket;
 let serverDisconnect = false;
 const Shell = require("./shellEmulator");
 import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
-
 import { webAppTags } from "../frontend/tags";
-import { setupMenu } from "./menu";
+import {
+  barKey,
+  hideContextMenu,
+  barMouseDown,
+  barRightClick,
+  unselectCells,
+} from "./bar";
 
 let myshell;
 let tutorialManager;
@@ -269,145 +274,6 @@ const wrapEmitForDisconnect = function (event, msg) {
   return socket;
 };
 
-// bar handling
-
-const unselectCells = function (doc: Document) {
-  const lst = Array.from(doc.getElementsByClassName("M2CellSelected"));
-  lst.forEach((el) => {
-    el.classList.remove("M2CellSelected");
-  });
-};
-
-let contextMenu = null; // make that local
-
-const hideContextMenu = function () {
-  if (contextMenu) {
-    contextMenu.onblur = null;
-    contextMenu.remove();
-    contextMenu = null;
-  }
-};
-
-const barAction = function (action: string, doc: Document) {
-  const selInput = [];
-  const barActions = {
-    Enter: (el) => {
-      Array.from(el.children).forEach((el2: HTMLElement) => {
-        if (el2.classList.contains("M2PastInput")) {
-          selInput.push(el2);
-          el2.classList.add("codetrigger");
-        }
-      });
-    },
-    Delete: (el) => el.remove(),
-    Backspace: (el) => el.remove(),
-    w: (el) => el.classList.toggle("M2Wrapped"),
-    W: (el) => el.classList.toggle("M2Wrapped"),
-    " ": (el) => el.classList.toggle("M2CellClosed"),
-  };
-
-  const fn = barActions[action];
-  if (!fn) return false;
-  Array.from(doc.getElementsByClassName("M2CellSelected")).forEach(fn);
-  if (selInput.length > 0) {
-    myshell.postMessage(
-      selInput
-        .map((el) => {
-          return el.textContent;
-        })
-        .join(""),
-      false,
-      true
-    );
-    setTimeout(() => {
-      selInput.forEach((el) => {
-        el.classList.remove("codetrigger");
-      });
-    }, 200);
-  }
-  return true;
-};
-
-const barKey = function (e) {
-  hideContextMenu();
-  e.stopPropagation();
-  if (barAction(e.key, e.currentTarget.ownerDocument)) e.preventDefault();
-};
-
-const barMouseDown = function (e) {
-  //  const t = this.parentElement;
-  const t = e.target.parentElement;
-  const doc = e.currentTarget.ownerDocument;
-  const curInput = doc.getElementsByClassName("M2CurrentInput")[0]; // OK if undefined
-  if (e.shiftKey && doc.activeElement.classList.contains("M2CellBar")) {
-    const tt = doc.activeElement.parentElement;
-    const lst = doc.getElementsByClassName("M2Cell");
-    let i = 0;
-    let flag = 0;
-    while (i < lst.length && flag < 2) {
-      if (lst[i] == t) flag++;
-      if (lst[i] == tt) flag++;
-      if (
-        (lst[i] == t || lst[i] == tt || flag == 1) &&
-        !lst[i].contains(curInput) // we refuse to touch input
-      )
-        lst[i].classList.add("M2CellSelected");
-      i++;
-    }
-  } else {
-    if (!e.ctrlKey) unselectCells(doc);
-    if (!t.contains(curInput))
-      // we refuse to touch input
-      t.classList.toggle("M2CellSelected");
-  }
-  e.preventDefault();
-  e.target.focus();
-};
-
-const barRightClick = function (e) {
-  const barMenu = {
-    Delete: ["Del", "Delete"],
-    Enter: ["&nbsp;&#9166;&nbsp;", "Run"],
-    w: ["&nbsp;W&nbsp;", "Wrap"],
-    " ": ["Spc", "Shrink"],
-  };
-
-  const doc = e.currentTarget.ownerDocument; // in case of iframe
-
-  contextMenu = doc.createElement("ul");
-  contextMenu.id = "contextmenu";
-  contextMenu.classList.add("menu");
-  contextMenu.tabIndex = 0;
-  let li, tt;
-  for (const key in barMenu) {
-    li = doc.createElement("li");
-    li.dataset.key = key;
-    tt = doc.createElement("tt");
-    tt.style.textDecoration = "underline";
-    tt.innerHTML = barMenu[key][0];
-    li.appendChild(tt);
-    li.appendChild(doc.createTextNode(" " + barMenu[key][1]));
-    contextMenu.appendChild(li);
-  }
-
-  contextMenu.style.left = e.pageX + "px";
-  contextMenu.style.top = e.pageY + "px";
-  doc.body.appendChild(contextMenu);
-
-  if (doc.getElementsByClassName("M2CellSelected").length == 0) {
-    const curInput = doc.getElementsByClassName("M2CurrentInput")[0]; // OK if undefined
-    const el = e.target.parentElement;
-    if (!el.contains(curInput)) el.classList.add("M2CellSelected"); // if nothing selected, select current
-  }
-  setupMenu(contextMenu, (sel) => {
-    if (sel) barAction(sel.dataset.key, doc);
-    hideContextMenu();
-  });
-  contextMenu.onblur = hideContextMenu;
-  contextMenu.onkeydown = barKey;
-  e.preventDefault();
-};
-
 const clickAction = function (e) {
   if (e.button != 0) return;
   hideContextMenu();
@@ -426,7 +292,8 @@ const clickAction = function (e) {
 
 const mousedownAction = function (e) {
   if (e.button != 0) return;
-  if (e.target.classList.contains("M2CellBar")) barMouseDown(e);
+  if (e.target.classList.contains("M2CellBar"))
+    barMouseDown(e, e.target.classList.contains("M2Left"));
 };
 
 const rightclickAction = function (e) {
@@ -653,6 +520,4 @@ const init = function () {
   document.body.oncontextmenu = rightclickAction;
 };
 
-module.exports = function () {
-  init();
-};
+export { init, myshell };

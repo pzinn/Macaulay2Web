@@ -1,4 +1,4 @@
-import { Socket } from "./mathProgram";
+import { Socket } from "./main";
 
 import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "./tags";
@@ -75,18 +75,22 @@ const Shell = function (
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
 
-  const createHtml = function (a, className?) {
+  const createHtml = function (className) {
+    const cell = className.indexOf("M2Cell") >= 0; // a bit special
     const anc = htmlSec;
-    htmlSec = document.createElement(a);
-    if (className) {
-      htmlSec.className = className;
-      if (className.indexOf("M2Cell") >= 0) {
-        // insert bar at left
-        const s = document.createElement("span");
-        s.className = "M2CellBar";
-        s.tabIndex = 0;
-        htmlSec.appendChild(s);
-      }
+    htmlSec = document.createElement(cell ? "div" : "span");
+    htmlSec.className = className;
+    if (cell) {
+      // insert bar at left
+      const s = document.createElement("span");
+      s.className = "M2CellBar M2Left";
+      s.tabIndex = 0;
+      htmlSec.appendChild(s);
+      // insert separator above
+      const ss = document.createElement("span");
+      ss.className = "M2CellBar M2Separator";
+      ss.tabIndex = 0;
+      htmlSec.prepend(ss);
     }
     if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
     // even M2Html needs to keep track of innerHTML because html tags may get broken
@@ -109,7 +113,7 @@ const Shell = function (
     inputSpan.classList.add("M2Text");
 
     htmlSec = shell;
-    createHtml("span", webAppClasses[webAppTags.Cell]);
+    createHtml(webAppClasses[webAppTags.Cell]);
 
     htmlSec.appendChild(inputSpan);
 
@@ -776,7 +780,7 @@ const Shell = function (
           inputEndFlag = false;
         } else {
           // new section
-          createHtml("span", webAppClasses[tag]);
+          createHtml(webAppClasses[tag]);
           if (tag === webAppTags.Input) {
             // input section: a bit special (ends at first \n)
             attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!

@@ -217,13 +217,17 @@ does not contain the whole contents (and is possibly empty) */
 }
 
 .M2Cell {
-    display: block; /* is that bad? */
+/*    display: block; /* /* redundant: should be used with <div> only */
     position: relative;
     padding-left: 10px;
     margin-top: 1.2em;
 }
 
-.M2CellBar {
+.M2Cell > .M2Cell:first-of-type {
+    margin-top: 0em; /* in some cases margin collapse doesn't occur */
+}
+
+.M2Left {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -232,17 +236,36 @@ does not contain the whole contents (and is possibly empty) */
     background: transparent;
 }
 
-.M2Cell:hover > .M2CellBar {
+.M2Cell:hover > .M2Left {
     background: grey;
 }
 
-.M2CellSelected > .M2CellBar {
+.M2CellSelected > .M2Left {
     background: orange !important; /* we want this to override the previous one in case of hover */
 }
 
 .M2CellBar:hover {
     cursor: pointer;
 }
+
+.M2Separator {
+    position: absolute;
+    top: -0.6em; /* half the margin */
+    left: 0px;
+    width: 100%;
+    height: 2px;
+    background: transparent;
+}
+
+.M2Separator:hover {
+    background: grey;
+}
+
+.M2Separator:hover ~ .M2Left {
+    background: transparent;
+}
+
+
 
 .M2CellClosed {
     height: 1.2em;

@@ -1,5 +1,6 @@
 const setupMenu = function (menuElement, menuFunction) {
   let menuSelection = menuElement.firstElementChild;
+  if (!menuSelection) return;
   menuSelection.classList.add("selected");
   menuElement.onclick = function (e) {
     menuFunction(menuSelection);
