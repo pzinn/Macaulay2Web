@@ -83,9 +83,14 @@ const Shell = function (
     if (cell) {
       // insert bar at left
       const s = document.createElement("span");
-      s.className = "M2CellBar";
+      s.className = "M2CellBar M2Left";
       s.tabIndex = 0;
       htmlSec.appendChild(s);
+      // insert separator above
+      const ss = document.createElement("span");
+      ss.className = "M2CellBar M2Separator";
+      ss.tabIndex = 0;
+      htmlSec.prepend(ss);
     }
     if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
     // even M2Html needs to keep track of innerHTML because html tags may get broken

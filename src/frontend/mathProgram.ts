@@ -270,7 +270,6 @@ const wrapEmitForDisconnect = function (event, msg) {
 };
 
 // bar handling
-
 const unselectCells = function (doc: Document) {
   const lst = Array.from(doc.getElementsByClassName("M2CellSelected"));
   lst.forEach((el) => {
@@ -288,11 +287,12 @@ const hideContextMenu = function () {
   }
 };
 
-const barAction = function (action: string, target: HTMLElement) {
-  const selInput = [];
-  const doc = target.ownerDocument;
-  let group;
+let cutList = [];
+const selInput = [];
+let group;
+let target;
 
+// the various actions
   const runEl = (el) => {
     if (el.classList.contains("M2Cell")) Array.from(el.children).forEach(runEl);
     else if (el.classList.contains("M2PastInput")) {
@@ -300,32 +300,50 @@ const barAction = function (action: string, target: HTMLElement) {
       el.classList.add("codetrigger");
     }
   };
-  const removeEl = (el) => el.remove();
+  const removeEl = (el) => {
+    if (el == target) target = target.nextElementSibling as HTMLElement;
+    el.remove();
+  };
   const wrapEl = (el) => el.classList.toggle("M2Wrapped");
   const groupEl = (el) => group.appendChild(el);
   const closeEl = (el) => el.classList.toggle("M2CellClosed");
-
-  const barActions = {
-    Enter: runEl,
-    Delete: removeEl,
-    Backspace: removeEl,
-    w: wrapEl,
-    W: wrapEl,
-    " ": closeEl,
-    g: groupEl,
-    G: groupEl,
+  const cutEl = (el) => {
+    copyEl(el);
+    removeEl(el);
+  };
+  const copyEl = (el) => {
+    cutList.push(el);
   };
 
-  const list = Array.from(doc.getElementsByClassName("M2CellSelected"));
 
-  if (action == "g" || action == "G") {
+  const barActions = {
+      "delete": ["Del", "Delete",removeEl],
+      "backspace": ["","",removeEl], // not mentioned in menu
+      "enter": ["&nbsp;&#9166;&nbsp;", "Run",runEl],
+      "w": ["&nbsp;W&nbsp;", "Wrap",wrapEl],
+      " ": ["Spc", "Shrink",closeEl],
+      "g": ["&nbsp;G&nbsp;", "Group",groupEl],
+      "ctrl-x": ["Ctrl-X","Cut",cutEl],
+      "ctrl-c": ["Ctrl-C","Copy",copyEl],
+      "ctrl-v": ["Ctrl-V","Paste",removeEl], // delete then paste
+  };
+
+
+    const barAction = function (action: string, target0: HTMLElement) {
+	target = target0;
+  const doc = target.ownerDocument;
+
+	const list: HTMLElement[] = Array.from(doc.getElementsByClassName("M2CellSelected"));
+
+  if (action == "ctrl-x" || action == "ctrl-c") cutList = [];
+  else if (action == "g") {
     // special
     if (list.length > 1) {
       group = doc.createElement("div");
       group.classList.add("M2Cell");
       // insert bar at left
       const s = document.createElement("span");
-      s.className = "M2CellBar";
+      s.className = "M2CellBar M2Left";
       s.tabIndex = 0;
       group.appendChild(s);
       target.before(group);
@@ -340,9 +358,14 @@ const barAction = function (action: string, target: HTMLElement) {
     }
   }
 
-  const fn = barActions[action];
-  if (!fn) return false;
+  if (!barActions[action]) return false;
+  const fn = barActions[action][2];
   list.forEach(fn);
+  if (action == "ctrl-v") {
+    cutList.forEach((el) => {
+      target.before(el.cloneNode(true));
+    });
+  }
   if (selInput.length > 0) {
     myshell.postMessage(
       selInput
@@ -363,12 +386,16 @@ const barAction = function (action: string, target: HTMLElement) {
 };
 
 const barKey = function (e) {
+  let key = e.key.toLowerCase();
+  if (e.ctrlKey)
+    if (key == "control") return;
+    else key = "ctrl-" + key;
   hideContextMenu();
   e.stopPropagation();
-  if (barAction(e.key, e.target.parentElement)) e.preventDefault();
+  if (barAction(key, e.target.parentElement)) e.preventDefault();
 };
 
-const barMouseDown = function (e) {
+const leftBarMouseDown = function (e) {
   //  const t = this.parentElement;
   const t = e.target.parentElement;
   const doc = e.currentTarget.ownerDocument;
@@ -398,14 +425,8 @@ const barMouseDown = function (e) {
   e.target.focus();
 };
 
-const barRightClick = function (e) {
-  const barMenu = {
-    Delete: ["Del", "Delete"],
-    Enter: ["&nbsp;&#9166;&nbsp;", "Run"],
-    w: ["&nbsp;W&nbsp;", "Wrap"],
-    " ": ["Spc", "Shrink"],
-    g: ["&nbsp;G&nbsp;", "Group"],
-  };
+const barRightClick = function (e, left) {
+  // left = true for left bar, false for separator
 
   const doc = e.currentTarget.ownerDocument; // in case of iframe
 
@@ -414,16 +435,17 @@ const barRightClick = function (e) {
   contextMenu.classList.add("menu");
   contextMenu.tabIndex = 0;
   let li, tt;
-  for (const key in barMenu) {
-    li = doc.createElement("li");
-    li.dataset.key = key;
-    tt = doc.createElement("tt");
-    tt.style.textDecoration = "underline";
-    tt.innerHTML = barMenu[key][0];
-    li.appendChild(tt);
-    li.appendChild(doc.createTextNode(" " + barMenu[key][1]));
-    contextMenu.appendChild(li);
-  }
+    for (const key in barActions)
+	if (barActions[key][0] != "") {
+	    li = doc.createElement("li");
+	    li.dataset.key = key;
+	    tt = doc.createElement("tt");
+	    tt.style.textDecoration = "underline";
+	    tt.innerHTML = barActions[key][0];
+	    li.appendChild(tt);
+	    li.appendChild(doc.createTextNode(" " + barActions[key][1]));
+	    contextMenu.appendChild(li);
+	}
 
   contextMenu.style.left = e.pageX + "px";
   contextMenu.style.top = e.pageY + "px";
@@ -461,11 +483,12 @@ const clickAction = function (e) {
 
 const mousedownAction = function (e) {
   if (e.button != 0) return;
-  if (e.target.classList.contains("M2CellBar")) barMouseDown(e);
+  if (e.target.classList.contains("M2Left")) leftBarMouseDown(e);
 };
 
 const rightclickAction = function (e) {
-  if (e.target.classList.contains("M2CellBar")) barRightClick(e);
+  if (e.target.classList.contains("M2CellBar"))
+    barRightClick(e, e.target.classList.contains("M2Left"));
 };
 
 // supersedes mdl's internal tab handling
