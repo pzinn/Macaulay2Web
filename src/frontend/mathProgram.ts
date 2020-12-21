@@ -288,27 +288,61 @@ const hideContextMenu = function () {
   }
 };
 
-const barAction = function (action: string, doc: Document) {
+const barAction = function (action: string, target: HTMLElement) {
   const selInput = [];
-  const barActions = {
-    Enter: (el) => {
-      Array.from(el.children).forEach((el2: HTMLElement) => {
-        if (el2.classList.contains("M2PastInput")) {
-          selInput.push(el2);
-          el2.classList.add("codetrigger");
-        }
-      });
-    },
-    Delete: (el) => el.remove(),
-    Backspace: (el) => el.remove(),
-    w: (el) => el.classList.toggle("M2Wrapped"),
-    W: (el) => el.classList.toggle("M2Wrapped"),
-    " ": (el) => el.classList.toggle("M2CellClosed"),
+  const doc = target.ownerDocument;
+  let group;
+
+  const runEl = (el) => {
+    if (el.classList.contains("M2Cell")) Array.from(el.children).forEach(runEl);
+    else if (el.classList.contains("M2PastInput")) {
+      selInput.push(el);
+      el.classList.add("codetrigger");
+    }
   };
+  const removeEl = (el) => el.remove();
+  const wrapEl = (el) => el.classList.toggle("M2Wrapped");
+  const groupEl = (el) => group.appendChild(el);
+  const closeEl = (el) => el.classList.toggle("M2CellClosed");
+
+  const barActions = {
+    Enter: runEl,
+    Delete: removeEl,
+    Backspace: removeEl,
+    w: wrapEl,
+    W: wrapEl,
+    " ": closeEl,
+    g: groupEl,
+    G: groupEl,
+  };
+
+  const list = Array.from(doc.getElementsByClassName("M2CellSelected"));
+
+  if (action == "g" || action == "G") {
+    // special
+    if (list.length > 1) {
+      group = doc.createElement("div");
+      group.classList.add("M2Cell");
+      // insert bar at left
+      const s = document.createElement("span");
+      s.className = "M2CellBar";
+      s.tabIndex = 0;
+      group.appendChild(s);
+      target.before(group);
+    } else if (list.length == 1) {
+      let flag = true;
+      Array.from(list[0].children).forEach((el2: HTMLElement) => {
+        if (el2.classList.contains("M2Cell")) target.before(el2);
+        else flag = false;
+      });
+      if (flag) list[0].remove();
+      return true;
+    }
+  }
 
   const fn = barActions[action];
   if (!fn) return false;
-  Array.from(doc.getElementsByClassName("M2CellSelected")).forEach(fn);
+  list.forEach(fn);
   if (selInput.length > 0) {
     myshell.postMessage(
       selInput
@@ -331,7 +365,7 @@ const barAction = function (action: string, doc: Document) {
 const barKey = function (e) {
   hideContextMenu();
   e.stopPropagation();
-  if (barAction(e.key, e.currentTarget.ownerDocument)) e.preventDefault();
+  if (barAction(e.key, e.target.parentElement)) e.preventDefault();
 };
 
 const barMouseDown = function (e) {
@@ -370,6 +404,7 @@ const barRightClick = function (e) {
     Enter: ["&nbsp;&#9166;&nbsp;", "Run"],
     w: ["&nbsp;W&nbsp;", "Wrap"],
     " ": ["Spc", "Shrink"],
+    g: ["&nbsp;G&nbsp;", "Group"],
   };
 
   const doc = e.currentTarget.ownerDocument; // in case of iframe
@@ -400,7 +435,7 @@ const barRightClick = function (e) {
     if (!el.contains(curInput)) el.classList.add("M2CellSelected"); // if nothing selected, select current
   }
   setupMenu(contextMenu, (sel) => {
-    if (sel) barAction(sel.dataset.key, doc);
+    if (sel) barAction(sel.dataset.key, e.target.parentElement);
     hideContextMenu();
   });
   contextMenu.onblur = hideContextMenu;

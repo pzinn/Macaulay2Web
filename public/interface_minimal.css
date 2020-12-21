@@ -217,10 +217,14 @@ does not contain the whole contents (and is possibly empty) */
 }
 
 .M2Cell {
-    display: block; /* is that bad? */
+/*    display: block; /* /* redundant: should be used with <div> only */
     position: relative;
     padding-left: 10px;
     margin-top: 1.2em;
+}
+
+.M2Cell > .M2Cell:first-of-type {
+    margin-top: 0em; /* in some cases margin collapse doesn't occur */
 }
 
 .M2CellBar {
