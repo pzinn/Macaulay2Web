@@ -124,28 +124,24 @@ const Shell = function (
 
   createInputEl();
 
-  obj.codeInputAction = function (e) {
-    if (e.currentTarget.ownerDocument.getSelection().isCollapsed) {
-      // will only trigger if selection is empty
-      this.classList.add("codetrigger");
-      if (e.target.tagName.substring(0, 4) == "CODE")
-        obj.postMessage(e.target.textContent, false, false);
-      else {
-        // past input: almost the same but not quite: code not sent, just replaces input
-        let str = this.textContent;
-        if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
-        // inputSpan.textContent = str;
-        // placeCaretAtEnd(inputSpan);
-        inputSpan.focus();
-        document.execCommand("selectAll");
-        document.execCommand("insertText", false, str);
-        scrollDown(shell);
-      }
-      e.stopPropagation();
-      setTimeout(() => {
-        this.classList.remove("codetrigger");
-      }, 100);
+  obj.codeInputAction = function (t) {
+    t.classList.add("codetrigger");
+    if (t.tagName.substring(0, 4) == "CODE")
+      obj.postMessage(t.textContent, false, false);
+    else {
+      // past input: almost the same but not quite: code not sent, just replaces input
+      let str = t.textContent;
+      if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
+      // inputSpan.textContent = str;
+      // placeCaretAtEnd(inputSpan);
+      inputSpan.focus();
+      document.execCommand("selectAll");
+      document.execCommand("insertText", false, str);
+      scrollDown(shell);
     }
+    setTimeout(() => {
+      t.classList.remove("codetrigger");
+    }, 100);
   };
 
   const removeAutoComplete = function (autoCompleteSelection) {
@@ -541,22 +537,20 @@ const Shell = function (
     };
   };
 
-  /*  obj.restoreInputAction = function (doc) {
-    Array.from(doc.getElementsByClassName("M2PastInput")).forEach((el) => {
-      (el as any).onclick = codeInputAction;
-    });
-  };*/
-
   shell.onclick = function (e) {
-    const t = e.target as HTMLElement;
-    if (
-      !t.classList.contains("M2CellBar") &&
-      t.tagName != "A" &&
-      window.getSelection().isCollapsed
-    ) {
-      placeCaretAtEnd(inputSpan, true);
-      scrollDown(shell);
+    if (!window.getSelection().isCollapsed) return;
+    let t = e.target as HTMLElement;
+    while (t != shell) {
+      if (
+        t.classList.contains("M2CellBar") ||
+        t.tagName == "A" ||
+        t.classList.contains("M2PastInput")
+      )
+        return;
+      t = t.parentElement;
     }
+    placeCaretAtEnd(inputSpan, true);
+    scrollDown(shell);
   };
 
   shell.onkeydown = function (e: KeyboardEvent) {
@@ -691,7 +685,6 @@ const Shell = function (
         Prism.languages.macaulay2
       );
       htmlSec.classList.add("M2PastInput");
-      htmlSec.onclick = obj.codeInputAction;
     } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
       if (url[0] != "/" && url.substr(0, 4) != "http") url = "/relative/" + url; // for relative URLs

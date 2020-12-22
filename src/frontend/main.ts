@@ -277,23 +277,29 @@ const wrapEmitForDisconnect = function (event, msg) {
 const clickAction = function (e) {
   if (e.button != 0) return;
   hideContextMenu();
-  if ((e.target as HTMLElement).classList.contains("M2CellBar"))
-    e.stopPropagation();
-  // bar stuff is handled my mousedown, not click (needed for shift-click)
-  else {
-    unselectCells(e.currentTarget.ownerDocument);
+  let t = e.target as HTMLElement;
+  while (t != e.currentTarget) {
+    if (t.classList.contains("M2CellBar")) {
+      e.stopPropagation();
+      // bar stuff is handled my mousedown, not click (needed for shift-click)
+      return;
+    }
     if (
-      e.target.tagName.substring(0, 4) == "CODE" ||
-      e.target.classList.contains("M2PastInput") // a bit weak: no propagation
-    )
-      myshell.codeInputAction.call(e.target, e);
+      (t.tagName.substring(0, 4) == "CODE" ||
+        t.classList.contains("M2PastInput")) &&
+      t.ownerDocument.getSelection().isCollapsed
+    ) {
+      e.stopPropagation();
+      myshell.codeInputAction(t);
+    }
+    t = t.parentElement;
   }
+  unselectCells(e.currentTarget.ownerDocument);
 };
 
 const mousedownAction = function (e) {
   if (e.button != 0) return;
-  if (e.target.classList.contains("M2CellBar"))
-    barMouseDown(e, e.target.classList.contains("M2Left"));
+  if (e.target.classList.contains("M2CellBar")) barMouseDown(e);
 };
 
 const rightclickAction = function (e) {

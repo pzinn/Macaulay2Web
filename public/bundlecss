@@ -2,7 +2,7 @@
 # normal version
 rm -f normal.css
 # sed 's/"Roboto"/"Epilogue"/g' mdl/material.indigo-deep_orange.min.css > normal.css
-cat mdl/material.indigo-deep_orange.min.css VectorGraphics/VectorGraphics.css interface_minimal.css interface_extra.css prism-M2.css >> normal.css
+cat mdl/material.indigo-deep_orange.min.css VectorGraphics/VectorGraphics.css interface_minimal.css interface_extra.css prism-M2.css > normal.css
 # minimal version
 rm -f minimal.css
 cat VectorGraphics/VectorGraphics.css interface_minimal.css prism-M2.css > minimal.css

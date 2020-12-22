@@ -129,22 +129,24 @@ const barKey = function (e) {
   if (barAction(key, e.target.parentElement)) e.preventDefault();
 };
 
-const barMouseDown = function (e, left) {
-  // left = true for left bar, false for separator
-  //  const t = this.parentElement;
+const barMouseDown = function (e) {
+  const left = e.target.classList.contains("M2Left");
   const t = e.target.parentElement;
   const doc = e.currentTarget.ownerDocument;
   const curInput = doc.getElementsByClassName("M2CurrentInput")[0]; // OK if undefined
   if (e.shiftKey && doc.activeElement.classList.contains("M2CellBar")) {
-    const tt = doc.activeElement.parentElement;
+    const t2 = doc.activeElement.parentElement;
+    const left2 = doc.activeElement.classList.contains("M2Left");
     const lst = doc.getElementsByClassName("M2Cell");
     let i = 0;
     let flag = 0;
     while (i < lst.length && flag < 2) {
       if (lst[i] == t) flag++;
-      if (lst[i] == tt) flag++;
+      if (lst[i] == t2) flag++;
       if (
-        (flag == 1 || ((lst[i] == t || lst[i] == tt) && (left || flag == 0))) &&
+        (flag == 1 ||
+          (lst[i] == t && (left || flag == 0)) ||
+          (lst[i] == t2 && (left2 || flag == 0))) &&
         !lst[i].contains(curInput) // we refuse to touch input
       )
         lst[i].classList.add("M2CellSelected");
