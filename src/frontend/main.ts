@@ -292,8 +292,7 @@ const clickAction = function (e) {
 
 const mousedownAction = function (e) {
   if (e.button != 0) return;
-  if (e.target.classList.contains("M2CellBar"))
-    barMouseDown(e, e.target.classList.contains("M2Left"));
+  if (e.target.classList.contains("M2CellBar")) barMouseDown(e);
 };
 
 const rightclickAction = function (e) {

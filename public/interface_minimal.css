@@ -1,6 +1,7 @@
 body {
     font-family: "Epilogue";
     font-size: 14px;
+    line-height: 1.2; /* some reasonable default */
 }
 
 #terminal {
@@ -16,7 +17,7 @@ body {
     line-height: 1.14286;
 }
 
-/* various sections inside #M2Out */
+/* various sections inside #terminal */
 
 .M2Input {
     position: relative;
@@ -88,7 +89,6 @@ body {
 }
 
 .M2Html pre {
-    display: inline;
     margin: 0px;
     font-family: "Roboto Mono";
     font-weight: 500;
@@ -250,10 +250,10 @@ does not contain the whole contents (and is possibly empty) */
 
 .M2Separator {
     position: absolute;
-    top: -0.6em; /* half the margin */
+    top: calc(-0.6em - 2px); /* half the margin */
     left: 0px;
     width: 100%;
-    height: 2px;
+    height: 3px;
     background: transparent;
 }
 
