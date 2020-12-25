@@ -320,17 +320,6 @@ pre, tt, blockquote {
     font-size: inherit;
 }
 
-/*
-.M2KatexDisplay {
-    display: block;
-    margin-left: 2em;
-}
-*/
-.katex-display > .katex {
-    margin-left: 2em;
-    text-align: left;
-}
-
 /* menu stuff */
 ul.menu {
     list-style: none;

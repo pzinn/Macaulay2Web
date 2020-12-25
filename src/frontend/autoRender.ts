@@ -23,6 +23,7 @@ const katexOptions = {
   macros: katexMacros,
   //  delimiters: delimiters, // not needed: auto-render bypassed
   displayMode: true,
+  fleqn: true,
   trust: true,
   strict: false,
   maxExpand: Infinity,
@@ -73,61 +74,42 @@ const findEndOfMath = function (delimiter, text, startIndex) {
   return -1;
 };
 
-function escapeRegex(string) {
+const escapeRegex = function (string) {
   return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-}
+};
 
-let regexLeft;
-for (let i = 0; i < delimiters.length; i++) {
-  if (i == 0) {
-    regexLeft = "(";
-  } else {
-    regexLeft += "|";
-  }
-  regexLeft += escapeRegex(delimiters[i].left);
-}
-regexLeft = new RegExp(regexLeft + ")");
+const regexLeft = new RegExp(
+  "(" + delimiters.map((x) => escapeRegex(x.left)).join("|") + ")"
+);
 
 const splitAtDelimiters = function (text) {
-  let lookingForLeft = true;
   let index;
   const data = [];
 
   while (true) {
-    if (lookingForLeft) {
-      index = text.search(regexLeft);
-      if (index === -1) {
-        break;
-      }
-      if (index > 0) {
-        data.push({
-          type: "text",
-          data: text.slice(0, index),
-        });
-        text = text.slice(index);
-      }
-    } else {
-      let i = 0;
-      while (!text.startsWith(delimiters[i].left)) i++;
-      index = findEndOfMath(
-        delimiters[i].right,
-        text,
-        delimiters[i].left.length
-      );
-      if (index === -1) {
-        break;
-      }
-
-      data.push({
-        type: "math",
-        data: text.slice(delimiters[i].left.length, index),
-        rawData: text.slice(0, index + delimiters[i].right.length),
-        display: delimiters[i].display,
-      });
-      text = text.slice(index + delimiters[i].right.length);
+    index = text.search(regexLeft);
+    if (index === -1) {
+      break;
     }
-
-    lookingForLeft = !lookingForLeft;
+    if (index > 0) {
+      data.push({
+        type: "text",
+        data: text.slice(0, index),
+      });
+      text = text.slice(index); // now text starts with delimiter
+    }
+    const i = delimiters.findIndex((delim) => text.startsWith(delim.left)); // ... so this always succeeds
+    index = findEndOfMath(delimiters[i].right, text, delimiters[i].left.length);
+    if (index === -1) {
+      break;
+    }
+    data.push({
+      type: "math",
+      data: text.slice(delimiters[i].left.length, index),
+      rawData: text.slice(0, index + delimiters[i].right.length),
+      display: delimiters[i].display,
+    });
+    text = text.slice(index + delimiters[i].right.length);
   }
 
   if (text != "")
@@ -139,10 +121,7 @@ const splitAtDelimiters = function (text) {
   return data;
 };
 
-/* Note: optionsCopy is mutated by this method. If it is ever exposed in the
- * API, we should copy it before mutating.
- */
-const renderMathInText = function (text, optionsCopy: any) {
+const renderMathInText = function (text) {
   const data = splitAtDelimiters(text);
   if (data.length === 1 && data[0].type === "text") {
     // There is no formula in the text.
@@ -157,23 +136,19 @@ const renderMathInText = function (text, optionsCopy: any) {
     if (data[i].type === "text") {
       fragment.appendChild(document.createTextNode(data[i].data));
     } else {
-      let math = data[i].data;
       let span;
       // Override any display mode defined in the settings with that
       // defined by the text itself
-      optionsCopy.displayMode = data[i].display;
+      katexOptions.displayMode = data[i].display;
       try {
-        if (optionsCopy.preProcess) {
-          math = optionsCopy.preProcess(math);
-        }
         span = katex
-          .__renderToHTMLTree("\\displaystyle " + math, optionsCopy) // move displaystyle elsewhere
+          .__renderToHTMLTree("\\displaystyle " + data[i].data, katexOptions) // move displaystyle elsewhere
           .toNode();
       } catch (err) {
         if (!(err instanceof katex.ParseError)) {
           throw err;
         }
-        optionsCopy.errorCallback(
+        katexOptions.errorCallback(
           "KaTeX auto-render: Failed to parse `" + data[i].data + "` with ",
           err
         );
@@ -189,7 +164,7 @@ const renderMathInText = function (text, optionsCopy: any) {
   return fragment;
 };
 
-const renderElem = function (elem, optionsCopy: any) {
+const autoRender = function (elem) {
   for (let i = 0; i < elem.childNodes.length; i++) {
     let childNode = elem.childNodes[i];
     if (childNode.nodeType === 3) {
@@ -204,7 +179,7 @@ const renderElem = function (elem, optionsCopy: any) {
         childNode = elem.childNodes[i];
         str += childNode.textContent; // in case text nodes get split because of max length
       }
-      const frag = renderMathInText(str, optionsCopy);
+      const frag = renderMathInText(str);
       if (frag) {
         while (i > i0) {
           elem.removeChild(elem.childNodes[i0]);
@@ -215,21 +190,16 @@ const renderElem = function (elem, optionsCopy: any) {
       }
     } else if (childNode.nodeType === 1) {
       // Element node
-      const classList = childNode.classList;
-      const shouldRender =
-        optionsCopy.ignoredTags.indexOf(childNode.nodeName) === -1 &&
-        optionsCopy.ignoredClasses.every((x) => !classList.contains(x));
-
-      if (shouldRender) {
-        renderElem(childNode, optionsCopy);
-      }
+      if (
+        katexOptions.ignoredTags.indexOf(childNode.nodeName) === -1 &&
+        katexOptions.ignoredClasses.every(
+          (x) => !childNode.classList.contains(x)
+        )
+      )
+        autoRender(childNode);
     }
     // Otherwise, it's something else, and ignore it.
   }
-};
-
-const autoRender = function (el) {
-  renderElem(el, katexOptions);
 };
 
 export { autoRender };
