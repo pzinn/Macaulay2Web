@@ -20,5 +20,6 @@ mkdir -p mdl
 cd mdl
 wget -nv -N https://code.getmdl.io/1.3.0/material.js
 wget -nv -N https://code.getmdl.io/1.3.0/material.indigo-deep_orange.min.css
+cd ..
 # bundle
 ./bundlecss

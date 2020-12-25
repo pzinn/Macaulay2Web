@@ -65,7 +65,7 @@ body {
 
 .M2Text {
     white-space: pre;
-    font-family: "Roboto Mono";
+    font-family: "Roboto Mono", monospace;
     font-weight: normal;
 }
 
@@ -90,10 +90,6 @@ body {
 
 .M2Html pre {
     margin: 0px;
-    font-family: "Roboto Mono";
-    font-weight: 500;
-    line-height: 1.2;
-    font-size: inherit;
 }
 
 .M2Html table {
@@ -107,31 +103,31 @@ table.examples {
     margin-left: 2em;
     margin-top: 0.5em;
     margin-bottom: 0.5em;
-     width: 50%;
-     border-style: solid;
+    width: 50%;
+    border-style: solid;
 /*     background-color: #c0ffff;
      border-top-color: #c0ffff;
      border-bottom-color: #50b0b0;
      border-left-color: #a0ffff;
      border-right-color: #50b0b0;
      font-size: 75%;*/
-     border-width: 3px;
-     border-spacing: 0px;
-     line-height: 110%;		/* 122% seems to be the default, and 100% leaves almost no space between lines */
+    border-width: 3px;
+    border-spacing: 0px;
+    line-height: 110%;		/* 122% seems to be the default, and 100% leaves almost no space between lines */
 }
 table.examples td {
-     border-style: solid;
+    border-style: solid;
 /*     border-top-color: #50b0b0;
      border-bottom-color: #c0ffff;
      border-left-color: #50b0b0;
      border-right-color: #a0ffff; */
-     padding-right: 0.75em;
-     padding-bottom: 1em;
-     border-width: 1px;
+    padding-right: 0.75em;
+    padding-bottom: 1em;
+    border-width: 1px;
 }
 table.examples pre {
-     margin: 0pt;
-     padding: 0pt;
+    margin: 0pt;
+    padding: 0pt;
 }
 
 
@@ -180,13 +176,13 @@ does not contain the whole contents (and is possibly empty) */
 }
 */
 
-.M2Html.M2Wrapped, .M2Wrapped .M2Html {
+.M2Wrapped .M2Html {
     white-space: normal;
     word-break: break-word;
     display: inline;
 }
 
-.M2Text.M2Wrapped, .M2Wrapped pre, .M2Wrapped .M2Text {
+.M2Text.M2Wrapped, .M2Wrapped .M2Text, .M2Wrapped pre, .M2Wrapped tt, .M2Wrapped .KatexError {
     white-space: pre-wrap;
     word-break: break-all;
 }
@@ -214,6 +210,9 @@ does not contain the whole contents (and is possibly empty) */
 
 .KatexError {
     color: #C07060;
+    white-space: pre;
+    font-family: "Roboto Mono", monospace;
+    font-weight: normal;
 }
 
 .M2Cell {
@@ -315,9 +314,10 @@ codeblock {
     background-color: red !important;
 }
 
-tt {
-    font-family: "Roboto Mono";
+pre, tt, blockquote {
+    font-family: "Roboto Mono", monospace;
     font-weight: 500;
+    font-size: inherit;
 }
 
 /*
@@ -366,7 +366,7 @@ ul.menu {
     position: absolute;
     right: 0px;
     top: 0px;*/
-    font-family: "Roboto Mono";
+    font-family: "Roboto Mono", monospace;
     font-size:0.5em;
     content: ":" attr(data-type);
 }
