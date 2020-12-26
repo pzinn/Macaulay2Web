@@ -704,7 +704,8 @@ const Shell = function (
       htmlSec.classList.add("M2PastInput");
     } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
-      if (url[0] != "/" && url.substr(0, 4) != "http") url = "/relative/" + url; // for relative URLs
+      if (url.startsWith("file://")) url = url.slice(7);
+      if (url[0] != "/" && !url.startsWith("http")) url = "/relative/" + url; // for relative URLs
       if (iFrame) iFrame.src = url;
       else window.open(url, "M2 browse");
     } else if (htmlSec.classList.contains("M2Html")) {
