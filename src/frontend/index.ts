@@ -3,7 +3,7 @@
 "use strict;";
 
 // bundle mdl
-require("../../public/mdl/material.js");
+require("../../public/js/material.js");
 
 import { init } from "./main";
 

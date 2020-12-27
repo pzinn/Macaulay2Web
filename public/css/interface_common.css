@@ -90,10 +90,15 @@ body {
     margin: 0px;
 }
 
-.M2Html table {
+table {
     border-spacing: 0.2em;
     line-height: 1.2;
     font-size: inherit;
+}
+
+td, th {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
 }
 
 /* from doc.css */
