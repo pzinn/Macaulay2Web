@@ -586,10 +586,11 @@ const Shell = function (
       e.key == "PageDown" ||
       e.key == "F1"
     ) {
-      // do not move caret on Ctrl or Command combos
+      // do not move caret on Ctrl/Command combos, PageUp/Down, etc
       if (e.key == "PageUp" && document.activeElement == inputSpan)
         shell.focus();
-      // this prevents the annoying behavior at the cost of losing the caret
+      // this prevents the annoying behavior of page up going to start of inputSpan
+      // requires shell ("terminal") to have tabIndex=0
       return;
     }
 
@@ -610,6 +611,7 @@ const Shell = function (
       // try to avoid disrupting the normal tab use as much as possible
       if (
         document.activeElement == inputSpan &&
+        !e.shiftKey &&
         autoCompleteHandling(e.key, window.getSelection().focusOffset)
       )
         e.preventDefault();
@@ -640,6 +642,14 @@ const Shell = function (
       e.preventDefault();
       return;
     }
+  };
+
+  shell.onkeyup = function (e) {
+    if (
+      document.activeElement == inputSpan &&
+      window.getSelection().focusOffset == 0
+    )
+      scrollLeft(shell);
   };
 
   const subList = [];
@@ -678,6 +688,13 @@ const Shell = function (
     if (htmlSec.contains(inputSpan)) attachElement(inputSpan, anc);
     // move back input element to outside htmlSec
 
+    if (htmlSec.classList.contains("M2Cell").childNodes == 2) {
+      // reject empty cells
+      htmlSec.remove();
+      htmlSec = anc;
+      return;
+    }
+
     if (htmlSec.classList.contains("M2Input")) {
       // highlight
       htmlSec.innerHTML = Prism.highlight(
@@ -687,7 +704,8 @@ const Shell = function (
       htmlSec.classList.add("M2PastInput");
     } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
-      if (url[0] != "/" && url.substr(0, 4) != "http") url = "/relative/" + url; // for relative URLs
+      if (url.startsWith("file://")) url = url.slice(7);
+      if (url[0] != "/" && !url.startsWith("http")) url = "/relative/" + url; // for relative URLs
       if (iFrame) iFrame.src = url;
       else window.open(url, "M2 browse");
     } else if (htmlSec.classList.contains("M2Html")) {
