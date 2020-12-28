@@ -1,2 +1,0 @@
-#!/bin/bash
-echo -n -e "\x1D$1\x11"
