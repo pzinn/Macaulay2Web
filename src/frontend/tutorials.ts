@@ -241,7 +241,6 @@ module.exports = function (initialTutorialNr, initialLessonNr) {
   if (initialTutorialNr) tutorialNr = initialTutorialNr;
   if (initialLessonNr) lessonNr = initialLessonNr;
   return {
-    tutorials,
     uploadTutorial,
     makeTutorialsList,
     loadLessonIfChanged,
