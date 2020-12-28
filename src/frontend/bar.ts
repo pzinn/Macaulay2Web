@@ -65,6 +65,7 @@ const barAction = function (action: string, target0: HTMLElement) {
   const list: HTMLElement[] = Array.from(
     doc.getElementsByClassName("M2CellSelected")
   );
+  selInput.length = 0;
 
   if (action == "ctrl-x" || action == "ctrl-c") cutList.length = 0;
   else if (action == "g") {
