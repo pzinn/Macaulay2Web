@@ -1,5 +1,7 @@
 /* global fetch */
 
+import uploadTutorialHelp from "./tutorials/uploadTutorialHelp.txt";
+
 const cssClasses = {
   titleSymbolClass: "material-icons titleSymbol",
   //  titleSymbolActive: "expand_more",
@@ -122,27 +124,16 @@ const appendTutorialToAccordion = function (
 };
 
 const appendLoadTutorialMenuToAccordion = function () {
-  fetch("uploadTutorialHelp.txt", {
-    credentials: "same-origin",
-  })
-    .then(function (response) {
-      return response.text();
-    })
-    .then(function (content) {
-      const title = document.createElement("h3");
-      title.innerHTML = "Load Your Own Tutorial";
-      appendTutorialToAccordion(
-        title,
-        content,
-        [],
-        -1,
-        false,
-        doUptutorialClick
-      ).id = "loadTutorialMenu";
-    })
-    .catch(function (error) {
-      console.log("loading /uploadTutorialHelp.txt failed: " + error);
-    });
+  const title = document.createElement("h3");
+  title.innerHTML = "Load Your Own Tutorial";
+  appendTutorialToAccordion(
+    title,
+    uploadTutorialHelp,
+    [],
+    -1,
+    false,
+    doUptutorialClick
+  ).id = "loadTutorialMenu";
 };
 
 const makeAccordion = function (tutorials) {

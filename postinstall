@@ -4,8 +4,8 @@ cd public
 echo Installing KaTeX
 wget -nv https://github.com/pzinn/KaTeX/releases/download/v0.12.1-pzinn/dist.tar.gz
 tar zxf dist.tar.gz
-mv dist/*.css dist/fonts css
-mv dist/*js js
+mv -f dist/*.css dist/fonts css
+mv -f dist/*js js
 rm -rf dist
 rm dist.tar.gz
 # VG

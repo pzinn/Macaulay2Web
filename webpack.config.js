@@ -7,7 +7,7 @@ module.exports = {
     module: {
 	rules: [
 	    {
-		test: /\.m2|\.html$/,
+		test: /\.m2|\.html|\.txt$/,
 		use: [ 'raw-loader' ]
 	    }
 	]
