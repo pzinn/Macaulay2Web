@@ -5,6 +5,8 @@ import io = require("socket.io-client");
 const SocketIOFileUpload = require("socketio-file-upload");
 //const Prism = require("prismjs");
 
+import editorDefault from "./default.m2";
+
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
 export { Socket };
@@ -420,17 +422,10 @@ const init = function () {
 
   // take care of default editor text
   if (editor) {
-    const xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-      if (this.readyState == 4 && this.status == 200) {
-        editor.innerHTML = Prism.highlight(
-          xhttp.responseText,
-          Prism.languages.macaulay2
-        );
-      }
-    };
-    xhttp.open("GET", "default.m2.txt", true);
-    xhttp.send();
+    editor.innerHTML = Prism.highlight(
+      editorDefault,
+      Prism.languages.macaulay2
+    );
   }
 
   let tab = url.hash;
