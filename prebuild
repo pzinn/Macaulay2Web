@@ -1,0 +1,12 @@
+#!/bin/bash
+cd src/frontend
+cp -f default.m2 ../../dist/frontend
+cp -fa tutorials ../../dist/frontend
+rm -f tutorialsList.ts
+echo "module.exports = [" > tutorialsList.ts
+#ls tutorials/*.html -Q -m >> tutorialsList.ts
+for i in tutorials/*.html
+do
+	echo 'require("./'$i'").default,' >> tutorialsList.ts
+done
+echo "];" >> tutorialsList.ts

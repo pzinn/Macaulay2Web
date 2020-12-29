@@ -5,6 +5,9 @@ import io = require("socket.io-client");
 const SocketIOFileUpload = require("socketio-file-upload");
 //const Prism = require("prismjs");
 
+import editorDefault from "./default.m2";
+const lst = require("./tutorialsList");
+
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
 export { Socket };
@@ -12,7 +15,7 @@ let socket: Socket;
 let serverDisconnect = false;
 const Shell = require("./shellEmulator");
 import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
-import { webAppTags } from "../frontend/tags";
+import { webAppTags } from "./tags";
 import {
   barKey,
   hideContextMenu,
@@ -420,22 +423,15 @@ const init = function () {
 
   // take care of default editor text
   if (editor) {
-    const xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-      if (this.readyState == 4 && this.status == 200) {
-        editor.innerHTML = Prism.highlight(
-          xhttp.responseText,
-          Prism.languages.macaulay2
-        );
-      }
-    };
-    xhttp.open("GET", "default.m2.txt", true);
-    xhttp.send();
+    editor.innerHTML = Prism.highlight(
+      editorDefault,
+      Prism.languages.macaulay2
+    );
   }
 
   let tab = url.hash;
 
-  const loadtute = url.searchParams.get("loadtutorial");
+  //  const loadtute = url.searchParams.get("loadtutorial");
   const upTutorial = document.getElementById("uptutorial");
   if (upTutorial) {
     const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab);
@@ -446,8 +442,8 @@ const init = function () {
       page = +m[2] || 1;
     }
     tutorialManager = require("./tutorials")(tute, page - 1);
-    const fetchTutorials = require("./fetchTutorials");
-    fetchTutorials(tutorialManager.makeTutorialsList, loadtute);
+    // const fetchTutorials = require("./fetchTutorials");
+    //    fetchTutorials(tutorialManager.makeTutorialsList, loadtute);
     upTutorial.onchange = tutorialManager.uploadTutorial;
   }
 
@@ -456,8 +452,9 @@ const init = function () {
     document.location.hash = "";
     window.addEventListener("hashchange", openTab);
     if (tab === "")
-      if (loadtute) tab = "#tutorial";
-      else tab = "#home";
+      //      if (loadtute) tab = "#tutorial";
+      //	else
+      tab = "#home";
     document.location.hash = tab;
   }
 

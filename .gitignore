@@ -10,6 +10,7 @@ public/css/material*
 public/css/minimal.css
 public/css/normal.css
 public/js
+src/frontend/tutorialsList.ts
 *.log
 *~
 *.bak

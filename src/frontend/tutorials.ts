@@ -18,7 +18,6 @@ interface Tutorial {
 
 let lessonNr = 0;
 let tutorialNr = 0;
-let tutorials = [];
 
 const updateTutorialNav = function () {
   const prevBtn = document.getElementById("prevBtn") as HTMLButtonElement;
@@ -100,6 +99,9 @@ const enrichTutorialWithHtml = function (theHtml) {
   return result;
 };
 
+const tutorials = require("./tutorialsList").map(enrichTutorialWithHtml);
+
+/*
 const getTutorial = function (url) {
   return fetch(url, {
     credentials: "same-origin",
@@ -121,7 +123,9 @@ const getTutorial = function (url) {
       return txt;
     });
 };
+*/
 
+/*
 const makeTutorialsList = function (tutorialNames) {
   return Promise.all(tutorialNames.map(getTutorial))
     .then(function (rawTutorials) {
@@ -136,6 +140,7 @@ const makeTutorialsList = function (tutorialNames) {
       console.log("Error in makeTutorialList: " + error);
     });
 };
+*/
 
 const preEscape = function (s: string) {
   const lookup = {
@@ -240,10 +245,12 @@ const uploadTutorial = function () {
 module.exports = function (initialTutorialNr, initialLessonNr) {
   if (initialTutorialNr) tutorialNr = initialTutorialNr;
   if (initialLessonNr) lessonNr = initialLessonNr;
+
+  accordion.makeAccordion(tutorials);
+  loadLesson(tutorialNr, lessonNr);
+
   return {
-    tutorials,
     uploadTutorial,
-    makeTutorialsList,
     loadLessonIfChanged,
   };
 };
