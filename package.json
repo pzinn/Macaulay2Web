@@ -47,7 +47,7 @@
   },
   "scripts": {
     "postinstall": "./postinstall",
-    "tsc": "tsc && tsc -p src/frontend && cp -f src/frontend/default.m2 dist/frontend",
+    "tsc": "./prebuild && tsc && tsc -p src/frontend",
     "build": "npm run lint && npm run format && npm run tsc && ./node_modules/.bin/webpack",
     "css": "cd public/css; cat katex.css VectorGraphics.css interface_common.css interface_minimal.css prism-M2.css | postcss -o minimal.css && cat material.indigo-deep_orange.min.css katex.css VectorGraphics.css interface_common.css interface_extra.css prism-M2.css | postcss -o normal.css",
     "start": "node dist/server/index.js",

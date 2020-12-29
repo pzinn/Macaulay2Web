@@ -13,7 +13,7 @@ import { SudoDockerContainers } from "./sudoDockerContainers";
 import { AddressInfo } from "net";
 import { directDownload } from "./fileDownload";
 
-import * as reader from "./tutorialReader";
+//import * as reader from "./tutorialReader";
 
 import express = require("express");
 const app = express();
@@ -375,10 +375,12 @@ const initializeServer = function () {
   const expressWinston = require("express-winston");
   serveStatic.mime.define({ "text/plain": ["m2"] }); // declare m2 files as plain text for browsing purposes
 
+  /*
   const getList: reader.GetListFunction = reader.tutorialReader(
     staticFolder,
     fs
   );
+*/
   const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM);
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
@@ -388,7 +390,7 @@ const initializeServer = function () {
   app.use(serveStatic(staticFolder));
   app.use("/admin", adminBroadcast);
   app.use("/admin", admin.stats);
-  app.use("/getListOfTutorials", getList);
+  //  app.use("/getListOfTutorials", getList);
   app.use(fileDownload);
   app.use(unhandled);
 };
