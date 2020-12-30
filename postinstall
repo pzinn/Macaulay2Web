@@ -1,13 +1,5 @@
 #!/bin/bash
 cd public
-# KaTeX
-echo Installing KaTeX
-wget -nv https://github.com/pzinn/KaTeX/releases/download/v0.12.1-pzinn/dist.tar.gz
-tar zxf dist.tar.gz
-mv -f dist/*.css dist/fonts css
-mv -f dist/*js js
-rm -rf dist
-rm dist.tar.gz
 # VG
 echo Installing VectorGraphics
 cd css

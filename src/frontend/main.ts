@@ -1,12 +1,8 @@
 /* eslint-env browser */
 "use strict";
+declare const MINIMAL;
 
 import io = require("socket.io-client");
-const SocketIOFileUpload = require("socketio-file-upload");
-//const Prism = require("prismjs");
-
-import editorDefault from "./default.m2";
-const lst = require("./tutorialsList");
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
@@ -25,7 +21,6 @@ import {
 } from "./bar";
 
 let myshell;
-let tutorialManager;
 let siofu;
 
 const getSelected = function () {
@@ -309,51 +304,6 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
-// supersedes mdl's internal tab handling
-const openTab = function () {
-  let loc = document.location.hash.substring(1);
-  // new syntax for navigating tutorial
-  const m = /^tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(loc);
-  if (m) {
-    loc = "tutorial";
-    if (m[1] || m[2])
-      tutorialManager.loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
-  }
-  const panel = document.getElementById(loc);
-  if (panel) {
-    const tab = document.getElementById(loc + "Title");
-    const tabs = document.getElementById("tabs") as any;
-    if (tabs.MaterialTabs) {
-      tabs.MaterialTabs.resetPanelState_();
-      tabs.MaterialTabs.resetTabState_();
-    }
-    panel.classList.add("is-active");
-    tab.classList.add("is-active");
-  }
-};
-
-let ignoreFirstLoad = true;
-const openBrowseTab = function (event) {
-  const tabs = document.getElementById("tabs");
-  const el = document.getElementById("browseTitle");
-  // show tab panel
-  if (el && tabs.classList.contains("is-upgraded")) {
-    if (ignoreFirstLoad) ignoreFirstLoad = false;
-    else el.click();
-  }
-  // try to enable actions
-  const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
-  if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
-    const bdy = iFrame.contentDocument.body;
-    bdy.onclick = clickAction;
-    bdy.onkeydown = keydownAction;
-    bdy.onmousedown = mousedownAction;
-    bdy.oncontextmenu = rightclickAction;
-  }
-  // do not follow link
-  event.preventDefault();
-};
-
 const socketOnMessage = function (msg) {
   if (msg !== "") {
     myshell.onmessage(msg);
@@ -400,14 +350,6 @@ const init = function () {
     ioParams = "?publicId=Default";
   }
 
-  const zoom = require("./zooming");
-  zoom.attachZoomButtons(
-    "terminal",
-    "terminalZoomIn",
-    "terminalResetZoom",
-    "terminalZoomOut"
-  );
-
   socket = io(ioParams);
   socket.on("reconnect_failed", socketOnError("reconnect_fail"));
   socket.on("reconnect_error", socketOnError("reconnect_error"));
@@ -419,21 +361,33 @@ const init = function () {
   socket.emit = wrapEmitForDisconnect;
   //  socket.on("file", fileDialog);
 
-  const editor = document.getElementById("editorDiv");
+  const terminal = document.getElementById("terminal");
 
-  // take care of default editor text
-  if (editor) {
-    editor.innerHTML = Prism.highlight(
-      editorDefault,
-      Prism.languages.macaulay2
+  if (MINIMAL) {
+    myshell = new Shell(terminal, socket, null, false, null);
+  } else {
+    const editor = document.getElementById("editorDiv");
+    const iFrame = document.getElementById("browseFrame");
+
+    const zoom = require("./zooming");
+    zoom.attachZoomButtons(
+      "terminal",
+      "terminalZoomIn",
+      "terminalResetZoom",
+      "terminalZoomOut"
     );
-  }
 
-  let tab = url.hash;
+    // take care of default editor text
+    if (editor) {
+      editor.innerHTML = Prism.highlight(
+        require("./default.m2").default,
+        Prism.languages.macaulay2
+      );
+    }
 
-  //  const loadtute = url.searchParams.get("loadtutorial");
-  const upTutorial = document.getElementById("uptutorial");
-  if (upTutorial) {
+    let tab = url.hash;
+
+    //  const loadtute = url.searchParams.get("loadtutorial");
     const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab);
     let tute = 0,
       page = 1;
@@ -441,69 +395,122 @@ const init = function () {
       tute = +m[1] || 0;
       page = +m[2] || 1;
     }
-    tutorialManager = require("./tutorials")(tute, page - 1);
+    const tutorialManager = require("./tutorials")(tute, page - 1);
     // const fetchTutorials = require("./fetchTutorials");
     //    fetchTutorials(tutorialManager.makeTutorialsList, loadtute);
-    upTutorial.onchange = tutorialManager.uploadTutorial;
-  }
+    const upTutorial = document.getElementById("uptutorial");
+    if (upTutorial) {
+      upTutorial.onchange = tutorialManager.uploadTutorial;
+    }
 
-  const tabs = document.getElementById("tabs");
-  if (tabs) {
-    document.location.hash = "";
-    window.addEventListener("hashchange", openTab);
-    if (tab === "")
-      //      if (loadtute) tab = "#tutorial";
-      //	else
-      tab = "#home";
-    document.location.hash = tab;
-  }
-
-  const iFrame = document.getElementById("browseFrame");
-  const terminal = document.getElementById("terminal");
-  myshell = new Shell(
-    terminal,
-    socket,
-    editor,
-    document.getElementById("editorToggle"),
-    iFrame
-  );
-
-  attachMinMaxBtnActions();
-  attachCtrlBtnActions();
-  attachCloseDialogBtns();
-
-  if (editor) editor.onkeydown = editorKeyDown;
-
-  siofu = new SocketIOFileUpload(socket);
-  attachClick("uploadBtn", siofu.prompt);
-  siofu.addEventListener("complete", showUploadSuccessDialog);
-
-  // must add this due to failure of mdl, see https://stackoverflow.com/questions/31536467/how-to-hide-drawer-upon-user-click
-  const drawer = document.querySelector(".mdl-layout__drawer");
-  if (drawer)
-    drawer.addEventListener(
-      "click",
-      function () {
-        document
-          .querySelector(".mdl-layout__obfuscator")
-          .classList.remove("is-visible");
-        this.classList.remove("is-visible");
-      },
-      false
-    );
-  // supersede mdl's built-in tab handling
-  Array.from(document.getElementsByClassName("mdl-tabs__tab")).forEach((el) => {
-    (el as any).onclick = function (event) {
-      event.stopImmediatePropagation();
+    // supersedes mdl's internal tab handling
+    const openTab = function () {
+      let loc = document.location.hash.substring(1);
+      // new syntax for navigating tutorial
+      const m = /^tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(loc);
+      if (m) {
+        loc = "tutorial";
+        if (m[1] || m[2])
+          tutorialManager.loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
+      }
+      const panel = document.getElementById(loc);
+      if (panel) {
+        const tab = document.getElementById(loc + "Title");
+        const tabs = document.getElementById("tabs") as any;
+        if (tabs.MaterialTabs) {
+          tabs.MaterialTabs.resetPanelState_();
+          tabs.MaterialTabs.resetTabState_();
+        }
+        panel.classList.add("is-active");
+        tab.classList.add("is-active");
+      }
     };
-  });
 
-  if (editor)
-    // only ask for confirmation if there's an editor
-    window.addEventListener("beforeunload", function (e) {
-      e.preventDefault();
-      e.returnValue = "";
-    });
+    let ignoreFirstLoad = true;
+    const openBrowseTab = function (event) {
+      const tabs = document.getElementById("tabs");
+      const el = document.getElementById("browseTitle");
+      // show tab panel
+      if (el && tabs.classList.contains("is-upgraded")) {
+        if (ignoreFirstLoad) ignoreFirstLoad = false;
+        else el.click();
+      }
+      // try to enable actions
+      const iFrame = document.getElementById(
+        "browseFrame"
+      ) as HTMLIFrameElement;
+      if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
+        const bdy = iFrame.contentDocument.body;
+        bdy.onclick = clickAction;
+        bdy.onkeydown = keydownAction;
+        bdy.onmousedown = mousedownAction;
+        bdy.oncontextmenu = rightclickAction;
+      }
+      // do not follow link
+      event.preventDefault();
+    };
+
+    const tabs = document.getElementById("tabs");
+    if (tabs) {
+      document.location.hash = "";
+      window.addEventListener("hashchange", openTab);
+      if (tab === "")
+        //      if (loadtute) tab = "#tutorial";
+        //	else
+        tab = "#home";
+      document.location.hash = tab;
+    }
+
+    myshell = new Shell(
+      terminal,
+      socket,
+      editor,
+      document.getElementById("editorToggle"),
+      iFrame
+    );
+
+    attachMinMaxBtnActions();
+    attachCtrlBtnActions();
+    attachCloseDialogBtns();
+
+    if (editor) editor.onkeydown = editorKeyDown;
+
+    const SocketIOFileUpload = require("socketio-file-upload");
+    siofu = new SocketIOFileUpload(socket);
+    attachClick("uploadBtn", siofu.prompt);
+    siofu.addEventListener("complete", showUploadSuccessDialog);
+
+    // must add this due to failure of mdl, see https://stackoverflow.com/questions/31536467/how-to-hide-drawer-upon-user-click
+    const drawer = document.querySelector(".mdl-layout__drawer");
+    if (drawer)
+      drawer.addEventListener(
+        "click",
+        function () {
+          document
+            .querySelector(".mdl-layout__obfuscator")
+            .classList.remove("is-visible");
+          this.classList.remove("is-visible");
+        },
+        false
+      );
+    // supersede mdl's built-in tab handling
+    Array.from(document.getElementsByClassName("mdl-tabs__tab")).forEach(
+      (el) => {
+        (el as any).onclick = function (event) {
+          event.stopImmediatePropagation();
+        };
+      }
+    );
+
+    if (editor)
+      // only ask for confirmation if there's an editor
+      window.addEventListener("beforeunload", function (e) {
+        e.preventDefault();
+        e.returnValue = "";
+      });
+
+    if (iFrame) iFrame.onload = openBrowseTab;
+  }
 
   const cookieQuery = document.getElementById("cookieQuery");
   if (cookieQuery) cookieQuery.onclick = queryCookie;
@@ -513,8 +520,6 @@ const init = function () {
     setTimeout(function () {
       myshell.postMessage(exec, false, false);
     }, 2000);
-
-  if (iFrame) iFrame.onload = openBrowseTab;
 
   //  attachClick("content", codeClickAction);
   document.body.onclick = clickAction;

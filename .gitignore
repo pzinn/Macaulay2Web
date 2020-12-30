@@ -1,6 +1,8 @@
 dist
 public/index.js
 public/index.js.LICENSE.txt
+public/minimal.js
+public/minimal.js.LICENSE.txt
 public/users.htpasswd
 public/user*
 public/css/katex*
