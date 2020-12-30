@@ -53,7 +53,7 @@
     "build": "npm run lint && npm run format && npm run tsc && ./node_modules/.bin/webpack --env production",
     "build:minimal": "npm run tsc && ./node_modules/.bin/webpack --env minimal",
     "build:debug": "npm run tsc && ./node_modules/.bin/webpack --env debug",
-    "css": "cd public/css; lessc ../../KaTeX/src/katex.less katex.css; cat katex.css VectorGraphics.css interface_common.css interface_minimal.css prism-M2.css | postcss -o minimal.css && cat material.indigo-deep_orange.min.css katex.css VectorGraphics.css interface_common.css interface_extra.css prism-M2.css | postcss -o normal.css",
+    "css": "cd src/frontend/css; lessc ../../../KaTeX/src/katex.less katex.css; cat katex.css VectorGraphics.css interface_common.css interface_minimal.css prism-M2.css | postcss -o ../../../public/minimal.css && cat material.indigo-deep_orange.min.css katex.css VectorGraphics.css interface_common.css interface_extra.css prism-M2.css | postcss -o ../../../public/index.css",
     "start": "node dist/server/index.js",
     "docker": "npm run build && npm start docker",
     "local": "npm run build && npm start local",

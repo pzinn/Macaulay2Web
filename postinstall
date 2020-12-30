@@ -1,11 +1,17 @@
 #!/bin/bash
-cd public
+# various sym links
+echo Sym-linking
+cd dist/frontend
+ln -s ../../src/frontend/js .
+ln -s ../../src/frontend/tutorials .
+ln -s ../../src/frontend/default.m2 .
+cd ../..
 # katex fonts
-echo Sym-linking KaTeX fonts
-cd css
-ln -s ../../KaTeX/submodules/katex-fonts/fonts .
+cd public
+ln -s ../KaTeX/submodules/katex-fonts/fonts .
 cd ..
 # VG
+cd src/frontend/
 echo Installing VectorGraphics
 cd css
 wget -nv -N https://raw.githubusercontent.com/pzinn/M2/vanilla/M2/Macaulay2/packages/VectorGraphics/VectorGraphics.css

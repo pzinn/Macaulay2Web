@@ -9,7 +9,7 @@ if (MINIMAL) {
   console.log("Minimal Macaulay2Web interface");
 } else {
   console.log("Full Macaulay2Web interface");
-  require("../../public/js/material.js");
+  require("js/material.js");
 }
 
 import { init } from "./main";
