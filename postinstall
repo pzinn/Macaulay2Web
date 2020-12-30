@@ -1,5 +1,10 @@
 #!/bin/bash
 cd public
+# katex fonts
+echo Sym-linking KaTeX fonts
+cd css
+ln -s ../../KaTeX/submodules/katex-fonts/fonts .
+cd ..
 # VG
 echo Installing VectorGraphics
 cd css

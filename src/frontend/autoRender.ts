@@ -1,6 +1,6 @@
 // based on katex auto-render
 // katex
-import katex from "../../../KaTeX/katex.js"; // fix path
+import katex from "../../KaTeX/katex.js";
 const katexMacros = {
   "\\break": "\\\\",
   "\\ZZ": "\\mathbb{Z}",
