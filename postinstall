@@ -1,15 +1,4 @@
 #!/bin/bash
-# various sym links
-echo Sym-linking
-cd dist/frontend
-ln -s ../../src/frontend/js .
-ln -s ../../src/frontend/tutorials .
-ln -s ../../src/frontend/default.m2 .
-cd ../..
-# katex fonts
-cd public
-ln -s ../KaTeX/submodules/katex-fonts/fonts .
-cd ..
 # VG
 cd src/frontend/
 echo Installing VectorGraphics
@@ -24,4 +13,17 @@ cd js
 wget -nv -N https://code.getmdl.io/1.3.0/material.js
 cd ../css
 wget -nv -N https://code.getmdl.io/1.3.0/material.indigo-deep_orange.min.css
+cd ..
+cd ../..
+# various sym links
+echo Sym-linking
+cd dist/frontend
+ln -s ../../src/frontend/js .
+ln -s ../../src/frontend/tutorials .
+ln -s ../../src/frontend/default.m2 .
+cd ../..
+cd public
+ln -s ../src/frontend/js/VectorGraphics.js .
+# katex fonts
+ln -s ../KaTeX/submodules/katex-fonts/fonts .
 cd ..
