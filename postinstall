@@ -2,9 +2,12 @@
 # VG
 cd src/frontend/
 echo Installing VectorGraphics
+mkdir -p css
 cd css
 wget -nv -N https://raw.githubusercontent.com/pzinn/M2/vanilla/M2/Macaulay2/packages/VectorGraphics/VectorGraphics.css
-cd ../js
+cd ..
+mkdir -p js
+cd js
 wget -nv -N https://raw.githubusercontent.com/pzinn/M2/vanilla/M2/Macaulay2/packages/VectorGraphics/VectorGraphics.js
 cd ..
 # mdl
@@ -18,12 +21,12 @@ cd ../..
 # various sym links
 echo Sym-linking
 cd dist/frontend
-ln -s ../../src/frontend/js .
-ln -s ../../src/frontend/tutorials .
-ln -s ../../src/frontend/default.m2 .
+ln -sf ../../src/frontend/js .
+ln -sf ../../src/frontend/tutorials .
+ln -sf ../../src/frontend/default.m2 .
 cd ../..
 cd public
-ln -s ../src/frontend/js/VectorGraphics.js .
+ln -sf ../src/frontend/js/VectorGraphics.js .
 # katex fonts
-ln -s ../KaTeX/submodules/katex-fonts/fonts .
+ln -sf ../KaTeX/submodules/katex-fonts/fonts .
 cd ..
