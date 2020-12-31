@@ -1,9 +1,17 @@
 /* eslint-env browser */
 
-"use strict;";
+"use strict";
+
+declare const MINIMAL;
 
 // bundle mdl
-require("../../public/js/material.js");
+if (MINIMAL) {
+  console.log("Minimal Macaulay2Web interface");
+} else {
+  console.log("Full Macaulay2Web interface");
+  require("./js/material.js");
+}
+require("./js/VectorGraphics.js");
 
 import { init } from "./main";
 

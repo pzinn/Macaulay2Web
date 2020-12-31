@@ -1,14 +1,6 @@
 #!/bin/bash
-cd public
-# KaTeX
-echo Installing KaTeX
-wget -nv https://github.com/pzinn/KaTeX/releases/download/v0.12.1-pzinn/dist.tar.gz
-tar zxf dist.tar.gz
-mv dist/*.css dist/fonts css
-mv dist/*js js
-rm -rf dist
-rm dist.tar.gz
 # VG
+cd src/frontend/
 echo Installing VectorGraphics
 cd css
 wget -nv -N https://raw.githubusercontent.com/pzinn/M2/vanilla/M2/Macaulay2/packages/VectorGraphics/VectorGraphics.css
@@ -21,4 +13,17 @@ cd js
 wget -nv -N https://code.getmdl.io/1.3.0/material.js
 cd ../css
 wget -nv -N https://code.getmdl.io/1.3.0/material.indigo-deep_orange.min.css
+cd ..
+cd ../..
+# various sym links
+echo Sym-linking
+cd dist/frontend
+ln -s ../../src/frontend/js .
+ln -s ../../src/frontend/tutorials .
+ln -s ../../src/frontend/default.m2 .
+cd ../..
+cd public
+ln -s ../src/frontend/js/VectorGraphics.js .
+# katex fonts
+ln -s ../KaTeX/submodules/katex-fonts/fonts .
 cd ..

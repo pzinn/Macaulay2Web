@@ -1,5 +1,6 @@
 // based on katex auto-render
-declare const katex;
+// katex
+import katex from "../../KaTeX/katex.js";
 const katexMacros = {
   "\\break": "\\\\",
   "\\ZZ": "\\mathbb{Z}",

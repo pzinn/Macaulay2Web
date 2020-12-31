@@ -1,0 +1,3 @@
+[submodule "KaTeX"]
+	path = KaTeX
+	url = https://github.com/pzinn/KaTeX
