@@ -82,7 +82,7 @@
           <a class="mdl-navigation__link" target="_self" href="#home">Home</a>
           <a class="mdl-navigation__link" target="_self" href="#tutorial">Tutorial</a>
           <a class="mdl-navigation__link" target="_self" href="#editor">Editor</a>
-          <a class="mdl-navigation__link" target="_self" href="#about">About</a>
+          <a class="mdl-navigation__link" target="_self" href="#chat">Chat</a>
           <a class="mdl-navigation__link" target="_self" href="#browse">Browse</a>
         </nav>
       </div>
@@ -97,7 +97,7 @@
                 <a href="#home" target="_self" id="homeTitle" class="mdl-tabs__tab">Home</a>
                 <a href="#tutorial" target="_self" id="tutorialTitle" class="mdl-tabs__tab">Tutorial</a>
                 <a href="#editor" target="_self" id="editorTitle" class="mdl-tabs__tab">Editor</a>
-                <a href="#about" target="_self" id="aboutTitle" class="mdl-tabs__tab">About</a>
+                <a href="#chat" target="_self" id="chatTitle" class="mdl-tabs__tab">Chat</a>
                 <a href="#browse" target="_self" id="browseTitle" class="mdl-tabs__tab">Browse</a>
 
               </div>
@@ -125,6 +125,18 @@
 		<p>This web site is hosted on the Melbourne Research Cloud.
 		  The interface requires a modern browser (tested thorougly on chrome and firefox, and succinctly on brave and edge). It uses a <a id="cookieQuery">cookie</a> to identify users.
 		</p>
+		<div id="accordion"></div>
+                <p style="font-size:0.8em">
+		  Written by <a href="http://blogs.unimelb.edu.au/paul-zinn-justin/">Paul Zinn-Justin</a> (2018-2021).
+		  <br/>
+		  Funding from ARC grants FT150100232, DP180100860 and NSF grant ``Collaborative Research: A Software System for Research in Algebraic Geometry, Commutative Algebra, and their Applications, David Eisenbud, Daniel R. Grayson, Michael E. Stillman, 2015-2020,
+<a href="http://www.nsf.gov/awardsearch/showAward.do?AwardNumber=1502209">NSF DMS 15-02209</a>''.
+		  <br/>
+                  Based on <a href="https://travis-ci.org/fhinkel/InteractiveShell">earlier work</a>
+                  by <a href="http://twitter.com/fhinkel">Franziska
+                    Hinkelmann</a>, <a href="http://page.mi.fu-berlin.de/lkastner/">Lars Kastner</a>,
+                  <a href="http://www.math.cornell.edu/~mike/">Mike Stillman</a> (2013-2017).
+                </p>
               </div>
 	      <div class="mdl-tabs__panel" id="browse">
 		<iframe name="browse" style="width:100%;height:100%" id="browseFrame" src="/usr/share/doc/Macaulay2/Macaulay2Doc/html/index.html"></iframe>
@@ -169,40 +181,13 @@
                      spellcheck="false" autocapitalize="off">
                 </div>
               </div>
-              <div class="mdl-tabs__panel" id="about">
+              <div class="mdl-tabs__panel" id="chat">
 
                 <h4>Questions?</h4>
                 <p>Email the M2 group
                   if you have questions about Macaulay2 and related
                   mathematics:<br/>
                   <a href='mailto:macaulay2@googlegroups.com' target="_blank">macaulay2@googlegroups.com</a>.
-                </p>
-
-                <h4>Contributing <a href="https://github.com/pzinn/Macaulay2Web" target="_blank" >
-                    <img src="githublogo.png"/></a></h4>
-
-                <p>
-                  This is an open source project, hosted on <a href="http://github.com/pzinn/Macaulay2Web" target="_blank">GitHub</a>.
-                </p>
-                <p>
-                  If you have tutorials that you would like to
-                  contribute, please contact one of the people below.
-                </p>
-
-                <h4>Authors</h4>
-                <p>
-		  Written by <a href="http://blogs.unimelb.edu.au/paul-zinn-justin/">Paul Zinn-Justin</a> (2018-2020).
-		  <br/>
-		  PZJ is funded by ARC grants FT150100232 and DP180100860, by NSF grant <small>``Collaborative Research: A Software System for Research in Algebraic Geometry, Commutative Algebra, and their Applications, David Eisenbud, Daniel R. Grayson, Michael E. Stillman, 2015-2020,
-<a href="http://www.nsf.gov/awardsearch/showAward.do?AwardNumber=1502209">NSF DMS 15-02209</a>''</small>, and acknowledges the support of the Melbourne Research Cloud in hosting this site.
-		</p>
-		<p>
-                  Based on <a href="https://travis-ci.org/fhinkel/InteractiveShell">earlier work</a>
-                  by <a href="http://twitter.com/fhinkel">Franziska
-                    Hinkelmann</a>, <a href="http://page.mi.fu-berlin.de/lkastner/">Lars Kastner</a>,
-                  <a href="http://www.math.cornell.edu/~mike/">Mike Stillman</a> (2013-2017;
-                  funding provided by
-                  the NSF, <a href="http://www.math.uiuc.edu/Macaulay2/Funding/" target='_blank'>see here</a>, and through Award 0635561, and DFG grant <a target='_blank' href="http://www.computeralgebra.de">SPP1489</a>).
                 </p>
               </div>
             </div>

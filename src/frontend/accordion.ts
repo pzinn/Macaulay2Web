@@ -137,9 +137,7 @@ const appendLoadTutorialMenuToAccordion = function () {
 };
 
 const makeAccordion = function (tutorials) {
-  const accel = document.createElement("div");
-  accel.id = "accordion";
-  document.getElementById("home").appendChild(accel);
+  const accel = document.getElementById("accordion");
   for (let i = 0; i < tutorials.length; i++)
     appendTutorialToAccordion(
       tutorials[i].title,
