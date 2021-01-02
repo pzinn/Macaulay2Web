@@ -4,6 +4,9 @@ declare const MINIMAL;
 
 import io = require("socket.io-client");
 
+import Cookie = require("cookie");
+import { globalOptions } from "../server/startupConfigs/global";
+
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
 export { Socket };
@@ -322,16 +325,24 @@ const socketOnError = function (type) {
 };
 
 const socketChat = function (msg) {
-    const ul = document.getElementById("chatMessages");
-    var msgel = document.createElement("li");
-    msgel.classList.add("chatMessage");
-    msgel.innerHTML=msg;
-    ul.appendChild(msgel);
-    // TODO: if tab isn't chat, highlight chat tab to warn user
-}
+  const ul = document.getElementById("chatMessages");
+  const msgel = document.createElement("li");
+  msgel.classList.add("chatMessage");
+  const s1 = document.createElement("i");
+  s1.textContent = msg.time;
+  const s2 = document.createElement("b");
+  s2.textContent = msg.alias;
+  const s3 = document.createElement("span");
+  s3.textContent = msg.message;
+  msgel.append(s1, " : ", s2, document.createElement("br"), s3);
+  ul.appendChild(msgel);
+  // TODO: if tab isn't chat, highlight chat tab to warn user
+};
 
 const queryCookie = function () {
-  const cookie = document.cookie;
+  const cookies = Cookie.parse(document.cookie);
+  const cookie = cookies[globalOptions.cookieName];
+
   const i = cookie.indexOf("user"); // not too subtle
   if (i < 0)
     alert("You don't have a cookie (presumably, you're in public mode)");
@@ -367,8 +378,8 @@ const init = function () {
   socket.on("disconnect", socketOnDisconnect);
   socket.on("cookie", socketOnCookie);
   socket.oldEmit = socket.emit;
-    socket.emit = wrapEmitForDisconnect;
-    socket.on("chat", socketChat);
+  socket.on("chat", socketChat);
+  socket.emit = wrapEmitForDisconnect;
   //  socket.on("file", fileDialog);
 
   const terminal = document.getElementById("terminal");
@@ -377,19 +388,25 @@ const init = function () {
     myshell = new Shell(terminal, socket, null, false, null);
   } else {
     const editor = document.getElementById("editorDiv");
-      const iFrame = document.getElementById("browseFrame");
-      const chatForm = document.getElementById("chatForm");
-      const chatInput = document.getElementById("chatInput") as HTMLInputElement;
-
-      if (chatForm) {
-	  chatForm.onsubmit = function(e) {
-	      e.preventDefault();
-	      // TODO: encode
-	      // TODO: time stamp, name (alias, not user id!) etc
-	      socket.emit("chat",chatInput.value);
-	      chatInput.value = "";
-	  }
-      }
+    const iFrame = document.getElementById("browseFrame");
+    const chatForm = document.getElementById("chatForm");
+    if (chatForm) {
+      const chatInput = document.getElementById(
+        "chatInput"
+      ) as HTMLInputElement;
+      const chatAlias = document.getElementById(
+        "chatAlias"
+      ) as HTMLInputElement;
+      chatForm.onsubmit = function (e) {
+        e.preventDefault();
+        socket.emit("chat", {
+          alias: chatAlias.value,
+          message: chatInput.value,
+          time: new Date().toISOString().replace("T", " ").substr(0, 19),
+        });
+        chatInput.value = "";
+      };
+    }
 
     const zoom = require("./zooming");
     zoom.attachZoomButtons(

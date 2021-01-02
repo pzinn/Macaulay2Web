@@ -1,9 +1,9 @@
 import { webAppTags } from "../../frontend/tags";
 import { AuthOption } from "../enums";
+import { globalOptions } from "./global";
 
 const options = {
-  cookieName: "Macaulay2Web",
-  cookieDuration: 1000 * 60 * 60 * 24 * 31, // one month
+  ...globalOptions,
   authentication: AuthOption.none,
   serverConfig: {
     CONTAINERS: "../LocalContainerManager",
@@ -33,10 +33,6 @@ const options = {
     sshKey: process.env.HOME + "/Macaulay2Web/id_rsa",
     containerName: "",
     lastActiveTime: 0,
-  },
-  perContainerResources: {
-    cpuShares: 0.5,
-    memory: 384, // Mb
   },
   hostConfig: {
     minContainerAge: 10,
