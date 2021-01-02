@@ -4,16 +4,18 @@ import ssh2 = require("ssh2");
 export class Client {
   public saneState: boolean;
   public instance: Instance;
-  public socketArray: { [socketID: string]: any };
+  public sockets: { [socketID: string]: any };
+  public results: string[];
   public channel: ssh2.ClientChannel;
   public id: string;
   constructor(newId: string) {
     this.saneState = true;
-    this.socketArray = [];
+    this.sockets = {};
+    this.results = [];
     this.id = newId;
   }
   public nSockets(): number {
-    return Object.keys(this.socketArray).length;
+    return Object.keys(this.sockets).length;
   }
 }
 

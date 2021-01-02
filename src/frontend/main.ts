@@ -248,12 +248,12 @@ const attachCloseDialogBtns = function () {
 
 const socketDisconnect = function (msg) {
   console.log("We got disconnected. " + msg);
-  myshell.onmessage(
+  /*  myshell.onmessage(
     webAppTags.Text +
       "Sorry, your session was disconnected" +
       " by the server.\n"
   );
-  myshell.reset();
+  myshell.reset();*/
   serverDisconnect = true;
   // Could use the following to automatically reload. Probably too invasive,
   // might kill results.
@@ -307,10 +307,10 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
-const socketMessage = function (msg) {
-  if (msg !== "") {
-    myshell.onmessage(msg);
-  }
+const socketResult = function (msg) {
+  // msg = array or single message
+  if (Array.isArray(msg)) msg.forEach((x) => myshell.displayResult(x));
+  else myshell.displayResult(msg);
 };
 
 const setCookie = function (cookie) {
@@ -391,7 +391,7 @@ const init = function () {
   socket.on("reconnect_failed", socketError("reconnect_fail"));
   socket.on("reconnect_error", socketError("reconnect_error"));
   socket.on("connect_error", socketError("connect_error"));
-  socket.on("result", socketMessage);
+  socket.on("result", socketResult);
   socket.on("disconnect", socketDisconnect);
   socket.on("cookie", setCookie);
   socket.on("chat", socketChat);
@@ -592,10 +592,12 @@ const init = function () {
       });
 
     if (iFrame) iFrame.onload = openBrowseTab;
+    const cookieQuery = document.getElementById("cookieQuery");
+    if (cookieQuery) cookieQuery.onclick = queryCookie;
   }
 
-  const cookieQuery = document.getElementById("cookieQuery");
-  if (cookieQuery) cookieQuery.onclick = queryCookie;
+  // restore previous output
+  socket.emit("restore");
 
   const exec = url.searchParams.get("exec");
   if (exec)
