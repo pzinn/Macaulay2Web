@@ -265,7 +265,14 @@ const sendDataToClient = function (client: Client) {
     }
     updateLastActiveTime(client);
     // extra logging for *users* only
-    if (client.id.substring(0, 4) === "user") client.results.push(data);
+    if (
+      client.id.substring(0, 4) === "user" &&
+      client.results.size + data.length <
+        options.perContainerResources.maxResults
+    ) {
+      client.results.push(data);
+      client.results.size += data.length;
+    }
     emitDataViaClientSockets(client, SocketEvent.result, data);
   };
 };
@@ -471,8 +478,12 @@ const socketChatAction = function (socket, client: Client) {
 const socketRestoreAction = function (socket, client: Client) {
   return function () {
     logClient(client.id, "Restoring results");
-      socket.emit("result", client.results.length>0 ? client.results : serverConfig.resumeString); // send previous results
-      
+    socket.emit(
+      "result",
+      client.id.substring(0, 4) === "user"
+        ? client.results
+        : serverConfig.resumeString
+    ); // send previous results
   };
 };
 
