@@ -424,7 +424,7 @@ const init = function () {
           alias === options.adminAlias ? options.defaultAlias : alias;
         const expDate = new Date(new Date().getTime() + options.cookieDuration);
         setCookie(
-          Cookie.serialize(options.cookieAliasName, alias, {
+          Cookie.serialize(options.cookieAliasName, chatAlias.value, {
             expires: expDate,
           })
         );
