@@ -491,7 +491,7 @@ const socketChatAction = function (client: Client) {
   return function (msg) {
     logClient(client.id, msg.alias + " said: " + msg.message);
     msg.type =
-      client.id == "user" + options.adminName && msg.alias == "Admin"
+      client.id == "user" + options.adminName && msg.alias == options.adminAlias
         ? "admin"
         : "user"; // TODO create a class for messages
     // TODO: secondary logging: just a global variable

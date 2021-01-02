@@ -1,9 +1,10 @@
 import { webAppTags } from "../../frontend/tags";
 import { AuthOption } from "../enums";
-import { globalOptions } from "./global";
+import { options as globalOptions } from "./global";
 
 const options = {
   ...globalOptions,
+  adminName: "", // to be set live only
   authentication: AuthOption.none,
   serverConfig: {
     CONTAINERS: "../LocalContainerManager",

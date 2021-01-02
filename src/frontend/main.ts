@@ -5,7 +5,7 @@ declare const MINIMAL;
 import io = require("socket.io-client");
 
 import Cookie = require("cookie");
-import { globalOptions } from "../server/startupConfigs/global";
+import { options } from "../server/startupConfigs/global";
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
@@ -246,7 +246,7 @@ const attachCloseDialogBtns = function () {
   });
 };
 
-const socketOnDisconnect = function (msg) {
+const socketDisconnect = function (msg) {
   console.log("We got disconnected. " + msg);
   myshell.onmessage(
     webAppTags.Text +
@@ -307,17 +307,17 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
-const socketOnMessage = function (msg) {
+const socketMessage = function (msg) {
   if (msg !== "") {
     myshell.onmessage(msg);
   }
 };
 
-const socketOnCookie = function (cookie) {
+const setCookie = function (cookie) {
   document.cookie = cookie;
 };
 
-const socketOnError = function (type) {
+const socketError = function (type) {
   return function (error) {
     console.log("We got an " + type + " error. " + error);
     serverDisconnect = true;
@@ -352,9 +352,9 @@ const socketChat = function (msg) {
 
 const queryCookie = function () {
   const cookies = Cookie.parse(document.cookie);
-  const cookie = cookies[globalOptions.cookieName];
+  const cookie = cookies[options.cookieName];
 
-  const i = cookie.indexOf("user"); // not too subtle
+  const i = cookie.indexOf("user");
   if (i < 0)
     alert("You don't have a cookie (presumably, you're in public mode)");
   else
@@ -382,12 +382,12 @@ const init = function () {
   }
 
   socket = io(ioParams);
-  socket.on("reconnect_failed", socketOnError("reconnect_fail"));
-  socket.on("reconnect_error", socketOnError("reconnect_error"));
-  socket.on("connect_error", socketOnError("connect_error"));
-  socket.on("result", socketOnMessage);
-  socket.on("disconnect", socketOnDisconnect);
-  socket.on("cookie", socketOnCookie);
+  socket.on("reconnect_failed", socketError("reconnect_fail"));
+  socket.on("reconnect_error", socketError("reconnect_error"));
+  socket.on("connect_error", socketError("connect_error"));
+  socket.on("result", socketMessage);
+  socket.on("disconnect", socketDisconnect);
+  socket.on("cookie", setCookie);
   socket.oldEmit = socket.emit;
   socket.on("chat", socketChat);
   socket.emit = wrapEmitForDisconnect;
@@ -408,6 +408,21 @@ const init = function () {
       const chatAlias = document.getElementById(
         "chatAlias"
       ) as HTMLInputElement;
+      // init alias as cookie or default
+      const cookies = Cookie.parse(document.cookie);
+      const cookie = cookies[options.cookieAliasName];
+      chatAlias.value = cookie ? cookie : options.defaultAlias;
+      chatAlias.onchange = function (e) {
+        const alias = chatAlias.value.trim();
+        chatAlias.value =
+          alias === options.adminAlias ? options.defaultAlias : alias;
+        const expDate = new Date(new Date().getTime() + options.cookieDuration);
+        setCookie(
+          Cookie.serialize(options.cookieAliasName, alias, {
+            expires: expDate,
+          })
+        );
+      };
       chatForm.onsubmit = function (e) {
         e.preventDefault();
         socket.emit("chat", {
