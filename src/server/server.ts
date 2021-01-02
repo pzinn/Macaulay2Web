@@ -97,20 +97,11 @@ const disconnectSocket = function (socket: SocketIO.Socket): void {
   }
 };
 
-const disconnectSockets = function (sockets): void {
-  for (const socketKey in sockets) {
-    if (sockets.hasOwnProperty(socketKey)) {
-      const socket: SocketIO.Socket = sockets[socketKey];
-      disconnectSocket(socket);
-    }
-  }
-};
-
 const deleteClientData = function (client: Client): void {
   logClient(client.id, "deleting folder " + userSpecificPath(client));
   try {
     logClient(client.id, "Sending disconnect. ");
-    disconnectSockets(clients[client.id].socketArray);
+    Object.values(clients[client.id].sockets).forEach(disconnectSocket);
   } catch (error) {
     logClient(client.id, "Socket seems already dead: " + error);
   }
@@ -122,23 +113,10 @@ const deleteClientData = function (client: Client): void {
   delete clients[client.id];
 };
 
-const emitDataViaSockets = function (
-  sockets,
-  type: SocketEvent,
-  data: string
-): void {
-  for (const socketKey in sockets) {
-    if (sockets.hasOwnProperty(socketKey)) {
-      const socket = sockets[socketKey];
-      emitDataSafelyViaSocket(socket, type, data);
-    }
-  }
-};
-
 const emitDataSafelyViaSocket = function (
   socket,
   type: SocketEvent,
-  data: string
+  data
 ): void {
   try {
     socket.emit(SocketEvent[type], data);
@@ -156,8 +134,9 @@ const emitDataViaClientSockets = function (
 ) {
   const s = short(data);
   if (s != "") logClient(client.id, "Sending output: " + s);
-  const sockets = client.socketArray;
-  emitDataViaSockets(sockets, type, data);
+  Object.values(client.sockets).forEach((socket) =>
+    emitDataSafelyViaSocket(socket, type, data)
+  );
 };
 
 const getInstance = function (client: Client, next) {
@@ -287,7 +266,7 @@ const updateLastActiveTime = function (client: Client) {
 const addNewSocket = function (client: Client, socket: SocketIO.Socket) {
   logClient(client.id, "Adding new socket");
   const socketID: string = socket.id;
-  client.socketArray[socketID] = socket;
+  client.sockets[socketID] = socket;
 };
 
 const sendDataToClient = function (client: Client) {
@@ -298,6 +277,15 @@ const sendDataToClient = function (client: Client) {
       return;
     }
     updateLastActiveTime(client);
+    // extra logging for *users* only
+    if (
+      client.id.substring(0, 4) === "user" &&
+      client.results.size + data.length <
+        options.perContainerResources.maxResults
+    ) {
+      client.results.push(data);
+      client.results.size += data.length;
+    }
     emitDataViaClientSockets(client, SocketEvent.result, data);
   };
 };
@@ -386,13 +374,13 @@ const clientExistenceCheck = function (clientId: string, socket): Client {
   if (!clients[clientId]) {
     clients[clientId] = new Client(clientId);
     totalUsers += 1;
-  } else {
+  } /* else {
     emitDataSafelyViaSocket(
       socket,
       SocketEvent.result,
       serverConfig.resumeString
     );
-  }
+  }*/
   return clients[clientId];
 };
 
@@ -468,6 +456,7 @@ const socketResetAction = function (client: Client) {
     logClient(client.id, "Received reset.");
     if (checkClientSane(client)) {
       if (client.channel) killMathProgram(client.channel, client.id);
+      client.results.length = 0;
       sanitizeClient(client, true);
     }
   };
@@ -496,6 +485,18 @@ const socketChatAction = function (socket, client: Client) {
     // should one sanitize the message just in case?
     // broadcast
     io.emit("chat", msg);
+  };
+};
+
+const socketRestoreAction = function (socket, client: Client) {
+  return function () {
+    logClient(client.id, "Restoring results");
+    socket.emit(
+      "result",
+      client.id.substring(0, 4) === "user"
+        ? client.results
+        : serverConfig.resumeString
+    ); // send previous results
   };
 };
 
@@ -555,6 +556,7 @@ const listen = function () {
       socket.on("input", socketInputAction(socket, client));
       socket.on("reset", socketResetAction(client));
       socket.on("chat", socketChatAction(socket, client));
+      socket.on("restore", socketRestoreAction(socket, client));
     });
 
     glx.serveApp(app);

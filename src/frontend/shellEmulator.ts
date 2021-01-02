@@ -765,7 +765,7 @@ const Shell = function (
     htmlSec = anc;
   };
 
-  obj.onmessage = function (msg: string) {
+  obj.displayResult = function (msg: string) {
     if (procInputSpan !== null) {
       procInputSpan.remove();
       procInputSpan = null;

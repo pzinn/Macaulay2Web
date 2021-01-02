@@ -1,7 +1,6 @@
 // Emit one of these types via websocket.
 enum SocketEvent {
   "result",
-  "file",
 }
 export { SocketEvent };
 
