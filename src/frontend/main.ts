@@ -13,7 +13,7 @@ export { Socket };
 let socket: Socket;
 let serverDisconnect = false;
 const Shell = require("./shellEmulator");
-import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
+import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 import { webAppTags } from "./tags";
 import {
   barKey,
@@ -332,11 +332,22 @@ const socketChat = function (msg) {
   s1.textContent = msg.time;
   const s2 = document.createElement("b");
   s2.textContent = msg.alias;
+  s2.classList.add("message-" + msg.type);
   const s3 = document.createElement("span");
   s3.textContent = msg.message;
   msgel.append(s1, " : ", s2, document.createElement("br"), s3);
   ul.appendChild(msgel);
-  // TODO: if tab isn't chat, highlight chat tab to warn user
+  scrollDown(ul);
+  if (msg.type != "system") {
+    const chatTitle = document.getElementById("chatTitle");
+    if (document.location.hash != "#chat") {
+      chatTitle.classList.add("message-" + msg.type);
+    }
+    chatTitle.classList.add("message-pop");
+    setTimeout(function () {
+      chatTitle.classList.remove("message-pop");
+    }, 500);
+  }
 };
 
 const queryCookie = function () {
@@ -462,6 +473,8 @@ const init = function () {
         }
         panel.classList.add("is-active");
         tab.classList.add("is-active");
+        if (loc == "chat") tab.classList.remove("message-user");
+        if (loc == "chat") tab.classList.remove("message-admin");
       }
     };
 

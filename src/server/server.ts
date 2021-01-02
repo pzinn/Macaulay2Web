@@ -489,9 +489,14 @@ const socketResetAction = function (client: Client) {
 
 const socketChatAction = function (client: Client) {
   return function (msg) {
-    logClient(client.id, "At "+msg.time+" "+msg.alias+" said: " + msg.message);
+    logClient(client.id, msg.alias + " said: " + msg.message);
+    msg.type =
+      client.id == "user" + options.adminName && msg.alias == "Admin"
+        ? "admin"
+        : "user"; // TODO create a class for messages
+    // TODO: secondary logging: just a global variable
+    // should one sanitize the message just in case?
     // broadcast
-    // TODO: encode here or at level of client
     io.emit("chat", msg);
   };
 };
