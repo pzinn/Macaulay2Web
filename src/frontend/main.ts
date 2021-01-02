@@ -4,13 +4,16 @@ declare const MINIMAL;
 
 import io = require("socket.io-client");
 
+import Cookie = require("cookie");
+import { options } from "../server/startupConfigs/global";
+
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
 export { Socket };
 let socket: Socket;
 let serverDisconnect = false;
 const Shell = require("./shellEmulator");
-import { scrollDownLeft, caretIsAtEnd } from "./htmlTools";
+import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 import { webAppTags } from "./tags";
 import {
   barKey,
@@ -243,7 +246,7 @@ const attachCloseDialogBtns = function () {
   });
 };
 
-const socketOnDisconnect = function (msg) {
+const socketDisconnect = function (msg) {
   console.log("We got disconnected. " + msg);
   myshell.onmessage(
     webAppTags.Text +
@@ -259,7 +262,7 @@ const socketOnDisconnect = function (msg) {
 
 const wrapEmitForDisconnect = function (event, msg) {
   if (serverDisconnect) {
-    const events = ["reset", "input"];
+    const events = ["reset", "input", "chat"];
     console.log("We are disconnected.");
     if (events.indexOf(event) !== -1) {
       socket.connect();
@@ -304,26 +307,60 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
-const socketOnMessage = function (msg) {
+const socketMessage = function (msg) {
   if (msg !== "") {
     myshell.onmessage(msg);
   }
 };
 
-const socketOnCookie = function (cookie) {
+const setCookie = function (cookie) {
   document.cookie = cookie;
 };
 
-const socketOnError = function (type) {
+const socketError = function (type) {
   return function (error) {
     console.log("We got an " + type + " error. " + error);
     serverDisconnect = true;
   };
 };
 
+const showChat = function (msg, index?) {
+  const ul = document.getElementById("chatMessages");
+  const msgel = document.createElement("li");
+  msgel.classList.add("chatMessage");
+  const s1 = document.createElement("i");
+  s1.textContent = msg.time;
+  const s2 = document.createElement("b");
+  s2.textContent = msg.alias;
+  s2.classList.add("message-" + msg.type);
+  const s3 = document.createElement("span");
+  s3.textContent = msg.message;
+  msgel.append(s1, " : ", s2, document.createElement("br"), s3);
+  ul.appendChild(msgel);
+  scrollDown(ul);
+  if (index === undefined && msg.type != "system") {
+    const chatTitle = document.getElementById("chatTitle");
+    if (document.location.hash != "#chat") {
+      chatTitle.classList.add("message-" + msg.type);
+    }
+    chatTitle.classList.add("message-pop");
+    setTimeout(function () {
+      chatTitle.classList.remove("message-pop");
+    }, 500);
+  }
+};
+
+const socketChat = function (msg) {
+  // msg = array or single message
+  if (Array.isArray(msg)) msg.forEach(showChat);
+  else showChat(msg);
+};
+
 const queryCookie = function () {
-  const cookie = document.cookie;
-  const i = cookie.indexOf("user"); // not too subtle
+  const cookies = Cookie.parse(document.cookie);
+  const cookie = cookies[options.cookieName];
+
+  const i = cookie.indexOf("user");
   if (i < 0)
     alert("You don't have a cookie (presumably, you're in public mode)");
   else
@@ -351,12 +388,13 @@ const init = function () {
   }
 
   socket = io(ioParams);
-  socket.on("reconnect_failed", socketOnError("reconnect_fail"));
-  socket.on("reconnect_error", socketOnError("reconnect_error"));
-  socket.on("connect_error", socketOnError("connect_error"));
-  socket.on("result", socketOnMessage);
-  socket.on("disconnect", socketOnDisconnect);
-  socket.on("cookie", socketOnCookie);
+  socket.on("reconnect_failed", socketError("reconnect_fail"));
+  socket.on("reconnect_error", socketError("reconnect_error"));
+  socket.on("connect_error", socketError("connect_error"));
+  socket.on("result", socketMessage);
+  socket.on("disconnect", socketDisconnect);
+  socket.on("cookie", setCookie);
+  socket.on("chat", socketChat);
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
   //  socket.on("file", fileDialog);
@@ -368,7 +406,44 @@ const init = function () {
   } else {
     const editor = document.getElementById("editorDiv");
     const iFrame = document.getElementById("browseFrame");
-
+    const chatForm = document.getElementById("chatForm");
+    if (chatForm) {
+      const chatInput = document.getElementById(
+        "chatInput"
+      ) as HTMLInputElement;
+      const chatAlias = document.getElementById(
+        "chatAlias"
+      ) as HTMLInputElement;
+      // init alias as cookie or default
+      const cookies = Cookie.parse(document.cookie);
+      const cookie = cookies[options.cookieAliasName];
+      chatAlias.value = cookie ? cookie : options.defaultAlias;
+      chatAlias.onchange = function (e) {
+        const alias = chatAlias.value.trim();
+        chatAlias.value =
+          alias === options.adminAlias ? options.defaultAlias : alias;
+        const expDate = new Date(new Date().getTime() + options.cookieDuration);
+        setCookie(
+          Cookie.serialize(options.cookieAliasName, alias, {
+            expires: expDate,
+          })
+        );
+      };
+      chatForm.onsubmit = function (e) {
+        e.preventDefault();
+        socket.emit("chat", {
+          alias: chatAlias.value,
+          message: chatInput.value,
+          time: new Date().toISOString().replace("T", " ").substr(0, 19),
+        });
+        chatInput.value = "";
+      };
+      // signal presence
+      socket.emit("chat", {
+        alias: chatAlias.value,
+        time: new Date().toISOString().replace("T", " ").substr(0, 19),
+      });
+    }
     const zoom = require("./zooming");
     zoom.attachZoomButtons(
       "terminal",
@@ -423,6 +498,13 @@ const init = function () {
         }
         panel.classList.add("is-active");
         tab.classList.add("is-active");
+        if (loc == "chat") {
+          tab.classList.remove("message-user");
+          tab.classList.remove("message-admin");
+          // fix scrolling issue
+          const ul = document.getElementById("chatMessages");
+          scrollDown(ul);
+        }
       }
     };
 
@@ -519,7 +601,7 @@ const init = function () {
   if (exec)
     setTimeout(function () {
       myshell.postMessage(exec, false, false);
-    }, 2000);
+    }, 2000); // weak
 
   //  attachClick("content", codeClickAction);
   document.body.onclick = clickAction;

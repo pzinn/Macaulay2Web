@@ -13,8 +13,6 @@ import { SudoDockerContainers } from "./sudoDockerContainers";
 import { AddressInfo } from "net";
 import { directDownload } from "./fileDownload";
 
-//import * as reader from "./tutorialReader";
-
 import express = require("express");
 const app = express();
 //import httpModule = require("http");
@@ -364,23 +362,6 @@ const unhandled = function (request, response) {
   response.end();
 };
 
-const adminBroadcast = function (req, res, next) {
-  if (req.query.message) {
-    logger.info(req.headers.host + " messaged: " + req.query.message);
-    let text = req.query.message.replace(/[^a-z0-9 \.,_-]/gim, "");
-    if (text === "reboot")
-      // common special case
-      text =
-        "<span style='color:red'>System is going for reboot in 5 minutes. Please save your data.</span>";
-    // broadcast
-    io.emit(
-      "result",
-      "\n" + webAppTags.Html + "<h3>" + text + "</h3>" + webAppTags.End + "\n"
-    ); // TODO: avoid interference with M2Input
-  }
-  next();
-};
-
 const initializeServer = function () {
   const favicon = require("serve-favicon");
   const serveStatic = require("serve-static");
@@ -388,12 +369,6 @@ const initializeServer = function () {
   const expressWinston = require("express-winston");
   serveStatic.mime.define({ "text/plain": ["m2"] }); // declare m2 files as plain text for browsing purposes
 
-  /*
-  const getList: reader.GetListFunction = reader.tutorialReader(
-    staticFolder,
-    fs
-  );
-*/
   const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM);
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
@@ -401,9 +376,7 @@ const initializeServer = function () {
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
   app.use(serveStatic(staticFolder));
-  app.use("/admin", adminBroadcast);
-  app.use("/admin", admin.stats);
-  //  app.use("/getListOfTutorials", getList);
+  app.use("/admin", admin.stats); // TODO: retire
   app.use(fileDownload);
   app.use(unhandled);
 };
@@ -500,6 +473,32 @@ const socketResetAction = function (client: Client) {
   };
 };
 
+const chatList = [];
+
+const socketChatAction = function (socket, client: Client) {
+  return function (msg) {
+    // TODO create a class for messages
+    if (!msg.message) {
+      // special: login
+      socket.emit("chat", chatList); // provide past chat
+      msg.message = msg.alias + " has arrived. Welcome!";
+      msg.alias = "System";
+      msg.type = "system";
+    } else {
+      logClient(client.id, msg.alias + " said: " + msg.message);
+      msg.type =
+        client.id == "user" + options.adminName &&
+        msg.alias == options.adminAlias
+          ? "admin"
+          : "user";
+      chatList.push(msg); // right now, only non system messages logged. could change by moving this line outside }
+    }
+    // should one sanitize the message just in case?
+    // broadcast
+    io.emit("chat", msg);
+  };
+};
+
 const initializeClientId = function (socket): string {
   const clientId = clientIdHelper(clients, logger.info).getNewId();
   setCookieOnSocket(socket, clientId);
@@ -555,6 +554,7 @@ const listen = function () {
       fileUpload.attachUploadListenerToSocket(client, socket);
       socket.on("input", socketInputAction(socket, client));
       socket.on("reset", socketResetAction(client));
+      socket.on("chat", socketChatAction(socket, client));
     });
 
     glx.serveApp(app);
