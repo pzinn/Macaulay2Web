@@ -15,10 +15,4 @@ require("./js/VectorGraphics.js");
 
 import { init } from "./main";
 
-document.addEventListener(
-  "DOMContentLoaded",
-  function () {
-    init();
-  },
-  false
-);
+document.addEventListener("DOMContentLoaded", init, false);

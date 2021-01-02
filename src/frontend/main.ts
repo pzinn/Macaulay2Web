@@ -262,7 +262,7 @@ const socketDisconnect = function (msg) {
 
 const wrapEmitForDisconnect = function (event, msg) {
   if (serverDisconnect) {
-    const events = ["reset", "input"];
+    const events = ["reset", "input", "chat"];
     console.log("We are disconnected.");
     if (events.indexOf(event) !== -1) {
       socket.connect();
@@ -324,7 +324,7 @@ const socketError = function (type) {
   };
 };
 
-const socketChat = function (msg) {
+const showChat = function (msg, index?) {
   const ul = document.getElementById("chatMessages");
   const msgel = document.createElement("li");
   msgel.classList.add("chatMessage");
@@ -338,7 +338,7 @@ const socketChat = function (msg) {
   msgel.append(s1, " : ", s2, document.createElement("br"), s3);
   ul.appendChild(msgel);
   scrollDown(ul);
-  if (msg.type != "system") {
+  if (index === undefined && msg.type != "system") {
     const chatTitle = document.getElementById("chatTitle");
     if (document.location.hash != "#chat") {
       chatTitle.classList.add("message-" + msg.type);
@@ -348,6 +348,12 @@ const socketChat = function (msg) {
       chatTitle.classList.remove("message-pop");
     }, 500);
   }
+};
+
+const socketChat = function (msg) {
+  // msg = array or single message
+  if (Array.isArray(msg)) msg.forEach(showChat);
+  else showChat(msg);
 };
 
 const queryCookie = function () {
@@ -388,8 +394,8 @@ const init = function () {
   socket.on("result", socketMessage);
   socket.on("disconnect", socketDisconnect);
   socket.on("cookie", setCookie);
-  socket.oldEmit = socket.emit;
   socket.on("chat", socketChat);
+  socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
   //  socket.on("file", fileDialog);
 
@@ -432,8 +438,12 @@ const init = function () {
         });
         chatInput.value = "";
       };
+      // signal presence
+      socket.emit("chat", {
+        alias: chatAlias.value,
+        time: new Date().toISOString().replace("T", " ").substr(0, 19),
+      });
     }
-
     const zoom = require("./zooming");
     zoom.attachZoomButtons(
       "terminal",
@@ -488,8 +498,13 @@ const init = function () {
         }
         panel.classList.add("is-active");
         tab.classList.add("is-active");
-        if (loc == "chat") tab.classList.remove("message-user");
-        if (loc == "chat") tab.classList.remove("message-admin");
+        if (loc == "chat") {
+          tab.classList.remove("message-user");
+          tab.classList.remove("message-admin");
+          // fix scrolling issue
+          const ul = document.getElementById("chatMessages");
+          scrollDown(ul);
+        }
       }
     };
 
@@ -586,7 +601,7 @@ const init = function () {
   if (exec)
     setTimeout(function () {
       myshell.postMessage(exec, false, false);
-    }, 2000);
+    }, 2000); // weak
 
   //  attachClick("content", codeClickAction);
   document.body.onclick = clickAction;
