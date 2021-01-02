@@ -487,6 +487,18 @@ const socketResetAction = function (client: Client) {
   };
 };
 
+const socketChatAction = function (client: Client) {
+    return function (msg: string) {
+    optLogCmdToFile(client.id, "Chatting: + short(msg)");
+	// broadcast
+	// TODO: encode here or at level of client
+	io.emit(
+	    "chat",
+	    msg);
+  };
+};
+
+
 const initializeClientId = function (socket): string {
   const clientId = clientIdHelper(clients, logger.info).getNewId();
   setCookieOnSocket(socket, clientId);
@@ -532,7 +544,8 @@ const listen = function () {
     const fileUpload = require("./fileUpload")(logger.info, sshCredentials);
     fileUpload.attachUploadListenerToSocket(client, socket);
     socket.on("input", socketInputAction(socket, client));
-    socket.on("reset", socketResetAction(client));
+      socket.on("reset", socketResetAction(client));
+      socket.on("chat",socketChatAction(client));
     //    socket.on("download", socketDownloadAction(socket, client));
   });
 

@@ -321,6 +321,15 @@ const socketOnError = function (type) {
   };
 };
 
+const socketChat = function (msg) {
+    const ul = document.getElementById("chatMessages");
+    var msgel = document.createElement("li");
+    msgel.classList.add("chatMessage");
+    msgel.innerHTML=msg;
+    ul.appendChild(msgel);
+    // TODO: if tab isn't chat, highlight chat tab to warn user
+}
+
 const queryCookie = function () {
   const cookie = document.cookie;
   const i = cookie.indexOf("user"); // not too subtle
@@ -358,7 +367,8 @@ const init = function () {
   socket.on("disconnect", socketOnDisconnect);
   socket.on("cookie", socketOnCookie);
   socket.oldEmit = socket.emit;
-  socket.emit = wrapEmitForDisconnect;
+    socket.emit = wrapEmitForDisconnect;
+    socket.on("chat", socketChat);
   //  socket.on("file", fileDialog);
 
   const terminal = document.getElementById("terminal");
@@ -367,7 +377,19 @@ const init = function () {
     myshell = new Shell(terminal, socket, null, false, null);
   } else {
     const editor = document.getElementById("editorDiv");
-    const iFrame = document.getElementById("browseFrame");
+      const iFrame = document.getElementById("browseFrame");
+      const chatForm = document.getElementById("chatForm");
+      const chatInput = document.getElementById("chatInput") as HTMLInputElement;
+
+      if (chatForm) {
+	  chatForm.onsubmit = function(e) {
+	      e.preventDefault();
+	      // TODO: encode
+	      // TODO: time stamp, name (alias, not user id!) etc
+	      socket.emit("chat",chatInput.value);
+	      chatInput.value = "";
+	  }
+      }
 
     const zoom = require("./zooming");
     zoom.attachZoomButtons(

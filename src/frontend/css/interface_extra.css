@@ -213,3 +213,30 @@ h3.rotated .material-icons {
 .mdl-tabs__tab {
     font-family: sans-serif;
 }
+
+#chatMessages {
+    padding-left: 0px;
+    overflow-y: scroll;
+    padding-bottom:10px;
+}
+
+.chatMessage {
+    border:1px solid gray;
+    padding: 10px 15px;
+    margin-bottom: -1px;
+}
+
+.chatDiv {
+    display:table;
+    border-collapse:separate;
+    box-sizing:border-box;
+}
+
+.chatInput {
+    padding-left: 10px;
+    padding-right: 10px;
+    display:table-cell;
+     height:24px;
+    border:1px solid gray;
+    border-radius:4px;
+}
