@@ -237,7 +237,7 @@ h3.rotated .material-icons {
     padding-left: 10px;
     padding-right: 10px;
     display:table-cell;
-     height:24px;
+    height:24px;
     border:1px solid gray;
     border-radius:4px;
 }
@@ -259,4 +259,9 @@ h3.rotated .material-icons {
 .message-pop {
 /*    font-weight: 700;*/
     text-shadow: 0px 0px 4px #E09060;
+}
+
+.message-close {
+    float: right;
+    cursor: pointer;
 }

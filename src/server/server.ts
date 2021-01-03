@@ -454,7 +454,7 @@ const chatList = [];
 const socketChatAction = function (socket, client: Client) {
   return function (msg) {
     // TODO create a class for messages
-    if (!msg.message) {
+    if (msg.message === undefined) {
       // special: login
       socket.emit("chat", chatList); // provide past chat
       msg.message = msg.alias + " has arrived. Welcome!";
@@ -503,11 +503,18 @@ const setCookieOnSocket = function (socket, clientId: string): void {
   }
 };
 
+const validateId = function (s): string {
+  if (s === undefined) return undefined;
+  s = s.replace(/[^a-zA-Z_0-9]/g, "");
+  if (s == "") return undefined;
+  else return s;
+};
+
 const listen = function () {
   io.on("connection", function (socket: SocketIO.Socket) {
     logger.info("Incoming new connection!");
-    const publicId = socket.handshake.query.publicId;
-    const userId = socket.handshake.query.userId;
+    const publicId = validateId(socket.handshake.query.publicId);
+    const userId = validateId(socket.handshake.query.userId);
     let clientId: string;
     if (publicId !== undefined) {
       clientId = "public" + publicId;

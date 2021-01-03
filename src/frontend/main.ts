@@ -324,18 +324,27 @@ const socketError = function (type) {
   };
 };
 
+const deleteChat = function (e) {
+  e.stopPropagation();
+  e.currentTarget.parentElement.remove();
+};
+
 const showChat = function (msg, index?) {
   const ul = document.getElementById("chatMessages");
   const msgel = document.createElement("li");
   msgel.classList.add("chatMessage");
+  const s0 = document.createElement("i");
+  s0.className = "material-icons message-close";
+  s0.textContent = "close";
+  s0.onclick = deleteChat;
   const s1 = document.createElement("i");
   s1.textContent = msg.time;
   const s2 = document.createElement("b");
   s2.textContent = msg.alias;
-  s2.classList.add("message-" + msg.type);
+  s2.className = "message-" + msg.type;
   const s3 = document.createElement("span");
   s3.textContent = msg.message;
-  msgel.append(s1, " : ", s2, document.createElement("br"), s3);
+  msgel.append(s0, s1, " : ", s2, document.createElement("br"), s3);
   ul.appendChild(msgel);
   scrollDown(ul);
   if (index === undefined && msg.type != "system") {
@@ -431,12 +440,14 @@ const init = function () {
       };
       chatForm.onsubmit = function (e) {
         e.preventDefault();
-        socket.emit("chat", {
-          alias: chatAlias.value,
-          message: chatInput.value,
-          time: new Date().toISOString().replace("T", " ").substr(0, 19),
-        });
-        chatInput.value = "";
+        if (chatInput.value != "") {
+          socket.emit("chat", {
+            alias: chatAlias.value,
+            message: chatInput.value,
+            time: new Date().toISOString().replace("T", " ").substr(0, 19),
+          });
+          chatInput.value = "";
+        }
       };
       // signal presence
       socket.emit("chat", {
@@ -501,7 +512,7 @@ const init = function () {
         if (loc == "chat") {
           tab.classList.remove("message-user");
           tab.classList.remove("message-admin");
-          // fix scrolling issue
+          // scroll. sadly, doesn't work if started with #chat
           const ul = document.getElementById("chatMessages");
           scrollDown(ul);
         }
