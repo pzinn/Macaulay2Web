@@ -4,7 +4,6 @@ import { Client } from "./client";
 import { IClients } from "./client";
 import clientIdHelper from "./clientId";
 
-import { AuthOption, SocketEvent } from "./enums";
 import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
 import { LocalContainerManager } from "./LocalContainerManager";
@@ -100,29 +99,19 @@ const deleteClientData = function (client: Client): void {
   delete clients[client.id];
 };
 
-const emitDataSafelyViaSocket = function (
-  socket,
-  type: SocketEvent,
-  data
-): void {
+const safeSocketEmit = function (socket, type: string, data): void {
   try {
-    socket.emit(SocketEvent[type], data);
+    socket.emit(type, data);
   } catch (error) {
-    logger.error(
-      "Error while executing socket.emit of type " + SocketEvent[type]
-    );
+    logger.error("Error while executing socket.emit of type " + type);
   }
 };
 
-const emitDataViaClientSockets = function (
-  client: Client,
-  type: SocketEvent,
-  data
-) {
+const emitOutputViaClientSockets = function (client: Client, data) {
   const s = short(data);
   if (s != "") logClient(client.id, "Sending output: " + s);
   Object.values(client.sockets).forEach((socket) =>
-    emitDataSafelyViaSocket(socket, type, data)
+    safeSocketEmit(socket, "output", data)
   );
 };
 
@@ -135,9 +124,8 @@ const getInstance = function (client: Client, next) {
         client.id,
         function (err, instance: Instance) {
           if (err) {
-            emitDataViaClientSockets(
+            emitOutputViaClientSockets(
               client,
-              SocketEvent.result,
               "Sorry, there was an error. Please come back later.\n" +
                 err +
                 "\n\n"
@@ -158,7 +146,7 @@ const getInstance = function (client: Client, next) {
 };
 
 export {
-  emitDataViaClientSockets,
+  emitOutputViaClientSockets,
   serverConfig,
   clients,
   getInstance,
@@ -267,13 +255,12 @@ const sendDataToClient = function (client: Client) {
     // extra logging for *users* only
     if (
       client.id.substring(0, 4) === "user" &&
-      client.results.size + data.length <
-        options.perContainerResources.maxResults
+      client.output.size + data.length < options.perContainerResources.maxOutput
     ) {
-      client.results.push(data);
-      client.results.size += data.length;
+      client.output.push(data);
+      client.output.size += data.length;
     }
-    emitDataViaClientSockets(client, SocketEvent.result, data);
+    emitOutputViaClientSockets(client, data);
   };
 };
 
@@ -361,13 +348,7 @@ const clientExistenceCheck = function (clientId: string, socket): Client {
   if (!clients[clientId]) {
     clients[clientId] = new Client(clientId);
     totalUsers += 1;
-  } /* else {
-    emitDataSafelyViaSocket(
-      socket,
-      SocketEvent.result,
-      serverConfig.resumeString
-    );
-  }*/
+  }
   return clients[clientId];
 };
 
@@ -443,32 +424,38 @@ const socketResetAction = function (client: Client) {
     logClient(client.id, "Received reset.");
     if (checkClientSane(client)) {
       if (client.channel) killMathProgram(client.channel, client.id);
-      client.results.length = 0;
+      client.output.length = 0;
       sanitizeClient(client, true);
     }
   };
 };
 
-const chatList = [];
+const chatList = []; // to be sent back to clients for restore
+const chatHash = {}; // convenient to hash them: client may be desynchronized, so simple # in list won't do
+// plus can contain extra info only available to server
+
+const crypto = require("crypto");
+const hash = (s) => crypto.createHash("md5").update(s).digest("hex");
 
 const socketChatAction = function (socket, client: Client) {
   return function (msg) {
     // TODO create a class for messages
-    if (msg.message === undefined) {
-      // special: login
-      socket.emit("chat", chatList); // provide past chat
+    if (msg.type === "login") {
+      safeSocketEmit(socket, "chat", chatList); // provide past chat
       msg.message = msg.alias + " has arrived. Welcome!";
       msg.alias = "System";
-      msg.type = "system";
-    } else {
+      msg.type = "message-system";
+    } else if (msg.type === "message") {
       logClient(client.id, msg.alias + " said: " + msg.message);
       msg.type =
         client.id == "user" + options.adminName &&
         msg.alias == options.adminAlias
-          ? "admin"
-          : "user";
+          ? "message-admin"
+          : "message-user";
       chatList.push(msg); // right now, only non system messages logged. could change by moving this line outside }
     }
+    msg.hash = hash(msg.time + msg.alias + msg.message);
+    chatHash[msg.hash] = msg;
     // should one sanitize the message just in case?
     // broadcast
     io.emit("chat", msg);
@@ -477,13 +464,8 @@ const socketChatAction = function (socket, client: Client) {
 
 const socketRestoreAction = function (socket, client: Client) {
   return function () {
-    logClient(client.id, "Restoring results");
-    socket.emit(
-      "result",
-      client.id.substring(0, 4) === "user"
-        ? client.results
-        : serverConfig.resumeString
-    ); // send previous results
+    logClient(client.id, "Restoring output");
+    safeSocketEmit(socket, "output", client.output); // send previous output
   };
 };
 
@@ -499,7 +481,7 @@ const setCookieOnSocket = function (socket, clientId: string): void {
     const sessionCookie = Cookie.serialize(options.cookieName, clientId, {
       expires: expDate,
     });
-    socket.emit("cookie", sessionCookie);
+    safeSocketEmit(socket, "cookie", sessionCookie);
   }
 };
 
@@ -549,8 +531,8 @@ const listen = function () {
   return listener;
 };
 
-const authorizeIfNecessary = function (authOption: AuthOption) {
-  if (authOption === AuthOption.basic) {
+const authorizeIfNecessary = function (authOption: boolean) {
+  if (authOption) {
     const auth = require("http-auth");
     const basic = auth.basic({
       realm: "Please enter your username and password.",

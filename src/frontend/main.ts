@@ -2,7 +2,7 @@
 "use strict";
 declare const MINIMAL;
 
-import io = require("socket.io-client");
+import socketIo = require("socket.io-client");
 
 import Cookie = require("cookie");
 import { options } from "../server/startupConfigs/global";
@@ -14,7 +14,7 @@ let socket: Socket;
 let serverDisconnect = false;
 const Shell = require("./shellEmulator");
 import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
-import { webAppTags } from "./tags";
+
 import {
   barKey,
   hideContextMenu,
@@ -307,7 +307,7 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
-const socketResult = function (msg) {
+const socketOutput = function (msg) {
   // msg = array or single message
   if (Array.isArray(msg)) msg.forEach((x) => myshell.displayResult(x));
   else myshell.displayResult(msg);
@@ -322,47 +322,6 @@ const socketError = function (type) {
     console.log("We got an " + type + " error. " + error);
     serverDisconnect = true;
   };
-};
-
-const deleteChat = function (e) {
-  e.stopPropagation();
-  e.currentTarget.parentElement.remove();
-};
-
-const showChat = function (msg, index?) {
-  const ul = document.getElementById("chatMessages");
-  const msgel = document.createElement("li");
-  msgel.classList.add("chatMessage");
-  const s0 = document.createElement("i");
-  s0.className = "material-icons message-close";
-  s0.textContent = "close";
-  s0.onclick = deleteChat;
-  const s1 = document.createElement("i");
-  s1.textContent = msg.time;
-  const s2 = document.createElement("b");
-  s2.textContent = msg.alias;
-  s2.className = "message-" + msg.type;
-  const s3 = document.createElement("span");
-  s3.textContent = msg.message;
-  msgel.append(s0, s1, " : ", s2, document.createElement("br"), s3);
-  ul.appendChild(msgel);
-  scrollDown(ul);
-  if (index === undefined && msg.type != "system") {
-    const chatTitle = document.getElementById("chatTitle");
-    if (document.location.hash != "#chat") {
-      chatTitle.classList.add("message-" + msg.type);
-    }
-    chatTitle.classList.add("message-pop");
-    setTimeout(function () {
-      chatTitle.classList.remove("message-pop");
-    }, 500);
-  }
-};
-
-const socketChat = function (msg) {
-  // msg = array or single message
-  if (Array.isArray(msg)) msg.forEach(showChat);
-  else showChat(msg);
 };
 
 const queryCookie = function () {
@@ -396,14 +355,13 @@ const init = function () {
     ioParams = "?publicId=Default";
   }
 
-  socket = io(ioParams);
+  socket = socketIo(ioParams);
   socket.on("reconnect_failed", socketError("reconnect_fail"));
   socket.on("reconnect_error", socketError("reconnect_error"));
   socket.on("connect_error", socketError("connect_error"));
-  socket.on("result", socketResult);
+  socket.on("output", socketOutput);
   socket.on("disconnect", socketDisconnect);
   socket.on("cookie", setCookie);
-  socket.on("chat", socketChat);
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
   //  socket.on("file", fileDialog);
@@ -411,8 +369,11 @@ const init = function () {
   const terminal = document.getElementById("terminal");
 
   if (MINIMAL) {
-    myshell = new Shell(terminal, socket, null, false, null);
+    myshell = new Shell(terminal, socket, null, null, null);
   } else {
+    const socketChat = require("./chat");
+    socket.on("chat", socketChat);
+
     const editor = document.getElementById("editorDiv");
     const iFrame = document.getElementById("browseFrame");
     const chatForm = document.getElementById("chatForm");
@@ -442,6 +403,7 @@ const init = function () {
         e.preventDefault();
         if (chatInput.value != "") {
           socket.emit("chat", {
+            type: "message",
             alias: chatAlias.value,
             message: chatInput.value,
             time: new Date().toISOString().replace("T", " ").substr(0, 19),
@@ -451,6 +413,7 @@ const init = function () {
       };
       // signal presence
       socket.emit("chat", {
+        type: "login",
         alias: chatAlias.value,
         time: new Date().toISOString().replace("T", " ").substr(0, 19),
       });
