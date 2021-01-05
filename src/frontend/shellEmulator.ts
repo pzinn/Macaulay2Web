@@ -844,7 +844,7 @@ const Shell = function (
   };
 
   window.addEventListener("load", function () {
-      inputSpan.focus();
+    inputSpan.focus();
   });
 };
 

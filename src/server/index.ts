@@ -4,6 +4,7 @@ const n: number = args.length;
 import fs = require("fs");
 
 import { options, overrideDefaultOptions } from "./startupConfigs/default";
+import { mathServer } from "./server";
 
 const logger = require("./logger");
 
@@ -68,7 +69,7 @@ fileExistsPromise("public/users.htpasswd")
     }
   })
   .then(function () {
-    require("./server").mathServer(options);
+    mathServer(options);
   })
   .catch(function (err) {
     logger.error(err);

@@ -1,14 +1,34 @@
 import { scrollDown } from "./htmlTools";
+import { socket } from "./main";
 
 const deleteChat = function (h) {
-  return function (e) {
-    e.stopPropagation();
-    document.getElementById("message-" + h).remove();
-  };
-  // should somehow send back info to server only if admin or one's own message?
+  const el = document.getElementById("message-" + h);
+  if (el) {
+    el.remove();
+    return true;
+  } else return false;
 };
 
-const showChat = function (msg, index?) {
+const deleteChatWrap = function (h) {
+  return function (e) {
+    e.stopPropagation();
+    if (deleteChat(h)) {
+      // send back to server in case message is ours
+      socket.emit("chat", {
+        type: "delete",
+        alias: (document.getElementById("chatAlias") as HTMLInputElement).value,
+        hash: h,
+        time: new Date().toISOString().replace("T", " ").substr(0, 19),
+      });
+    }
+  };
+};
+
+const chatAction = function (msg, index?) {
+  if (msg.type == "delete") {
+    deleteChat(msg.hash);
+    return;
+  }
   const ul = document.getElementById("chatMessages");
   const msgel = document.createElement("li");
   msgel.classList.add("chatMessage");
@@ -16,7 +36,7 @@ const showChat = function (msg, index?) {
   const s0 = document.createElement("i");
   s0.className = "material-icons message-close";
   s0.textContent = "close";
-  s0.onclick = deleteChat(msg.hash);
+  s0.onclick = deleteChatWrap(msg.hash);
   const s1 = document.createElement("i");
   s1.textContent = msg.time;
   const s2 = document.createElement("b");
@@ -45,8 +65,8 @@ const showChat = function (msg, index?) {
 
 const socketChat = function (msg) {
   // msg = array or single message
-  if (Array.isArray(msg)) msg.forEach(showChat);
-  else showChat(msg);
+  if (Array.isArray(msg)) msg.forEach(chatAction);
+  else chatAction(msg);
 };
 
 const escapeHTML = (str) =>

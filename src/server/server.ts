@@ -389,9 +389,12 @@ const writeMsgOnStream = function (client: Client, msg: string) {
 };
 
 const short = function (msg: string) {
-  let shortMsg = msg.substring(0, 77).replace(/[^\x20-\x7F]/g, " ");
+  let shortMsg = msg
+    .substring(0, 77)
+    .replace(/[^\x20-\x7F]/g, " ")
+    .trim();
   if (msg.length > 77) shortMsg += "...";
-  return shortMsg.trim();
+  return shortMsg;
 };
 
 const checkAndWrite = function (client: Client, msg: string) {
@@ -434,29 +437,47 @@ const chatList = []; // to be sent back to clients for restore
 const chatHash = {}; // convenient to hash them: client may be desynchronized, so simple # in list won't do
 // plus can contain extra info only available to server
 
-const crypto = require("crypto");
-const hash = (s) => crypto.createHash("md5").update(s).digest("hex");
+//const crypto = require("crypto");
+//const hash = (s) => crypto.createHash("md5").update(s).digest("hex");
+let chatCounter = 0;
 
 const socketChatAction = function (socket, client: Client) {
   return function (msg) {
+    logClient(client.id, "chat of type " + msg.type);
     // TODO create a class for messages
-    if (msg.type === "login") {
+    if (msg.type == "delete") {
+      const del = chatHash[msg.hash]; // message to be deleted
+      if (
+        !del ||
+        ((del.user != client.id || del.alias != msg.alias) &&
+          (client.id != "user" + options.adminName ||
+            msg.alias != options.adminAlias))
+      )
+        return; // false alarm
+      const index = chatList.findIndex((x) => x.hash === msg.hash); // sigh
+      if (index < 0) return;
+      logClient(client.id, msg.alias + " deleted #" + msg.hash);
+      chatList.splice(index, 1);
+      //      delete chatHash[msg.hash]; // why bother?
+      chatHash[msg.hash].deleted = true;
+    } else if (msg.type === "login") {
       safeSocketEmit(socket, "chat", chatList); // provide past chat
       msg.message = msg.alias + " has arrived. Welcome!";
       msg.alias = "System";
       msg.type = "message-system";
+      msg.hash = chatCounter++;
     } else if (msg.type === "message") {
-      logClient(client.id, msg.alias + " said: " + msg.message);
+      logClient(client.id, msg.alias + " said: " + short(msg.message));
       msg.type =
         client.id == "user" + options.adminName &&
         msg.alias == options.adminAlias
           ? "message-admin"
           : "message-user";
-      chatList.push(msg); // right now, only non system messages logged. could change by moving this line outside }
+      chatList.push(msg); // right now, only non system messages logged
+      msg.hash = chatCounter++;
+      chatHash[msg.hash] = { ...msg, user: client.id };
+      // should one sanitize the message just in case?
     }
-    msg.hash = hash(msg.time + msg.alias + msg.message);
-    chatHash[msg.hash] = msg;
-    // should one sanitize the message just in case?
     // broadcast
     io.emit("chat", msg);
   };
@@ -559,7 +580,7 @@ const authorizeIfNecessary = function (authOption: boolean) {
   };
 };
 
-const MathServer = function (o) {
+const mathServer = function (o) {
   options = o;
   serverConfig = options.serverConfig;
 
@@ -593,4 +614,4 @@ const MathServer = function (o) {
   });
 };
 
-exports.mathServer = MathServer;
+export { mathServer };
