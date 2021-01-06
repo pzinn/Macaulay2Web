@@ -145,6 +145,7 @@ const getInstance = function (client: Client, next) {
   }
 };
 
+/*
 export {
   emitOutputViaClientSockets,
   serverConfig,
@@ -153,6 +154,7 @@ export {
   instanceManager,
   sendDataToClient,
 };
+*/
 
 const optLogCmdToFile = function (clientId: string, msg: string) {
   if (serverConfig.CMD_LOG_FOLDER) {

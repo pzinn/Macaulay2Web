@@ -2,7 +2,7 @@ import { options as globalOptions } from "./global";
 
 const options = {
   ...globalOptions,
-  adminName: "", // to be set live only
+  adminName: "pzinn", // to be set live only
   authentication: false,
   serverConfig: {
     CONTAINERS: "../LocalContainerManager",
