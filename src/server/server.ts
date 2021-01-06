@@ -331,7 +331,7 @@ const initializeServer = function () {
   const expressWinston = require("express-winston");
   serveStatic.mime.define({ "text/plain": ["m2"] }); // declare m2 files as plain text for browsing purposes
 
-  const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM);
+  const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM); // TODO: retire
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
   app.use(SocketIOFileUpload.router);
@@ -389,6 +389,7 @@ const writeMsgOnStream = function (client: Client, msg: string) {
 };
 
 const short = function (msg: string) {
+  if (!msg) return "";
   let shortMsg = msg
     .substring(0, 77)
     .replace(/[^\x20-\x7F]/g, " ")
@@ -476,7 +477,41 @@ const socketChatAction = function (socket, client: Client) {
           : "message-user";
       if (msg.message[0] == "@") {
         if (msg.type == "message-admin") {
-          msg.message += "\nTEST";
+          msg.message +=
+            "\n id | sockets | output | last | docker | active time ";
+          for (const id in clients) {
+            msg.message +=
+              "\n" +
+              id +
+              "|" +
+              //              clients[id].nsockets
+              Object.values(clients[id].sockets)
+                .map((x) => x.handshake.address)
+                .join() +
+              "|" +
+              (Array.isArray(clients[id].output)
+                ? clients[id].output.length +
+                  "/" +
+                  clients[id].output.size +
+                  "|" +
+                  short(
+                    clients[id].output[clients[id].output.length - 1]
+                  ).replace("|", "\\|")
+                : "|") +
+              "|" +
+              (clients[id].instance
+                ? (clients[id].instance.containerName
+                    ? clients[id].instance.containerName
+                    : "") +
+                  "|" +
+                  (clients[id].instance.lastActiveTime
+                    ? new Date(clients[id].instance.lastActiveTime)
+                        .toISOString()
+                        .replace("T", " ")
+                        .substr(0, 19)
+                    : "")
+                : "");
+          }
           socket.emit("chat", msg);
         }
         return;
