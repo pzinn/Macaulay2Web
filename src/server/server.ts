@@ -4,7 +4,6 @@ import { Client } from "./client";
 import { IClients } from "./client";
 import clientIdHelper from "./clientId";
 
-import { AuthOption, SocketEvent } from "./enums";
 import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
 import { LocalContainerManager } from "./LocalContainerManager";
@@ -113,29 +112,19 @@ const deleteClientData = function (client: Client): void {
   delete clients[client.id];
 };
 
-const emitDataSafelyViaSocket = function (
-  socket,
-  type: SocketEvent,
-  data
-): void {
+const safeSocketEmit = function (socket, type: string, data): void {
   try {
-    socket.emit(SocketEvent[type], data);
+    socket.emit(type, data);
   } catch (error) {
-    logger.error(
-      "Error while executing socket.emit of type " + SocketEvent[type]
-    );
+    logger.error("Error while executing socket.emit of type " + type);
   }
 };
 
-const emitDataViaClientSockets = function (
-  client: Client,
-  type: SocketEvent,
-  data
-) {
+const emitOutputViaClientSockets = function (client: Client, data) {
   const s = short(data);
   if (s != "") logClient(client.id, "Sending output: " + s);
   Object.values(client.sockets).forEach((socket) =>
-    emitDataSafelyViaSocket(socket, type, data)
+    safeSocketEmit(socket, "output", data)
   );
 };
 
@@ -148,9 +137,8 @@ const getInstance = function (client: Client, next) {
         client.id,
         function (err, instance: Instance) {
           if (err) {
-            emitDataViaClientSockets(
+            emitOutputViaClientSockets(
               client,
-              SocketEvent.result,
               "Sorry, there was an error. Please come back later.\n" +
                 err +
                 "\n\n"
@@ -170,14 +158,16 @@ const getInstance = function (client: Client, next) {
   }
 };
 
+/*
 export {
-  emitDataViaClientSockets,
+  emitOutputViaClientSockets,
   serverConfig,
   clients,
   getInstance,
   instanceManager,
   sendDataToClient,
 };
+*/
 
 const optLogCmdToFile = function (clientId: string, msg: string) {
   if (serverConfig.CMD_LOG_FOLDER) {
@@ -280,13 +270,12 @@ const sendDataToClient = function (client: Client) {
     // extra logging for *users* only
     if (
       client.id.substring(0, 4) === "user" &&
-      client.results.size + data.length <
-        options.perContainerResources.maxResults
+      client.output.size + data.length < options.perContainerResources.maxOutput
     ) {
-      client.results.push(data);
-      client.results.size += data.length;
+      client.output.push(data);
+      client.output.size += data.length;
     }
-    emitDataViaClientSockets(client, SocketEvent.result, data);
+    emitOutputViaClientSockets(client, data);
   };
 };
 
@@ -357,7 +346,7 @@ const initializeServer = function () {
   const expressWinston = require("express-winston");
   serveStatic.mime.define({ "text/plain": ["m2"] }); // declare m2 files as plain text for browsing purposes
 
-  const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM);
+  const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM); // TODO: retire
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
   app.use(SocketIOFileUpload.router);
@@ -374,13 +363,7 @@ const clientExistenceCheck = function (clientId: string, socket): Client {
   if (!clients[clientId]) {
     clients[clientId] = new Client(clientId);
     totalUsers += 1;
-  } /* else {
-    emitDataSafelyViaSocket(
-      socket,
-      SocketEvent.result,
-      serverConfig.resumeString
-    );
-  }*/
+  }
   return clients[clientId];
 };
 
@@ -421,9 +404,13 @@ const writeMsgOnStream = function (client: Client, msg: string) {
 };
 
 const short = function (msg: string) {
-  let shortMsg = msg.substring(0, 77).replace(/[^\x20-\x7F]/g, " ");
+  if (!msg) return "";
+  let shortMsg = msg
+    .substring(0, 77)
+    .replace(/[^\x20-\x7F]/g, " ")
+    .trim();
   if (msg.length > 77) shortMsg += "...";
-  return shortMsg.trim();
+  return shortMsg;
 };
 
 const checkAndWrite = function (client: Client, msg: string) {
@@ -456,33 +443,99 @@ const socketResetAction = function (client: Client) {
     logClient(client.id, "Received reset.");
     if (checkClientSane(client)) {
       if (client.channel) killMathProgram(client.channel, client.id);
-      client.results.length = 0;
+      client.output.length = 0;
       sanitizeClient(client, true);
     }
   };
 };
 
-const chatList = [];
+const chatList = []; // to be sent back to clients for restore
+const chatHash = {}; // convenient to hash them: client may be desynchronized, so simple # in list won't do
+// plus can contain extra info only available to server
+
+//const crypto = require("crypto");
+//const hash = (s) => crypto.createHash("md5").update(s).digest("hex");
+let chatCounter = 0;
 
 const socketChatAction = function (socket, client: Client) {
   return function (msg) {
+    logClient(client.id, "chat of type " + msg.type);
     // TODO create a class for messages
-    if (!msg.message) {
-      // special: login
-      socket.emit("chat", chatList); // provide past chat
+    if (msg.type == "delete") {
+      const del = chatHash[msg.hash]; // message to be deleted
+      if (
+        !del ||
+        del.deleted ||
+        ((del.user != client.id || del.alias != msg.alias) &&
+          (client.id != "user" + options.adminName ||
+            msg.alias != options.adminAlias))
+      )
+        return; // false alarm
+      const index = chatList.findIndex((x) => x.hash === msg.hash); // sigh
+      if (index < 0) return;
+      logClient(client.id, msg.alias + " deleted #" + msg.hash);
+      chatList.splice(index, 1);
+      //      delete chatHash[msg.hash]; // why bother?
+      chatHash[msg.hash].deleted = true;
+    } else if (msg.type === "login") {
+      safeSocketEmit(socket, "chat", chatList); // provide past chat
       msg.message = msg.alias + " has arrived. Welcome!";
       msg.alias = "System";
-      msg.type = "system";
-    } else {
-      logClient(client.id, msg.alias + " said: " + msg.message);
+      msg.type = "message-system";
+      msg.hash = chatCounter++;
+    } else if (msg.type === "message") {
+      logClient(client.id, msg.alias + " said: " + short(msg.message));
       msg.type =
         client.id == "user" + options.adminName &&
         msg.alias == options.adminAlias
-          ? "admin"
-          : "user";
-      chatList.push(msg); // right now, only non system messages logged. could change by moving this line outside }
+          ? "message-admin"
+          : "message-user";
+      if (msg.message[0] == "@") {
+        if (msg.type == "message-admin") {
+          msg.message +=
+            "\n id | sockets | output | last | docker | active time ";
+          for (const id in clients) {
+            msg.message +=
+              "\n" +
+              id +
+              "|" +
+              //              clients[id].nsockets
+              Object.values(clients[id].sockets)
+                .map((x) => x.handshake.address)
+                .join() +
+              "|" +
+              (Array.isArray(clients[id].output)
+                ? clients[id].output.length +
+                  "/" +
+                  clients[id].output.size +
+                  "|" +
+                  short(
+                    clients[id].output[clients[id].output.length - 1]
+                  ).replace("|", "\\|")
+                : "|") +
+              "|" +
+              (clients[id].instance
+                ? (clients[id].instance.containerName
+                    ? clients[id].instance.containerName
+                    : "") +
+                  "|" +
+                  (clients[id].instance.lastActiveTime
+                    ? new Date(clients[id].instance.lastActiveTime)
+                        .toISOString()
+                        .replace("T", " ")
+                        .substr(0, 19)
+                    : "")
+                : "");
+          }
+          socket.emit("chat", msg);
+        }
+        return;
+      }
+      chatList.push(msg); // right now, only non system messages logged
+      msg.hash = chatCounter++;
+      chatHash[msg.hash] = { ...msg, user: client.id };
+      // should one sanitize the message just in case?
     }
-    // should one sanitize the message just in case?
     // broadcast
     io.emit("chat", msg);
   };
@@ -490,13 +543,8 @@ const socketChatAction = function (socket, client: Client) {
 
 const socketRestoreAction = function (socket, client: Client) {
   return function () {
-    logClient(client.id, "Restoring results");
-    socket.emit(
-      "result",
-      client.id.substring(0, 4) === "user"
-        ? client.results
-        : serverConfig.resumeString
-    ); // send previous results
+    logClient(client.id, "Restoring output");
+    safeSocketEmit(socket, "output", client.output); // send previous output
   };
 };
 
@@ -516,8 +564,15 @@ const setCookieOnSocket = function (socket, clientId: string): void {
     secure: true,
 */
     });
-    socket.emit("cookie", sessionCookie);
+    safeSocketEmit(socket, "cookie", sessionCookie);
   }
+};
+
+const validateId = function (s): string {
+  if (s === undefined) return undefined;
+  s = s.replace(/[^a-zA-Z_0-9]/g, "");
+  if (s == "") return undefined;
+  else return s;
 };
 
 const listen = function () {
@@ -528,8 +583,8 @@ const listen = function () {
 
     io.on("connection", function (socket: SocketIO.Socket) {
       logger.info("Incoming new connection!");
-      const publicId = socket.handshake.query.publicId;
-      const userId = socket.handshake.query.userId;
+      const publicId = validateId(socket.handshake.query.publicId);
+      const userId = validateId(socket.handshake.query.userId);
       let clientId: string;
       if (publicId !== undefined) {
         clientId = "public" + publicId;
@@ -583,8 +638,8 @@ const listen = function () {
   logger.info("Https server running on " + serverConfig.port2);
 };
 
-const authorizeIfNecessary = function (authOption: AuthOption) {
-  if (authOption === AuthOption.basic) {
+const authorizeIfNecessary = function (authOption: boolean) {
+  if (authOption) {
     const auth = require("http-auth");
     const basic = auth.basic({
       realm: "Please enter your username and password.",
@@ -611,7 +666,7 @@ const authorizeIfNecessary = function (authOption: AuthOption) {
   };
 };
 
-const MathServer = function (o) {
+const mathServer = function (o) {
   options = o;
   serverConfig = options.serverConfig;
 
@@ -645,4 +700,4 @@ const MathServer = function (o) {
   });
 };
 
-exports.mathServer = MathServer;
+export { mathServer };

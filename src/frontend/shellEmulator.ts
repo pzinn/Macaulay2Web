@@ -843,7 +843,9 @@ const Shell = function (
     placeCaretAtEnd(inputSpan);
   };
 
-  inputSpan.focus();
+  window.addEventListener("load", function () {
+    inputSpan.focus();
+  });
 };
 
 module.exports = Shell;

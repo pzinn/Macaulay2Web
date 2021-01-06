@@ -2,9 +2,9 @@ let mode = "docker";
 const args: string[] = process.argv;
 const n: number = args.length;
 import fs = require("fs");
-import { AuthOption } from "./enums";
 
 import { options, overrideDefaultOptions } from "./startupConfigs/default";
+import { mathServer } from "./server";
 
 const logger = require("./logger");
 
@@ -70,13 +70,13 @@ const fileExistsPromise = function (filename) {
 fileExistsPromise("public/users.htpasswd")
   .then(function (exists) {
     if (exists) {
-      overrideOptions.authentication = AuthOption.basic;
+      overrideOptions.authentication = true;
     } else {
-      overrideOptions.authentication = AuthOption.none;
+      overrideOptions.authentication = false;
     }
   })
   .then(function () {
-    require("./server").mathServer(options);
+    mathServer(options);
   })
   .catch(function (err) {
     logger.error(err);

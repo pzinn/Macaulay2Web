@@ -69,7 +69,6 @@ const appendTutorialToAccordion = function (
   title.style.cursor = "pointer";
 
   const div = document.createElement("div");
-  div.insertBefore(title, div.firstChild);
   div.style.overflow = "hidden";
   div.style.transition = "height 0.5s";
   div.style.paddingBottom = "5px";
@@ -77,10 +76,12 @@ const appendTutorialToAccordion = function (
   if (deleteButton) {
     const deleteButton = document.createElement("i");
     deleteButton.className = "material-icons saveDialogClose";
-    deleteButton.innerHTML = "close";
-    deleteButton.onclick = removeTutorial(div);
+    deleteButton.textContent = "close";
+    deleteButton.onclick = removeTutorial;
     title.appendChild(deleteButton);
   }
+
+  div.appendChild(title);
 
   const ul = document.createElement("ul");
   ul.className = cssClasses.innerList;
@@ -149,11 +150,9 @@ const makeAccordion = function (tutorials) {
   appendLoadTutorialMenuToAccordion();
 };
 
-const removeTutorial = function (el) {
-  return function (e) {
-    e.stopPropagation();
-    el.remove();
-  };
+const removeTutorial = function (e) {
+  e.stopPropagation();
+  e.currentTarget.parentElement.parentElement.remove();
 };
 
 module.exports = function () {

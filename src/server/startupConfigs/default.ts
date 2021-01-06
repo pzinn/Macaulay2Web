@@ -1,11 +1,9 @@
-import { webAppTags } from "../../frontend/tags";
-import { AuthOption } from "../enums";
 import { options as globalOptions } from "./global";
 
 const options = {
   ...globalOptions,
   adminName: "", // to be set live only
-  authentication: AuthOption.none,
+  authentication: false,
   serverConfig: {
     CONTAINERS: "../LocalContainerManager",
     MATH_PROGRAM: "Macaulay2",
@@ -13,20 +11,6 @@ const options = {
       "stty cols 1000000000; M2MODE=default WWWBROWSER=open M2 --webapp",
     port: 80,
     port2: 443,
-    resumeString:
-      webAppTags.End +
-      webAppTags.End +
-      webAppTags.Cell +
-      webAppTags.Html +
-      "<span>Session resumed.<br/>" +
-      "Type " +
-      '<span class="M2PastInput M2Text">listUserSymbols</span>' +
-      " to print the list of existing symbols.</span>" +
-      webAppTags.End +
-      webAppTags.End +
-      webAppTags.Cell +
-      "i* : " +
-      webAppTags.Input,
   },
   startInstance: {
     host: "127.0.0.1",
