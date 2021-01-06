@@ -254,6 +254,15 @@ if (chatForm) {
       })
     );
   };
+  chatInput.onkeypress = function (e) {
+    if (e.key == "Enter" && e.shiftKey) {
+      e.preventDefault();
+      chatInput.value =
+        chatInput.value.substring(0, chatInput.selectionStart) +
+        " \u21B5 " +
+        chatInput.value.substring(chatInput.selectionEnd);
+    }
+  };
   chatForm.onsubmit = function (e) {
     e.preventDefault();
     if (chatInput.value != "") {

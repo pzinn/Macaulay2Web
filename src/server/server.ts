@@ -449,6 +449,7 @@ const socketChatAction = function (socket, client: Client) {
       const del = chatHash[msg.hash]; // message to be deleted
       if (
         !del ||
+        del.deleted ||
         ((del.user != client.id || del.alias != msg.alias) &&
           (client.id != "user" + options.adminName ||
             msg.alias != options.adminAlias))
@@ -473,6 +474,13 @@ const socketChatAction = function (socket, client: Client) {
         msg.alias == options.adminAlias
           ? "message-admin"
           : "message-user";
+      if (msg.message[0] == "@") {
+        if (msg.type == "message-admin") {
+          msg.message += "\nTEST";
+          socket.emit("chat", msg);
+        }
+        return;
+      }
       chatList.push(msg); // right now, only non system messages logged
       msg.hash = chatCounter++;
       chatHash[msg.hash] = { ...msg, user: client.id };

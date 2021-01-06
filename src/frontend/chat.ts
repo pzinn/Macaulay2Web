@@ -61,14 +61,13 @@ const chatAction = function (msg, index?) {
   }
 };
 
-// TODO: intermediate function that dispatches depending on msg.type (delete, show...)
-
 const socketChat = function (msg) {
   // msg = array or single message
   if (Array.isArray(msg)) msg.forEach(chatAction);
   else chatAction(msg);
 };
 
+// note the repeated use of pattern (?<!\\) which means not escaped with \
 const escapeHTML = (str) =>
   str
     .replace(
@@ -83,40 +82,68 @@ const escapeHTML = (str) =>
         }[tag])
     )
     /*      .replace(/!\[([^\]]*)]\(([^(]+)\)/g, '<img alt="$1" src="$2">') */
-    .replace(/\[([^\]]+)]\(([^(]+?)\)/g, "$1".link("$2"))
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/(\*\*|__)(?=\S)([^\r]*?\S[*_]*)\1/g, "<strong>$2</strong>")
-    .replace(/(\*|_)(?=\S)([^\r]*?\S)\1/g, "<em>$2</em>");
+    .replace(
+      /(?<!\\)\[([^\]]+)(?<!\\)](?<!\\)\(([^(]+?)(?<!\\)\)/g,
+      "$1".link("$2")
+    ) // [a link](github.com)
+    .replace(/(?<!\\)`((?:[^`]|(?<=\\)`)*)(?<!\\)`/g, "<code>$1</code>") // `R=QQ[x]`
+    .replace(
+      /(?<!\\)(\*\*|__)(?=\S)([^\r]*?\S[*_]*)(?<!\\)\1/g,
+      "<strong>$2</strong>"
+    ) // **really important**
+    .replace(/(?<!\\)(\*|_)(?!\s|\*|_)([^\r]*?\S)(?<!\\)\1/g, "<em>$2</em>") // *important*
+    .replace(/(?<!\\)\\/g, ""); // remove escaping
+const cut = (s, x) => escapeHTML(s.substring(x[0].length));
+
+const patterns = [
+  { pattern: /^\*\s/, tag: (x) => "ul", linetag: (x) => "li", proc: cut },
+  { pattern: /^\d+\.\s/, tag: (x) => "ol", linetag: (x) => "li", proc: cut },
+  { pattern: /^#+\s/, tag: null, linetag: (x) => "h" + x[0].length, proc: cut },
+  {
+    pattern: /\|/,
+    tag: (x) => "table",
+    linetag: (x) => "tr",
+    proc: (s, x) =>
+      "<td>" +
+      escapeHTML(s.replace(/(?<!\\)\|/g, "\\\\|")).replace(
+        /\\\|/g,
+        "</td><td>"
+      ) +
+      "</td>", // bit of a mess
+  },
+];
 
 const mdtohtml = function (src) {
-  const lines = src.split("|");
+  const lines = src.split(/\n|\u21B5/);
   let res = "";
-  let ul = false,
-    ol = false,
-    title,
-    ul2,
-    ol2;
+  let x;
+  let i,
+    oldi = -1;
   lines.forEach(function (s) {
     s = s.trim();
-    ul2 = s.startsWith("* ");
-    ol2 = s.match(/^\d+\.\s/);
-    if (ul && !ul2) res += "</ul>";
-    else if (ul2 && !ul) res += "<ul>";
-    if (ol && !ol2) res += "</ol>";
-    else if (ol2 && !ol) res += "<ol>";
-    ul = ul2;
-    ol = ol2 !== null;
-    title = s.match(/^#+\s/);
-    if (ul || ol) res += "<li>";
-    else if (title) res += "<h" + title[0].length + ">";
-    if (ul) s = s.substring(2);
-    else if (ol) s = s.substring(ol2[0].length);
-    else if (title) s = s.substring(title[0].length);
-    res += escapeHTML(s);
-    res += ul || ol ? "</li>" : title ? "</h" + title[0].length + ">" : "<br/>";
+    i = patterns.findIndex((p) => {
+      x = s.match(p.pattern);
+      return x !== null;
+    });
+    if (i != oldi) {
+      if (oldi >= 0 && patterns[oldi].tag != null)
+        res += "</" + patterns[oldi].tag(x) + ">";
+      if (i >= 0 && patterns[i].tag != null)
+        res += "<" + patterns[i].tag(x) + ">";
+    }
+    oldi = i;
+    if (i >= 0) {
+      res +=
+        "<" +
+        patterns[i].linetag(x) +
+        ">" +
+        patterns[i].proc(s, x) +
+        "</" +
+        patterns[i].linetag(x) +
+        ">";
+    } else res += escapeHTML(s);
   });
-  if (ul) res += "</ul>";
-  else if (ol) res += "</ol>";
+  if (i >= 0 && patterns[i].tag != null) res += "</" + patterns[i].tag(x) + ">";
   return res;
 };
 
