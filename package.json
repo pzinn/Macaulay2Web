@@ -1,7 +1,13 @@
 {
-  "name": "Macaulay2Web",
-  "version": "3.3.0",
+  "name": "macaulay2web",
+  "version": "3.5.0",
+  "homepage": "https://github.com/pzinn/Macaulay2Web",
   "description": "Web app for Macaulay2",
+  "author": {
+    "name": "Paul Zinn-Justin",
+    "email": "pzinn@unimelb.edu.au",
+    "url": "https://blogs.unimelb.edu.au/paul-zinn-justin/"
+  },
   "contributors": [
     {
       "name": "Franziska Hinkelmann",
@@ -47,10 +53,11 @@
   },
   "scripts": {
     "postinstall": "./postinstall",
-    "tsc": "./prebuild && tsc && tsc -p src/frontend/",
-    "build": "npm run lint && npm run format && npm run tsc && ./node_modules/.bin/webpack --env production",
-    "build:minimal": "npm run tsc && ./node_modules/.bin/webpack --env minimal",
-    "build:debug": "npm run tsc && ./node_modules/.bin/webpack --env debug",
+    "build": "npm run lint && npm run format && npm run build:server && npm run build:client && npm run css",
+    "build:server": "tsc",
+    "build:client": "./prebuild && ./node_modules/.bin/webpack --env production",
+    "build:minimal": "./prebuild && ./node_modules/.bin/webpack --env minimal",
+    "build:debug": "./node_modules/.bin/webpack --env debug",
     "css": "cd src/frontend/css; lessc ../../../KaTeX/src/katex.less katex.css; cat katex.css VectorGraphics.css interface_common.css interface_minimal.css prism-M2.css | postcss -o ../../../public/minimal.css && cat material.indigo-deep_orange.min.css katex.css VectorGraphics.css interface_common.css interface_extra.css prism-M2.css | postcss -o ../../../public/index.css",
     "start": "node dist/server/index.js",
     "docker": "npm run build && npm start docker",
@@ -86,6 +93,7 @@
     "postcss-cli": "^8.3.1",
     "prettier": "^2.2.1",
     "raw-loader": "^4.0.2",
+    "ts-loader": "^8.0.14",
     "typescript": "^4.1.3",
     "webpack": "^5.11.1",
     "webpack-cli": "^4.3.1"

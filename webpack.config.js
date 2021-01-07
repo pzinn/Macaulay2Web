@@ -12,7 +12,7 @@ module.exports = env => {
     }
     if (env.minimal) filename = "public/minimal.js"; else filename = "public/index.js";
     return {
-	entry: "./dist/frontend/index.js",
+	entry: "./src/frontend/index.ts",
 	output: {
 	    path: __dirname, // otherwise is put in "dist/"
 	    filename: filename
@@ -20,17 +20,23 @@ module.exports = env => {
 	module: {
 	    rules: [
 		{
-		    test: /\.m2|\.html|\.txt$/,
-		    use: [ 'raw-loader' ]
+		    test: /\.ts$/,
+		    use: 'ts-loader',
+		    exclude: /node_modules/
+		},
+		{
+		    test: /\.m2$|\.html$|\.txt$/,
+		    use: 'raw-loader'
 		},
 		{
 		    test: /KaTeX.*js$/,
-		    exclude: /node_modules/,
-		    use: {
-			loader: 'babel-loader',
-		    }
+		    use: 'babel-loader',
+		    exclude: /node_modules/
 		}
 	    ]
+	},
+	resolve: {
+	    extensions: [ '.ts', '.js' ],
 	},
 	mode: mode,
 	devtool: devtool,
