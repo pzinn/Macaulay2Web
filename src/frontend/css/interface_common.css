@@ -369,3 +369,17 @@ ul.menu {
     margin:1px;
     padding:1px;
 }
+
+.katex .M2Html svg path { /* because of KaTeX annoying def */
+    stroke: inherit;
+}
+.katex .M2Html svg text {
+    stroke: none;
+}
+.katex .M2Html svg { /* because of KaTeX annoying def */
+    display: inherit;
+    position: inherit;
+    width: inherit;
+    height: inherit;
+}
+
