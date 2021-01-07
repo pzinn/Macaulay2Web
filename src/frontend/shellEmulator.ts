@@ -15,8 +15,8 @@ import {
 } from "./htmlTools";
 
 //const unicodeBell = "\u0007";
-//const Prism = require('prismjs');
-const M2symbols = require("./prism-M2");
+import Prism from "prismjs";
+import M2symbols from "./prism-M2";
 
 /*
 function dehtml(s) {
@@ -848,4 +848,4 @@ const Shell = function (
   });
 };
 
-module.exports = Shell;
+export { Shell };

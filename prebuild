@@ -1,7 +1,7 @@
 #!/bin/bash
 cd src/frontend
 rm -f tutorialsList.ts
-echo "module.exports = [" > tutorialsList.ts
+echo "export default [" > tutorialsList.ts
 #ls tutorials/*.html -Q -m >> tutorialsList.ts
 for i in tutorials/*.html
 do

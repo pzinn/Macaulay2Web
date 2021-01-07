@@ -147,4 +147,4 @@ const mdtohtml = function (src) {
   return res;
 };
 
-module.exports = socketChat;
+export { socketChat };

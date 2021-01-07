@@ -2,16 +2,18 @@
 "use strict";
 declare const MINIMAL;
 
-import socketIo = require("socket.io-client");
+import socketIo from "socket.io-client";
 
-import Cookie = require("cookie");
+//import Cookie from "cookie";
+
+import extra from "./extra";
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
 export { Socket };
 let socket: Socket;
 let serverDisconnect = false;
-const Shell = require("./shellEmulator");
+import { Shell } from "./shellEmulator";
 
 import {
   barKey,
@@ -151,15 +153,15 @@ const init = function () {
     document.getElementById("terminal"),
     socket,
     document.getElementById("editorDiv"),
-    document.getElementById("editorToggle"),
-    document.getElementById("browseFrame")
+    document.getElementById("editorToggle") as HTMLInputElement,
+    document.getElementById("browseFrame") as HTMLFrameElement
   );
 
   window.addEventListener("load", function () {
     socket.emit("restore");
   });
 
-  if (!MINIMAL) require("./extra");
+  if (!MINIMAL) extra();
 
   const exec = url.searchParams.get("exec");
   if (exec)

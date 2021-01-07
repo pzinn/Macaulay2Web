@@ -1,8 +1,7 @@
 /* eslint-env browser */
 /* eslint "new-cap": "off" */
 
-//const Prism = require('prismjs');
-const accordion = require("./accordion")();
+import { appendTutorialToAccordion, makeAccordion } from "./accordion";
 import { autoRender } from "./autoRender";
 
 interface Lesson {
@@ -99,7 +98,8 @@ const enrichTutorialWithHtml = function (theHtml) {
   return result;
 };
 
-const tutorials = require("./tutorialsList").map(enrichTutorialWithHtml);
+import tutorialsList from "./tutorialsList";
+const tutorials = tutorialsList.map(enrichTutorialWithHtml);
 
 /*
 const getTutorial = function (url) {
@@ -237,20 +237,21 @@ const uploadTutorial = function () {
     const lastIndex = tutorials.length - 1;
     const title = newTutorial.title; // this is an <h3>
     const lessons = newTutorial.lessons;
-    accordion.appendTutorialToAccordion(title, "", lessons, lastIndex, true); // last arg = delete button
+    appendTutorialToAccordion(title, "", lessons, lastIndex, true); // last arg = delete button
   };
   return false;
 };
 
-module.exports = function (initialTutorialNr, initialLessonNr) {
+export default function (initialTutorialNr, initialLessonNr) {
   if (initialTutorialNr) tutorialNr = initialTutorialNr;
   if (initialLessonNr) lessonNr = initialLessonNr;
 
-  accordion.makeAccordion(tutorials);
+  makeAccordion(tutorials);
   loadLesson(tutorialNr, lessonNr);
 
+  // TODO: restructure this mess
   return {
     uploadTutorial,
     loadLessonIfChanged,
   };
-};
+}

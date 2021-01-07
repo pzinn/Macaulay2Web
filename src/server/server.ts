@@ -502,9 +502,11 @@ const socketChatAction = function (socket, client: Client) {
                   "/" +
                   clients[id].output.size +
                   "|" +
-               Array.from(short(
-                    clients[id].output[clients[id].output.length - 1]
-               )).map( c => "\\"+c).join("")
+                  Array.from(
+                    short(clients[id].output[clients[id].output.length - 1])
+                  )
+                    .map((c) => "\\" + c)
+                    .join("")
                 : "|") +
               "|" +
               (clients[id].instance

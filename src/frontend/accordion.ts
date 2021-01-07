@@ -1,5 +1,3 @@
-/* global fetch */
-
 import uploadTutorialHelp from "./tutorials/uploadTutorialHelp.txt";
 
 const cssClasses = {
@@ -155,9 +153,4 @@ const removeTutorial = function (e) {
   e.currentTarget.parentElement.parentElement.remove();
 };
 
-module.exports = function () {
-  return {
-    appendTutorialToAccordion,
-    makeAccordion,
-  };
-};
+export { appendTutorialToAccordion, makeAccordion };
