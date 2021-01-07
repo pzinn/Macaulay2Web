@@ -7,7 +7,7 @@ const options = {
   perContainerResources: {
     cpuShares: 1,
     memory: 256, // Mb
-    maxOutput: 100000, // size of saved output in bytes
+    maxOutput: 250000, // size of saved output in bytes
   },
 };
 

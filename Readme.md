@@ -197,13 +197,11 @@ from
 ### Client
 * main file:
 `public/index.js`
-produced by `webpack` from `dist/frontend/*.js`
+produced by `webpack` from `src/frontend/*.ts` using `ts-loader`
 and called by
-`public/index.html`
-* all js files: (including webpack entry index.js)
-`dist/frontend/*.js`
-produced by `tsc`:
+`public/index.html`.
+* alternatively one can transpile first using
 ```bash
 npx tsc -p src/frontend
 ```
-from `src/frontend/*.ts`
+

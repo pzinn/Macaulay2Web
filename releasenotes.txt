@@ -1,3 +1,7 @@
+3.5.0 01/2021
+    * new chat function
+    * previous session output memorized for restoring after client reload
+
 3.4.0 11/2020
     * revert to $ for tex code, to better align with KaTeX documentation changes
     * division of output into cells

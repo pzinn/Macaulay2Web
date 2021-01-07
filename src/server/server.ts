@@ -406,10 +406,10 @@ const writeMsgOnStream = function (client: Client, msg: string) {
 const short = function (msg: string) {
   if (!msg) return "";
   let shortMsg = msg
-    .substring(0, 77)
+    .substring(0, 50)
     .replace(/[^\x20-\x7F]/g, " ")
     .trim();
-  if (msg.length > 77) shortMsg += "...";
+  if (msg.length > 50) shortMsg += "...";
   return shortMsg;
 };
 
@@ -444,6 +444,7 @@ const socketResetAction = function (client: Client) {
     if (checkClientSane(client)) {
       if (client.channel) killMathProgram(client.channel, client.id);
       client.output.length = 0;
+      client.output.size = 0;
       sanitizeClient(client, true);
     }
   };
@@ -499,19 +500,26 @@ const socketChatAction = function (socket, client: Client) {
               "\n" +
               id +
               "|" +
-              //              clients[id].nsockets
+              //
               Object.values(clients[id].sockets)
                 .map((x) => x.handshake.address)
+                .sort()
+                .filter((v, i, o) => v !== o[i - 1])
                 .join() +
+              "(" +
+              clients[id].nSockets() +
+              ")" +
               "|" +
               (Array.isArray(clients[id].output)
                 ? clients[id].output.length +
                   "/" +
                   clients[id].output.size +
                   "|" +
-                  short(
-                    clients[id].output[clients[id].output.length - 1]
-                  ).replace("|", "\\|")
+                  Array.from(
+                    short(clients[id].output[clients[id].output.length - 1])
+                  )
+                    .map((c) => "\\" + c)
+                    .join("")
                 : "|") +
               "|" +
               (clients[id].instance
