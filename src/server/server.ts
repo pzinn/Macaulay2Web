@@ -486,10 +486,15 @@ const socketChatAction = function (socket, client: Client) {
               "\n" +
               id +
               "|" +
-              //              clients[id].nsockets
+              //
               Object.values(clients[id].sockets)
                 .map((x) => x.handshake.address)
+                .sort()
+                .filter((v, i, o) => v !== o[i - 1])
                 .join() +
+              "(" +
+              clients[id].nSockets() +
+              ")" +
               "|" +
               (Array.isArray(clients[id].output)
                 ? clients[id].output.length +
