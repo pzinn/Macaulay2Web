@@ -96,10 +96,8 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
-const socketOutput = function (msg) {
-  // msg = array or single message
-  if (Array.isArray(msg)) msg.forEach((x) => myshell.displayResult(x));
-  else myshell.displayResult(msg);
+const socketOutput = function (msg: string) {
+  myshell.displayOutput(msg);
 };
 
 const setCookie = function (cookie) {

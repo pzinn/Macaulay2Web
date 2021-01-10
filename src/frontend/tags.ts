@@ -1,11 +1,11 @@
 const webAppTagCodes = [
-  ["End", 17, ""], // end of section script
-  ["Html", 18, "M2Html"], // indicates what follows is HTML
+  ["Html", 17, "M2Html"], // indicates what follows is HTML
+  ["End", 18, ""], // end of HTML (or url) section
   ["Cell", 19, "M2Text M2Cell"], // cell (bundled input + output)
-  ["Input", 20, "M2Text M2Input"], // it's text but it's input
-  ["InputContd", 28, "M2Text M2Input"], // text, continuation of input
-  ["Url", 29, "M2Url"], // url
-  ["Text", 30, "M2Text"], // indicates what follows is pure text; default mode
+  ["CellEnd", 20, ""], // end of cell
+  ["Input", 28, "M2Text M2Input"], // it's text but it's input
+  ["InputContd", 29, "M2Text M2Input"], // text, continuation of input
+  ["Url", 30, "M2Url"], // url
 ];
 const webAppTags = {} as any;
 const webAppClasses = {} as any;

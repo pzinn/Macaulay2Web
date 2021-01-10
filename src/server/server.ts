@@ -255,12 +255,20 @@ const sendDataToClient = function (client: Client) {
     }
     updateLastActiveTime(client);
     // extra logging for *users* only
-    if (
-      client.id.substring(0, 4) === "user" &&
-      client.output.size + data.length < options.perContainerResources.maxOutput
-    ) {
-      client.output.push(data);
-      client.output.size += data.length;
+    if (client.id.substring(0, 4) === "user") {
+      client.output += data;
+      while (client.output.length > options.perContainerResources.maxOutput) {
+        const m = client.output.match(
+          new RegExp(
+            webAppTags.Cell + "[^" + webAppTags.Cell + "]*" + webAppTags.CellEnd
+          ) // probably better syntax with *?
+        );
+        if (m === null) break; // give up -- normally, shouldn't happen except transitionally
+        client.output =
+          client.output.substring(0, m.index) +
+          " \u2026\n" +
+          client.output.substring(m.index + m[0].length);
+      }
     }
     emitOutputViaClientSockets(client, data);
   };
@@ -430,8 +438,7 @@ const socketResetAction = function (client: Client) {
     logClient(client.id, "Received reset.");
     if (checkClientSane(client)) {
       if (client.channel) killMathProgram(client.channel, client.id);
-      client.output.length = 0;
-      client.output.size = 0;
+      client.output = "";
       sanitizeClient(client, true);
     }
   };
@@ -499,8 +506,6 @@ const socketChatAction = function (socket, client: Client) {
               "|" +
               (Array.isArray(clients[id].output)
                 ? clients[id].output.length +
-                  "/" +
-                  clients[id].output.size +
                   "|" +
                   Array.from(
                     short(clients[id].output[clients[id].output.length - 1])

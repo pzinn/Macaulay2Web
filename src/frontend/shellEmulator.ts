@@ -688,7 +688,7 @@ const Shell = function (
     if (htmlSec.contains(inputSpan)) attachElement(inputSpan, anc);
     // move back input element to outside htmlSec
 
-    if (htmlSec.classList.contains("M2Cell").childNodes == 2) {
+    if (htmlSec.classList.contains("M2Cell") && htmlSec.childNodes.length == 2) {
       // reject empty cells
       htmlSec.remove();
       htmlSec = anc;
@@ -765,7 +765,7 @@ const Shell = function (
     htmlSec = anc;
   };
 
-  obj.displayResult = function (msg: string) {
+  obj.displayOutput = function (msg: string) {
     if (procInputSpan !== null) {
       procInputSpan.remove();
       procInputSpan = null;
@@ -783,7 +783,8 @@ const Shell = function (
       }
       if (i > 0) {
         const tag = txt[i - 1];
-        if (tag == webAppTags.End) {
+        if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
+          // TODO: distinguish them
           // end of section
           closeHtml();
         } else if (tag === webAppTags.InputContd) {

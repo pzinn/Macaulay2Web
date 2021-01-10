@@ -53,7 +53,7 @@
   },
   "scripts": {
     "postinstall": "./postinstall",
-    "build": "npm run lint && npm run format && npm run build:server && npm run build:client && npm run css",
+    "build": "npm run lint && npm run format && npm run build:server && npm run build:client && npm run build:minimal && npm run css",
     "build:server": "tsc",
     "build:client": "./prebuild && ./node_modules/.bin/webpack --env production",
     "build:minimal": "./prebuild && ./node_modules/.bin/webpack --env minimal",
