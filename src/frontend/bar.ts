@@ -120,14 +120,14 @@ const barAction = function (action: string, target0: HTMLElement) {
   return true;
 };
 
-const barKey = function (e) {
+const barKey = function (e,target) { // target should be current cell (not bar)
   let key = e.key.toLowerCase();
   if (e.ctrlKey)
     if (key == "control") return;
     else key = "ctrl-" + key;
   hideContextMenu();
   e.stopPropagation();
-  if (barAction(key, e.target.parentElement)) e.preventDefault();
+  if (barAction(key, target)) e.preventDefault();
 };
 
 const barMouseDown = function (e) {
@@ -192,12 +192,13 @@ const barRightClick = function (e) {
     const el = e.target.parentElement;
     if (!el.contains(curInput)) el.classList.add("M2CellSelected"); // if nothing selected, select current
   }
-  setupMenu(contextMenu, (sel) => {
+  setupMenu(contextMenu, sel => {
     if (sel) barAction(sel.dataset.key, e.target.parentElement);
     hideContextMenu();
+  }, ee => {
+      barKey(ee,e.target.parentElement);
   });
   contextMenu.onblur = hideContextMenu;
-  contextMenu.onkeydown = barKey;
   e.preventDefault();
 };
 

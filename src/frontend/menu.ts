@@ -1,4 +1,4 @@
-const setupMenu = function (menuElement, menuFunction) {
+const setupMenu = function (menuElement, menuFunction, keyFunction?) {
   let menuSelection = menuElement.firstElementChild;
   if (!menuSelection) return;
   menuSelection.classList.add("selected");
@@ -51,6 +51,7 @@ const setupMenu = function (menuElement, menuFunction) {
       e.stopPropagation();
       return;
     }
+      if (keyFunction) keyFunction(e);
   };
   menuElement.focus();
   return function () {
