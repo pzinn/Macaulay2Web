@@ -145,7 +145,7 @@ const Shell = function (
   };
 
   const removeAutoComplete = function (autoCompleteSelection) {
-    // flag means insert the selection or not
+    // null or the menu element to insert
     if (autoComplete) {
       let pos = inputSpan.textContent.length;
       let s = autoComplete.dataset.word;
@@ -329,7 +329,7 @@ const Shell = function (
     while (j < lst.length && lst[j] < word) j++;
     if (j < lst.length) {
       let k = j;
-      while (k < lst.length && lst[k].substring(0, word.length) == word) k++;
+      while (k < lst.length && lst[k].startsWith(word)) k++;
       if (k > j) {
         if (k == j + 1) {
           // yay, one solution
@@ -369,7 +369,9 @@ const Shell = function (
           tabMenu.tabIndex = 0;
           for (let l = j; l < k; l++) {
             const opt = document.createElement("li");
-            opt.textContent = lst[l];
+            const wordb = document.createElement("b");
+            wordb.textContent = word;
+            opt.append(wordb, lst[l].substring(word.length, lst[l].length));
             opt.dataset.fullword = flag
               ? key == "Tab"
                 ? lst[l] + " "
@@ -385,7 +387,41 @@ const Shell = function (
           );
           inputSpan.textContent = inputSpan.textContent.substring(0, i); // not ctrl-Z friendly
           inputSpan.parentElement.appendChild(autoComplete);
-          setupMenu(tabMenu, removeAutoComplete);
+          const menuSel = setupMenu(tabMenu, removeAutoComplete, (e) => {
+            // keydown event
+            if (e.key == "Shift") {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+            if (
+              e.key.length == 1 &&
+              ((e.key >= "a" && e.key <= "z") || (e.key >= "A" && e.key <= "Z"))
+            ) {
+              let lostSelection = false;
+              Array.from(tabMenu.children).forEach((el) => {
+                if (
+                  el.lastChild.textContent.length > 0 &&
+                  el.lastChild.textContent[0] == e.key
+                ) {
+                  el.firstChild.textContent += e.key;
+                  el.lastChild.textContent = el.lastChild.textContent.substring(
+                    1
+                  );
+                } else {
+                  if (el.classList.contains("selected")) lostSelection = true;
+                  el.remove();
+                }
+              });
+              if (tabMenu.childElementCount == 0) return; // no choice => back to normal typing
+              autoComplete.dataset.word += e.key;
+              if (tabMenu.childElementCount == 1)
+                removeAutoComplete(tabMenu.firstChild);
+              if (lostSelection) menuSel(tabMenu.firstElementChild);
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          });
         }
       }
     }
@@ -688,7 +724,10 @@ const Shell = function (
     if (htmlSec.contains(inputSpan)) attachElement(inputSpan, anc);
     // move back input element to outside htmlSec
 
-    if (htmlSec.classList.contains("M2Cell") && htmlSec.childNodes.length == 2) {
+    if (
+      htmlSec.classList.contains("M2Cell") &&
+      htmlSec.childNodes.length == 2
+    ) {
       // reject empty cells
       htmlSec.remove();
       htmlSec = anc;

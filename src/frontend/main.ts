@@ -32,7 +32,8 @@ const keydownAction = function (e) {
     if (sel != "") socket.emit("input", 'viewHelp "' + sel + '"\n');
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.target.classList.contains("M2CellBar")) barKey(e,e.target.parentElement);
+  } else if (e.target.classList.contains("M2CellBar"))
+    barKey(e, e.target.parentElement);
 };
 
 const socketDisconnect = function (msg) {

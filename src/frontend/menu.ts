@@ -9,11 +9,17 @@ const setupMenu = function (menuElement, menuFunction, keyFunction?) {
     return;
   };
 
-  Array.from(menuElement.children).forEach((el) => {
-    (el as HTMLElement).onmouseover = function () {
-      menuSelection.classList.remove("selected");
-      menuSelection = el;
+  const changeSelection = function (newSelection?) {
+    if (newSelection) {
+      if (menuSelection) menuSelection.classList.remove("selected");
+      menuSelection = newSelection;
       menuSelection.classList.add("selected");
+    }
+    return menuSelection;
+  };
+  Array.from(menuElement.children).forEach((el) => {
+    (el as HTMLElement).onmouseover = () => {
+      changeSelection(el);
     };
   });
 
@@ -25,21 +31,15 @@ const setupMenu = function (menuElement, menuFunction, keyFunction?) {
       return;
     }
     if (e.key == "ArrowDown") {
-      if (menuSelection != this.lastElementChild) {
-        menuSelection.classList.remove("selected");
-        menuSelection = menuSelection.nextElementSibling;
-        menuSelection.classList.add("selected");
-      }
+      if (menuSelection != this.lastElementChild)
+        changeSelection(menuSelection.nextElementSibling);
       e.preventDefault();
       e.stopPropagation();
       return;
     }
     if (e.key == "ArrowUp") {
-      if (menuSelection != this.firstElementChild) {
-        menuSelection.classList.remove("selected");
-        menuSelection = menuSelection.previousElementSibling;
-        menuSelection.classList.add("selected");
-      }
+      if (menuSelection != this.firstElementChild)
+        changeSelection(menuSelection.previousElementSibling);
       e.preventDefault();
       e.stopPropagation();
       return;
@@ -51,12 +51,10 @@ const setupMenu = function (menuElement, menuFunction, keyFunction?) {
       e.stopPropagation();
       return;
     }
-      if (keyFunction) keyFunction(e);
+    if (keyFunction) keyFunction(e);
   };
   menuElement.focus();
-  return function () {
-    return menuSelection;
-  };
+  return changeSelection;
 };
 
 export { setupMenu };
