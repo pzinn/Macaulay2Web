@@ -1,6 +1,6 @@
 #!/bin/bash
 # VG
-cd src/frontend/
+cd src/client/
 echo Installing VectorGraphics
 mkdir -p css
 cd css
@@ -18,15 +18,10 @@ cd ../css
 wget -nv -N https://code.getmdl.io/1.3.0/material.indigo-deep_orange.min.css
 cd ..
 cd ../..
-# various sym links
+# sym link
 echo Sym-linking
-cd dist/frontend
-ln -sf ../../src/frontend/js .
-ln -sf ../../src/frontend/tutorials .
-ln -sf ../../src/frontend/default.m2 .
-cd ../..
 cd public
-ln -sf ../src/frontend/js/VectorGraphics.js .
+ln -sf ../src/client/js/VectorGraphics.js .
 # katex fonts
 ln -sf ../KaTeX/submodules/katex-fonts/fonts .
 cd ..

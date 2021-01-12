@@ -23,7 +23,7 @@ const io: SocketIO.Server = ioModule(http, { pingTimeout: 30000 });
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
 
-import { webAppTags } from "../frontend/tags";
+import { webAppTags } from "../common/tags";
 
 const logger = require("./logger");
 

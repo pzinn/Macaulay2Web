@@ -1,4 +1,4 @@
-import { options as globalOptions } from "./global";
+import { options as globalOptions } from "../common/global";
 
 const options = {
   ...globalOptions,

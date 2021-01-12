@@ -12,7 +12,7 @@ module.exports = env => {
     }
     if (env.minimal) filename = "public/minimal.js"; else filename = "public/index.js";
     return {
-	entry: "./src/frontend/index.ts",
+	entry: "./src/client/index.ts",
 	output: {
 	    path: __dirname, // otherwise is put in "dist/"
 	    filename: filename
@@ -41,7 +41,8 @@ module.exports = env => {
 	mode: mode,
 	devtool: devtool,
 	plugins: [
-	    new webpack.DefinePlugin({ MINIMAL: env.minimal }),
+	    new webpack.DefinePlugin({ "MINIMAL": JSON.stringify(env.minimal),
+				       "process.env.npm_package_version": JSON.stringify(process.env.npm_package_version) }),
 	]
     };
 };

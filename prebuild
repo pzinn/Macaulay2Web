@@ -1,5 +1,5 @@
 #!/bin/bash
-cd src/frontend
+cd src/client
 rm -f tutorialsList.ts
 echo "export default [" > tutorialsList.ts
 #ls tutorials/*.html -Q -m >> tutorialsList.ts

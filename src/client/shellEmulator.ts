@@ -1,7 +1,7 @@
 import { Socket } from "./main";
 
 import { autoRender } from "./autoRender";
-import { webAppTags, webAppClasses, webAppRegex } from "./tags";
+import { webAppTags, webAppClasses, webAppRegex } from "../common/tags";
 import { setupMenu } from "./menu";
 import {
   scrollDownLeft,

@@ -23,7 +23,7 @@ import {
   unselectCells,
 } from "./bar";
 
-import { options } from "../server/startupConfigs/global";
+import { options } from "../common/global";
 
 let myshell = null;
 
@@ -123,6 +123,7 @@ const init = function () {
   }
 
   let ioParams = "?version=" + options.version;
+  console.log("Macaulay2Web version " + options.version);
   let publicId: any = url.searchParams.get("public");
   const userId: any = url.searchParams.get("user");
   if (publicId !== null) {

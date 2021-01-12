@@ -1,5 +1,5 @@
 import Cookie from "cookie";
-import { options } from "../server/startupConfigs/global";
+import { options } from "../common/global";
 import { socket, setCookie, url, myshell } from "./main";
 import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 import { socketChat } from "./chat";

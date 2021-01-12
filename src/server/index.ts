@@ -3,10 +3,12 @@ const args: string[] = process.argv;
 const n: number = args.length;
 import fs = require("fs");
 
-import { options, overrideDefaultOptions } from "./startupConfigs/default";
+import { options, overrideDefaultOptions } from "../startupConfigs/default";
 import { mathServer } from "./server";
 
 const logger = require("./logger");
+
+logger.info("Macaulay2Web version " + options.version);
 
 if (n > 2) {
   logger.info("mode " + args[2] + " requested");
