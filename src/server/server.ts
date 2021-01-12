@@ -672,7 +672,7 @@ const mathServer = function (o) {
       const client = new Client(clientId);
       clients[clientId] = client;
       client.instance = lst[clientId];
-      spawnMathProgramInSecureContainer(client);
+      //      spawnMathProgramInSecureContainer(client);
       totalUsers += 1;
     }
     logger.info("start init");
