@@ -341,14 +341,14 @@ const initializeServer = function () {
   const expressWinston = require("express-winston");
   serveStatic.mime.define({ "text/plain": ["m2"] }); // declare m2 files as plain text for browsing purposes
 
-  const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM); // TODO: retire
+  //  const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM); // retired
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
   app.use(SocketIOFileUpload.router);
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
   app.use(serveStatic(staticFolder));
-  app.use("/admin", admin.stats); // TODO: retire
+  //  app.use("/admin", admin.stats); // retired
   app.use(fileDownload);
   app.use(unhandled);
 };
@@ -574,6 +574,15 @@ const validateId = function (s): string {
 const listen = function () {
   io.on("connection", function (socket: SocketIO.Socket) {
     logger.info("Incoming new connection!");
+    const version = socket.handshake.query.version;
+    if (version != options.version) {
+      safeSocketEmit(
+        socket,
+        "output",
+        "Client/server version mismatch. Please refresh your page."
+      );
+      return; // brutal
+    }
     const publicId = validateId(socket.handshake.query.publicId);
     const userId = validateId(socket.handshake.query.userId);
     let clientId: string;

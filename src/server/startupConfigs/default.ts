@@ -4,6 +4,11 @@ const options = {
   ...globalOptions,
   adminName: "pzinn", // to be set live only
   authentication: false,
+  perContainerResources: {
+    cpuShares: 0.5,
+    memory: 384, // Mb
+    maxOutput: 200000, // size of saved output in bytes
+  },
   serverConfig: {
     CONTAINERS: "../LocalContainerManager",
     MATH_PROGRAM: "Macaulay2",

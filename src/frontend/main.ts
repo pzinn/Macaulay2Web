@@ -23,6 +23,8 @@ import {
   unselectCells,
 } from "./bar";
 
+import { options } from "../server/startupConfigs/global";
+
 let myshell = null;
 
 const keydownAction = function (e) {
@@ -120,17 +122,17 @@ const init = function () {
     return;
   }
 
-  let ioParams = "";
+  let ioParams = "?version=" + options.version;
   let publicId: any = url.searchParams.get("public");
   const userId: any = url.searchParams.get("user");
   if (publicId !== null) {
     if (publicId == "") publicId = "Default";
-    ioParams = "?publicId=" + publicId;
+    ioParams += "&publicId=" + publicId;
   } else if (userId !== null && userId != "") {
-    ioParams = "?userId=" + userId;
+    ioParams += "&userId=" + userId;
   } else if (url.pathname == "/minimal.html") {
     // minimal interface public by default
-    ioParams = "?publicId=Default";
+    ioParams += "&publicId=Default";
   }
 
   socket = socketIo(ioParams);
