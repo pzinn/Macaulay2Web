@@ -156,7 +156,8 @@ const init = function () {
     socket,
     document.getElementById("editorDiv"),
     document.getElementById("editorToggle") as HTMLInputElement,
-    document.getElementById("browseFrame") as HTMLFrameElement
+    document.getElementById("browseFrame") as HTMLFrameElement,
+    true
   );
 
   window.addEventListener("load", function () {

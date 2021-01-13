@@ -26,13 +26,16 @@
       "email": "pzinn@unimelb.edu.au"
     }
   ],
+  "bugs": {
+    "url": "https://github.com/pzinn/Macaulay2Web/issues"
+  },
   "engine": {
     "node": ">=10.0.0"
   },
   "sideEffects": false,
   "dependencies": {
     "@babel/runtime": "^7.12.5",
-    "@types/express": "^4.17.10",
+    "@types/express": "^4.17.11",
     "@types/node": "^14.14.20",
     "@types/socket.io": "^2.1.12",
     "@types/socket.io-client": "^1.4.35",
@@ -55,9 +58,9 @@
     "postinstall": "./postinstall",
     "build": "npm run lint && npm run format && npm run build:server && npm run build:client && npm run build:minimal && npm run css",
     "build:server": "tsc",
-    "build:client": "./prebuild && ./node_modules/.bin/webpack --env production",
-    "build:minimal": "./prebuild && ./node_modules/.bin/webpack --env minimal",
-    "build:debug": "./node_modules/.bin/webpack --env debug",
+    "build:client": "./prebuild && webpack --env production",
+    "build:minimal": "./prebuild && webpack --env minimal",
+    "build:debug": "webpack --env debug",
     "css": "cd src/client/css; lessc ../../../KaTeX/src/katex.less katex.css; cat katex.css VectorGraphics.css interface_common.css interface_minimal.css prism-M2.css | postcss -o ../../../public/minimal.css && cat material.indigo-deep_orange.min.css katex.css VectorGraphics.css interface_common.css interface_extra.css prism-M2.css | postcss -o ../../../public/index.css",
     "start": "node dist/server/index.js",
     "docker": "npm run build && npm start docker",
@@ -66,8 +69,10 @@
     "twoMachines": "npm run build && npm start ssh",
     "twoMachines_forever": "npm run build && forever start -l $HOME/webm2.logs/forever.log -o $HOME/webm2.logs/out.log -e $HOME/webm2.logs/err.log --append dist/index.js ssh",
     "stop": "kill `ps ax | grep Server | grep -v monitor | grep node | awk '{print $1}'`",
-    "lint": "eslint src/server/*.ts src/common/*.ts src/startupConfigs/*.ts src/client/*.ts --fix",
-    "format": "prettier --write src/server/*.ts src/common/*.ts src/startupConfigs/*.ts src/client/*.ts"
+    "lint": "eslint src/*/*.ts --fix",
+    "format": "prettier --write src/*/*.ts",
+    "build:renderhelp": "webpack --config webpack-renderhelp.config.js",
+    "renderhelp": "npm run build:renderhelp && cd src/renderhelp && node index.js"
   },
   "repository": {
     "type": "git",
@@ -98,5 +103,8 @@
     "webpack": "^5.13.0",
     "webpack-cli": "^4.3.1"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "optionalDependencies": {
+    "puppeteer-core": "^5.5.0"
+  }
 }

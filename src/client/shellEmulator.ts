@@ -59,14 +59,15 @@ const Shell = function (
   socket: Socket,
   editor: HTMLElement,
   editorToggle: HTMLInputElement,
-  iFrame: HTMLFrameElement
+  iFrame: HTMLFrameElement,
+  createInputSpan: boolean
 ) {
   // Shell is an old-style javascript oop constructor
   // we're using arguments as private variables, cf
   // https://stackoverflow.com/questions/18099129/javascript-using-arguments-for-closure-bad-or-good
   const obj = this; // for nested functions with their own 'this'. or one could use bind, or => functions, but simpler this way
   let htmlSec; // the current place in shell where new stuff gets written
-  let inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
+  let inputSpan = null; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
   const cmdHistory: any = []; // History of commands for shell-like arrow navigation
   cmdHistory.index = 0;
   cmdHistory.sorted = []; // a sorted version
@@ -94,7 +95,8 @@ const Shell = function (
     }
     if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
     // even M2Html needs to keep track of innerHTML because html tags may get broken
-    if (inputSpan.parentElement == anc) anc.insertBefore(htmlSec, inputSpan);
+    if (inputSpan && inputSpan.parentElement == anc)
+      anc.insertBefore(htmlSec, inputSpan);
     else anc.appendChild(htmlSec);
   };
 
@@ -122,7 +124,8 @@ const Shell = function (
     inputEndFlag = false;
   };
 
-  createInputEl();
+  if (createInputSpan) createInputEl();
+  else htmlSec = shell;
 
   obj.codeInputAction = function (t) {
     t.classList.add("codetrigger");
@@ -566,6 +569,7 @@ const Shell = function (
   };
 
   shell.onpaste = function () {
+    if (!inputSpan) return;
     placeCaretAtEnd(inputSpan, true);
     inputSpan.oninput = function () {
       inputSpan.oninput = null; // !
@@ -574,7 +578,7 @@ const Shell = function (
   };
 
   shell.onclick = function (e) {
-    if (!window.getSelection().isCollapsed) return;
+    if (!inputSpan || !window.getSelection().isCollapsed) return;
     let t = e.target as HTMLElement;
     while (t != shell) {
       if (
@@ -590,6 +594,7 @@ const Shell = function (
   };
 
   shell.onkeydown = function (e: KeyboardEvent) {
+    if (!inputSpan) return;
     removeAutoComplete(false); // remove autocomplete menu if open
     removeDelimiterHighlight();
     if ((e.target as HTMLElement).classList.contains("M2CellBar")) return;
@@ -681,6 +686,7 @@ const Shell = function (
   };
 
   shell.onkeyup = function (e) {
+    if (!inputSpan) return;
     if (
       document.activeElement == inputSpan &&
       window.getSelection().focusOffset == 0
@@ -714,7 +720,7 @@ const Shell = function (
   };
 
   const closeHtml = function () {
-    if (htmlSec == shell) return;
+    //    if (htmlSec == shell) return; // should never happen
 
     const anc = htmlSec.parentElement;
 
@@ -832,7 +838,7 @@ const Shell = function (
         } else {
           // new section
           createHtml(webAppClasses[tag]);
-          if (tag === webAppTags.Input) {
+          if (tag === webAppTags.Input && inputSpan) {
             // input section: a bit special (ends at first \n)
             attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
           }
@@ -860,7 +866,7 @@ const Shell = function (
         if (htmlSec.dataset.code !== undefined) htmlSec.dataset.code += txt[i];
         //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // used to update in real time
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
-        else if (inputSpan.parentElement == htmlSec)
+        else if (inputSpan && inputSpan.parentElement == htmlSec)
           htmlSec.insertBefore(document.createTextNode(txt[i]), inputSpan);
         else htmlSec.appendChild(document.createTextNode(txt[i]));
       }
@@ -883,9 +889,10 @@ const Shell = function (
     placeCaretAtEnd(inputSpan);
   };
 
-  window.addEventListener("load", function () {
-    inputSpan.focus();
-  });
+  if (inputSpan)
+    window.addEventListener("load", function () {
+      inputSpan.focus();
+    });
 };
 
 export { Shell };
