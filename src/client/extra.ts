@@ -278,9 +278,9 @@ const toggleWrap = function () {
           time: new Date().toISOString().replace("T", " ").substr(0, 19),
         };
         if ((document.getElementById("pmtoggle") as HTMLInputElement).checked)
-          msg.pmto = (document.getElementById(
+          msg.recipients = (document.getElementById(
             "pmto"
-          ) as HTMLInputElement).value;
+          ) as HTMLInputElement).value.split(",");
         socket.emit("chat", msg);
         chatInput.value = "";
       }

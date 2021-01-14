@@ -28,37 +28,63 @@ const deleteChatWrap = function (h) {
 const chatAction = function (msg: Chat, index?) {
   if (msg.type == "delete") {
     deleteChat(msg.hash);
-    return;
-  }
-  const ul = document.getElementById("chatMessages");
-  const msgel = document.createElement("li");
-  msgel.classList.add("chatMessage");
-  msgel.id = "message-" + msg.hash;
-  const s0 = document.createElement("i");
-  s0.className = "material-icons message-close";
-  s0.textContent = "close";
-  s0.onclick = deleteChatWrap(msg.hash);
-  const s1 = document.createElement("i");
-  s1.textContent = msg.time;
-  const s2 = document.createElement("b");
-  s2.textContent = msg.alias;
-  s2.className = msg.type;
-  const s3 = document.createElement("span");
-  //  s3.textContent = msg.message;
-  const test = mdtohtml(msg.message);
-  s3.innerHTML = test;
-  msgel.append(s0, s1, " : ", s2, document.createElement("br"), s3);
-  ul.appendChild(msgel);
-  scrollDown(ul);
-  if (index === undefined && msg.type != "message-system") {
-    const chatTitle = document.getElementById("chatTitle");
-    if (document.location.hash != "#chat") {
-      chatTitle.classList.add(msg.type);
+  } else if (msg.type.startsWith("message")) {
+    if (msg.recipients) {
+      const alias = (document.getElementById("chatAlias") as HTMLInputElement)
+        .value;
+      if (
+        !msg.recipients.some(
+          (name) => name.endsWith("/") || name == alias || name == "id/" + alias
+        )
+      )
+        // we don't have the right alias
+        return;
     }
-    chatTitle.classList.add("message-pop");
-    setTimeout(function () {
-      chatTitle.classList.remove("message-pop");
-    }, 500);
+    const ul = document.getElementById("chatMessages");
+    const msgel = document.createElement("li");
+    msgel.classList.add("chatMessage");
+    msgel.id = "message-" + msg.hash;
+    const s0 = document.createElement("i");
+    s0.className = "material-icons message-close";
+    s0.textContent = "close";
+    s0.onclick = deleteChatWrap(msg.hash);
+    const s1 = document.createElement("i");
+    s1.textContent = msg.time;
+    const s2 = document.createElement("b");
+    s2.textContent = msg.alias;
+    s2.className = msg.type;
+    const s3 = document.createElement("span");
+    //  s3.textContent = msg.message;
+    const test = mdtohtml(msg.message);
+    s3.innerHTML = test;
+    const recipients = msg.recipients
+      ? " (to " +
+        msg.recipients
+          .filter((name) => name != msg.alias && name != "id/" + msg.alias)
+          .join(", ") +
+        ")"
+      : "";
+    msgel.append(
+      s0,
+      s1,
+      " : ",
+      s2,
+      recipients,
+      document.createElement("br"),
+      s3
+    );
+    ul.appendChild(msgel);
+    scrollDown(ul);
+    if (index === undefined && msg.type != "message-system") {
+      const chatTitle = document.getElementById("chatTitle");
+      if (document.location.hash != "#chat") {
+        chatTitle.classList.add(msg.type);
+      }
+      chatTitle.classList.add("message-pop");
+      setTimeout(function () {
+        chatTitle.classList.remove("message-pop");
+      }, 500);
+    }
   }
 };
 
