@@ -1,9 +1,8 @@
 "use strict;";
 
-import { Client } from "./client";
-import { IClients } from "./client";
+import { Client, IClients } from "./client";
 import clientIdHelper from "./clientId";
-
+import { Chat } from "../common/chatClass";
 import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
 import { LocalContainerManager } from "./LocalContainerManager";
@@ -444,7 +443,7 @@ const socketResetAction = function (client: Client) {
   };
 };
 
-const chatList = []; // to be sent back to clients for restore
+const chatList: Chat[] = []; // to be sent back to clients for restore
 const chatHash = {}; // convenient to hash them: client may be desynchronized, so simple # in list won't do
 // plus can contain extra info only available to server
 
@@ -453,7 +452,7 @@ const chatHash = {}; // convenient to hash them: client may be desynchronized, s
 let chatCounter = 0;
 
 const socketChatAction = function (socket, client: Client) {
-  return function (msg) {
+  return function (msg: Chat) {
     logClient(client.id, "chat of type " + msg.type);
     // TODO create a class for messages
     if (msg.type == "delete") {

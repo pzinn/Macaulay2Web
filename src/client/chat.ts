@@ -1,5 +1,6 @@
 import { scrollDown } from "./htmlTools";
 import { socket } from "./main";
+import { Chat } from "../common/chatClass";
 
 const deleteChat = function (h) {
   const el = document.getElementById("message-" + h);
@@ -24,11 +25,12 @@ const deleteChatWrap = function (h) {
   };
 };
 
-const chatAction = function (msg, index?) {
+const chatAction = function (msg: Chat, index?) {
   if (msg.type == "delete") {
     deleteChat(msg.hash);
     return;
   }
+  // TODO: test if sender or destination
   const ul = document.getElementById("chatMessages");
   const msgel = document.createElement("li");
   msgel.classList.add("chatMessage");
@@ -93,8 +95,8 @@ const escapeHTML = (str) =>
     ) // **really important**
     .replace(/(?<!\\)(\*|_)(?!\s|\*|_)([^\r]*?\S)(?<!\\)\1/g, "<em>$2</em>") // *important*
     .replace(/(?<!\\)\\/g, ""); // remove escaping
-const cut = (s, x) => escapeHTML(s.substring(x[0].length));
 
+const cut = (s, x) => escapeHTML(s.substring(x[0].length));
 const patterns = [
   { pattern: /^\*\s/, tag: (x) => "ul", linetag: (x) => "li", proc: cut },
   { pattern: /^\d+\.\s/, tag: (x) => "ol", linetag: (x) => "li", proc: cut },
@@ -103,13 +105,18 @@ const patterns = [
     pattern: /\|/,
     tag: (x) => "table",
     linetag: (x) => "tr",
-    proc: (s, x) =>
-      "<td>" +
-      escapeHTML(s.replace(/(?<!\\)\|/g, "\\\\|")).replace(
-        /\\\|/g,
-        "</td><td>"
-      ) +
-      "</td>", // bit of a mess
+    proc: (s, x) => {
+      if (s.startsWith("|")) s = s.substring(1);
+      if (s.endsWith("|")) s = s.substring(0, s.length - 1);
+      return (
+        "<td>" +
+        escapeHTML(s.replace(/(?<!\\)\|/g, "\\\\|")).replace(
+          /\\\|/g,
+          "</td><td>"
+        ) +
+        "</td>"
+      );
+    }, // bit of a mess
   },
 ];
 
@@ -141,7 +148,7 @@ const mdtohtml = function (src) {
         "</" +
         patterns[i].linetag(x) +
         ">";
-    } else res += escapeHTML(s);
+    } else res += escapeHTML(s) + "<br/>";
   });
   if (i >= 0 && patterns[i].tag != null) res += "</" + patterns[i].tag(x) + ">";
   return res;

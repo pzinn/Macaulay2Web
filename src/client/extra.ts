@@ -6,7 +6,7 @@ import { socketChat } from "./chat";
 import tutorials from "./tutorials";
 import Prism from "prismjs";
 import SocketIOFileUpload from "socketio-file-upload";
-
+import { Chat } from "../common/chatClass";
 import defaultEditor from "./default.m2";
 
 export default function () {
@@ -20,6 +20,11 @@ export default function () {
   const emitReset = function () {
     myshell.reset();
     socket.emit("reset");
+  };
+
+  const attachClick = function (id: string, f) {
+    const el = document.getElementById(id);
+    if (el) el.onclick = f;
   };
 
   const getSelected = function () {
@@ -223,11 +228,6 @@ const toggleWrap = function () {
     }
   };
 
-  const attachClick = function (id: string, f) {
-    const el = document.getElementById(id);
-    if (el) el.onclick = f;
-  };
-
   const queryCookie = function () {
     const cookies = Cookie.parse(document.cookie);
     const cookie = cookies[options.cookieName];
@@ -271,12 +271,17 @@ const toggleWrap = function () {
     chatForm.onsubmit = function (e) {
       e.preventDefault();
       if (chatInput.value != "") {
-        socket.emit("chat", {
+        const msg: Chat = {
           type: "message",
           alias: chatAlias.value,
           message: chatInput.value,
           time: new Date().toISOString().replace("T", " ").substr(0, 19),
-        });
+        };
+        if ((document.getElementById("pmtoggle") as HTMLInputElement).checked)
+          msg.pmto = (document.getElementById(
+            "pmto"
+          ) as HTMLInputElement).value;
+        socket.emit("chat", msg);
         chatInput.value = "";
       }
     };
@@ -355,6 +360,12 @@ const toggleWrap = function () {
     "terminalResetZoom",
     "terminalZoomOut"
   );
+
+  // chat pm
+  attachClick("pmtoggle", function () {
+    (document.getElementById("pmto") as HTMLInputElement).disabled = !this
+      .checked;
+  });
 
   // take care of default editor text
   if (editor) {

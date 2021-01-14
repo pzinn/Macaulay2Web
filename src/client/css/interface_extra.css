@@ -227,6 +227,11 @@ h3.rotated .material-icons {
     margin-bottom: -1px;
 }
 
+.chatMessage table,th,td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
 .chatDiv {
     display:table;
     border-collapse:separate;
@@ -240,6 +245,10 @@ h3.rotated .material-icons {
     height:24px;
     border:1px solid gray;
     border-radius:4px;
+}
+
+input[type=checkbox]:not(:checked) + label {
+    color: rgba(0,0,0,0.26);
 }
 
 #chatTitle {
