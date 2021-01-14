@@ -86,7 +86,7 @@ const deleteClientData = function (client: Client): void {
   logClient(client.id, "deleting folder " + userSpecificPath(client));
   try {
     logClient(client.id, "Sending disconnect. ");
-    Object.values(clients[client.id].sockets).forEach(disconnectSocket);
+    clients[client.id].sockets.forEach(disconnectSocket);
   } catch (error) {
     logClient(client.id, "Socket seems already dead: " + error);
   }
@@ -109,7 +109,7 @@ const safeSocketEmit = function (socket, type: string, data): void {
 const emitOutputViaClientSockets = function (client: Client, data) {
   const s = short(data);
   if (s != "") logClient(client.id, "Sending output: " + s);
-  Object.values(client.sockets).forEach((socket) =>
+  client.sockets.forEach((socket) =>
     safeSocketEmit(socket, "output", data)
   );
 };
@@ -241,14 +241,13 @@ const updateLastActiveTime = function (client: Client) {
 
 const addNewSocket = function (client: Client, socket: SocketIO.Socket) {
   logClient(client.id, "Adding new socket");
-  const socketID: string = socket.id;
-  client.sockets[socketID] = socket;
+    client.sockets.push(socket);
 };
 
 const sendDataToClient = function (client: Client) {
   return function (dataObject) {
     const data: string = dataObject.toString();
-    if (client.nSockets() === 0) {
+    if (client.sockets.length === 0) {
       logClient(client.id, "No socket for client.");
       return;
     }
@@ -454,7 +453,6 @@ let chatCounter = 0;
 const socketChatAction = function (socket, client: Client) {
   return function (msg: Chat) {
     logClient(client.id, "chat of type " + msg.type);
-    // TODO create a class for messages
     if (msg.type == "delete") {
       const del = chatHash[msg.hash]; // message to be deleted
       if (
@@ -494,13 +492,13 @@ const socketChatAction = function (socket, client: Client) {
               id +
               "|" +
               //
-              Object.values(clients[id].sockets)
+              clients[id].sockets
                 .map((x) => x.handshake.address)
                 .sort()
                 .filter((v, i, o) => v !== o[i - 1])
                 .join() +
               "(" +
-              clients[id].nSockets() +
+              clients[id].sockets.length +
               ")" +
               "|" +
               (Array.isArray(clients[id].output)

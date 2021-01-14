@@ -30,7 +30,6 @@ const chatAction = function (msg: Chat, index?) {
     deleteChat(msg.hash);
     return;
   }
-  // TODO: test if sender or destination
   const ul = document.getElementById("chatMessages");
   const msgel = document.createElement("li");
   msgel.classList.add("chatMessage");
