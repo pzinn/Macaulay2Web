@@ -50,8 +50,6 @@ const sshCredentials = function (instance: Instance): ssh2.ConnectConfig {
 
 const clients: IClients = {};
 
-let totalUsers = 0;
-
 let instanceManager: InstanceManager = {
   getNewInstance(userId: string, next: any) {
     //
@@ -540,28 +538,25 @@ const socketChatAction = function (socket, client: Client) {
                   .map((x) => x.handshake.address)
                   .sort()
                   .filter((v, i, o) => v !== o[i - 1])
-                  .join() +
+                  .join("\\n") +
                 "(" +
                 clients[id].sockets.length +
                 ")" +
                 "|" +
-                (Array.isArray(clients[id].output)
-                  ? clients[id].output.length +
-                    "|" +
-                    Array.from(
-                      short(clients[id].output[clients[id].output.length - 1])
-                    )
-                      .map((c) => "\\" + c)
-                      .join("")
-                  : "|") +
+                clients[id].output.length +
+                "|" +
+                clients[id].output
+                  .substring(clients[id].output.length - 50)
+                  .replace(/[^\x20-\x7F]/g, " ")
+                  .replace(/(\W)/g, "\\$1") +
                 "|" +
                 (clients[id].instance
                   ? (clients[id].instance.containerName
                       ? clients[id].instance.containerName
                       : "") +
-                    "|" +
                     (clients[id].instance.lastActiveTime
-                      ? new Date(clients[id].instance.lastActiveTime)
+                      ? "|" +
+                        new Date(clients[id].instance.lastActiveTime)
                           .toISOString()
                           .replace("T", " ")
                           .substr(0, 19)

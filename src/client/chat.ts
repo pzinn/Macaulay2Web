@@ -1,6 +1,7 @@
 import { scrollDown } from "./htmlTools";
 import { socket } from "./main";
 import { Chat } from "../common/chatClass";
+import { autoRender } from "./autoRender";
 
 const deleteChat = function (h) {
   const el = document.getElementById("message-" + h);
@@ -57,6 +58,7 @@ const chatAction = function (msg: Chat, index?) {
     //  s3.textContent = msg.message;
     const test = mdtohtml(msg.message);
     s3.innerHTML = test;
+    autoRender(s3);
     const recipients = msg.recipients
       ? " (to " +
         msg.recipients
@@ -119,6 +121,8 @@ const escapeHTML = (str) =>
       "<strong>$2</strong>"
     ) // **really important**
     .replace(/(?<!\\)(\*|_)(?!\s|\*|_)([^\r]*?\S)(?<!\\)\1/g, "<em>$2</em>") // *important*
+    .replace(/\\n/g, "<br/>")
+    .replace(/\$/g, "<span>$</span>")
     .replace(/(?<!\\)\\/g, ""); // remove escaping
 
 const cut = (s, x) => escapeHTML(s.substring(x[0].length));
