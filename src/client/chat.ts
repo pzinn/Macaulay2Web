@@ -122,7 +122,7 @@ const escapeHTML = (str) =>
     ) // **really important**
     .replace(/(?<!\\)(\*|_)(?!\s|\*|_)([^\r]*?\S)(?<!\\)\1/g, "<em>$2</em>") // *important*
     .replace(/\\n/g, "<br/>")
-    .replace(/\$/g, "<span>$</span>")
+    .replace(/\\\$/g, "<span>$</span>")
     .replace(/(?<!\\)\\/g, ""); // remove escaping
 
 const cut = (s, x) => escapeHTML(s.substring(x[0].length));
