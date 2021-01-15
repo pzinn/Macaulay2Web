@@ -255,14 +255,16 @@ input[type=checkbox]:not(:checked) + label {
     transition: text-shadow 0.5s;
 }
 
-.message-user {
-/*    font-weight: 700;*/
+.chatMessage b {
     color: #C07040;
 }
 
-.message-admin {
-/*    font-weight: 700;*/
-    color: #FF0000; /* after new-message-user to take precedence */
+.chatMessage b.message-System {
+    color: #000000;
+}
+
+.chatMessage b.message-Admin {
+    color: #FF0000;
 }
 
 .message-pop {

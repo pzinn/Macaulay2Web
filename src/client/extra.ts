@@ -251,7 +251,12 @@ const toggleWrap = function () {
     chatAlias.onchange = function (e) {
       const alias = chatAlias.value.trim();
       chatAlias.value =
-        alias === options.adminAlias ? options.defaultAlias : alias;
+        alias === options.adminAlias ||
+        alias === options.systemAlias ||
+        alias.indexOf("/") >= 0 ||
+        alias.indexOf(",") >= 0
+          ? options.defaultAlias
+          : alias;
       const expDate = new Date(new Date().getTime() + options.cookieDuration);
       setCookie(
         Cookie.serialize(options.cookieAliasName, chatAlias.value, {

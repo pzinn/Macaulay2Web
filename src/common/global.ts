@@ -5,6 +5,7 @@ const options = {
   cookieDuration: 1000 * 60 * 60 * 24 * 31, // one month
   defaultAlias: "Anonymous",
   adminAlias: "Admin",
+  systemAlias: "System",
 };
 
 export { options };

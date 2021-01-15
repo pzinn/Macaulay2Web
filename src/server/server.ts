@@ -457,17 +457,13 @@ const socketChatAction = function (socket, client: Client) {
     ); // provide past chat
     msg.message = msg.alias + " has arrived. Welcome!";
     msg.alias = "System";
-    msg.type = "message-system";
+    msg.type = "message";
     msg.hash = chatCounter++;
     // send only to userId
     client.sockets.forEach((socket1) => socket1.emit("chat", msg));
   };
   const chatMessage = function (msg: Chat) {
     logClient(client.id, msg.alias + " said: " + short(msg.message));
-    msg.type =
-      client.id == "user" + options.adminName && msg.alias == options.adminAlias
-        ? "message-admin"
-        : "message-user";
     msg.hash = chatCounter++;
     chatList.push(msg); // right now, only non system messages logged
     if (msg.recipients) {
@@ -505,6 +501,13 @@ const socketChatAction = function (socket, client: Client) {
   return client.id != "user" + options.adminName
     ? function (msg: Chat) {
         logClient(client.id, "chat of type " + msg.type);
+        if (
+          msg.alias == options.adminAlias ||
+          msg.alias == options.systemAlias
+        ) {
+          logClient(client.id, "tried to impersonate Admin or System");
+          msg.alias = options.defaultAlias;
+        }
         if (msg.type == "delete") {
           const index = chatList.findIndex((x) => x.hash === msg.hash); // sigh
           if (index < 0 || chatIdList[index].id != client.id) return; // false alarm

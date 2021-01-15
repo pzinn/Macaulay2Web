@@ -28,7 +28,7 @@ const deleteChatWrap = function (h) {
 const chatAction = function (msg: Chat, index?) {
   if (msg.type == "delete") {
     deleteChat(msg.hash);
-  } else if (msg.type.startsWith("message")) {
+  } else if (msg.type == "message") {
     if (msg.recipients) {
       const alias = (document.getElementById("chatAlias") as HTMLInputElement)
         .value;
@@ -52,7 +52,7 @@ const chatAction = function (msg: Chat, index?) {
     s1.textContent = msg.time;
     const s2 = document.createElement("b");
     s2.textContent = msg.alias;
-    s2.className = msg.type;
+    s2.className = msg.type + "-" + msg.alias;
     const s3 = document.createElement("span");
     //  s3.textContent = msg.message;
     const test = mdtohtml(msg.message);
@@ -75,10 +75,10 @@ const chatAction = function (msg: Chat, index?) {
     );
     ul.appendChild(msgel);
     scrollDown(ul);
-    if (index === undefined && msg.type != "message-system") {
+    if (index === undefined && msg.alias != "System") {
       const chatTitle = document.getElementById("chatTitle");
       if (document.location.hash != "#chat") {
-        chatTitle.classList.add(msg.type);
+        chatTitle.classList.add(msg.type + "-" + msg.alias);
       }
       chatTitle.classList.add("message-pop");
       setTimeout(function () {
