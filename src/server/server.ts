@@ -263,7 +263,7 @@ const sendDataToClient = function (client: Client) {
           " \u2026\n" +
           client.output.substring(m.index + m[0].length);
       }
-    }
+    } else client.output = "i* : " + webAppTags.Input;
     emitOutputViaClientSockets(client, data);
   };
 };
@@ -351,7 +351,6 @@ const clientExistenceCheck = function (clientId: string, socket): Client {
   logger.info("Checking existence of client with id " + clientId);
   if (!clients[clientId]) {
     clients[clientId] = new Client(clientId);
-    totalUsers += 1;
   }
   return clients[clientId];
 };
@@ -701,7 +700,6 @@ const mathServer = function (o) {
       clients[clientId] = client;
       client.instance = lst[clientId];
       //      spawnMathProgramInSecureContainer(client);
-      totalUsers += 1;
     }
     logger.info("start init");
     initializeServer();

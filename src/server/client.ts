@@ -12,8 +12,7 @@ export class Client {
   constructor(newId: string) {
     this.saneState = true;
     this.sockets = [];
-    this.output =
-      newId.substring(0, 4) === "user" ? "" : "i* : " + webAppTags.Input;
+    this.output = "";
     this.id = newId;
   }
 }

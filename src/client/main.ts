@@ -157,9 +157,9 @@ const init = function () {
     true
   );
 
-  window.addEventListener("load", function () {
-    socket.emit("restore");
-  });
+  //  window.addEventListener("load", function () {
+  socket.emit("restore");
+  //  });
 
   if (!MINIMAL) extra();
 
