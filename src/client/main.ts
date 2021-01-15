@@ -124,16 +124,13 @@ const init = function () {
 
   let ioParams = "?version=" + options.version;
   console.log("Macaulay2Web version " + options.version);
-  let publicId: any = url.searchParams.get("public");
   const userId: any = url.searchParams.get("user");
-  if (publicId !== null) {
-    if (publicId == "") publicId = "Default";
-    ioParams += "&publicId=" + publicId;
-  } else if (userId !== null && userId != "") {
+  if (userId) {
     ioParams += "&userId=" + userId;
-  } else if (url.pathname == "/minimal.html") {
+  } else if (MINIMAL) {
+    //if (url.pathname == "/minimal.html") {
     // minimal interface public by default
-    ioParams += "&publicId=Default";
+    ioParams += "&publicId";
   }
 
   socket = socketIo(ioParams);
@@ -142,7 +139,7 @@ const init = function () {
   socket.on("connect_error", socketError("connect_error"));
   socket.on("output", socketOutput);
   socket.on("disconnect", socketDisconnect);
-  socket.on("cookie", setCookie);
+  if (!MINIMAL) socket.on("cookie", setCookie); // in minimal mode, no user id cookie update
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
 

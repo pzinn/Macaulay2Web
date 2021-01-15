@@ -617,7 +617,7 @@ const listen = function () {
     const userId = validateId(socket.handshake.query.userId);
     let clientId: string;
     if (publicId !== undefined) {
-      clientId = "public" + publicId;
+      clientId = "public";
     } else if (userId !== undefined) {
       clientId = "user" + userId;
       setCookieOnSocket(socket, clientId); // overwrite cookie if necessary

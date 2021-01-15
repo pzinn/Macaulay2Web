@@ -167,19 +167,17 @@ http://localhost:8002
 or
 https://www.unimelb-macaulay2.cloud.edu.au
 the following:
-* `/minimal.html` for a minimal interface, which can be embedded into a web page, e.g. with
-```
-<iframe style="background:#A8A8B8;overflow:hidden;resize:both" scrolling="no" src='https://www.unimelb-macaulay2.cloud.edu.au/minimal.html' title="Macaulay2"></iframe>
-```
 * `#[home|tutorial|editor|about|browse]` to start in a different tab (in the normal interface). `#tutorial-m-n` to go to page `n` of tutorial `m`.
-* `?public[=name]` -- this option is turned on by default for the minimal interface.
-The user does not get his own Macaulay2 process but rather a shared process for all users (the name can be used to specify a particular process for a given page).
-Note that this does not overwrite the cookie containing your personal user id.
 * `?user[=name]` to choose one's own user id. This allows e.g. to have the same shell on different computers or share one's shell with someone else.
 Note that if you have already been assigned a user id, this will overwrite it (i.e., it will overwrite the cookie containing it), so use with caution
 (if you don't know your previous user id, you will lose access to your previous session).
 At the moment, the only way to know your current user id is to click on the word "cookie" on the home page.
-* `?loadtutorial=[filename]` to load a tutorial that's stored in your Macaulay2 docker (rather than locally).
+* `/minimal.html` for a minimal interface, which can be embedded into a web page, e.g. with
+```
+<iframe style="background:#A8A8B8;overflow:hidden;resize:both" scrolling="no" src='https://www.unimelb-macaulay2.cloud.edu.au/minimal.html' title="Macaulay2"></iframe>
+```
+The minimal interface does not read/write cookies; if no `user` option is specified, it uses a default "public" id (i.e., the session is shared by all users).
+
 ## Internal file structure:
 ### Server
 * main file:
@@ -190,16 +188,17 @@ npx tsc
 ```
 (or `./node_modules/.bin/tsc`) from `src/server/index.ts`
 * other files:
-`dist/server/*.js` `dist/server/startupConfigs/*.js`
+`dist/server/*.js` `dist/startupConfigs/*.js` `dist/common/*.js`
 from
-`src/server/*.ts` `src/server/startupConfigs/*.ts`
+`src/server/*.ts` `src/startupConfigs/*.ts` `src/common/*.ts`
 
 ### Client
 * main file:
 `public/index.js`
-produced by `webpack` from `src/client/*.ts` using `ts-loader`
+produced by `webpack` from `src/client/*.ts` and `src/common/*.ts` using `ts-loader`
 and called by
 `public/index.html`.
+* minimal version is the same with `index` -> `minimal`.
 * alternatively one can transpile first using
 ```bash
 npx tsc -p src/client
