@@ -233,8 +233,12 @@ does not contain the whole contents (and is possibly empty) */
     background: grey;
 }
 
-.M2Cell.M2CellSelected > .M2Left { /* higher specificity to override the previous one in case of hover */
-    background: orange;
+.M2Separator:hover ~ .M2Left {
+    background: transparent;
+}
+
+.M2Cell.M2CellSelected > .M2Left { /* need to override previous two */
+    background: orange !important;
 }
 
 .M2CellBar:hover {
@@ -253,12 +257,6 @@ does not contain the whole contents (and is possibly empty) */
 .M2Separator:hover {
     background: grey;
 }
-
-.M2Separator:hover ~ .M2Left {
-    background: transparent;
-}
-
-
 
 .M2CellClosed {
     height: 1.2em;
