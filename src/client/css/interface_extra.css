@@ -227,7 +227,7 @@ h3.rotated .material-icons {
     margin-bottom: -1px;
 }
 
-.chatMessage table,th,td {
+.chatMessage table,.chatMessage th,.chatMessage td {
     border: 1px solid black;
     border-collapse: collapse;
 }
