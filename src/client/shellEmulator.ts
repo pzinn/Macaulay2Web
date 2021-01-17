@@ -771,7 +771,7 @@ const Shell = function (
           } else {
             // more complicated
             if (!recurseReplace(htmlSec, subList[+id][0], subList[+id][1]))
-              console.log("error restoring html element");
+              console.log("Error restoring html element");
           }
         });
         htmlSec.removeAttribute("data-id-list");
@@ -828,9 +828,18 @@ const Shell = function (
       }
       if (i > 0) {
         const tag = txt[i - 1];
-        if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
-          // TODO: distinguish them
+        if (tag == webAppTags.End) {
+          if (htmlSec.classList.contains("M2Cell"))
+            console.log("Warning: cell should close with CellEnd");
           // end of section
+          closeHtml();
+        } else if (tag === webAppTags.CellEnd) {
+          while (!htmlSec.classList.contains("M2Cell")) {
+            console.log("Warning: CellEnd used for non cell");
+            if (htmlSec == shell) return; // we're in trouble if that happens (shouldn't)
+            closeHtml();
+          }
+          // end of cell
           closeHtml();
         } else if (tag === webAppTags.InputContd) {
           // continuation of input section
