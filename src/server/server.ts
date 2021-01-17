@@ -439,6 +439,8 @@ const socketResetAction = function (client: Client) {
 
 const chatList: Chat[] = []; // used to restore chat
 const chatIdList: ChatExtra[] = []; // eww
+const chatBlackList: string[] = [];
+let chatBlock = false;
 let chatCounter = 0;
 
 const socketChatAction = function (socket, client: Client) {
@@ -496,6 +498,25 @@ const socketChatAction = function (socket, client: Client) {
   };
   const chatAdmin = function (chat: Chat) {
     if (chat.message.startsWith("@block")) {
+      const i = chat.message.indexOf(" ");
+      if (i < 0) {
+        // toggle full block
+        chatBlock = !chatBlock;
+        chat.message += " (" + chatBlock + ")";
+      } else
+        chat.message
+          .substring(i + 1)
+          .split(" ")
+          .forEach((name) => {
+            const i = chatBlackList.indexOf(name);
+            if (i < 0) {
+              chatBlackList.push(name);
+              chat.message += " (true)";
+            } else {
+              chatBlackList.splice(i, 1);
+              chat.message += " (false)";
+            }
+          });
     } else {
       // default: list
       chat.message += "\n id | sockets | output | last | docker | active time ";
@@ -534,8 +555,8 @@ const socketChatAction = function (socket, client: Client) {
                 : "")
             : "");
       }
-      socket.emit("chat", chat);
     }
+    socket.emit("chat", chat);
   };
 
   return client.id != "user" + options.adminName
@@ -549,6 +570,12 @@ const socketChatAction = function (socket, client: Client) {
           logClient(client.id, "tried to impersonate Admin or System");
           chat.alias = options.defaultAlias;
         }
+        if (
+          chatBlock ||
+          chatBlackList.indexOf(client.id) >= 0 ||
+          chatBlackList.indexOf(socket.handshake.address) >= 0
+        )
+          return; // blocked
         if (chat.type == "delete") {
           const index = chatList.findIndex((x) => x.hash === chat.hash); // sigh
           if (index < 0 || chatIdList[index].id != client.id) return; // false alarm
