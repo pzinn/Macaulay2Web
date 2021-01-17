@@ -442,43 +442,43 @@ const chatIdList: ChatExtra[] = []; // eww
 let chatCounter = 0;
 
 const socketChatAction = function (socket, client: Client) {
-  const chatLogin = function (msg: Chat) {
+  const chatLogin = function (chat: Chat) {
     safeSocketEmit(
       socket,
       "chat",
       chatList.filter(
-        (msg, index) =>
+        (chat, index) =>
           !chatIdList[index].recipients ||
           chatIdList[index].recipients.indexOf(client.id) >= 0
       )
     ); // provide past chat
-    msg.message = msg.alias + " has arrived. Welcome!";
-    msg.alias = "System";
-    msg.type = "message";
-    msg.hash = chatCounter++;
+    chat.message = chat.alias + " has arrived. Welcome!";
+    chat.alias = "System";
+    chat.type = "message";
+    chat.hash = chatCounter++;
     // send only to userId
-    client.sockets.forEach((socket1) => socket1.emit("chat", msg));
+    client.sockets.forEach((socket1) => socket1.emit("chat", chat));
   };
-  const chatMessage = function (msg: Chat) {
-    logClient(client.id, msg.alias + " said: " + short(msg.message));
-    msg.hash = chatCounter++;
-    chatList.push(msg); // right now, only non system messages logged
-    if (msg.recipients) {
-      if (msg.recipients.length == 1 && msg.recipients[0] == "")
-        msg.recipients[0] = client.id + "/";
+  const chatMessage = function (chat: Chat) {
+    logClient(client.id, chat.alias + " said: " + short(chat.message));
+    chat.hash = chatCounter++;
+    chatList.push(chat); // right now, only non system messages logged
+    if (chat.recipients) {
+      if (chat.recipients.length == 1 && chat.recipients[0] == "")
+        chat.recipients[0] = client.id + "/";
       // default pm: send to all with same id
-      else msg.recipients.push(client.id + "/" + msg.alias); // always send to oneself
+      else chat.recipients.push(client.id + "/" + chat.alias); // always send to oneself
       let flag = true;
       const recipients = [];
-      for (let i = 0; i < msg.recipients.length; i++) {
-        const index = msg.recipients[i].indexOf("/");
+      for (let i = 0; i < chat.recipients.length; i++) {
+        const index = chat.recipients[i].indexOf("/");
         if (index < 0) flag = false;
         else {
-          let id = msg.recipients[i].substring(0, index);
+          let id = chat.recipients[i].substring(0, index);
           if (!id.startsWith("user")) id = "user" + id; // eww
           if (recipients.indexOf(id) < 0) recipients.push(id);
           // now encrypt
-          msg.recipients[i] = "id" + msg.recipients[i].substring(index);
+          chat.recipients[i] = "id" + chat.recipients[i].substring(index);
         }
       }
       if (flag) {
@@ -486,84 +486,91 @@ const socketChatAction = function (socket, client: Client) {
         recipients.forEach(function (id) {
           const client1 = clients[id];
           if (client1)
-            client1.sockets.forEach((socket1) => socket1.emit("chat", msg));
+            client1.sockets.forEach((socket1) => socket1.emit("chat", chat));
         });
         return;
       }
     }
     chatIdList.push({ id: client.id });
-    io.emit("chat", msg); // broadcast
+    io.emit("chat", chat); // broadcast
+  };
+  const chatAdmin = function (chat: Chat) {
+    if (chat.message.startsWith("@block")) {
+    } else {
+      // default: list
+      chat.message += "\n id | sockets | output | last | docker | active time ";
+      for (const id in clients) {
+        chat.message +=
+          "\n" +
+          id +
+          "|" +
+          //
+          clients[id].sockets
+            .map((x) => x.handshake.address)
+            .sort()
+            .filter((v, i, o) => v !== o[i - 1])
+            .join("\\n") +
+          "(" +
+          clients[id].sockets.length +
+          ")" +
+          "|" +
+          clients[id].output.length +
+          "|" +
+          clients[id].output
+            .substring(clients[id].output.length - 50)
+            .replace(/[^\x20-\x7F]/g, " ")
+            .replace(/(\W)/g, "\\$1") +
+          "|" +
+          (clients[id].instance
+            ? (clients[id].instance.containerName
+                ? clients[id].instance.containerName
+                : "") +
+              (clients[id].instance.lastActiveTime
+                ? "|" +
+                  new Date(clients[id].instance.lastActiveTime)
+                    .toISOString()
+                    .replace("T", " ")
+                    .substr(0, 19)
+                : "")
+            : "");
+      }
+      socket.emit("chat", chat);
+    }
   };
 
   return client.id != "user" + options.adminName
-    ? function (msg: Chat) {
-        logClient(client.id, "chat of type " + msg.type);
+    ? function (chat: Chat) {
+        // normal user
+        logClient(client.id, "chat of type " + chat.type);
         if (
-          msg.alias == options.adminAlias ||
-          msg.alias == options.systemAlias
+          chat.alias == options.adminAlias ||
+          chat.alias == options.systemAlias
         ) {
           logClient(client.id, "tried to impersonate Admin or System");
-          msg.alias = options.defaultAlias;
+          chat.alias = options.defaultAlias;
         }
-        if (msg.type == "delete") {
-          const index = chatList.findIndex((x) => x.hash === msg.hash); // sigh
+        if (chat.type == "delete") {
+          const index = chatList.findIndex((x) => x.hash === chat.hash); // sigh
           if (index < 0 || chatIdList[index].id != client.id) return; // false alarm
-          logClient(client.id, msg.alias + " deleted #" + msg.hash);
+          logClient(client.id, chat.alias + " deleted #" + chat.hash);
           chatList.splice(index, 1);
           chatIdList.splice(index, 1);
-        } else if (msg.type === "login") chatLogin(msg);
-        else if (msg.type === "message") chatMessage(msg);
+        } else if (chat.type === "login") chatLogin(chat);
+        else if (chat.type === "message") chatMessage(chat);
       }
-    : function (msg: Chat) {
-        logClient(client.id, "chat of type " + msg.type);
-        if (msg.type == "delete") {
-          const index = chatList.findIndex((x) => x.hash === msg.hash); // sigh
+    : function (chat: Chat) {
+        // admin
+        logClient(client.id, "chat of type " + chat.type);
+        if (chat.type == "delete") {
+          const index = chatList.findIndex((x) => x.hash === chat.hash); // sigh
           if (index < 0) return; // false alarm
-          logClient(client.id, msg.alias + " deleted #" + msg.hash);
+          logClient(client.id, chat.alias + " deleted #" + chat.hash);
           chatList.splice(index, 1);
           chatIdList.splice(index, 1);
-        } else if (msg.type === "login") chatLogin(msg);
-        else if (msg.type === "message") {
-          if (msg.message[0] == "@") {
-            msg.message +=
-              "\n id | sockets | output | last | docker | active time ";
-            for (const id in clients) {
-              msg.message +=
-                "\n" +
-                id +
-                "|" +
-                //
-                clients[id].sockets
-                  .map((x) => x.handshake.address)
-                  .sort()
-                  .filter((v, i, o) => v !== o[i - 1])
-                  .join("\\n") +
-                "(" +
-                clients[id].sockets.length +
-                ")" +
-                "|" +
-                clients[id].output.length +
-                "|" +
-                clients[id].output
-                  .substring(clients[id].output.length - 50)
-                  .replace(/[^\x20-\x7F]/g, " ")
-                  .replace(/(\W)/g, "\\$1") +
-                "|" +
-                (clients[id].instance
-                  ? (clients[id].instance.containerName
-                      ? clients[id].instance.containerName
-                      : "") +
-                    (clients[id].instance.lastActiveTime
-                      ? "|" +
-                        new Date(clients[id].instance.lastActiveTime)
-                          .toISOString()
-                          .replace("T", " ")
-                          .substr(0, 19)
-                      : "")
-                  : "");
-            }
-            socket.emit("chat", msg);
-          } else chatMessage(msg);
+        } else if (chat.type === "login") chatLogin(chat);
+        else if (chat.type === "message") {
+          if (chat.message[0] == "@") chatAdmin(chat);
+          else chatMessage(chat);
         }
       };
 };
