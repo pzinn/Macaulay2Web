@@ -13,6 +13,7 @@ body {
     position: relative;
     outline: none;
     line-height: 1.14286;
+    padding-bottom: 0.2em;
 }
 
 /* various sections inside #terminal */
