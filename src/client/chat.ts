@@ -121,8 +121,8 @@ const escapeHTML = (str) =>
       "<strong>$2</strong>"
     ) // **really important**
     .replace(/(?<!\\)(\*|_)(?!\s|\*|_)([^\r]*?\S)(?<!\\)\1/g, "<em>$2</em>") // *important*
-    .replace(/\\n/g, "<br/>")
-    .replace(/\\\$/g, "<span>$</span>")
+    .replace(/\\n/g, "<br/>") // "\n" for nonsplitting newline
+    .replace(/\\\$/g, "<span>$</span>") // "\$" for $ symbol (not KaTeX)
     .replace(/(?<!\\)\\/g, ""); // remove escaping
 
 const cut = (s, x) => escapeHTML(s.substring(x[0].length));
