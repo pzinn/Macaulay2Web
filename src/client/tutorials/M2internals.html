@@ -1,5 +1,5 @@
 <title> Notes for M2internals 26/09/2020</title>
-<div><h4> Overview of <b>Macaulay2Web</b></h4>
+<div><h2> Overview of <b>Macaulay2Web</b></h2>
   <p><b>Macaulay2Web</b> is a fork of <b>InteractiveShell</b> whose goal is to provide a semi-graphical web interface for Macaulay2.
   </p>
   <p>It is available on Github and you're all welcome to download it / contribute to it.
@@ -13,27 +13,27 @@
   <p>For some features, see the <a target="_self" href="#tutorial-4">interface tutorial</a>.
   </p>
 </div>
-<div><h4> The <tt>WebApp</tt> mode</h4>
+<div><h2> The <tt>WebApp</tt> mode</h2>
   <p>At the level of Macaulay2, the way Macaulay2Web works is through the mechanism of alternative output modes governed by the global variable
     <tt>topLevelMode</tt>:
   </p>
-  <p><code>help "topLevelMode"</code></p>
+  <p><code class='block'>help "topLevelMode"</code></p>
   <p>If you revert to
   </p>
-  <p><code>topLevelMode=Standard</code></p>
+  <p><code class='block'>topLevelMode=Standard</code></p>
   <p>then the interface will behave more or less like the original InteractiveShell.
     Let's go back to
   </p>
-  <p><code>topLevelMode=WebApp</code></p>
+  <p><code class='block'>topLevelMode=WebApp</code></p>
   <p>Internally, each type has some routines that determine the output of that class in the given mode:
   </p>
-  <p><code>select(keys Thing,x -> class x === List)</code></p>
+  <p><code class='block'>select(keys Thing,x -> class x === List)</code></p>
   <p><tt>Print</tt> is the most important one: compare
   </p>
-  <p><code>code Thing#{Standard,Print}</code></p>
+  <p><code class='block'>code Thing#{Standard,Print}</code></p>
   <p>and
   </p>
-  <p><code>code Thing#{WebApp,Print}</code></p>
+  <p><code class='block'>code Thing#{WebApp,Print}</code></p>
   <p>Two things to notice for now:
     <ul>
       <li> The output is HTML (with embedded TeX).</li>
@@ -41,7 +41,7 @@
     </ul>
   </p>
 </div>
-<div><h4> Mode agnosticism</h4>
+<div><h2> Mode agnosticism</h2>
   <p>Example: pre 2018, <tt>describe</tt> returned a <tt>Net</tt>:
 <pre style="background:white; overflow-x:scroll">
 Macaulay2, version 1.10.0.1
@@ -62,28 +62,28 @@ which meant that no matter what the output mode, <tt>describe</tt>'s actual outp
   </p>
   <p>One way to resolve these issues is via <b>expressions</b> (more on that later):
   </p>
-  <p><code>R=QQ[x]; describe R</code></p>
-  <p><code>ancestors class oo</code></p>
+  <p><code class='block'>R=QQ[x]; describe R</code></p>
+  <p><code class='block'>ancestors class oo</code></p>
 </div>
-<div><h4> Control sequences</h4>
+<div><h2> Control sequences</h2>
   <p>Because the output of Macaulay2 is a mixture of plain text (at least for now...), HTML and LaTeX, the browser needs some extra information to tell which is which.
     This is provided by tags: (to be only used internally!)
   </p>
-  <p><code>get "!head -n14 /usr/share/Macaulay2/Core/webapp.m2"</code></p>
+  <p><code class='block'>get "!head -n14 /usr/share/Macaulay2/Core/webapp.m2"</code></p>
   <p>Here's how they work:
   </p>
-  <p><code>debug Core; s=webAppHtmlTag | "&lt;h1&gt;TEST&lt;/h1&gt;" | webAppEndTag</code></p>
+  <p><code class='block'>debug Core; s=webAppHtmlTag | "&lt;h1&gt;TEST&lt;/h1&gt;" | webAppEndTag</code></p>
   <p>Nice try, but the WebApp mode filters tags to make sure you don't mess with the browser's formatting.
     <!-- actually in this case the htmlLiteral would prevent it anyway -->
-    <code>print s</code>
+    <code class='block'>print s</code>
     wouldn't work either.
     One must resort to low-level output:
   </p>
-  <p><code><< s</code></p>
-  <p><code><< webAppUrlTag | "https://blogs.unimelb.edu.au/paul-zinn-justin/" | webAppEndTag</code></p>
-  <p><code><< endl << webAppTexTag | "\\bigoplus_{i=1}^n V^{\\otimes i}" | webAppTexEndTag << endl</code></p>
+  <p><code class='block'><< s</code></p>
+  <p><code class='block'><< webAppUrlTag | "https://blogs.unimelb.edu.au/paul-zinn-justin/" | webAppEndTag</code></p>
+  <p><code class='block'><< endl << webAppTexTag | "\\bigoplus_{i=1}^n V^{\\otimes i}" | webAppTexEndTag << endl</code></p>
 </div>
-<div><h4> HTML vs (La)TeX</h4>
+<div><h2> HTML vs (La)TeX</h2>
   <p>Only <i>math</i> is typeset in (La)TeX (this is also the spirit of KaTeX).
     See also the recent discussion on documentation and KaTeX.
   </p>
@@ -103,12 +103,12 @@ which meant that no matter what the output mode, <tt>describe</tt>'s actual outp
     </ul>
   </p>
 </div>
-<div><h4> Expressions</h4>
+<div><h2> Expressions</h2>
   <p><i>Expressions</i> are an intermediate layer between mathematical objects (or other Macaulay2 objects) and their output to the screen:
   </p>
-  <p><code>viewHelp Expression</code></p>
-  <p>$\Big[$insert rant about <tt>factor</tt> not producing a proper Expression: try <code>factor(x^2)</code> or worse <code>factor(3*x^2)</code>, comparing with <code>expression(x^2)</code> or
-    <code>expression(3*x^2)</code>$\big]$
+  <p><code class='block'>viewHelp Expression</code></p>
+  <p>$\Big[$insert rant about <tt>factor</tt> not producing a proper Expression: try <code class='block'>factor(x^2)</code> or worse <code class='block'>factor(3*x^2)</code>, comparing with <code class='block'>expression(x^2)</code> or
+    <code class='block'>expression(3*x^2)</code>$\big]$
   </p>
   <p>As mentioned before, they are also a useful tool for output mode agnosticism: see <a target="_self" href="#tutorial-4-2">interface tutorial</a>.</p>
   <p>Note that pre 2018, not all expressions existed, and even when they did, they were not always used by the output routines.
@@ -118,72 +118,71 @@ which meant that no matter what the output mode, <tt>describe</tt>'s actual outp
       <li> Types whose <tt>expression</tt> is a <tt>Holder</tt> of themselves (<tt>expression</tt> is "turned off"); <!-- or of their symbols... -->
 	then these types <i>must</i> have output routines <tt>toString</tt>/<tt>net</tt>/<tt>texMath</tt>/<tt>html</tt>/etc.
 	These objects are considered "elementary" -- they cannot be broken down further; they&apos;re the leaves of the tree.<br/>
-	<code>code(expression,BettiTally)</code></li>
+	<code class='block'>code(expression,BettiTally)</code></li>
       <li> Types which have an actual <tt>expression</tt> (and no output routines).
 	These types are the nodes of the tree; typically, their <tt>expression</tt> acts recursively.<br/>
-	<code>code(expression,MutableMatrix)</code></li>
+	<code class='block'>code(expression,MutableMatrix)</code></li>
     </ul>
   </p>
-  <p>[switch to <code>debugLevel=42</code> to show expression structure]
+  <p>[switch to <code class='block'>debugLevel=42</code> to show expression structure]
   </p>
 </div>
-<div><h4> The pitfalls of expressionifying</h4>
+<div><h2> The pitfalls of expressionifying</h2>
   <p>In the current version of Macaulay2, expressions are "turned off" for <tt>BasicList</tt> and <tt>HashTable</tt>. The reason I did not expressionify these types is
     that most user-defined types are descendants of those and it might confuse users (and create backward compatibility issues with existing packages).
     
   <p>On the branch <tt>refactor/expression</tt>, expressions are now by default turned on for many more types including the two above. Let us take an example to see what the problem is.
     Say you define a new type
   </p>
-  <p><code>MyType = new Type of BasicList</code></p>
+  <p><code class='block'>MyType = new Type of BasicList</code></p>
   <p>Traditionally you would directly define output routines such as <tt>net</tt> (for <tt>Standard</tt> output) or <tt>texMath</tt> (for <tt>WebApp</tt> output).
     Here we do both so this tutorial works in both modes:
   </p>
-  <p><codeblock>net MyType := x -> net x#0 | " |- " | net x#1;
+  <p><code class='block'>net MyType := x -> net x#0 | " |- " | net x#1;
 texMath MyType := x -> texMath x#0 | "\\vdash " | texMath x#1;
-</codeblock>
+</code>
 </p>
 <p>Then you would create a new object, and everything looks okay:
 </p>
-<p><code>X = new MyType from {a,b}</code></p>
+<p><code class='block'>X = new MyType from {a,b}</code></p>
 <p>but now you use <tt>X</tt> somewhere, say
 </p>
-<p><code>someOption => X</code></p>
+<p><code class='block'>someOption => X</code></p>
 <p>and surprise, instead of the expected \( \textit{someOption}\ \Rightarrow\ (a\vdash b)\)
   (which is what you will get with the current version of Macaulay2, in particular if you run it on the cloud),
   on the <tt>refactor/expression</tt> branch it says \( \textit{someOption}\ \Rightarrow\ \texttt{MyType}\{a,\,b\} \).
 </p>
   <p>Why? because <tt>expression</tt> has not been redefined, so
   </p>
-  <p><code>expression X</code></p>
+  <p><code class='block'>expression X</code></p>
   <p>is inherited from <tt>BasicList</tt>.
   </p>
   <p>Two possible fixes:
     <ol>
-      <li>The quick fix: return to the previous situation by deactivating <tt>expression</tt>:<br/>
-	<code>expression MyType := hold</code><br/>
+      <li>The quick fix: return to the previous situation by deactivating <tt>expression</tt>:
+	<code class='block'>expression MyType := hold</code>
 	Now everything works fine.
       </li>
-      <li>The better way: switch to using <tt>expression</tt>. Let&apos;s start over:<br/>
-	<p><code>MyType = new Type of BasicList</code><br/>
-	  but this time define only the expression:<br/>
-	  <code>expression MyType := x -> expression x#0 |- expression x#1;</code>
-<br/>
-This will automatically take care of every possible form of output (ascii, tex, html...).
-</li>
-</ol>
-</p>
+      <li>The better way: switch to using <tt>expression</tt>. Let&apos;s start over:
+	<code class='block'>MyType = new Type of BasicList</code>
+	but this time define only the expression:
+	<code class='block'>expression MyType := x -&gt; expression x#0 |- expression x#1;</code>
+	This will automatically take care of every possible form of output (ascii, tex, html...).
+      </li>
+    </ol>
+  </p>
 </div>
-<div><h4>Expressions cont&apos;d: <tt>value</tt></h4>
+<div><h2>Expressions cont&apos;d: <tt>value</tt></h2>
   <p>It is good taste to produce with <tt>expression</tt> an <tt>Expression</tt> on which
     <tt>value</tt> can be run, returning the original object (or at least the closest possible
     approximation to it). By default this will not be the case with the example of the previous page:
   </p>
-  <p><code>value expression X</code></p>
+  <p><code class='block'>value expression X</code></p>
   <p>However, this can be easily fixed by adding e.g.
   </p>
-  <p><code>Thing |- Thing := (x,y) -> new MyType from {x,y}</code></p>
+  <p><code class='block'>Thing |- Thing := (x,y) -> new MyType from {x,y}</code></p>
   <p>Now it will work, and in fact</p>
-  <p><code>value expression X === X</code></p>
+  <p><code class='block'>value expression X === X</code></p>
   <hr/>
   Suggested "exercises":
   <ul>
@@ -192,7 +191,7 @@ This will automatically take care of every possible form of output (ascii, tex, 
     </li>
   </ul>
 </div>
-<div><h4>Future work</h4>
+<div><h2>Future work</h2>
   <ul>
     <li>Page design (editor textarea stuff, overall html) $\longleftarrow$ <i>help needed!</i></li>
     <li>Interaction between HTML and TeX? Ambiguous role of <tt>Hypertext</tt> types
@@ -206,7 +205,7 @@ This will automatically take care of every possible form of output (ascii, tex, 
     <li>Plot in VectorGraphics $\longleftarrow$ <i>help needed!</i></li>
   </ul>
 </div>
-<div><h4>A concluding demo: Matrix Schubert Varieties and Pipe Dreams</h4>
+<div><h2>A concluding demo: Matrix Schubert Varieties and Pipe Dreams</h2>
 <p>Given a permutation $\pi\in\mathcal{S}_n$, define the affine variety
 $$
 X_\pi
@@ -227,7 +226,7 @@ In practice, only a subset of rank conditions is needed (essential conditions).
 </p>
 <p>We can encode these equations as follows: (ignore the <tt>MonomialOrder</tt> for now)
 </p>
-<p><codeblock>if instance(n,Symbol) then n = 4;
+<p><code class='block'>if instance(n,Symbol) then n = 4;
 R = QQ[m_(1,1)..m_(n,n),MonomialOrder=&gt;{Weights=&gt;flatten table(n,n,(i,j)-&gt;(n-1)^2-i*j)}];
 M=transpose genericMatrix(R,m_(1,1),n,n);
 msv = p -&gt; (
@@ -238,7 +237,7 @@ msv = p -&gt; (
 	then ideal(0_R) -- inessential conditions; ignore
 	else minors(1+#select(i+1,x-&gt;p_x&lt;=j),M^{0..i}_{0..j}) -- essential rank conditions
 	)
-    );</codeblock></p>
+    );</code></p>
 <p>For instance, for $\pi=(1423)
 =
 \begin{pmatrix}
@@ -247,7 +246,7 @@ msv = p -&gt; (
 |&1&-&+\\
 |&|&1&+\end{pmatrix}$,
 </p>
-<p><code>ex = msv {1,4,2,3}</code></p>
+<p><code class='block'>ex = msv {1,4,2,3}</code></p>
 <p>is given by imposing rank 1 for the $2\times 3$ NW submatrix of $M$.
 </p>
 <p>We are interested in $\text{init}(I_\pi)$ for the monomial ordering above. Each determinant (minor) turns into its 
@@ -257,20 +256,20 @@ and that the corresponding degeneration of $X_\pi$ is a <b>Stanley&ndash;Reisner
 </p>
 <p>We can encode this as
 </p>
-<p><code>degen = I -&gt; ideal leadTerm(1,I); -- neat, isn't it? we wouldn't need &quot;ideal&quot; if it weren&apos;t for issue #1499</code></p>
+<p><code class='block'>degen = I -&gt; ideal leadTerm(1,I); -- neat, isn't it? we wouldn't need &quot;ideal&quot; if it weren&apos;t for issue #1499</code></p>
 <p>e.g.
 </p>
-<p><code>cs = decompose degen ex</code></p>
+<p><code class='block'>cs = decompose degen ex</code></p>
 <p>There&apos;s a convenient way to visualize each piece (coordinate subspace): so-called <b>pipe dreams</b>.
 Draw the matrix $M$ where each entry is replaced with one of two pictures ("crossing" or "elbows") depending on whether it belongs to the ideal or not.
 Let us program this:
 </p>
-<p><codeblock>-- pipe dreams
+<p><code class='block'>-- pipe dreams
 PipeDream = new Type of BasicList;
-pipeDream = I -&gt; new PipeDream from table(n,n,(i,j) -&gt; if M_(i,j)%I == 0 then crossing else elbows);</codeblock></p>
+pipeDream = I -&gt; new PipeDream from table(n,n,(i,j) -&gt; if M_(i,j)%I == 0 then crossing else elbows);</code></p>
 <p>The actual pictures are produced as follows:
 </p>
-<p><codeblock>-- ascii pictures
+<p><code class='block'>-- ascii pictures
 tile = new HashTable from { crossing =&gt; (&quot;__|_&quot; || &quot;  | &quot;), elbows =&gt; (&quot;_/ _&quot; || &quot;  / &quot;) };
 net PipeDream := p -&gt; stack apply(p,r-&gt;horizontalJoin apply(r, x -&gt; tile#x));
 -- svg pictures
@@ -282,15 +281,15 @@ blackStroke={&quot;stroke&quot;=&gt;&quot;black&quot;,&quot;stroke-width&quot;=&
 svgtile = hashTable { crossing =&gt; gList(bbox,crossingTile++blackStroke,crossingTile++redStroke), 
     elbows =&gt; gList(bbox,elbowsTile++blackStroke,elbowsTile++redStroke) };
 vg = p -&gt; gList append(flatten table(n,n,(i,j)-&gt;svgtile#(p#i#j)++{TransformMatrix=&gt;translation(j,-i-1)}),SizeX=&gt;n*2.5);
-html PipeDream := p -&gt; html vg p;</codeblock></p>
-<p>see in particular <code>svgtile</code>. The result:
+html PipeDream := p -&gt; html vg p;</code></p>
+<p>see in particular <code class='block'>svgtile</code>. The result:
 </p>
-<p><code>apply(cs,pipeDream)</code></p>
+<p><code class='block'>apply(cs,pipeDream)</code></p>
 <p>The remarkable fact is that the NW lines in each pipe dream reproduce the permutation we started from!
 </p>
 <p>In fact, we obtain this way every <i>reduced</i> pipe dream with connectivity $\pi$, where reduced means that no two lines cross twice.
 </p>
 <p>In particular the <i>degree</i> of $X_\pi$ is the number of reduced pipe dreams with connectivity $\pi$:
 </p>
-<p><code>degree ex</code></p>
+<p><code class='block'>degree ex</code></p>
 </div>

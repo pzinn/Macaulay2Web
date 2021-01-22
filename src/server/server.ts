@@ -538,9 +538,9 @@ const socketChatAction = function (socket, client: Client) {
           clients[id].output.length +
           "|" +
           clients[id].output
-            .substring(clients[id].output.length - 50)
-            .replace(/[^\x20-\x7F]/g, " ")
-            .replace(/(\W)/g, "\\$1") +
+            .substring(clients[id].output.length - 48)
+            .replace(/([^\x20-\x7F])/g, " ")
+            .replace(/(?![A-Za-z0-9()\[\]])/g, "\\") +
           "|" +
           (clients[id].instance
             ? (clients[id].instance.containerName

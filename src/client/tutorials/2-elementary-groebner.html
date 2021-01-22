@@ -6,7 +6,7 @@
   </head>
 <body>
 <div>
-    <h4>Contents</h4>
+    <h2>Contents</h2>
 <p>
     In this tutorial, written by D. Eisenbud and M. Stillman,
     we introduce a number
@@ -31,7 +31,7 @@
 </p>
 </div>
 <div>
-    <h4>A. First Steps; example with a monomial curve</h4>
+    <h2>A. First Steps; example with a monomial curve</h2>
 <p>
     To compute the Gröbner basis of an ideal
     $(x^2y,xy^2+x^3)$ in the polynomial ring in
@@ -40,19 +40,19 @@
 <p>
     Our favorite field
 </p>
-<p><code>KK = ZZ/31991</code></p>
+<p><code class='block'>KK = ZZ/31991</code></p>
 <p>
     The polynomial ring
 </p>
-<p><code>R = KK[x,y,z,w]</code></p>
+<p><code class='block'>R = KK[x,y,z,w]</code></p>
 <p>
     and the ideal
 </p>
-<p><code>I = ideal(x^2*y,x*y^2+x^3)</code></p>
+<p><code class='block'>I = ideal(x^2*y,x*y^2+x^3)</code></p>
 <p>
     now the punch line:
 </p>
-<p><code>J = groebnerBasis I</code></p>
+<p><code class='block'>J = groebnerBasis I</code></p>
 <p>
     From this we can for example compute the
     codimension, dimension,
@@ -73,18 +73,18 @@
     polynomial ring in 4 variables (the
     homogeneous coordinate ring of ${\PP}^3$)
 </p>
-<p><code>R = KK[a..d]</code></p>
+<p><code class='block'>R = KK[a..d]</code></p>
 <p>
     and then using a function "monomialCurveIdeal", which we shall
     treat for now as a black box
 </p>
-<p><code>I = monomialCurveIdeal(R,{1,3,4})</code></p>
+<p><code class='block'>I = monomialCurveIdeal(R,{1,3,4})</code></p>
 <p>
     $I$ is an ideal, and the codimension of its support
     is 2, while its dimension is 2:
 </p>
-<p><code>codim I</code></p>
-<p><code>dim I</code></p>
+<p><code class='block'>codim I</code></p>
+<p><code class='block'>dim I</code></p>
 <p>
     This is the codimension of $R/I$ in $R$ 
     and the dimension of $R/I$.  We could work with
@@ -93,20 +93,20 @@
     of $R$ ($R$ is a ring, and $R^1$ is
     the free module of rank 1 over it)
 </p>
-<p><code>codim (R^1/(I*R^1))</code></p>
+<p><code class='block'>codim (R^1/(I*R^1))</code></p>
 <p>
     We could also extract the generators of
     $I$ (as a matrix) and take the cokernel to
     get the same thing:
 </p>
-<p><code>M = coker gens I</code></p>
-<p><code>codim M</code></p>
-<p><code>dim M</code></p>
+<p><code class='block'>M = coker gens I</code></p>
+<p><code class='block'>codim M</code></p>
+<p><code class='block'>dim M</code></p>
 <p>
     And similarly for the degree:
 </p>
-<p><code>degree I</code></p>
-<p><code>degree M</code></p>
+<p><code class='block'>degree I</code></p>
+<p><code class='block'>degree M</code></p>
 <p>
     As one might expect, the degree of the quartic
     is 4.
@@ -114,7 +114,7 @@
 <p>
     The Hilbert polynomial is obtained by
 </p>
-<p><code>hilbertPolynomial M</code></p>
+<p><code class='block'>hilbertPolynomial M</code></p>
 <p>
     The term ${\PP}_i$ represents the Hilbert polynomial of
     projective $i$-space.  This formula tells
@@ -130,7 +130,7 @@
     The Hilbert series of $M$ (the generating function
     for the dimensions of the graded pieces of $M$) is
 </p>
-<p><code>hilbertSeries M</code></p>
+<p><code class='block'>hilbertSeries M</code></p>
 <p>
     The indeterminate in this expression is \(T\).
 </p>
@@ -138,12 +138,12 @@
     Another way to get information about
     the module $M$ is to see its free resolution
 </p>
-<p><code>Mres = res M</code></p>
+<p><code class='block'>Mres = res M</code></p>
 <p>
     To get more precise information about \({\tt Mres}\),
     we could do
 </p>
-<p><code>betti Mres</code></p>
+<p><code class='block'>betti Mres</code></p>
 <p>
     The display is chosen for compactness:
     the first line gives the total betti 
@@ -163,7 +163,7 @@
 </p>
 </div>
 <div>
-    <h4>B. Random regular sequences</h4>
+    <h2>B. Random regular sequences</h2>
 <p>
     An interesting and illustrative open problem
     is to understand the initial ideal (and 
@@ -175,8 +175,8 @@
     in a polynomial ring in
     3 variables:
 </p>
-<p><code>R = KK[x,y,z]</code></p>
-<p><code>F = random(R^1, R^{-2,-3})</code></p>
+<p><code class='block'>R = KK[x,y,z]</code></p>
+<p><code class='block'>F = random(R^1, R^{-2,-3})</code></p>
 <p>
     makes $F$ into a $1 \times 2$ matrix whose elements
     have degrees $2,3$ (that is, $F$ is a random map
@@ -185,9 +185,9 @@
     the free module with generators in the listed
     degrees, $\{2,3\}$).  We now can compute
 </p>
-<p><code>GB = groebnerBasis F</code></p>
-<p><code>LT = leadTerm GB</code></p>
-<p><code>betti LT</code></p>
+<p><code class='block'>GB = groebnerBasis F</code></p>
+<p><code class='block'>LT = leadTerm GB</code></p>
+<p><code class='block'>betti LT</code></p>
 <p>
     shows that there are Gröbner basis elements
     of degrees 2,3, and 4.  This result is
@@ -195,22 +195,22 @@
     for example we could take the lexicographic
     order
 </p>
-<p><code>R = KK[x,y,z, MonomialOrder => Lex]</code></p>
+<p><code class='block'>R = KK[x,y,z, MonomialOrder => Lex]</code></p>
 <p>
     (do "help MonomialOrder" for other possibilities).
     We get 
 </p>
-<p><code>F = random(R^1, R^{-2,-3})</code></p>
-<p><code>GB = gens gb F</code></p>
-<p><code>LT = leadTerm gens gb F</code></p>
-<p><code>betti LT</code></p>
+<p><code class='block'>F = random(R^1, R^{-2,-3})</code></p>
+<p><code class='block'>GB = gens gb F</code></p>
+<p><code class='block'>LT = leadTerm gens gb F</code></p>
+<p><code class='block'>betti LT</code></p>
 <p>
     and there are Gröbner basis elements of degrees 
     $2,3,4,5,6.$
 </p>
 </div>
 <div>
-    <h4>C. Division With Remainder</h4>
+    <h2>C. Division With Remainder</h2>
 <p>
     A major application of Gröbner bases is
     to decide whether an element is in a given
@@ -223,10 +223,10 @@
     of a generic matrix and setting the entries
     equal to zero.  Here's how:
 </p>
-<p><code>R = KK[a..i]</code></p>
-<p><code>M = genericMatrix(R,a,3,3)</code></p>
-<p><code>N = M^3</code></p>
-<p><code>I = flatten N</code></p>
+<p><code class='block'>R = KK[a..i]</code></p>
+<p><code class='block'>M = genericMatrix(R,a,3,3)</code></p>
+<p><code class='block'>N = M^3</code></p>
+<p><code class='block'>I = flatten N</code></p>
 <p>
     (actually this produces a 1 x 9 matrix of
     of forms, not the ideal: "J = ideal I";
@@ -237,9 +237,9 @@
     We could also check by division with
     remainder:
 </p>
-<p><code>Tr = trace M </code></p>
-<p><code>Tr //I  -- the quotient, which is 0</code></p>
-<p><code>Tr % I  -- the remainder, which is Tr again</code></p>
+<p><code class='block'>Tr = trace M </code></p>
+<p><code class='block'>Tr //I  -- the quotient, which is 0</code></p>
+<p><code class='block'>Tr % I  -- the remainder, which is Tr again</code></p>
 <p>
     (Here $Tr$ is an element of $R$, not a matrix.
     We could do the same thing with a $1 \times 1$ matrix
@@ -249,8 +249,8 @@
     generate the ideal of all forms 
     vanishing on $X$ -- this we may find with
 </p>
-<p><code>J = radical ideal I;</code></p>
-<p><code>netList J_*</code></p>
+<p><code class='block'>J = radical ideal I;</code></p>
+<p><code class='block'>netList J_*</code></p>
 <p>
     that the radical is generated by
     the trace, the determinant, and the sum of 
@@ -259,27 +259,27 @@
     In particular, we can try the powers of the
     trace:
 </p>
-<p><code>Tr^2 % I</code></p>
-<p><code>Tr^3 % I</code></p>
-<p><code>Tr^4 % I</code></p>
-<p><code>Tr^5 % I</code></p>
-<p><code>Tr^6 % I</code></p>
-<p><code>Tr^7 % I</code></p>
+<p><code class='block'>Tr^2 % I</code></p>
+<p><code class='block'>Tr^3 % I</code></p>
+<p><code class='block'>Tr^4 % I</code></p>
+<p><code class='block'>Tr^5 % I</code></p>
+<p><code class='block'>Tr^6 % I</code></p>
+<p><code class='block'>Tr^7 % I</code></p>
 <p>
     The seventh power is the first one in the 
     ideal!  (Bernard Mourrain has worked out a
     formula for which power in general.)
     In this case
 </p>
-<p><code>Tr^6 // I</code></p>
+<p><code class='block'>Tr^6 // I</code></p>
 <p>
     is not 0.  It is a matrix that makes the
     following true:
 </p>
-<p><code>Tr^6 == I * (Tr^6 // I) + (Tr^6 % I)</code></p>
+<p><code class='block'>Tr^6 == I * (Tr^6 // I) + (Tr^6 % I)</code></p>
 </div>
 <div>
-    <h4>D. Elimination Theory</h4>
+    <h2>D. Elimination Theory</h2>
 <p>
     Consider the problem of projecting the
     twisted cubic, a curve in ${\PP}^3$ defined
@@ -301,24 +301,24 @@
     clear the earlier meaning of $x$ to make it
     into a subscripted variable
 </p>
-<p><code>x = global x</code></p>
+<p><code class='block'>x = global x</code></p>
 <p>
     and then set
 </p>
-<p><code>R = KK[x_0..x_3] </code></p>
+<p><code class='block'>R = KK[x_0..x_3] </code></p>
 <p>
     the homogeneous coordinate ring of ${\PP}^3$
     and
 </p>
-<p><code>M = map(R^2, 3, (i,j)->x_(i+j))</code></p>
-<p><code>I = gens minors(2,M)</code></p>
+<p><code class='block'>M = map(R^2, 3, (i,j)->x_(i+j))</code></p>
+<p><code class='block'>I = gens minors(2,M)</code></p>
 <p>
     a matrix whose image is 
     the ideal of the twisted cubic.
     As projection center we
     take the point defined by
 </p>
-<p><code>pideal = ideal(x_0+x_3, x_1, x_2)</code></p>
+<p><code class='block'>pideal = ideal(x_0+x_3, x_1, x_2)</code></p>
 <p>
     To find the image we must intersect the ideal
     $I$ with the subring generated by the 
@@ -333,18 +333,18 @@
     We want the new ring to have an elimination
     order for the first variable.
 </p>
-<p><code>y = global y</code></p>
-<p><code>S = KK[y_0..y_3,MonomialOrder => Eliminate 1]</code></p>
+<p><code class='block'>y = global y</code></p>
+<p><code class='block'>S = KK[y_0..y_3,MonomialOrder => Eliminate 1]</code></p>
 <p>
     Here is one way to make the substitution
 </p>
-<p><code>I1 = substitute(I, matrix{{y_0,y_1,y_2,y_3-y_0}})</code></p>
+<p><code class='block'>I1 = substitute(I, matrix{{y_0,y_1,y_2,y_3-y_0}})</code></p>
 <p>
     The elimination of 1 variable from the 
     matrix of Gröbner basis elements proceeds
     as follows:
 </p>
-<p><code>J = selectInSubring(1,gens gb I1)</code></p>
+<p><code class='block'>J = selectInSubring(1,gens gb I1)</code></p>
 <p>
     and gives (a matrix with element)
     the cubic equation of a rational
@@ -354,8 +354,8 @@
     curve (and not the cone over one) we must
     move to yet another ring:
 </p>
-<p><code>S1 = KK[y_1..y_3]</code></p>
-<p><code>J1 = substitute(J, S1)</code></p>
+<p><code class='block'>S1 = KK[y_1..y_3]</code></p>
+<p><code class='block'>J1 = substitute(J, S1)</code></p>
 <p>
     This time we didn't have to give so much
     detail to the "substitute" command because of 
@@ -374,15 +374,15 @@
     of the same computation as before.)
     Here is the ring map
 </p>
-<p><code>Rbar = R/(ideal I)</code></p>
-<p><code>f = map(Rbar, S1, matrix(Rbar,{{x_0+x_3, x_1,x_2}}))</code></p>
+<p><code class='block'>Rbar = R/(ideal I)</code></p>
+<p><code class='block'>f = map(Rbar, S1, matrix(Rbar,{{x_0+x_3, x_1,x_2}}))</code></p>
 <p>
     and the desired ideal
 </p>
-<p><code>J1 = ker f</code></p>
+<p><code class='block'>J1 = ker f</code></p>
 </div>
 <div>
-    <h4>E. Quotients and saturation</h4>
+    <h2>E. Quotients and saturation</h2>
 <p>
     Another typical application of 
     Gröbner bases and syzygies is to the
@@ -434,8 +434,8 @@
     efficient in this case.  We shall illustrate
     both. First we set up the example above:
 </p>
-<p><code>R = KK[a,b,c,d]</code></p>
-<p><code>I1 = ideal(d*b-a^2, d^2*c-a^3)</code></p>
+<p><code class='block'>R = KK[a,b,c,d]</code></p>
+<p><code class='block'>I1 = ideal(d*b-a^2, d^2*c-a^3)</code></p>
 <p>
     How to compute the ideal quotient:
     If $I$ is generated by $f_1,\ldots,f_n$, we see that
@@ -452,14 +452,14 @@
     by concatenating the matrix for $I_1$
     with the single variable $d$
 </p>
-<p><code>I1aug = (gens I1) | matrix{{d}}</code></p>
-<p><code>augrelations = gens ker I1aug</code></p>
+<p><code class='block'>I1aug = (gens I1) | matrix{{d}}</code></p>
+<p><code class='block'>augrelations = gens ker I1aug</code></p>
 <p>
     There are 3 rows (numbered 0,1,2 !) and
     2 columns, so to extract the last row we
     may do
 </p>
-<p><code>I21 = submatrix(augrelations, {2}, {0,1})</code></p>
+<p><code class='block'>I21 = submatrix(augrelations, {2}, {0,1})</code></p>
 <p>
     But this is not an ``ideal'' properly speaking:
     first of all, it is a matrix, not an ideal,
@@ -468,7 +468,7 @@
     generator in degree 1.  We can fix both
     of these problems by
 </p>
-<p><code>I21 = ideal I21</code></p>
+<p><code class='block'>I21 = ideal I21</code></p>
 <p>
     This is larger than the original ideal, having
     two quadratic generators instead of a 
@@ -477,12 +477,12 @@
     computation again, we introduce the built-in
     command
 </p>
-<p><code>I22 = I21 : d</code></p>
+<p><code class='block'>I22 = I21 : d</code></p>
 <p>
     which is again larger than "I21", having
     three quadratic generators. Repeating,
 </p>
-<p><code>I23 = I22 : d</code></p>
+<p><code class='block'>I23 = I22 : d</code></p>
 <p>
     we get another ideal with three quadratic
     generators.  It must be the same as {\tt I21},
@@ -490,7 +490,7 @@
     because of the route taken to get it, so
     (being suspicious) we might check with
 </p>
-<p><code>(gens I23) % (gens I22)</code></p>
+<p><code class='block'>(gens I23) % (gens I22)</code></p>
 <p>
     which returns 0, showing that "I23" is 
     contained in (gives remainder 0 when divided
@@ -507,7 +507,7 @@
     is first to compute a reverse lex Gröbner
     basis.
 </p>
-<p><code>gens gb I1</code></p>
+<p><code class='block'>gens gb I1</code></p>
 <p>
     This yields
     $$(a^2-bd, abd-cd^2, b^2d^2-acd^2).$$
@@ -520,11 +520,11 @@
     as previously computed.  The same thing
     can be accomplished in one line by
 </p>
-<p><code>I2 = divideByVariable(gens gb I1,d)</code></p>
+<p><code class='block'>I2 = divideByVariable(gens gb I1,d)</code></p>
 <p>
     This saturation may be found directly in \(\mac\):
 </p>
-<p><code>saturate(I1, d)</code></p>
+<p><code class='block'>saturate(I1, d)</code></p>
     </div>
   </body>
 </html>

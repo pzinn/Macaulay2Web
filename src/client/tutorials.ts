@@ -3,14 +3,15 @@
 
 import { appendTutorialToAccordion, makeAccordion } from "./accordion";
 import { autoRender } from "./autoRender";
+import { mdtohtml } from "./md";
 
 interface Lesson {
-  title: string;
+  title: string; // <h1> element
   html: HTMLElement;
 }
 
 interface Tutorial {
-  title: HTMLElement; // <h4> html element
+  title: HTMLElement; // <h2> html element
   current: number;
   lessons: Lesson[];
 }
@@ -50,9 +51,9 @@ const loadLesson = function (tutorialid: number, lessonid: number) {
   if (lessonNr < 0 || lessonNr >= tutorials[tutorialNr].lessons.length)
     lessonNr = 0;
   const lessonContent = tutorials[tutorialNr].lessons[lessonNr].html;
-  const title = tutorials[tutorialNr].title.innerHTML;
+  const title = tutorials[tutorialNr].title;
   const lesson = document.getElementById("lesson");
-  lesson.innerHTML = "<h3>" + title + "</h3>" + lessonContent;
+  lesson.innerHTML = title.outerHTML + lessonContent;
   lesson.scrollTop = 0;
   //  MathJax.Hub.Queue(["Typeset", MathJax.Hub, "#lesson"]);
   // the next line colorized the tutorials
@@ -70,26 +71,25 @@ const loadLessonIfChanged = function (
     loadLesson(tutorialid, lessonid);
 };
 
-// input: is a simple markdown text, very little is used or recognized:
-// lines beginning with "#": title (and author) of the tutorial
-//   beginning with "##": section name (or "lesson" name)
-//   M2 code is enclosed by ```, on its own line.
-//   mathjax code is allowed.
-// returns an object of class Tutorial
-
-const enrichTutorialWithHtml = function (theHtml) {
+const sliceTutorial = function (theHtml) {
   const result = {
     lessons: [],
     current: 0,
-    title: document.createElement("h3"),
+    title: null,
   };
   const tutorial = document.createElement("div");
   tutorial.innerHTML = theHtml;
   const children = tutorial.children;
   for (let i = 0; i < children.length; i++) {
     if (children[i].tagName == "TITLE") {
+      result.title = document.createElement("h1");
       result.title.innerHTML = children[i].innerHTML;
-    } else if (children[i].tagName == "DIV")
+    } else if (!result.title && children[i].tagName == "H1") {
+      result.title = children[i];
+    } else if (
+      children[i].tagName == "DIV" &&
+      children[i].childElementCount > 0
+    )
       result.lessons.push({
         title: children[i].firstElementChild.innerHTML,
         html: children[i].innerHTML,
@@ -99,7 +99,7 @@ const enrichTutorialWithHtml = function (theHtml) {
 };
 
 import tutorialsList from "./tutorialsList";
-const tutorials = tutorialsList.map(enrichTutorialWithHtml);
+const tutorials = tutorialsList.map(sliceTutorial);
 
 /*
 const getTutorial = function (url) {
@@ -129,7 +129,7 @@ const getTutorial = function (url) {
 const makeTutorialsList = function (tutorialNames) {
   return Promise.all(tutorialNames.map(getTutorial))
     .then(function (rawTutorials) {
-      return rawTutorials.map(enrichTutorialWithHtml);
+      return rawTutorials.map(sliceTutorial);
     })
     .then(function (data) {
       accordion.makeAccordion(data);
@@ -142,86 +142,9 @@ const makeTutorialsList = function (tutorialNames) {
 };
 */
 
-const preEscape = function (s: string) {
-  const lookup = {
-    "&": "&amp;",
-    '"': "&quot;",
-    "<": "&lt;",
-    ">": "&gt;",
-  };
-  return s.replace(/[&"<>]/g, (c) => lookup[c]);
-};
-
 const markdownToHtml = function (markdownText) {
-  const lines = markdownText.split("\n");
-  const output = [];
-  let inSection = false; // only false until the first ##.  After that, it is true.
-  let inExample = false;
-  let exampleLines = [];
-  //  const firstLineInExample = false;
-  let inPara = false;
-  for (const line of lines) {
-    if (!inExample && line.match("^##")) {
-      if (inPara) {
-        output.push("</p>");
-        inPara = false;
-      }
-      if (inSection) {
-        output.push("</div>");
-      }
-      inSection = true;
-      output.push("<div><h4>" + line.substring(2) + "</h4>");
-    } else if (!inExample && line.match("^#")) {
-      output.push("<title>" + line.substring(1) + "</title>");
-    } else if (line.match("^ *$")) {
-      if (inPara) {
-        output.push("</p>");
-        inPara = false;
-      }
-    } else if (line.match("^```")) {
-      if (inPara) {
-        output.push("</p>");
-        inPara = false;
-      }
-      if (inExample) {
-        if (exampleLines.length > 1) {
-          output.push("<p><codeblock>" + preEscape(exampleLines[0]));
-          for (let j = 1; j <= exampleLines.length - 2; j++) {
-            output.push(preEscape(exampleLines[j]));
-          }
-          output.push(
-            preEscape(exampleLines[exampleLines.length - 1]) +
-              "</codeblock></p>"
-          );
-        } else if (exampleLines.length == 1) {
-          output.push("<p><code>" + preEscape(exampleLines[0]) + "</code></p>");
-        }
-        inExample = false;
-        exampleLines = [];
-      } else {
-        inExample = true;
-      }
-    } else {
-      // all other lines
-      if (inPara) {
-        output.push(line);
-      } else if (inExample) {
-        exampleLines.push(line);
-      } else {
-        output.push("<p>" + line);
-        inPara = true;
-      }
-    }
-  }
-  if (inPara) {
-    output.push("</p>");
-  }
-  if (inSection) {
-    output.push("</div>");
-  }
-  const txt = output.join("\n");
-  //  console.log(txt);
-  return txt;
+  const txt = mdtohtml(markdownText, null, "p");
+  return txt.replace("</h1>", "</h1><div>").replace(/<h2>/g, "</div><div><h2>");
 };
 
 const uploadTutorial = function () {
@@ -232,10 +155,10 @@ const uploadTutorial = function () {
   reader.onload = function (event) {
     let txt = event.target.result as string;
     if (file.name.substr(-3) == ".md") txt = markdownToHtml(txt); // by default, assume html
-    const newTutorial = enrichTutorialWithHtml(txt);
+    const newTutorial = sliceTutorial(txt);
     tutorials.push(newTutorial);
     const lastIndex = tutorials.length - 1;
-    const title = newTutorial.title; // this is an <h3>
+    const title = newTutorial.title; // this is a <title>
     const lessons = newTutorial.lessons;
     appendTutorialToAccordion(title, "", lessons, lastIndex, true); // last arg = delete button
   };

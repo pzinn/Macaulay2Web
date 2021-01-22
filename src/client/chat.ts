@@ -2,6 +2,7 @@ import { scrollDown } from "./htmlTools";
 import { socket } from "./main";
 import { Chat } from "../common/chatClass";
 import { autoRender } from "./autoRender";
+import { mdtohtml } from "./md";
 
 const deleteChat = function (h) {
   const el = document.getElementById("message-" + h);
@@ -56,7 +57,7 @@ const chatAction = function (msg: Chat, index?) {
     s2.className = msg.type + "-" + msg.alias;
     const s3 = document.createElement("span");
     //  s3.textContent = msg.message;
-    const test = mdtohtml(msg.message);
+    const test = mdtohtml(msg.message, "br", null);
     s3.innerHTML = test;
     autoRender(s3);
     const recipients = msg.recipients
@@ -94,93 +95,6 @@ const socketChat = function (msg) {
   // msg = array or single message
   if (Array.isArray(msg)) msg.forEach(chatAction);
   else chatAction(msg);
-};
-
-// note the repeated use of pattern (?<!\\) which means not escaped with \
-const escapeHTML = (str) =>
-  str
-    .replace(
-      /[&<>'"]/g,
-      (tag) =>
-        ({
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          "'": "&#39;",
-          '"': "&quot;",
-        }[tag])
-    )
-    /*      .replace(/!\[([^\]]*)]\(([^(]+)\)/g, '<img alt="$1" src="$2">') */
-    .replace(
-      /(?<!\\)\[([^\]]+)(?<!\\)](?<!\\)\(([^(]+?)(?<!\\)\)/g,
-      "$1".link("$2")
-    ) // [a link](github.com)
-    .replace(/(?<!\\)`((?:[^`]|(?<=\\)`)*)(?<!\\)`/g, "<code>$1</code>") // `R=QQ[x]`
-    .replace(
-      /(?<!\\)(\*\*|__)(?=\S)([^\r]*?\S[*_]*)(?<!\\)\1/g,
-      "<strong>$2</strong>"
-    ) // **really important**
-    .replace(/(?<!\\)(\*|_)(?!\s|\*|_)([^\r]*?\S)(?<!\\)\1/g, "<em>$2</em>") // *important*
-    .replace(/\\n/g, "<br/>") // "\n" for nonsplitting newline
-    .replace(/\\\$/g, "<span>$</span>") // "\$" for $ symbol (not KaTeX)
-    .replace(/(?<!\\)\\/g, ""); // remove escaping
-
-const cut = (s, x) => escapeHTML(s.substring(x[0].length));
-const patterns = [
-  { pattern: /^\*\s/, tag: (x) => "ul", linetag: (x) => "li", proc: cut },
-  { pattern: /^\d+\.\s/, tag: (x) => "ol", linetag: (x) => "li", proc: cut },
-  { pattern: /^#+\s/, tag: null, linetag: (x) => "h" + x[0].length, proc: cut },
-  {
-    pattern: /\|/,
-    tag: (x) => "table",
-    linetag: (x) => "tr",
-    proc: (s, x) => {
-      if (s.startsWith("|")) s = s.substring(1);
-      if (s.endsWith("|")) s = s.substring(0, s.length - 1);
-      return (
-        "<td>" +
-        escapeHTML(s.replace(/(?<!\\)\|/g, "\\\\|")).replace(
-          /\\\|/g,
-          "</td><td>"
-        ) +
-        "</td>"
-      );
-    }, // bit of a mess
-  },
-];
-
-const mdtohtml = function (src) {
-  const lines = src.split(/\n|\u21B5/);
-  let res = "";
-  let x;
-  let i,
-    oldi = -1;
-  lines.forEach(function (s) {
-    s = s.trim();
-    i = patterns.findIndex((p) => {
-      x = s.match(p.pattern);
-      return x !== null;
-    });
-    if (i != oldi) {
-      if (oldi >= 0 && patterns[oldi].tag != null)
-        res += "</" + patterns[oldi].tag(x) + ">";
-      if (i >= 0 && patterns[i].tag != null)
-        res += "<" + patterns[i].tag(x) + ">";
-    }
-    oldi = i;
-    if (i >= 0) {
-      res +=
-        "<" +
-        patterns[i].linetag(x) +
-        ">" +
-        patterns[i].proc(s, x) +
-        "</" +
-        patterns[i].linetag(x) +
-        ">";
-    } else res += escapeHTML(s) + "<br/>";
-  });
-  if (i >= 0 && patterns[i].tag != null) res += "</" + patterns[i].tag(x) + ">";
-  return res;
 };
 
 export { socketChat };

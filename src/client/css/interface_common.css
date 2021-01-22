@@ -130,34 +130,34 @@ h1,h2,h3,h4,h5,h6 {
     font-family: "Epilogue";
 }
 
-.M2Html h1 {
-    font-size: 2.2em;
-    margin: 0.85em 0em;
-    line-height: 1.2;
-}
-.M2Html h2 {
-    font-size: 2em;
+h1 {
+    font-size: 2.5em;
     margin: 0.7em 0em;
     line-height: 1.2;
 }
-.M2Html h3 {
-    font-size: 1.8em;
-    margin: 0.6em 0em;
+h2 {
+    font-size: 2em;
+    margin: 0.5em 0em;
     line-height: 1.2;
 }
-.M2Html h4 {
-    font-size: 1.6em;
+h3 {
+    font-size: 1.7em;
     margin: 0.4em 0em;
     line-height: 1.2;
 }
-.M2Html h5 {
-    font-size: 1.4em;
+h4 {
+    font-size: 1.5em;
     margin: 0.3em 0em;
     line-height: 1.2;
 }
-.M2Html h6 {
-    font-size: 1.2em;
-    margin: 0.15em 0em;
+h5 {
+    font-size: 1.3em;
+    margin: 0.2em 0em;
+    line-height: 1.2;
+}
+h6 {
+    font-size: 1.15em;
+    margin: 0.1em 0em;
     line-height: 1.2;
 }
 
@@ -265,10 +265,8 @@ does not contain the whole contents (and is possibly empty) */
     text-decoration: underline dotted gray;
 }
 
-code, codeblock {
+code {
     white-space: pre;
-    margin-left: 20px;
-    margin-right: 20px;
     font-family: 'Roboto Mono';
     font-weight: normal;
     display: inline-block;
@@ -278,6 +276,8 @@ code, codeblock {
     cursor: pointer;
     transition: background-color 200ms;
     box-shadow: 1px 1px 2px 0px black;
+    padding: 2px 4px;
+    border-radius: 7px;
 }
 
 .M2PastInput {
@@ -291,17 +291,18 @@ code, codeblock {
     cursor: pointer;
 }
 
-code {
-    padding: 1px 3px;
-    border-radius: 5px;
-}
-
-codeblock {
+code.block {
+    display: table;
+    margin-top: 5px;
+    margin-bottom: 16px;
+    margin-left: 20px;
+/*
     padding: 3px 6px;
     border-radius: 10px;
+*/
 }
  
-/*code:active, codeblock:active, .M2PastInput:active {*/
+/*code:active, .M2PastInput:active {*/
 .codetrigger { /* modified so can be actived or not programmatically */
     transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */
     background-color: red !important;
