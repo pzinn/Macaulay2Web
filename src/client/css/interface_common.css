@@ -13,6 +13,7 @@ body {
     position: relative;
     outline: none;
     line-height: 1.14286;
+    padding-bottom: 0.2em;
 }
 
 /* various sections inside #terminal */
@@ -109,25 +110,15 @@ table.examples {
     margin-bottom: 0.5em;
     width: 50%;
     border-style: solid;
-/*     background-color: #c0ffff;
-     border-top-color: #c0ffff;
-     border-bottom-color: #50b0b0;
-     border-left-color: #a0ffff;
-     border-right-color: #50b0b0;
-     font-size: 75%;*/
     border-width: 3px;
     border-spacing: 0px;
-    line-height: 110%;		/* 122% seems to be the default, and 100% leaves almost no space between lines */
+    line-height: 110%;
 }
 table.examples td {
     border-style: solid;
-/*     border-top-color: #50b0b0;
-     border-bottom-color: #c0ffff;
-     border-left-color: #50b0b0;
-     border-right-color: #a0ffff; */
+    border-width: 1px;
     padding-right: 0.75em;
     padding-bottom: 1em;
-    border-width: 1px;
 }
 table.examples pre {
     margin: 0pt;
@@ -243,8 +234,12 @@ does not contain the whole contents (and is possibly empty) */
     background: grey;
 }
 
-.M2Cell.M2CellSelected > .M2Left { /* higher specificity to override the previous one in case of hover */
-    background: orange;
+.M2Separator:hover ~ .M2Left {
+    background: transparent;
+}
+
+.M2Cell.M2CellSelected > .M2Left { /* need to override previous two */
+    background: orange !important;
 }
 
 .M2CellBar:hover {
@@ -263,12 +258,6 @@ does not contain the whole contents (and is possibly empty) */
 .M2Separator:hover {
     background: grey;
 }
-
-.M2Separator:hover ~ .M2Left {
-    background: transparent;
-}
-
-
 
 .M2CellClosed {
     height: 1.2em;

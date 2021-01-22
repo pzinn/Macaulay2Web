@@ -14,8 +14,8 @@ RUN chmod 700 /home/m2user/.ssh
 RUN sed -i 's/m2user:!/m2user:*/' /etc/shadow
 
 # copy open
-COPY unix-files/open /usr/bin/open
-RUN ln -s /usr/bin/open /usr/bin/display
+#COPY unix-files/open /usr/bin/open
+#RUN ln -s /usr/bin/open /usr/bin/display
 
 ### Tweaks to ssh setup ###
     

@@ -1,14 +1,19 @@
-import { options as globalOptions } from "./global";
+import { options as globalOptions } from "../common/global";
 
 const options = {
   ...globalOptions,
   adminName: "", // to be set live only
   authentication: false,
+  perContainerResources: {
+    cpuShares: 0.5,
+    memory: 384, // Mb
+    maxOutput: 200000, // size of saved output in bytes
+  },
   serverConfig: {
     CONTAINERS: "../LocalContainerManager",
     MATH_PROGRAM: "Macaulay2",
     MATH_PROGRAM_COMMAND:
-      "stty cols 1000000000; M2MODE=default WWWBROWSER=open M2 --webapp",
+      "stty cols 1000000000; M2MODE=default M2 --webapp",
     port: 80,
     port2: 443,
   },

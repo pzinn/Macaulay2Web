@@ -23,6 +23,8 @@ import {
   unselectCells,
 } from "./bar";
 
+import { options } from "../common/global";
+
 let myshell = null;
 
 const keydownAction = function (e) {
@@ -32,7 +34,8 @@ const keydownAction = function (e) {
     if (sel != "") socket.emit("input", 'viewHelp "' + sel + '"\n');
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.target.classList.contains("M2CellBar")) barKey(e);
+  } else if (e.target.classList.contains("M2CellBar"))
+    barKey(e, e.target.parentElement);
 };
 
 const socketDisconnect = function (msg) {
@@ -96,10 +99,8 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
-const socketOutput = function (msg) {
-  // msg = array or single message
-  if (Array.isArray(msg)) msg.forEach((x) => myshell.displayResult(x));
-  else myshell.displayResult(msg);
+const socketOutput = function (msg: string) {
+  myshell.displayOutput(msg);
 };
 
 const setCookie = function (cookie) {
@@ -121,17 +122,15 @@ const init = function () {
     return;
   }
 
-  let ioParams = "";
-  let publicId: any = url.searchParams.get("public");
+  let ioParams = "?version=" + options.version;
+  console.log("Macaulay2Web version " + options.version);
   const userId: any = url.searchParams.get("user");
-  if (publicId !== null) {
-    if (publicId == "") publicId = "Default";
-    ioParams = "?publicId=" + publicId;
-  } else if (userId !== null && userId != "") {
-    ioParams = "?userId=" + userId;
-  } else if (url.pathname == "/minimal.html") {
+  if (userId) {
+    ioParams += "&userId=" + userId;
+  } else if (MINIMAL) {
+    //if (url.pathname == "/minimal.html") {
     // minimal interface public by default
-    ioParams = "?publicId=Default";
+    ioParams += "&publicId";
   }
 
   socket = socketIo(ioParams);
@@ -140,7 +139,7 @@ const init = function () {
   socket.on("connect_error", socketError("connect_error"));
   socket.on("output", socketOutput);
   socket.on("disconnect", socketDisconnect);
-  socket.on("cookie", setCookie);
+  if (!MINIMAL) socket.on("cookie", setCookie); // in minimal mode, no user id cookie update
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
 
@@ -154,12 +153,13 @@ const init = function () {
     socket,
     document.getElementById("editorDiv"),
     document.getElementById("editorToggle") as HTMLInputElement,
-    document.getElementById("browseFrame") as HTMLFrameElement
+    document.getElementById("browseFrame") as HTMLFrameElement,
+    true
   );
 
-  window.addEventListener("load", function () {
-    socket.emit("restore");
-  });
+  //  window.addEventListener("load", function () {
+  socket.emit("restore");
+  //  });
 
   if (!MINIMAL) extra();
 

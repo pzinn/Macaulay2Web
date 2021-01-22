@@ -4,7 +4,7 @@ import { SshDockerContainers } from "../sshDockerContainers";
 const options = {
   serverConfig: {
     MATH_PROGRAM_COMMAND:
-      "stty cols 1000000000; M2MODE=Macaulay2SshDocker WWWBROWSER=open M2 --webapp",
+      "stty cols 1000000000; M2MODE=Macaulay2SshDocker M2 --webapp",
     CONTAINERS(resources, hostConfig, guestInstance): InstanceManager {
       return new SshDockerContainers(resources, hostConfig, guestInstance);
     },

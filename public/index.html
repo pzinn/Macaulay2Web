@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="overflow:hidden">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -183,7 +183,17 @@
               <div class="mdl-tabs__panel" id="chat">
 		<br/>
 		<p>Use this to ask questions, provide feedback, or simply say hi to other users!</p>
-		<p>Your alias is: <input class="chatInput" id="chatAlias" type="text" size="20"></p>
+		<p>
+		  <span>
+		    <label for="chatAlias">Your alias is:</label>
+		    <input class="chatInput" id="chatAlias" type="text" size="20">
+		  </span>
+		  <span style="float:right">
+		    <input type="checkbox" id="pmtoggle" class="mdl-checkbox__input">
+		    <label for="pmto">Private message:</label>
+		    <input class="chatInput" id="pmto" type="text" size="20" disabled>
+		  </span>
+		</p>
 		<ul id="chatMessages">
 		</ul>
 		<form id="chatForm">

@@ -1,5 +1,7 @@
 import { scrollDown } from "./htmlTools";
 import { socket } from "./main";
+import { Chat } from "../common/chatClass";
+import { autoRender } from "./autoRender";
 
 const deleteChat = function (h) {
   const el = document.getElementById("message-" + h);
@@ -24,40 +26,67 @@ const deleteChatWrap = function (h) {
   };
 };
 
-const chatAction = function (msg, index?) {
+const chatAction = function (msg: Chat, index?) {
   if (msg.type == "delete") {
     deleteChat(msg.hash);
-    return;
-  }
-  const ul = document.getElementById("chatMessages");
-  const msgel = document.createElement("li");
-  msgel.classList.add("chatMessage");
-  msgel.id = "message-" + msg.hash;
-  const s0 = document.createElement("i");
-  s0.className = "material-icons message-close";
-  s0.textContent = "close";
-  s0.onclick = deleteChatWrap(msg.hash);
-  const s1 = document.createElement("i");
-  s1.textContent = msg.time;
-  const s2 = document.createElement("b");
-  s2.textContent = msg.alias;
-  s2.className = msg.type;
-  const s3 = document.createElement("span");
-  //  s3.textContent = msg.message;
-  const test = mdtohtml(msg.message);
-  s3.innerHTML = test;
-  msgel.append(s0, s1, " : ", s2, document.createElement("br"), s3);
-  ul.appendChild(msgel);
-  scrollDown(ul);
-  if (index === undefined && msg.type != "message-system") {
-    const chatTitle = document.getElementById("chatTitle");
-    if (document.location.hash != "#chat") {
-      chatTitle.classList.add(msg.type);
+  } else if (msg.type == "message") {
+    if (msg.recipients) {
+      const alias = (document.getElementById("chatAlias") as HTMLInputElement)
+        .value;
+      if (
+        !msg.recipients.some(
+          (name) => name.endsWith("/") || name == alias || name == "id/" + alias
+        )
+      )
+        // we don't have the right alias
+        return;
     }
-    chatTitle.classList.add("message-pop");
-    setTimeout(function () {
-      chatTitle.classList.remove("message-pop");
-    }, 500);
+    const ul = document.getElementById("chatMessages");
+    const msgel = document.createElement("li");
+    msgel.classList.add("chatMessage");
+    msgel.id = "message-" + msg.hash;
+    const s0 = document.createElement("i");
+    s0.className = "material-icons message-close";
+    s0.textContent = "close";
+    s0.onclick = deleteChatWrap(msg.hash);
+    const s1 = document.createElement("i");
+    s1.textContent = msg.time;
+    const s2 = document.createElement("b");
+    s2.textContent = msg.alias;
+    s2.className = msg.type + "-" + msg.alias;
+    const s3 = document.createElement("span");
+    //  s3.textContent = msg.message;
+    const test = mdtohtml(msg.message);
+    s3.innerHTML = test;
+    autoRender(s3);
+    const recipients = msg.recipients
+      ? " (to " +
+        msg.recipients
+          .filter((name) => name != msg.alias && name != "id/" + msg.alias)
+          .join(", ") +
+        ")"
+      : "";
+    msgel.append(
+      s0,
+      s1,
+      " : ",
+      s2,
+      recipients,
+      document.createElement("br"),
+      s3
+    );
+    ul.appendChild(msgel);
+    scrollDown(ul);
+    if (index === undefined && msg.alias != "System") {
+      const chatTitle = document.getElementById("chatTitle");
+      if (document.location.hash != "#chat") {
+        chatTitle.classList.add(msg.type + "-" + msg.alias);
+      }
+      chatTitle.classList.add("message-pop");
+      setTimeout(function () {
+        chatTitle.classList.remove("message-pop");
+      }, 500);
+    }
   }
 };
 
@@ -92,9 +121,11 @@ const escapeHTML = (str) =>
       "<strong>$2</strong>"
     ) // **really important**
     .replace(/(?<!\\)(\*|_)(?!\s|\*|_)([^\r]*?\S)(?<!\\)\1/g, "<em>$2</em>") // *important*
+    .replace(/\\n/g, "<br/>")
+    .replace(/\\\$/g, "<span>$</span>")
     .replace(/(?<!\\)\\/g, ""); // remove escaping
-const cut = (s, x) => escapeHTML(s.substring(x[0].length));
 
+const cut = (s, x) => escapeHTML(s.substring(x[0].length));
 const patterns = [
   { pattern: /^\*\s/, tag: (x) => "ul", linetag: (x) => "li", proc: cut },
   { pattern: /^\d+\.\s/, tag: (x) => "ol", linetag: (x) => "li", proc: cut },
@@ -103,13 +134,18 @@ const patterns = [
     pattern: /\|/,
     tag: (x) => "table",
     linetag: (x) => "tr",
-    proc: (s, x) =>
-      "<td>" +
-      escapeHTML(s.replace(/(?<!\\)\|/g, "\\\\|")).replace(
-        /\\\|/g,
-        "</td><td>"
-      ) +
-      "</td>", // bit of a mess
+    proc: (s, x) => {
+      if (s.startsWith("|")) s = s.substring(1);
+      if (s.endsWith("|")) s = s.substring(0, s.length - 1);
+      return (
+        "<td>" +
+        escapeHTML(s.replace(/(?<!\\)\|/g, "\\\\|")).replace(
+          /\\\|/g,
+          "</td><td>"
+        ) +
+        "</td>"
+      );
+    }, // bit of a mess
   },
 ];
 
@@ -141,7 +177,7 @@ const mdtohtml = function (src) {
         "</" +
         patterns[i].linetag(x) +
         ">";
-    } else res += escapeHTML(s);
+    } else res += escapeHTML(s) + "<br/>";
   });
   if (i >= 0 && patterns[i].tag != null) res += "</" + patterns[i].tag(x) + ">";
   return res;

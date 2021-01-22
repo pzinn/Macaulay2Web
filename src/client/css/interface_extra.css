@@ -227,6 +227,11 @@ h3.rotated .material-icons {
     margin-bottom: -1px;
 }
 
+.chatMessage table,.chatMessage th,.chatMessage td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
 .chatDiv {
     display:table;
     border-collapse:separate;
@@ -242,18 +247,24 @@ h3.rotated .material-icons {
     border-radius:4px;
 }
 
+input[type=checkbox]:not(:checked) + label {
+    color: rgba(0,0,0,0.26);
+}
+
 #chatTitle {
     transition: text-shadow 0.5s;
 }
 
-.message-user {
-/*    font-weight: 700;*/
+.chatMessage b {
     color: #C07040;
 }
 
-.message-admin {
-/*    font-weight: 700;*/
-    color: #FF0000; /* after new-message-user to take precedence */
+.chatMessage b.message-System {
+    color: #000000;
+}
+
+.chatMessage b.message-Admin {
+    color: #FF0000;
 }
 
 .message-pop {

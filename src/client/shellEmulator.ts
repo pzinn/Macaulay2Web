@@ -1,7 +1,7 @@
 import { Socket } from "./main";
 
 import { autoRender } from "./autoRender";
-import { webAppTags, webAppClasses, webAppRegex } from "./tags";
+import { webAppTags, webAppClasses, webAppRegex } from "../common/tags";
 import { setupMenu } from "./menu";
 import {
   scrollDownLeft,
@@ -59,14 +59,15 @@ const Shell = function (
   socket: Socket,
   editor: HTMLElement,
   editorToggle: HTMLInputElement,
-  iFrame: HTMLFrameElement
+  iFrame: HTMLFrameElement,
+  createInputSpan: boolean
 ) {
   // Shell is an old-style javascript oop constructor
   // we're using arguments as private variables, cf
   // https://stackoverflow.com/questions/18099129/javascript-using-arguments-for-closure-bad-or-good
   const obj = this; // for nested functions with their own 'this'. or one could use bind, or => functions, but simpler this way
   let htmlSec; // the current place in shell where new stuff gets written
-  let inputSpan; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
+  let inputSpan = null; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
   const cmdHistory: any = []; // History of commands for shell-like arrow navigation
   cmdHistory.index = 0;
   cmdHistory.sorted = []; // a sorted version
@@ -94,7 +95,8 @@ const Shell = function (
     }
     if (className.indexOf("M2Text") < 0) htmlSec.dataset.code = "";
     // even M2Html needs to keep track of innerHTML because html tags may get broken
-    if (inputSpan.parentElement == anc) anc.insertBefore(htmlSec, inputSpan);
+    if (inputSpan && inputSpan.parentElement == anc)
+      anc.insertBefore(htmlSec, inputSpan);
     else anc.appendChild(htmlSec);
   };
 
@@ -122,7 +124,8 @@ const Shell = function (
     inputEndFlag = false;
   };
 
-  createInputEl();
+  if (createInputSpan) createInputEl();
+  else htmlSec = shell;
 
   obj.codeInputAction = function (t) {
     t.classList.add("codetrigger");
@@ -145,7 +148,7 @@ const Shell = function (
   };
 
   const removeAutoComplete = function (autoCompleteSelection) {
-    // flag means insert the selection or not
+    // null or the menu element to insert
     if (autoComplete) {
       let pos = inputSpan.textContent.length;
       let s = autoComplete.dataset.word;
@@ -329,7 +332,7 @@ const Shell = function (
     while (j < lst.length && lst[j] < word) j++;
     if (j < lst.length) {
       let k = j;
-      while (k < lst.length && lst[k].substring(0, word.length) == word) k++;
+      while (k < lst.length && lst[k].startsWith(word)) k++;
       if (k > j) {
         if (k == j + 1) {
           // yay, one solution
@@ -369,7 +372,9 @@ const Shell = function (
           tabMenu.tabIndex = 0;
           for (let l = j; l < k; l++) {
             const opt = document.createElement("li");
-            opt.textContent = lst[l];
+            const wordb = document.createElement("b");
+            wordb.textContent = word;
+            opt.append(wordb, lst[l].substring(word.length, lst[l].length));
             opt.dataset.fullword = flag
               ? key == "Tab"
                 ? lst[l] + " "
@@ -385,7 +390,41 @@ const Shell = function (
           );
           inputSpan.textContent = inputSpan.textContent.substring(0, i); // not ctrl-Z friendly
           inputSpan.parentElement.appendChild(autoComplete);
-          setupMenu(tabMenu, removeAutoComplete);
+          const menuSel = setupMenu(tabMenu, removeAutoComplete, (e) => {
+            // keydown event
+            if (e.key == "Shift") {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+            if (
+              e.key.length == 1 &&
+              ((e.key >= "a" && e.key <= "z") || (e.key >= "A" && e.key <= "Z"))
+            ) {
+              let lostSelection = false;
+              Array.from(tabMenu.children).forEach((el) => {
+                if (
+                  el.lastChild.textContent.length > 0 &&
+                  el.lastChild.textContent[0] == e.key
+                ) {
+                  el.firstChild.textContent += e.key;
+                  el.lastChild.textContent = el.lastChild.textContent.substring(
+                    1
+                  );
+                } else {
+                  if (el.classList.contains("selected")) lostSelection = true;
+                  el.remove();
+                }
+              });
+              if (tabMenu.childElementCount == 0) return; // no choice => back to normal typing
+              autoComplete.dataset.word += e.key;
+              if (tabMenu.childElementCount == 1)
+                removeAutoComplete(tabMenu.firstChild);
+              if (lostSelection) menuSel(tabMenu.firstElementChild);
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          });
         }
       }
     }
@@ -530,6 +569,7 @@ const Shell = function (
   };
 
   shell.onpaste = function () {
+    if (!inputSpan) return;
     placeCaretAtEnd(inputSpan, true);
     inputSpan.oninput = function () {
       inputSpan.oninput = null; // !
@@ -538,7 +578,7 @@ const Shell = function (
   };
 
   shell.onclick = function (e) {
-    if (!window.getSelection().isCollapsed) return;
+    if (!inputSpan || !window.getSelection().isCollapsed) return;
     let t = e.target as HTMLElement;
     while (t != shell) {
       if (
@@ -554,6 +594,7 @@ const Shell = function (
   };
 
   shell.onkeydown = function (e: KeyboardEvent) {
+    if (!inputSpan) return;
     removeAutoComplete(false); // remove autocomplete menu if open
     removeDelimiterHighlight();
     if ((e.target as HTMLElement).classList.contains("M2CellBar")) return;
@@ -645,6 +686,7 @@ const Shell = function (
   };
 
   shell.onkeyup = function (e) {
+    if (!inputSpan) return;
     if (
       document.activeElement == inputSpan &&
       window.getSelection().focusOffset == 0
@@ -678,7 +720,7 @@ const Shell = function (
   };
 
   const closeHtml = function () {
-    if (htmlSec == shell) return;
+    //    if (htmlSec == shell) return; // should never happen
 
     const anc = htmlSec.parentElement;
 
@@ -688,7 +730,10 @@ const Shell = function (
     if (htmlSec.contains(inputSpan)) attachElement(inputSpan, anc);
     // move back input element to outside htmlSec
 
-    if (htmlSec.classList.contains("M2Cell").childNodes == 2) {
+    if (
+      htmlSec.classList.contains("M2Cell") &&
+      htmlSec.childNodes.length == 2
+    ) {
       // reject empty cells
       htmlSec.remove();
       htmlSec = anc;
@@ -726,7 +771,7 @@ const Shell = function (
           } else {
             // more complicated
             if (!recurseReplace(htmlSec, subList[+id][0], subList[+id][1]))
-              console.log("error restoring html element");
+              console.log("Error restoring html element");
           }
         });
         htmlSec.removeAttribute("data-id-list");
@@ -765,7 +810,7 @@ const Shell = function (
     htmlSec = anc;
   };
 
-  obj.displayResult = function (msg: string) {
+  obj.displayOutput = function (msg: string) {
     if (procInputSpan !== null) {
       procInputSpan.remove();
       procInputSpan = null;
@@ -784,7 +829,17 @@ const Shell = function (
       if (i > 0) {
         const tag = txt[i - 1];
         if (tag == webAppTags.End) {
+          if (htmlSec.classList.contains("M2Cell"))
+            console.log("Warning: cell should close with CellEnd");
           // end of section
+          closeHtml();
+        } else if (tag === webAppTags.CellEnd) {
+          while (!htmlSec.classList.contains("M2Cell")) {
+            console.log("Warning: CellEnd used for non cell");
+            if (htmlSec == shell) return; // we're in trouble if that happens (shouldn't)
+            closeHtml();
+          }
+          // end of cell
           closeHtml();
         } else if (tag === webAppTags.InputContd) {
           // continuation of input section
@@ -792,7 +847,7 @@ const Shell = function (
         } else {
           // new section
           createHtml(webAppClasses[tag]);
-          if (tag === webAppTags.Input) {
+          if (tag === webAppTags.Input && inputSpan) {
             // input section: a bit special (ends at first \n)
             attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
           }
@@ -820,7 +875,7 @@ const Shell = function (
         if (htmlSec.dataset.code !== undefined) htmlSec.dataset.code += txt[i];
         //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // used to update in real time
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
-        else if (inputSpan.parentElement == htmlSec)
+        else if (inputSpan && inputSpan.parentElement == htmlSec)
           htmlSec.insertBefore(document.createTextNode(txt[i]), inputSpan);
         else htmlSec.appendChild(document.createTextNode(txt[i]));
       }
@@ -843,9 +898,10 @@ const Shell = function (
     placeCaretAtEnd(inputSpan);
   };
 
-  window.addEventListener("load", function () {
-    inputSpan.focus();
-  });
+  if (inputSpan)
+    window.addEventListener("load", function () {
+      inputSpan.focus();
+    });
 };
 
 export { Shell };
