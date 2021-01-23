@@ -16,8 +16,9 @@ const escapeHTML = (str) =>
     /*      .replace(/!\[([^\]]*)]\(([^(]+)\)/g, '<img alt="$1" src="$2">') */
     .replace(
       /(?<!\\)\[([^\]]+)(?<!\\)](?<!\\)\(([^(]+?)(?<!\\)\)/g,
-      "$1".link("$2")
-    ) // [a link](github.com)
+      "<a href='$2' target='_blank'>$1</a>"
+    )
+    // [a link](https://github.com)
     .replace(/(?<!\\)`((?:[^`]|(?<=\\)`)*)(?<!\\)`/g, "<code>$1</code>") // `R=QQ[x]`
     .replace(
       /(?<!\S)\*\*(?=\S)([^\r]*?\S)(?<!\\)\*\*(?!\S)/g,
