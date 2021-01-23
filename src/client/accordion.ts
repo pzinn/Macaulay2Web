@@ -45,7 +45,7 @@ const childrenTotalHeight = function (element) {
 };
 
 const appendTutorialToAccordion = function (
-  tmptitle,
+  title,
   blurb,
   lessons,
   index,
@@ -54,8 +54,8 @@ const appendTutorialToAccordion = function (
     e.stopPropagation();
   }
 ) {
-  const title = tmptitle.cloneNode(false);
-  title.className = cssClasses.title;
+  const titlespan = document.createElement("span"); //title.cloneNode(false);
+  titlespan.className = cssClasses.title;
   const icon = document.createElement("i");
   icon.innerHTML = cssClasses.titleSymbolActive;
   icon.className = cssClasses.titleSymbolClass;
@@ -66,10 +66,9 @@ const appendTutorialToAccordion = function (
     titlea.target = "_self";
   } else titlea.tabIndex = 0; // still want focus
   titlea.onclick = clickAction;
-  titlea.innerHTML = tmptitle.innerHTML;
-  title.appendChild(icon);
-  title.appendChild(titlea);
-  title.style.cursor = "pointer";
+  titlea.innerHTML = title.innerHTML;
+  titlespan.append(icon, titlea);
+  titlespan.style.cursor = "pointer";
 
   const div = document.createElement("div");
   div.style.overflow = "hidden";
@@ -81,20 +80,20 @@ const appendTutorialToAccordion = function (
     deleteButton.className = "material-icons saveDialogClose";
     deleteButton.textContent = "close";
     deleteButton.onclick = removeTutorial;
-    title.appendChild(deleteButton);
+    titlespan.appendChild(deleteButton);
   }
 
-  div.appendChild(title);
+  div.appendChild(titlespan);
 
   const ul = document.createElement("ul");
   ul.className = cssClasses.innerList;
   ul.innerHTML = blurb;
 
   let heightClosed, heightOpen;
-  title.onclick = function () {
-    title.classList.toggle(cssClasses.titleToggleClass);
+  titlespan.onclick = function () {
+    titlespan.classList.toggle(cssClasses.titleToggleClass);
     if (ul.style.display == "none") {
-      heightClosed = totalHeight(title);
+      heightClosed = totalHeight(titlespan);
       div.style.height = heightClosed + "px";
       ul.style.display = "block";
       setTimeout(function () {
@@ -103,7 +102,7 @@ const appendTutorialToAccordion = function (
       }, 1);
     } else
       div.style.height =
-        (title.classList.contains(cssClasses.titleToggleClass)
+        (titlespan.classList.contains(cssClasses.titleToggleClass)
           ? heightOpen
           : heightClosed) + "px";
   };
@@ -112,7 +111,7 @@ const appendTutorialToAccordion = function (
   for (let j = 0; j < lessons.length; j++) {
     li = document.createElement("li");
     a = document.createElement("a");
-    a.innerHTML = lessons[j].title;
+    a.innerHTML = lessons[j].title.innerHTML;
     a.href = "#tutorial-" + index + "-" + (j + 1);
     a.target = "_self";
     li.appendChild(a);
@@ -122,7 +121,6 @@ const appendTutorialToAccordion = function (
   div.appendChild(ul);
   const el = document.getElementById("accordion");
   const lastel = document.getElementById("loadTutorialMenu");
-  //    el.insertBefore(title,lastel);
   el.insertBefore(div, lastel);
   return div;
 };
