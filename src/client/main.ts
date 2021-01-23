@@ -78,8 +78,7 @@ const clickAction = function (e) {
       return;
     }
     if (
-      (t.tagName.substring(0, 4) == "CODE" ||
-        t.classList.contains("M2PastInput")) &&
+      (t.tagName == "CODE" || t.classList.contains("M2PastInput")) &&
       t.ownerDocument.getSelection().isCollapsed
     ) {
       e.stopPropagation();
