@@ -1,9 +1,6 @@
-/* eslint-env browser */
-/* eslint "new-cap": "off" */
-
 import { appendTutorialToAccordion, makeAccordion } from "./accordion";
 import { autoRender } from "./autoRender";
-import { mdtohtml } from "./md";
+import { mdToHTML } from "./md";
 
 interface Lesson {
   title: string; // <h1> element
@@ -15,6 +12,36 @@ interface Tutorial {
   current: number;
   lessons: Lesson[];
 }
+
+const sliceTutorial = function (theHtml) {
+  const result = {
+    lessons: [],
+    current: 0,
+    title: null,
+  };
+  const tutorial = document.createElement("div");
+  tutorial.innerHTML = theHtml;
+  const children = tutorial.children;
+  for (let i = 0; i < children.length; i++) {
+    if (children[i].tagName == "TITLE") {
+      result.title = document.createElement("h1");
+      result.title.innerHTML = children[i].innerHTML;
+    } else if (!result.title && children[i].tagName == "H1") {
+      result.title = children[i];
+    } else if (
+      children[i].tagName == "DIV" &&
+      children[i].childElementCount > 0
+    )
+      result.lessons.push({
+        title: children[i].firstElementChild.innerHTML,
+        html: children[i].innerHTML,
+      });
+  }
+  return result;
+};
+
+import tutorialsList from "./tutorialsList";
+const tutorials = tutorialsList.map(sliceTutorial);
 
 let lessonNr = 0;
 let tutorialNr = 0;
@@ -71,36 +98,6 @@ const loadLessonIfChanged = function (
     loadLesson(tutorialid, lessonid);
 };
 
-const sliceTutorial = function (theHtml) {
-  const result = {
-    lessons: [],
-    current: 0,
-    title: null,
-  };
-  const tutorial = document.createElement("div");
-  tutorial.innerHTML = theHtml;
-  const children = tutorial.children;
-  for (let i = 0; i < children.length; i++) {
-    if (children[i].tagName == "TITLE") {
-      result.title = document.createElement("h1");
-      result.title.innerHTML = children[i].innerHTML;
-    } else if (!result.title && children[i].tagName == "H1") {
-      result.title = children[i];
-    } else if (
-      children[i].tagName == "DIV" &&
-      children[i].childElementCount > 0
-    )
-      result.lessons.push({
-        title: children[i].firstElementChild.innerHTML,
-        html: children[i].innerHTML,
-      });
-  }
-  return result;
-};
-
-import tutorialsList from "./tutorialsList";
-const tutorials = tutorialsList.map(sliceTutorial);
-
 /*
 const getTutorial = function (url) {
   return fetch(url, {
@@ -143,7 +140,7 @@ const makeTutorialsList = function (tutorialNames) {
 */
 
 const markdownToHtml = function (markdownText) {
-  const txt = mdtohtml(markdownText, null, "p");
+  const txt = mdToHTML(markdownText, null, "p");
   return txt.replace("</h1>", "</h1><div>").replace(/<h2>/g, "</div><div><h2>");
 };
 

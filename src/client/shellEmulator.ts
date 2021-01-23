@@ -685,7 +685,7 @@ const Shell = function (
     }
   };
 
-  shell.onkeyup = function (e) {
+  shell.onkeyup = function () {
     if (!inputSpan) return;
     if (
       document.activeElement == inputSpan &&

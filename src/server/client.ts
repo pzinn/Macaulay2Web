@@ -1,5 +1,4 @@
 import { Instance } from "./instance";
-import { webAppTags } from "../common/tags";
 import ssh2 = require("ssh2");
 
 export class Client {

@@ -82,13 +82,6 @@ const toggleWrap = function () {
 
   let fileName = "default.m2";
 
-  const loadFile = function () {
-    const dialog = document.createElement("input");
-    dialog.setAttribute("type", "file"),
-      dialog.addEventListener("change", loadFileProcess, false);
-    dialog.click();
-  };
-
   const loadFileProcess = function (event) {
     if (event.target.files.length > 0) {
       const fileToLoad = event.target.files[0];
@@ -111,6 +104,12 @@ const toggleWrap = function () {
       }
     }
   };
+  const loadFile = function () {
+    const dialog = document.createElement("input");
+    dialog.setAttribute("type", "file"),
+      dialog.addEventListener("change", loadFileProcess, false);
+    dialog.click();
+  };
 
   const saveFile = function () {
     const content = editor.innerText as string;
@@ -127,17 +126,6 @@ const toggleWrap = function () {
     inputParagraph.setAttribute("href", inputLink);
     inputParagraph.setAttribute("download", fileName); // reuses the last loaded file name
     inputParagraph.click();
-  };
-
-  const attachCtrlBtnActions = function () {
-    attachClick("sendBtn", editorEvaluate);
-    attachClick("resetBtn", emitReset);
-    attachClick("interruptBtn", myshell.interrupt);
-    attachClick("saveBtn", saveFile);
-    attachClick("loadBtn", loadFile);
-    attachClick("hiliteBtn", hilite);
-    attachClick("clearBtn", clearOut);
-    //  attachClick("wrapBtn", toggleWrap);
   };
 
   const hilite = function () {
@@ -157,6 +145,17 @@ const toggleWrap = function () {
     Prism.highlight(txt, Prism.languages.macaulay2)
   );
 */
+  };
+
+  const attachCtrlBtnActions = function () {
+    attachClick("sendBtn", editorEvaluate);
+    attachClick("resetBtn", emitReset);
+    attachClick("interruptBtn", myshell.interrupt);
+    attachClick("saveBtn", saveFile);
+    attachClick("loadBtn", loadFile);
+    attachClick("hiliteBtn", hilite);
+    attachClick("clearBtn", clearOut);
+    //  attachClick("wrapBtn", toggleWrap);
   };
 
   const showUploadSuccessDialog = function (event) {
@@ -248,7 +247,7 @@ const toggleWrap = function () {
     const cookies = Cookie.parse(document.cookie);
     const cookie = cookies[options.cookieAliasName];
     chatAlias.value = cookie ? cookie : options.defaultAlias;
-    chatAlias.onchange = function (e) {
+    chatAlias.onchange = function () {
       const alias = chatAlias.value.trim();
       chatAlias.value =
         alias === options.adminAlias ||

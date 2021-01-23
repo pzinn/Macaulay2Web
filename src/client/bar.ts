@@ -40,11 +40,11 @@ const removeEl = (el) => {
 const wrapEl = (el) => el.classList.toggle("M2Wrapped");
 const groupEl = (el) => group.appendChild(el);
 const closeEl = (el) => el.classList.toggle("M2CellClosed");
+const copyEl = (el) => cutList.push(el);
 const cutEl = (el) => {
   copyEl(el);
   removeEl(el);
 };
-const copyEl = (el) => cutList.push(el);
 
 const barActions = {
   delete: ["Del", "Delete", removeEl],

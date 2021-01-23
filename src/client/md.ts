@@ -11,7 +11,7 @@ const escapeHTML = (str) =>
         '"': "&quot;",
       }[tag])
   );
-const mdreplace = function (str: string) {
+const mdReplace = function (str: string) {
   const pieces = escapeHTML(str).split("\t"); // \t to prevent any markdown changes
   for (let i = 0; i < pieces.length; i += 2)
     pieces[i] = pieces[i]
@@ -36,10 +36,10 @@ const mdreplace = function (str: string) {
   return pieces.join("\t");
 };
 
-const cut = (s, x) => mdreplace(s.substring(x[0].length));
+const cut = (s, x) => mdReplace(s.substring(x[0].length));
 const patterns = [
-  { pattern: /^\*\s/, tag: "ul", linetag: (x) => "li", proc: cut },
-  { pattern: /^\d+\.\s/, tag: "ol", linetag: (x) => "li", proc: cut },
+  { pattern: /^\*\s/, tag: "ul", linetag: () => "li", proc: cut },
+  { pattern: /^\d+\.\s/, tag: "ol", linetag: () => "li", proc: cut },
   {
     pattern: /^#+\s/,
     tag: null,
@@ -49,12 +49,12 @@ const patterns = [
   {
     pattern: /^\|/,
     tag: "table",
-    linetag: (x) => "tr",
-    proc: (s, x) => {
+    linetag: () => "tr",
+    proc: (s) => {
       if (s.startsWith("|")) s = s.substring(1); // always true
       if (s.endsWith("|")) s = s.substring(0, s.length - 1);
-      return "<td>" + mdreplace(s).replace(/\|/g, "</td><td>") + "</td>";
-    }, // bit of a mess
+      return "<td>" + mdReplace(s).replace(/\|/g, "</td><td>") + "</td>";
+    },
   },
   {
     pattern: /^```/,
@@ -64,7 +64,7 @@ const patterns = [
   },
 ];
 
-const mdtohtml = function (src, sep, doublesep) {
+const mdToHTML = function (src, sep, doublesep) {
   // e.g. sep = null or "br", doublesep = null or "p"
   const lines = src.split(/\n|\u21B5/);
   let res = "";
@@ -110,7 +110,7 @@ const mdtohtml = function (src, sep, doublesep) {
         doublesepopen = true;
       }
       res +=
-        mdreplace(s) + (sep && n < lines.length - 1 ? "<" + sep + ">" : "\n");
+        mdReplace(s) + (sep && n < lines.length - 1 ? "<" + sep + ">" : "\n");
     } else if (doublesepopen) {
       res += "</" + doublesep + ">";
       doublesepopen = false;
@@ -121,4 +121,4 @@ const mdtohtml = function (src, sep, doublesep) {
   return res;
 };
 
-export { mdtohtml };
+export { mdToHTML };

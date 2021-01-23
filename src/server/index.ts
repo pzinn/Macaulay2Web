@@ -8,6 +8,10 @@ import { mathServer } from "./server";
 
 const logger = require("./logger");
 
+const usage = function (): void {
+  logger.info("Usage: node dist/server/index.js {local|docker|ssh} [port]");
+};
+
 logger.info("Macaulay2Web version " + options.version);
 
 if (n > 2) {
@@ -19,10 +23,6 @@ if (n > 4) {
   logger.error("Too many options");
   usage();
   process.exit(0);
-}
-
-function usage(): void {
-  logger.info("Usage: node dist/server/index.js {local|docker|ssh} [port]");
 }
 
 // Dirname is dist.
