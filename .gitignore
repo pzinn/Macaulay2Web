@@ -26,4 +26,3 @@ node_modules
 id_rsa*
 docker_key*
 host_key*
-package-lock.json
