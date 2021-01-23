@@ -19,18 +19,10 @@ import fs = require("fs");
 import Cookie = require("cookie");
 
 import ssh2 = require("ssh2");
-import SocketIOFileUpload = require("socketio-file-upload");
-/*
-const httpsOptions = {
-  key: fs.readFileSync("https/key.pem"),
-  cert: fs.readFileSync("https/cert.pem"),
-};
-const httpsModule = require("https");
-const https = httpsModule.createServer(httpsOptions, app);
-io.attach(https);
-*/
+import socketioFileUpload = require("socketio-file-upload");
+
 import socketio = require("socket.io");
-let io: SocketIO.Server; // = socketio(http);
+let io: SocketIO.Server; // = socketio(http, { pingTimeout: 30000 });
 
 const greenlock = require("greenlock-express");
 
@@ -152,17 +144,6 @@ const getInstance = function (client: Client, next) {
     }
   }
 };
-
-/*
-export {
-  emitOutputViaClientSockets,
-  serverConfig,
-  clients,
-  getInstance,
-  instanceManager,
-  sendDataToClient,
-};
-*/
 
 const optLogCmdToFile = function (clientId: string, msg: string) {
   if (serverConfig.CMD_LOG_FOLDER) {
@@ -351,7 +332,7 @@ const initializeServer = function () {
   //  const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM); // retired
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
-  app.use(SocketIOFileUpload.router);
+  app.use(socketioFileUpload.router);
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
   app.use(serveStatic(staticFolder));
@@ -649,14 +630,13 @@ const validateId = function (s): string {
   else return s;
 };
 
-const listen = function () {
-  const httpsWorker = function (glx) {
-    const server = glx.httpsServer();
+const httpsWorker = function (glx) {
+  const server = glx.httpsServer();
 
-    io = socketio(server, { pingTimeout: 30000 });
+  io = socketio(server, { pingTimeout: 30000 });
 
-    io.on("connection", function (socket: SocketIO.Socket) {
-      logger.info("Incoming new connection!");
+  io.on("connection", function (socket: SocketIO.Socket) {
+    logger.info("Incoming new connection!");
     const version = socket.handshake.query.version;
     if (options.version && version != options.version) {
       safeSocketEmit(
@@ -666,45 +646,41 @@ const listen = function () {
       );
       return; // brutal
     }
-      const publicId = validateId(socket.handshake.query.publicId);
-      const userId = validateId(socket.handshake.query.userId);
-      let clientId: string;
-      if (publicId !== undefined) {
-        clientId = "public";
-      } else if (userId !== undefined) {
-        clientId = "user" + userId;
-        setCookieOnSocket(socket, clientId); // overwrite cookie if necessary
-      } else {
-        clientId = getClientIdFromSocket(socket);
-        if (clientId === undefined)
-          // need new one
-          clientId = initializeClientId(socket);
-      }
-      logClient(clientId, "Assigned clientId");
-      if (clientId === "deadCookie") {
-        logger.info("Disconnecting for dead cookie.");
-        disconnectSocket(socket);
-        return;
-      }
-      const client = clientExistenceCheck(clientId, socket);
-      sanitizeClient(client);
-      addNewSocket(client, socket);
-      const fileUpload = require("./fileUpload")(logger.info, sshCredentials);
-      fileUpload.attachUploadListenerToSocket(client, socket);
-      socket.on("input", socketInputAction(socket, client));
-      socket.on("reset", socketResetAction(client));
-      socket.on("chat", socketChatAction(socket, client));
-      socket.on("restore", socketRestoreAction(socket, client));
-    });
+    const publicId = validateId(socket.handshake.query.publicId);
+    const userId = validateId(socket.handshake.query.userId);
+    let clientId: string;
+    if (publicId !== undefined) {
+      clientId = "public";
+    } else if (userId !== undefined) {
+      clientId = "user" + userId;
+      setCookieOnSocket(socket, clientId); // overwrite cookie if necessary
+    } else {
+      clientId = getClientIdFromSocket(socket);
+      if (clientId === undefined)
+        // need new one
+        clientId = initializeClientId(socket);
+    }
+    logClient(clientId, "Assigned clientId");
+    if (clientId === "deadCookie") {
+      logger.info("Disconnecting for dead cookie.");
+      disconnectSocket(socket);
+      return;
+    }
+    const client = clientExistenceCheck(clientId, socket);
+    sanitizeClient(client);
+    addNewSocket(client, socket);
+    const fileUpload = require("./fileUpload")(logger.info, sshCredentials);
+    fileUpload.attachUploadListenerToSocket(client, socket);
+    socket.on("input", socketInputAction(socket, client));
+    socket.on("reset", socketResetAction(client));
+    socket.on("chat", socketChatAction(socket, client));
+    socket.on("restore", socketRestoreAction(socket, client));
+  });
 
-    glx.serveApp(app);
-  };
+  glx.serveApp(app);
+};
 
-  /*
-  const listener = http.listen(serverConfig.port);
-  const listener2 = https.listen(serverConfig.port2);
-  */
-
+const listen = function () {
   greenlock
     .init({
       packageRoot: path.join(__dirname, "/../.."),
