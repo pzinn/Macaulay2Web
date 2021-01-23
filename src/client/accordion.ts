@@ -15,6 +15,11 @@ const cssClasses = {
   titleHref: "menuTitle mdl-button mdl-js-button mdl-button-raised",
 };
 
+const removeTutorial = function (e) {
+  e.stopPropagation();
+  e.currentTarget.parentElement.parentElement.remove();
+};
+
 const doUptutorialClick = function (e) {
   e.stopPropagation();
   const uptute = document.getElementById("uptutorial") as HTMLInputElement;
@@ -123,7 +128,7 @@ const appendTutorialToAccordion = function (
 };
 
 const appendLoadTutorialMenuToAccordion = function () {
-  const title = document.createElement("h3");
+  const title = document.createElement("h1");
   title.innerHTML = "Load Your Own Tutorial";
   appendTutorialToAccordion(
     title,
@@ -136,7 +141,6 @@ const appendLoadTutorialMenuToAccordion = function () {
 };
 
 const makeAccordion = function (tutorials) {
-  const accel = document.getElementById("accordion");
   for (let i = 0; i < tutorials.length; i++)
     appendTutorialToAccordion(
       tutorials[i].title,
@@ -146,11 +150,6 @@ const makeAccordion = function (tutorials) {
       false
     );
   appendLoadTutorialMenuToAccordion();
-};
-
-const removeTutorial = function (e) {
-  e.stopPropagation();
-  e.currentTarget.parentElement.parentElement.remove();
 };
 
 export { appendTutorialToAccordion, makeAccordion };

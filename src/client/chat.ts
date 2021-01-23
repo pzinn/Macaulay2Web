@@ -2,7 +2,7 @@ import { scrollDown } from "./htmlTools";
 import { socket } from "./main";
 import { Chat } from "../common/chatClass";
 import { autoRender } from "./autoRender";
-import { mdtohtml } from "./md";
+import { mdToHTML } from "./md";
 
 const deleteChat = function (h) {
   const el = document.getElementById("message-" + h);
@@ -57,7 +57,7 @@ const chatAction = function (msg: Chat, index?) {
     s2.className = msg.type + "-" + msg.alias;
     const s3 = document.createElement("span");
     //  s3.textContent = msg.message;
-    const test = mdtohtml(msg.message, "br", null);
+    const test = mdToHTML(msg.message, "br", null);
     s3.innerHTML = test;
     autoRender(s3);
     const recipients = msg.recipients

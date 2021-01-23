@@ -39,7 +39,7 @@
 <p><code class='block'>1/i</code></p>
 <p>
     Computation is often fastest and needs least
-    memory when performed over finite prime fields of the form 
+    memory when performed over finite prime fields of the form
     $\ZZ/p$.
     Fortunately, when the characteristic $p$ is not too small,
     qualitative questions often have similar answers over
@@ -74,7 +74,7 @@
 <p><code class='block'>use S</code></p>
 <p><code class='block'>I=ideal"3(a+b)3, 4c5"</code></p>
 <p>
-    Note the command "use S", which specifies 
+    Note the command <tt>use S</tt>, which specifies
     that we want to work with the generators of the polynomial ring $S$ again;
     otherwise the variables $a$, $b$, and $c$
     would still have had values in $R$ instead of in $S$.
@@ -86,24 +86,24 @@
 <p><code class='block'>I*I</code></p>
 <p><code class='block'>I+ideal"a2"</code></p>
 <p>
-    In case you forget any of these things, \({\tt help}\) is available! The most
+    In case you forget any of these things, <tt>help</tt> is available! The most
     useful way to get it is often to type something like:
 </p>
 <p><code class='block'>viewHelp ideal</code></p>
 <p>
-    Then a browser window will pop up that contains documentation about the function 
-    \({\tt ideal}\) that we've been using; links on that page allow one to explore 
+    Then a browser window (or the browse tab) will pop up that contains documentation about the function
+    <tt>ideal</tt> that we've been using; links on that page allow one to explore
     all of the \(\mac\) documentation.
 </p>
 <p>
-    On the other hand, we might have wanted information about the \({\tt class}\) of all ideals.
-    Not too surprisingly, this class is called \({\tt Ideal}\). We could get information about
+    On the other hand, we might have wanted information about the <tt>class</tt> of all ideals.
+    Not too surprisingly, this class is called <tt>Ideal</tt>. We could get information about
     what functions create or use ideals by typing:
 </p>
 <p><code class='block'>viewHelp Ideal</code></p>
 <p>
     To see the names of classes, you can begin by looking at the output
-    of commands; the second line output (the one introduced by a colon) often contains the name of the 
+    of commands; the second line output (the one introduced by a colon) often contains the name of the
     class of the result.
 </p>
 <p>
@@ -120,12 +120,12 @@
 <p><code class='block'>entries M</code></p>
 <p>
     The result is a list of lists, one for each row of the matrix $M$.
-    The function \({\tt flatten}\) can be used to merge the
+    The function <tt>flatten</tt> can be used to merge the
     lists into a single list:
 </p>
 <p><code class='block'>flatten entries M</code></p>
 <p>
-    If you want a particular entry, say the one in the upper left corner, 
+    If you want a particular entry, say the one in the upper left corner,
     you can use the underscore operator.
 </p>
 <p><code class='block'>M_(0,0)</code></p>
@@ -149,10 +149,10 @@
 <p><code class='block'>subquotient(M,N)</code></p>
 <p>
     Note that the matrix $N$ above was defined with an
-    alternate syntax, parallel to the alternate syntax for \({\tt ideal}\).
+    alternate syntax, parallel to the alternate syntax for <tt>ideal</tt>.
 </p>
 <p>
-    Before going on, the reader might want to explore a bit. A good place to 
+    Before going on, the reader might want to explore a bit. A good place to
     start is the top of the documentation tree, which can be reached, for
     example, by typing:
 </p>
@@ -176,14 +176,14 @@
 </p>
 <p><code class='block'>I = ideal(x^2*y,x*y^2+x^3)</code></p>
 <p>
-    Now the punch line.  We compute the Gröbner basis with the \({\tt groebnerBasis}\) function:
+    Now the punch line.  We compute the Gröbner basis with the <tt>groebnerBasis</tt> function:
 </p>
 <p><code class='block'>J = groebnerBasis I</code></p>
 <p>
     Gröbner bases are always computed with respect to a particular
     monomial order on the ring. In fact, the ring we defined above has
     a default monomial order, the graded reverse lex order. For many
-    other possibilities, see \({\tt MonomialOrder}\):
+    other possibilities, see <tt>MonomialOrder</tt>:
 </p>
 <p><code class='block'>viewHelp MonomialOrder</code></p>
 <p>
@@ -199,7 +199,7 @@
 <p><code class='block'>primaryDecomposition I</code></p>
 <p>
     Inspecting the output, we see that the first two ideals
-    are the same as the first two ideals we intersected, but the 
+    are the same as the first two ideals we intersected, but the
     third one differs from the corresponding input ideal.
     This is because only the primary components corresponding
     to minimal primes (here, the first two) are unique. All three of the input ideals
@@ -209,14 +209,14 @@
 <p>
     For larger examples, primary decomposition is computationally challenging!
     Sometimes it is easier to compute just the minimal primes. To do
-    this we can use \({\tt decompose}\): 
+    this we can use <tt>decompose</tt>:
 </p>
 <p><code class='block'>decompose I</code></p>
 <p>
-    Using Gröbner bases we can compute 
+    Using Gröbner bases we can compute
     codimensions, dimensions,
     degrees, Hilbert
-    functions, and Hilbert polynomials.  
+    functions, and Hilbert polynomials.
     This will be more fun if we work with a
     meaningful example.  We will use
     the ideal defining the smooth
@@ -224,7 +224,7 @@
     parametrically (in an affine representation)
     by $$t \mapsto{} (t,t^3,t^4).$$
     (The reader more interested in algebra than geometry
-    may simply treat the ideal given below as a 
+    may simply treat the ideal given below as a
     gift from the gods.)
     First we make the
     polynomial ring in 4 variables, to serve as the
@@ -232,32 +232,32 @@
 </p>
 <p><code class='block'>R = kk[a..d]</code></p>
 <p>
-    We introduce the ring map $\phi: R \to kk[s,t]$ defined by 
-    $(a,b,c,d) \mapsto{} (s^4, s^3 t, s t^3, t^4)$:         
+    We introduce the ring map $\phi: R \to \mathbb{k}[s,t]$ defined by
+    $(a,b,c,d) \mapsto{} (s^4, s^3 t, s t^3, t^4)$:
 </p>
 <p><code class='block'>phi = map(kk[s,t],R,{s^4, s^3*t, s*t^3, t^4})</code></p>
 <p>
-    Here the syntax of the function \({\tt map}\) has the target ring first and the source ring second:
+    Here the syntax of the function <tt>map</tt> has the target ring first and the source ring second:
     maps in \(\mac\) generally go from right to left!
-    The last input to the command is a 
+    The last input to the command is a
     list of the elements to which to send the variables of the source ring.
     The ideal we want is the kernel of this map:
 </p>
 <p><code class='block'>I = ker phi</code></p>
 <p>
-    Shortcut notation for this construction is provided by the function 
-    \({\tt monomialCurveIdeal}\):
+    Shortcut notation for this construction is provided by the function
+    <tt>monomialCurveIdeal</tt>:
 </p>
 <p><code class='block'>I = monomialCurveIdeal(R,{1,3,4})</code></p>
 <p>
-    We can compute the \({\tt dimension}\), \({\tt codimension}\) (also called the
-    height) and \({\tt degree}\) of this ideal:
+    We can compute the <i>dimension</i>, <i>codimension</i> (also called the
+    height) and <i>degree</i> of this ideal:
 </p>
 <p><code class='block'>dim I</code></p>
 <p><code class='block'>codim I</code></p>
 <p><code class='block'>degree I</code></p>
 <p>
-    The Hilbert polynomial is obtained with the function \({\tt hilbertPolynomial}\):
+    The Hilbert polynomial is obtained with the function <tt>hilbertPolynomial</tt>:
 </p>
 <p><code class='block'>hilbertPolynomial(R/I)</code></p>
 <p>
@@ -278,8 +278,8 @@
 <p><code class='block'>hilbertPolynomial(R/I, Projective => false)</code></p>
 <p>
     The construction <tt>Projective => false</tt> is our first example of
-    an \({\it option}\) to a function: we specified that the option 
-    \({\tt Projective}\) was to have the value \({\tt false}\).
+    an <i>option</i> to a function: we specified that the option
+    <tt>Projective</tt> was to have the value <tt>false</tt>.
     The form we used first could also have been written this way:
 </p>
 <p><code class='block'>hilbertPolynomial(R/I, Projective => true)</code></p>
@@ -292,38 +292,38 @@
 <p>
     This generating function is expressed
     as a rational function with denominator equal to $(1-T)^n$, where
-    n is the number of variables in R. 
+    n is the number of variables in R.
     Since $R/I$ has dimension 2, it can also be written
-    with denominator $(1-T)^2$. To see it in this form, use \({\tt reduceHilbert}\):
+    with denominator $(1-T)^2$. To see it in this form, use <tt>reduceHilbert</tt>:
 </p>
 <p><code class='block'>reduceHilbert hilbertSeries (R/I)</code></p>
 <p>
     It is possible to manipulate the numerator and denominator of this
-    expression. To learn how to do so, see \({\tt hilbertSeries}\):
+    expression. To learn how to do so, see <tt>hilbertSeries</tt>:
 </p>
 <p><code class='block'>viewHelp hilbertSeries</code></p>
 <p>
     A great deal of subtle information about a module is visible using
     free resolutions. For an example, we begin
-    by turning $R/I$ into a module. Here the code \({\tt R^1}\) produces the free module of
-    rank 1 over $R$, and \({\tt res}\) computes a free resolution:
+    by turning $R/I$ into a module. Here the code <tt>R^1</tt> produces the free module of
+    rank 1 over $R$, and <tt>res</tt> computes a free resolution:
 </p>
 <p><code class='block'>M=R^1/I</code></p>
 <p><code class='block'>Mres = res M</code></p>
 <p>
-    To get more precise information about \({\tt Mres}\),
-    we could compute its Betti table with \({\tt betti}\):
+    To get more precise information about <tt>Mres</tt>,
+    we could compute its Betti table with <tt>betti</tt>:
 </p>
 <p><code class='block'>betti Mres</code></p>
 <p>
     The display is chosen for compactness. Each column of the
     table corresponds
     to a free module in the resolution. The column's heading
-    specifies the \({\it homological\ degree}\) (the position of the free
+    specifies the <i>homological degree</i> (the position of the free
     module in the resolution).
     The entry just below the homological degree
     is the rank of the free module, also called the
-    \({\it total\ betti\ number}\). The remaining entries in the column
+    <i>total Betti number</i>. The remaining entries in the column
     tell us how many generators of each degree this free
     module has: the number in the column labelled $j$ and in the row labelled $d$
     tells how many generators of degree $j+d$ the $j$-th free module has.
@@ -347,7 +347,7 @@
     ideal, allowing one, for example, to decide whether
     the element is in the ideal.
     For example, we can decide which power of the trace
-    of a generic 3x3 matrix is expressible in terms of the entries of the 
+    of a generic 3x3 matrix is expressible in terms of the entries of the
     cube of the matrix with the following code:
 </p>
 <p><code class='block'>R = kk[a..i]</code></p>
@@ -355,7 +355,7 @@
 <p><code class='block'>I = ideal M^3</code></p>
 <p>
     This gives the ideal of entries of the matrix. In the expression
-    "M = genericMatrix(R,a,3,3)" the arguments \({\tt R,a,3,3}\) specify the
+    <tt>M = genericMatrix(R,a,3,3)</tt> the arguments <tt>R,a,3,3</tt> specify the
     ring, the first variable to use, and the numbers of rows and columns
     desired.
 </p>
@@ -364,23 +364,23 @@
 <p>
     The expression <tt>Tr^p % I</tt> computes the normal form for the $p$-th power
     of the trace <tt>Tr</tt> with respect to the Gröbner basis of $I$.
-    The expression "for p from 1 to 10 do" specifies a 
-    <tt>for</tt> loop that executes the following expression, "print (Tr^p % I)",
+    The expression <tt>for p from 1 to 10 do</tt> specifies a
+    <tt>for</tt> loop that executes the following expression, <tt>print (Tr^p % I)</tt>,
     with 10 consecutive values of $p$. For more information on such loops see <tt>for</tt>
     or type:
 </p>
 <p><code class='block'>viewHelp "for"</code></p>
 <p>
-    Here we have put quotes around "for" because
-    "for" is a keyword in the \(\mac\) language.  (In general, it's always safe to use
-    quotes with viewHelp.)
+    Here we have put quotes around <tt>for</tt> because
+    <tt>for</tt> is a keyword in the \(\mac\) language.  (In general, it's always safe to use
+    quotes with <tt>viewHelp</tt>.)
 </p>
 <p>
     We see from the output of these commands that the 6-th power
     of the trace is NOT in the ideal of entries of the cube of M,
-    but the 7-th power is. We can compute the coefficients in the expression for it 
-    using the division algorithm, denoted in this setting by 
-    \({\tt //}\):
+    but the 7-th power is. We can compute the coefficients in the expression for it
+    using the division algorithm, denoted in this setting by
+    <tt>//</tt>:
 </p>
 <p><code class='block'>Tr^7//(gens I)</code></p>
 </div>
@@ -390,7 +390,7 @@
     Consider the problem of projecting the
     twisted cubic, a curve in $\PP^3$ defined
     by the three $2 \times{} 2$ minors of a certain
-    $2 \times{} 3$ matrix.  
+    $2 \times{} 3$ matrix.
     We already have the simplest tools for solving
     such a problem.
     We first clear the earlier meaning of $x$
@@ -417,12 +417,12 @@
 <p><code class='block'>pideal = ideal(x_0+x_3, x_1, x_2)</code></p>
 <p>
     The ideal $J$ of the image of the curve under the projection from this point
-    is the kernel of the ring map $S=kk[u,v,w] \to R/I$
+    is the kernel of the ring map $S=\mathbb{k}[u,v,w] \to R/I$
     sending the variables
-    of S to the generators of \({\tt pIdeal}\),
+    of S to the generators of <tt>pideal</tt>,
     regarded as elements of $R/I$.  This is the same as the more usual formulation:
-    $$J = I \cap{} kk[x_0+x_3, x_1, x_x]$$ 
-    To compute this we first substitute \({\tt pIdeal}\) into $R/I$, and then form
+    $$J = I \cap{} \mathbb{k}[x_0+x_3, x_1, x_x]$$
+    To compute this we first substitute <tt>pideal</tt> into $R/I$, and then form
     the necessary ring map:
 </p>
 <p><code class='block'>Rbar = R/I</code></p>
@@ -440,14 +440,14 @@
 </p>
 <p><code class='block'>saturate K</code></p>
 <p>
-    We have just seen the \({\tt saturate}\) function in its most
+    We have just seen the <tt>saturate</tt> function in its most
     common use: to saturate with respect to the maximal ideal.
     but we can also find the saturation of any ideal with
     respect to another:
 </p>
 <p><code class='block'>saturate (ideal"u3w,uv", ideal"u")</code></p>
 <p>
-    We can also take the \({\it ideal\ quotient}\) $I:J$ of an ideal $I$ with
+    We can also take the <i>ideal quotient</i> $I:J$ of an ideal $I$ with
     respect to another, $J$
     defined as the set of elements $f$ such that
     $fJ$ is contained in $I$:
@@ -458,13 +458,13 @@
     <h2>Defining functions and loading packages</h2>
 <p>
     It is easy to define your own functions in \(\mac\), and this
-    can save a lot of typing. Functions are defined with the 
-    symbol ->. For example, the famous <i>Collatz Conjecture</i>
+    can save a lot of typing. Functions are defined with the
+    symbol <tt>-></tt>. For example, the famous <i>Collatz Conjecture</i>
     (also called the "hailstone problem") asks
     about the following procedure: given an integer $n$, divide it
-    by 2 if possible, or else multiply by 3 and add 1. 
+    by 2 if possible, or else multiply by 3 and add 1.
     If we repeat this over and over,
-    does the process always reach 1?  Here is a function that 
+    does the process always reach 1?  Here is a function that
     performs the Hailstone procedure again and again,
     producing a list of the intermediate results.
 </p>
@@ -480,32 +480,30 @@
 <p><code class='block'>viewHelp Function</code></p>
 <p><code class='block'>viewHelp "while"</code></p>
 <p>
-    In order to understand a process it is often useful to tabulate the 
+    In order to understand a process it is often useful to tabulate the
     results of applying it many times. One feature of the Collatz process
     is how many steps it takes to get to 1. We can tabulate this statistic
-    for the first 25 values of n with the function \({\tt tally}\), as follows:
+    for the first 25 values of n with the function <tt>tally</tt>, as follows:
 </p>
 <p><code class='block'>tally for n from 1 to 30 list length Collatz n</code></p>
 <p>
-    A line of the form
-</p>
-<p>
+    An entry of the form "\(18\,\Rightarrow\,3\)"
     in the result means that a Collatz sequence of length 18
-    was seen 3 times. 
-    To see the successive "record-breakers", 
+    was seen 3 times.
+    To see the successive "record-breakers",
     that is, the numbers with longer Collatz sequences than any
     number before them, we might try:
 </p>
 <p><code class='block'>record = length Collatz 1</code></p>
 <p><code class='block'>L = for n from 2 to 1000 list (
         l := length Collatz n;
-        if l > record 
+        if l > record
           then (record = l; (n,l))
           else continue)</code></p>
 <p>
-    If you want to see a list of just the successive records, 
-    you can apply the 
-    function \({\tt last}\) to each element of the list $L$. 
+    If you want to see a list of just the successive records,
+    you can apply the
+    function <tt>last</tt> to each element of the list $L$.
     A convenient way to do this is with this syntax:
 </p>
 <p><code class='block'>L/last</code></p>
@@ -513,11 +511,11 @@
     Note that in
     writing functions of more than one expression (usually
     there's one expression per line), the expressions must be
-    separated by semicolons. For example in the "for" loop
-    above, the first expression was \({\tt l = length\ Collatz\ n}\).
+    separated by semicolons. For example in the <tt>for</tt> loop
+    above, the first expression was <tt>l = length Collatz n</tt>.
     After the last expression of an input line or of a function body,
     a semicolon suppresses output, useful when the output
-    would be large.         
+    would be large.
 </p>
 <p>
     There are many packages of ready-made functions available for
@@ -526,17 +524,17 @@
 </p>
 <p><code class='block'>viewHelp "packages provided with Macaulay2"</code></p>
 <p>
-    For example, there is a package called \({\tt EdgeIdeals}\). 
+    For example, there is a package called <tt>EdgeIdeals</tt>.
     To load the package, use:
 </p>
 <p><code class='block'>needsPackage "EdgeIdeals"</code></p>
 <p>
-    After loading it, you can view its documentation with 
+    After loading it, you can view its documentation with
 </p>
 <p><code class='block'>viewHelp EdgeIdeals</code></p>
 <p>
-    or you can call its functions, 
-    such as \({\tt randomGraph}\) and \({\tt edgeIdeal}\):
+    or you can call its functions,
+    such as <tt>randomGraph</tt> and <tt>edgeIdeal</tt>:
 </p>
 <p><code class='block'>R = kk[vars(0..10)]</code></p>
 <p><code class='block'>G=randomGraph (R,20)</code></p>
@@ -544,13 +542,13 @@
 <p><code class='block'>hilbertSeries K</code></p>
 <p><code class='block'>betti res K</code></p>
 <p>
-    When testing a conjecture  one sometimes wants to run a 
+    When testing a conjecture  one sometimes wants to run a
     large number of randomly chosen
     examples.
     Here's some typical code that one might use to study
-    a random graph ideal.  First we use "for ... list ..." to construct a list $L$
+    a random graph ideal.  First we use "<tt>for</tt> ... <tt>list</tt> ..." to construct a list $L$
     and suppress its printing by ending the line that creates
-    it with a ";".  Each entry of $L$ is a triple consisting of the
+    it with a "<tt>;</tt>".  Each entry of $L$ is a triple consisting of the
     codimension, degree, and Betti table of a random graph ideal
     on 10 vertices having only 4 edges.
 </p>
@@ -559,7 +557,7 @@
     I = edgeIdeal randomGraph (R,5);
     (codim I, degree I, betti res I));</code></p>
 <p>
-    We can use \({\tt tally}\) to find out how many examples
+    We can use <tt>tally</tt> to find out how many examples
     were found with each combination of codimension and degree and Betti table.
 </p>
 <p><code class='block'>tally L</code></p>
@@ -574,7 +572,7 @@
     \(\mac\) can compute the homology of complexes;
     for example, let's compute the homology of a
     Koszul complex that is not a resolution:
-    $$ {\bf K}(x^2, x y^2):\ \  0 \rightarrow{} S(-5) \rightarrow{} S(-2)\oplus S(-3) \rightarrow{} S \rightarrow 0 $$
+    $$ \mathbf{K}(x^2, x y^2):\ \  0 \rightarrow{} S(-5) \rightarrow{} S(-2)\oplus S(-3) \rightarrow{} S \rightarrow 0 $$
     The free module $S(-2) \oplus{} S(-3)$ can be defined with this
     syntax:
 </p>
@@ -594,7 +592,7 @@
 </p>
 <p><code class='block'>(ker phi1)/(image phi2)</code></p>
 <p>
-    We could also use the data type \({\tt ChainComplex}\) 
+    We could also use the data type <tt>ChainComplex</tt>
     and use a built-in facility to take homology (in our case $H_1$):
 </p>
 <p><code class='block'>FF = chainComplex(phi1,phi2)</code></p>
@@ -612,21 +610,21 @@
 <p><code class='block'>FF = chainComplex matrix {{x^2}} ** chainComplex matrix {{x*y^2}}</code></p>
 <p><code class='block'>FF.dd</code></p>
 <p>
-    Another way is by using the function \({\tt koszul}\), designed for that purpose:
+    Another way is by using the function <tt>koszul</tt>, designed for that purpose:
 </p>
 <p><code class='block'>FF = koszul matrix {{x^2, x*y^2}}</code></p>
 <p><code class='block'>FF.dd</code></p>
 <p>
     Since \(\mac\) can compute resolutions and homology, it can
-    compute things such as $Ext$, $Tor$ and sheaf cohomology, as in the 
+    compute things such as $Ext$, $Tor$ and sheaf cohomology, as in the
     following examples. The first uses Serre's formula to compute
     the multiplicity with which a 2-plane meets the union
     of two 2-planes in 4-space (this is the first case in which
     the length of the intersection scheme is NOT the right answer.)
-    The notation "M**N" denotes the tensor product $M \otimes_S N$ of the modules $M$ and $N$.
+    The notation <tt>M**N</tt> denotes the tensor product $M \otimes_S N$ of the modules $M$ and $N$.
     We use the syntactical forms
-    "for j from 0 to 4 list ..." to list some results and
-    "sum(0..4, j -> ...)" to sum some results.
+    <tt>for j from 0 to 4 list</tt> ... to list some results and
+    <tt>sum(0..4, j -></tt> ... <tt>)</tt> to sum some results.
 </p>
 <p><code class='block'>S=kk[a,b,c,d]</code></p>
 <p><code class='block'>IX = intersect(ideal(a,b), ideal(c,d))</code></p>
@@ -640,12 +638,12 @@
 <p><code class='block'>Hom(IX, S^1/IX)</code></p>
 <p><code class='block'>Ext^1(IX, S^1/IX)</code></p>
 <p>
-    or the cohomology of the sheaf associated to a module. 
+    or the cohomology of the sheaf associated to a module.
 </p>
 <p>
     Here is how to compute
     the first cohomology of the structure
-    sheaf twisted by $-2$ of the curve $Proj(S/IX)$, which
+    sheaf twisted by $-2$ of the curve $\text{Proj}(S/IX)$, which
     in this case is the disjoint union of two
     lines in $\PP^3$:
 </p>

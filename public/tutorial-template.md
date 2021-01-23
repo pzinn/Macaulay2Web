@@ -9,8 +9,8 @@ after they upload it themselves, they can work through your lessons.
 The line that begins with # is
 the title for the tutorial.  Lines that begin with ## give the names
 of each lesson.  Latex math, via mathjax, can be used, and Macaulay2
-code that you wish to become buttons should be enclosed by backquotes (\`) or
-triple backquotes (\`\`\`), as is shown below.
+code that you wish to become buttons should be enclosed by backquotes (	`	) or
+triple backquotes (	```	), as is shown below.
 
 Blank lines start new paragraphs.
 
@@ -39,9 +39,9 @@ f = x -> (
 ```
 
 ## KaTeX
-KaTeX
-We use katex, which means that you can include math, in the form
-like the following: \(f(x) = x^3-\sin x + 1\), or in display form via:
+We use katex, which means that you can include math, in the following way:
+using **\(** **\)** for inline: \(f(x) = x^3-\sin x + 1\), or in display form via
+**\[** **\]**:
 \[ \sum_{i=0}^n (x_i y_i + 1). \]
 
 
@@ -54,6 +54,8 @@ Other recognized markdown includes:
 | 1 | 2 | 3 |
 | 4 | 5 | 6 |
 
+Caveat: markdown conversion can interfere with (Ka)TeX code. Since most markdown is based on the start of each line, make sure
+there is no markup symbols there (|,#,*,`,_) in your TeX code, or add a tab at the start (anything after a tab is not markdown encoded).
 
 
 ## HTML lessons

@@ -532,10 +532,11 @@ const socketChatAction = function (socket, client: Client) {
           });
     } else {
       // default: list
-      chat.message += "\n id | sockets | output | last | docker | active time ";
+      chat.message +=
+        "\n | id | sockets | output | last | docker | active time ";
       for (const id in clients) {
         chat.message +=
-          "\n" +
+          "\n|" +
           id +
           "|" +
           //
@@ -549,12 +550,11 @@ const socketChatAction = function (socket, client: Client) {
           ")" +
           "|" +
           clients[id].output.length +
-          "|" +
+          "|\t" +
           clients[id].output
             .substring(clients[id].output.length - 48)
-            .replace(/([^\x20-\x7F])/g, " ")
-            .replace(/(?![A-Za-z0-9()\[\]])/g, "\\") +
-          "|" +
+            .replace(/[^ -z{}]/g, " ") +
+          "\t|" +
           (clients[id].instance
             ? (clients[id].instance.containerName
                 ? clients[id].instance.containerName
