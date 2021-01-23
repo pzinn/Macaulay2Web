@@ -17,10 +17,12 @@ import httpModule = require("http");
 const http = httpModule.createServer(app);
 import fs = require("fs");
 import Cookie = require("cookie");
-import ioModule = require("socket.io");
-const io: SocketIO.Server = ioModule(http, { pingTimeout: 30000 });
+
 import ssh2 = require("ssh2");
-import SocketIOFileUpload = require("socketio-file-upload");
+import socketioFileUpload = require("socketio-file-upload");
+
+import socketio = require("socket.io");
+const io: SocketIO.Server = socketio(http, { pingTimeout: 30000 });
 
 import { webAppTags } from "../common/tags";
 
@@ -139,17 +141,6 @@ const getInstance = function (client: Client, next) {
     }
   }
 };
-
-/*
-export {
-  emitOutputViaClientSockets,
-  serverConfig,
-  clients,
-  getInstance,
-  instanceManager,
-  sendDataToClient,
-};
-*/
 
 const optLogCmdToFile = function (clientId: string, msg: string) {
   if (serverConfig.CMD_LOG_FOLDER) {
@@ -338,7 +329,7 @@ const initializeServer = function () {
   //  const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM); // retired
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
-  app.use(SocketIOFileUpload.router);
+  app.use(socketioFileUpload.router);
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
   app.use(serveStatic(staticFolder));
