@@ -833,15 +833,17 @@ const Shell = function (
             console.log("Warning: cell should close with CellEnd");
           // end of section
           closeHtml();
-        } else if (tag === webAppTags.CellEnd) {
-          while (!htmlSec.classList.contains("M2Cell")) {
-            console.log("Warning: CellEnd used for non cell");
-            if (htmlSec == shell) return; // we're in trouble if that happens (shouldn't)
+        } else if (tag === webAppTags.CellEnd)
+          endcell: {
+            while (!htmlSec.classList.contains("M2Cell")) {
+              console.log("Warning: CellEnd used for non cell");
+              if (htmlSec == shell) break endcell; // we're in trouble if that happens (shouldn't)
+              closeHtml();
+            }
+            // end of cell
             closeHtml();
           }
-          // end of cell
-          closeHtml();
-        } else if (tag === webAppTags.InputContd) {
+        else if (tag === webAppTags.InputContd) {
           // continuation of input section
           inputEndFlag = false;
         } else {
