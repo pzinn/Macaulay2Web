@@ -751,7 +751,11 @@ const Shell = function (
       let url = htmlSec.dataset.code.trim();
       if (url.startsWith("file://")) url = url.slice(7);
       if (url[0] != "/" && !url.startsWith("http")) url = "/relative/" + url; // for relative URLs
-      if (iFrame) iFrame.src = url;
+      if (
+        iFrame &&
+        !(window.location.protocol == "https:" || url.startsWith("http:/")) // no insecure in frame
+      )
+        iFrame.src = url;
       else window.open(url, "M2 browse");
     } else if (htmlSec.classList.contains("M2Html")) {
       htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code);
