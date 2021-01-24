@@ -4,9 +4,7 @@ declare const MINIMAL;
 
 import socketIo from "socket.io-client";
 
-//import Cookie from "cookie";
-
-import extra from "./extra";
+import { extra, setCookie, getCookieId } from "./extra";
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
@@ -102,10 +100,6 @@ const socketOutput = function (msg: string) {
   myshell.displayOutput(msg);
 };
 
-const setCookie = function (cookie) {
-  document.cookie = cookie;
-};
-
 const socketError = function (type) {
   return function (error) {
     console.log("We got an " + type + " error. " + error);
@@ -115,30 +109,51 @@ const socketError = function (type) {
 
 const url = new URL(document.location.href);
 
+let cookieFlag = true; // we could test MINIMAL here but for tree shaking purposes we don't :/
+let ioParams = "?version=" + options.version;
+
 const init = function () {
-  if (!navigator.cookieEnabled) {
+  if (!MINIMAL && !navigator.cookieEnabled) {
     alert("This site requires cookies to be enabled.");
     return;
   }
 
-  let ioParams = "?version=" + options.version;
   console.log("Macaulay2Web version " + options.version);
   const userId: any = url.searchParams.get("user");
   if (userId) {
     ioParams += "&userId=" + userId;
-  } else if (MINIMAL) {
-    //if (url.pathname == "/minimal.html") {
-    // minimal interface public by default
-    ioParams += "&publicId";
-  }
+    if (!MINIMAL) {
+      const oldId = getCookieId();
+      if (oldId !== userId) {
+        const dialog = document.getElementById(
+          "changeUserDialog"
+        ) as HTMLDialogElement;
+        document.getElementById("newUserId").textContent = userId;
+        document.getElementById("oldUserIdReminder").innerHTML = oldId
+          ? "Choosing `permanent' will overwrite the current id <b>" +
+            oldId +
+            "</b> in your cookie."
+          : "";
+        dialog.onclose = function () {
+          if (dialog.returnValue == "temporary") cookieFlag = false;
+          init2();
+        };
+        dialog.showModal();
+        return;
+      }
+    }
+  } else if (MINIMAL) ioParams += "&publicId";
+  init2();
+};
 
+const init2 = function () {
   socket = socketIo(ioParams);
+  if (!MINIMAL && cookieFlag) socket.on("cookie", setCookie);
   socket.on("reconnect_failed", socketError("reconnect_fail"));
   socket.on("reconnect_error", socketError("reconnect_error"));
   socket.on("connect_error", socketError("connect_error"));
   socket.on("output", socketOutput);
   socket.on("disconnect", socketDisconnect);
-  if (!MINIMAL) socket.on("cookie", setCookie); // in minimal mode, no user id cookie update
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
 

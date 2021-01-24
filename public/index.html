@@ -24,6 +24,17 @@
       </div>
     </dialog>
 
+    <dialog id="changeUserDialog" class="mdl-dialog">
+      <form method="dialog">
+	You have requested the new user id <b id="newUserId"></b>. Is this change:
+	  <menu>
+	    <button id="changeUserTemporary" value="temporary" class="mdl-button mdl-js-button">temporary</button>
+	    <button id="changeUserPermanent" value="permanent" class="mdl-button mdl-js-button">permanent</button>
+	  </menu>
+	  <span id="oldUserIdReminder"></span>
+      </form>
+    </dialog>
+
     <dialog id="uploadSuccessDialog" class="mdl-dialog">
       <button id="uploadSuccessDialogClose"
               class="saveDialogButton mdl-button mdl-js-button mdl-button--icon">

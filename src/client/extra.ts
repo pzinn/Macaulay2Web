@@ -1,6 +1,6 @@
 import Cookie from "cookie";
 import { options } from "../common/global";
-import { socket, setCookie, url, myshell } from "./main";
+import { socket, url, myshell } from "./main";
 import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 import { socketChat } from "./chat";
 import tutorials from "./tutorials";
@@ -9,7 +9,18 @@ import SocketIOFileUpload from "socketio-file-upload";
 import { Chat } from "../common/chatClass";
 import defaultEditor from "./default.m2";
 
-export default function () {
+const setCookie = function (cookie) {
+  document.cookie = cookie;
+};
+
+const getCookieId = function () {
+  const cookies = Cookie.parse(document.cookie);
+  const cookie = cookies[options.cookieName];
+  if (!cookie || !cookie.startsWith("user")) return; // shouldn't happen
+  return cookie.substring(4);
+};
+
+const extra = function () {
   let siofu = null;
   const terminal = document.getElementById("terminal");
   const editor = document.getElementById("editorDiv");
@@ -160,7 +171,9 @@ const toggleWrap = function () {
 
   const showUploadSuccessDialog = function (event) {
     if (!event.file.auto) {
-      const dialog: any = document.getElementById("uploadSuccessDialog");
+      const dialog = document.getElementById(
+        "uploadSuccessDialog"
+      ) as HTMLDialogElement;
       // console.log('we uploaded the file: ' + event.success);
       // console.log(event.file);
       const filename = event.file.name;
@@ -228,14 +241,9 @@ const toggleWrap = function () {
   };
 
   const queryCookie = function () {
-    const cookies = Cookie.parse(document.cookie);
-    const cookie = cookies[options.cookieName];
-
-    const i = cookie.indexOf("user");
-    if (i < 0)
-      alert("You don't have a cookie (presumably, you're in public mode)");
-    else
-      alert("The user id stored in your cookie is: " + cookie.substring(i + 4));
+    const id = getCookieId();
+    if (!id) alert("You don't have a cookie (that's weird -- contact admin!)");
+    else alert("The user id stored in your cookie is: " + id);
   };
 
   socket.on("chat", socketChat);
@@ -495,4 +503,6 @@ const toggleWrap = function () {
   if (iFrame) iFrame.onload = openBrowseTab;
   const cookieQuery = document.getElementById("cookieQuery");
   if (cookieQuery) cookieQuery.onclick = queryCookie;
-}
+};
+
+export { extra, setCookie, getCookieId };
