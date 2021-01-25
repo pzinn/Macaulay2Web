@@ -115,7 +115,7 @@ const Shell = function (
     inputSpan.classList.add("M2Text");
 
     htmlSec = shell;
-    createHtml(webAppClasses[webAppTags.Cell]);
+    //    createHtml(webAppClasses[webAppTags.Cell]);
 
     htmlSec.appendChild(inputSpan);
 
@@ -720,8 +720,6 @@ const Shell = function (
   };
 
   const closeHtml = function () {
-    //    if (htmlSec == shell) return; // should never happen
-
     const anc = htmlSec.parentElement;
 
     if (htmlSec.classList.contains("M2Input"))
@@ -833,22 +831,17 @@ const Shell = function (
       }
       if (i > 0) {
         const tag = txt[i - 1];
-        if (tag == webAppTags.End) {
-          if (htmlSec.classList.contains("M2Cell"))
-            console.log("Warning: cell should close with CellEnd");
-          // end of section
-          closeHtml();
-        } else if (tag === webAppTags.CellEnd)
-          endcell: {
-            while (!htmlSec.classList.contains("M2Cell")) {
-              console.log("Warning: CellEnd used for non cell");
-              if (htmlSec == shell) break endcell; // we're in trouble if that happens (shouldn't)
-              closeHtml();
-            }
-            // end of cell
+        if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
+          if (htmlSec != shell) {
+            // htmlSec == shell should only happen at very start
+            if (
+              htmlSec.classList.contains("M2Cell") !=
+              (tag == webAppTags.CellEnd)
+            )
+              console.log("Warning: end tag mismatch");
             closeHtml();
           }
-        else if (tag === webAppTags.InputContd) {
+        } else if (tag === webAppTags.InputContd) {
           // continuation of input section
           inputEndFlag = false;
         } else {
