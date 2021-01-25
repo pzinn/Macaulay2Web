@@ -176,13 +176,6 @@ body {
     list-style: none;
 }
 
-a {
-    cursor: pointer;
-    text-decoration:none;
-    color: rgb(100,0,0);
-    font-weight: 500;
-}
-
 .material-icons {
     vertical-align: middle;
     transition: transform 0.5s;

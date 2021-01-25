@@ -34,6 +34,7 @@ window.renderhelp = function (text) {
   myshell.displayOutput(msg + webAppTags.End);
 
   // now cleanup for prerendering
+  document.body.classList.remove("M2Html");
   document.body.removeAttribute("onload");
   document.getElementById("katexscript").remove();
   document.getElementById("renderscript").remove();
