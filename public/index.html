@@ -24,6 +24,17 @@
       </div>
     </dialog>
 
+    <dialog id="changeUserDialog" class="mdl-dialog">
+      <form method="dialog">
+	You have requested the new user id <b id="newUserId"></b>. Is this change:
+	  <menu>
+	    <button id="changeUserTemporary" value="temporary" class="mdl-button mdl-js-button">temporary</button>
+	    <button id="changeUserPermanent" value="permanent" class="mdl-button mdl-js-button">permanent</button>
+	  </menu>
+	  <span id="oldUserIdReminder"></span>
+      </form>
+    </dialog>
+
     <dialog id="uploadSuccessDialog" class="mdl-dialog">
       <button id="uploadSuccessDialogClose"
               class="saveDialogButton mdl-button mdl-js-button mdl-button--icon">
@@ -129,7 +140,7 @@
                 <p style="font-size:0.8em">
 		  Written by <a href="http://blogs.unimelb.edu.au/paul-zinn-justin/">Paul Zinn-Justin</a> (2018-2021).
 		  <br/>
-		  Funding from ARC grants FT150100232, DP180100860 and NSF grant <a href="http://www.nsf.gov/awardsearch/showAward.do?AwardNumber=1502209">DMS 15-02209</a> ``Collaborative Research: A Software System for Research in Algebraic Geometry, Commutative Algebra, and their Applications, David Eisenbud, Daniel R. Grayson, Michael E. Stillman, 2015-2020''.
+		  Funding from ARC grants FT150100232 and NSF grant <a href="http://www.nsf.gov/awardsearch/showAward.do?AwardNumber=1502209">DMS 15-02209</a> ``Collaborative Research: A Software System for Research in Algebraic Geometry, Commutative Algebra, and their Applications, David Eisenbud, Daniel R. Grayson, Michael E. Stillman, 2015-2020''.
 		  <br/>
                   Based on <a href="https://travis-ci.org/fhinkel/InteractiveShell">earlier work</a>
                   by <a href="http://twitter.com/fhinkel">Franziska

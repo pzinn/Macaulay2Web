@@ -3,200 +3,183 @@
     <title>Welcome Tutorial
     </title>
   </head>
-<body>
+  <body>
+    <div>
+      <h2>Getting started</h2>
 
-<div>
-  <h2>Getting started<!-- on web.macaulay2.com--></h2>
+      <p>In this tutorial, we will show how to use this web site effectively.</p>
 
-  <p>In this tutorial, we will show how to use this web site effectively.</p>
+      <p>If you click on the yellow highlighted \(\mac\) code, the results of running
+	those commands will be displayed in the right hand window. You may also
+	type directly into the right hand window.</p>
 
-  <p>If you click on the yellow highlighted \(\mac\) code, the results of running
-    those commands will be displayed in the right hand window. You may also
-    type directly into the right hand window.</p>
+      <p>
+	For example, click on this yellow code to compute the factors of the
+	given polynomial.
+	<code class='block'>R = QQ[x,y,z]</code>
+	<code class='block'>F = (x-1)^3 - (y-1)^3</code>
+	<code class='block'>factor F</code>
+      </p>
 
-  <p>
-    For example, click on this yellow code to compute the factors of the
-    given polynomial.
-  </p>
+      <p>
+	This code is evaluated by \(\mac\) on the server.  This means that
+	you don't need to have \(\mac\) or any of its included packages installed
+	on your computer.</p>
+      <p>You are on the first page of this tutorial.  At the top of the
+	window, you see how many pages are in this tutorial.  After you are
+	finished with a page, click or tap on the right arrow icon.  You can
+	also go back to previous pages of the tutorial by clicking on the
+	left arrow button.</p>
 
-  <code class='block'>R = QQ[x,y,z]</code>
-  <code class='block'>F = (x-1)^3 - (y-1)^3</code>
-  <code class='block'>factor F</code>
+      <p>Right now, please continue to the next page of the tutorial.</p>
+    </div>
 
-    <p>
-  This code is evaluated by \(\mac\) on the server.  This means that
-    you don't need to have \(\mac\) or any of its included packages installed
-    on your computer.</p>
+    <div>
+      <h2>Getting Macaulay2 help on a topic</h2>
 
-  <p>You are on the first page of this tutorial.  At the top of the
-  window, you see how many pages are in this tutorial.  After you are
-  finished with a page, click or tap on the right arrow icon.  You can
-  also go back to previous pages of the tutorial by clicking on the
-  left arrow button.</p>
+      <p>There are two main ways of getting help on a topic in \(\mac\).  The first method gives you
+	text help in the \(\mac\) output window.  For example,</p>
+      <p><code class='block'>help determinant</code></p>
+      <p>This displays in the \(\mac\) output window how to use the function "determinant".
+	<b>Note!</b> In many browsers, you will have scroll bars to go back, but in some, notably most versions
+	of Safari, the scrollbars are there but hidden!
+      </p>
 
-  <p>Right now, please continue to the next page of the tutorial.</p>
-</div>
+      <p>Alternatively, and more usefully, you may obtain the web version by using:</p>
+      <p><code class='block'>viewHelp determinant</code></p>
 
-<div>
-  <h2>Getting Macaulay2 help on a topic</h2>
+      <p>This opens the documentation page in the <b>Browse</b> tab.  You can surf through the links
+	there to see other \(\mac\) documentation. When you are ready to come back to the tutorial, click or tap on the
+	<b>Tutorial</b> button at the top of the page.  You will end up right here! </p>
 
-  <p>There are two main ways of getting help on a topic in \(\mac\).  The first method gives you
-  text help in the \(\mac\) output window.  For example,</p>
-  <p><code class='block'>help determinant</code></p>
-  <p>This displays in the \(\mac\) output window how to use the function "determinant".
-  <b>Note!</b> In many browsers, you will have scroll bars to go back, but in some, notably most versions
-  of Safari, the scrollbars are there but hidden!
-  </p>
+      <p>In either case, you can click on the example code, then press Return, to run them yourself. Try to compute
+	the determinant of the example $2\times 2$ matrix $M$ this way!</p>
+    </div>
 
-  <p>Alternatively, and more usefully, you may obtain the web version by using:</p>
-  <p><code class='block'>viewHelp determinant</code></p>
+    <div>
+      <h2>Using the terminal and the Editor window</h2>
 
-  <p>This opens the documentation page in the <b>Browse</b> tab.  You can surf through the links
-  there to see other \(\mac\) documentation. When you are ready to come back to the tutorial, click or tap on the
-    <b>Tutorial</b> button at the top of the page.  You will end up right here! </p>
+      <p> You can type in \(\mac\) commands directly into the right hand side terminal.
+	You have various options to execute again past input:
+	<ul>
+	  <li>You can click on it, possibly edit it further, then press Return;</li>
+	  <li>You can select the bar on the left of its cell, then press Return;</li>
+	  <li>You can use the up and down arrow keys to go through the list of previous inputs;</li>
+	  <li>You can type the beginning of the line, then press the right arrow key for auto-completion.</li>
+	</ul>
+	You can also use the tab key for \(\mac\) keyword auto-completion.</p>
 
-  <p>In either case, you can click on the example code, then press Return, to run them yourself. Try to compute
-    the determinant of the example $2\times 2$ matrix $M$ this way!</p>
-</div>
+      <h2>Using the Editor window on the left</h2>
+      <p>When you write M2 functions or long loops, it is often more convenient to write your code
+	in a separate window and execute the code after you wrote it. This allows you to easily modify previous code and
+	move the cursor around freely.</p>
 
-<div>
-    <h2>Using the terminal and the Editor window</h2>
+      <p>Clicking or tapping the <b>Editor</b> button at the top of the page, navigates you to the Input Window.
+	This is where you may type in \(\mac\) code and have it evaluated.</p>
 
-    <p> You can type in \(\mac\) commands directly into the right hand side terminal.
-      You have various options to execute again past input:
-      <ul>
-	<li>You can click on it, possibly edit it further, then press Return;</li>
-	<li>You can select the bar on the left of its cell, then press Return;</li>
-	<li>You can use the up and down arrow keys to go through the list of previous inputs;</li>
-	<li>You can type the beginning of the line, then press the right arrow key for auto-completion.</li>
-      </ul>
-      You can also use the tab key for \(\mac\) keyword auto-completion.</p>
+      <p>In that window, place your cursor on a line that you wish to evaluate, and either click the
+	<b>Evaluate</b> button, or press Shift-Return (both keys at the same time).</p>
 
-    <h2>Using the Editor window on the left</h2>
-  <p>When you write M2 functions or long loops, it is often more convenient to write your code
-    in a separate window and execute the code after you wrote it. This allows you to easily modify previous code and 
-    move the cursor around freely.</p> 
-    
-    <p>Clicking or tapping the <b>Editor</b> button at the top of the page, navigates you to the Input Window.
-  This is where you may type in \(\mac\) code and have it evaluated.</p>
- 
-   <p>In that window, place your cursor on a line that you wish to evaluate, and either click the
-  <b>Evaluate</b> button, or press Shift-Return (both keys at the same time).</p>
+      <p>Alternatively, you may select several lines, or a part of a line, and clicking
+	<b>Evaluate</b> (or press Shift-Return) will evaluate the selection.</p>
 
-  <p>Alternatively, you may select several lines, or a part of a line, and clicking
-  <b>Evaluate</b> (or press Shift-Return) will evaluate the selection.</p>
+      <p>You try it!  Click <b>Editor</b>, type in some \(\mac\) input, or try out some of the example
+	lines already there. To come back to the tutorial, click or tap on the
+	<b>Tutorial</b> button at the top of the page. </p>
 
-  <p>You try it!  Click <b>Editor</b>, type in some \(\mac\) input, or try out some of the example
-  lines already there. To come back to the tutorial, click or tap on the
-  <b>Tutorial</b> button at the top of the page. </p>
-  
-</div>
+    </div>
 
-<div>
+    <div>
 
-  <h2>Macaulay2 sessions and the Reset button</h2>
-  
-  <p> When your browser starts, it starts a \(\mac\) process on our server.
-  All of your input, either typed and evaluated, or run by pressing buttons,
-  goes to this process.  If you open a second window or tab in the same
-  browser, you will get the same session.
-  </p>
+      <h2>Macaulay2 sessions and the Reset button</h2>
 
-  <p>
-  You might wish to start fresh, or restart \(\mac\), if a computation is
-  going on too long.  In this case, press the <b>Reset</b> button at the top of
-  the page.
-  </p>
+      <p> When your browser starts, it starts a \(\mac\) process on our server.
+	All of your input, either typed and evaluated, or run by pressing buttons,
+	goes to this process.  If you open a second window or tab in the same
+	browser, you will get the same session.
+      </p>
 
-  <p>
-  When you first connect to this web site, a cookie is generated, and that is used to connect to
-  your \(\mac\) process on the server.  If you quit your browser, and it is set to remember windows, then
-  it remembers the cookie, and you can reconnect back to the same session.  If not, then a new session
-  is created.
-  </p>
+      <p>
+	You might wish to start fresh, or restart \(\mac\), if a computation is
+	going on too long.  In this case, press the <b>Reset</b> button at the top of
+	the page.
+      </p>
 
-  <p>
-  Sometimes the server must be restarted for maintenance or other reasons, and at those times, all sessions
-  are terminated.
-  </p>
+      <p>
+	When you first connect to this web site, a cookie is generated, and that is used to connect to
+	your \(\mac\) process on the server.  If you quit your browser, and it is set to remember windows, then
+	it remembers the cookie, and you can reconnect back to the same session.  If not, then a new session
+	is created.
+      </p>
 
-    <h2>Loading/Saving your work</h2>
-  
-   <p>
-  Click on the <b>Load</b> and <b>Save</b> buttons at the top right of the editor tab to transfer the contents of a local file to the editor, and vice versa.
-  </p>
+      <p>
+	Sometimes the server must be restarted for maintenance or other reasons, and at those times, all sessions
+	are terminated.
+      </p>
 
-</div>
+      <h2>Loading/Saving your work</h2>
 
-<div>
-  <h2>Advanced topics</h2>
-  <h2>Uploading files</h2>
+      <p>
+	Click on the <b>Load</b> and <b>Save</b> buttons at the top right of the editor tab to transfer the contents of a local file to the editor, and vice versa.
+      </p>
 
-  <p>Use the <b>Upload File</b> button to upload files to the \(\mac\) server that can then be loaded into your \(\mac\) session. Suppose that you have uploaded a file named \(\verb|foo.m2|\) which contains \(\mac\) code.
-  You may then load this file into \(\mac\) using either:
-  </p>
-  
-  <p><code class='block'>load "foo.m2"</code></p>
+    </div>
 
-  <p>
-  or, if you wish to see all of the lines executed one by one:
-  </p>
-  
-  <p><code class='block'>input "foo.m2"</code></p>
+    <div>
+      <h2>Advanced topics</h2>
+      <h3>Uploading files</h3>
+      <p>Use the <b>Upload File</b> button to upload files to the \(\mac\) server that can then be loaded into your \(\mac\) session. Suppose that you have uploaded a file named \(\verb|foo.m2|\) which contains \(\mac\) code.
+	You may then load this file into \(\mac\) using either:
+      </p>
+      <p><code class='block'>load "foo.m2"</code></p>
+      <p>
+	or, if you wish to see all of the lines executed one by one:
+      </p>
+      <p><code class='block'>input "foo.m2"</code></p>
+      <p><b>Note</b>: these lines will likely give errors now, as the file
+	\(\verb|foo.m2|\) probably doesn't exist on the server!</p>
+      <p>For your convenience, when you load or save files to the editor, they are automatically uploaded as well.
+	You can turn off this feature by toggling "auto upload" in the editor tab.</p>
 
-  
-  <p><b>Note</b>: these lines will likely give errors now, as the file
-    \(\verb|foo.m2|\) probably doesn't exist on the server!</p>
+      <h3>Running shell commands in your Macaulay2 session</h3>
+      <p>It is possible to run shell commands from within \(\mac\), although many operations are restricted.
+	For example, to see what files you have in your home directory on the server, try:</p>
+      <p><code class='block'>run "ls -a"</code></p>
+      Alternatively, if you want to obtain the output as a string, use
+      <p><code class='block'>get "!ls -a"</code></p>
 
-  <p>For your convenience, when you load or save files to the editor, they are automatically uploaded as well.
-    You can turn off this feature by toggling "auto upload" in the editor tab.</p>
+      <h3>Macaulay2 and temporary files</h3>
+      <p>Sometimes \(\mac\) or one of its packages generate temporary files.
+	For example, the graph function below creates dot and svg files.
+      </p>
+      <p><code class='block'>needsPackage "Graphs"</code></p>
+      <p><code class='block'>A = graph({{a,b},{b,c},{b,d},{d,e}})</code></p>
 
-  <h2>Running shell commands in your Macaulay2 session</h2>
+      <h3>Getting files back to your machine</h3>
+      <p>
+	Sometimes your \(\mac\) code will create a file as output.  How to download
+	this onto your machine?  Here is one way.  This first line creates a file for
+	the purpose of this example.
+	<code class='block'>"important-results.txt" << "very important results" << close</code>  </p>
+										   <p>The next line will open the file in your <b>Browse</b> tab.
+										     <code class='block'>show URL "important-results.txt"</code></p>
 
-  <p>It is possible to run shell commands from within \(\mac\), although many operations are restricted.
-  For example, to see what files you have in your home directory on the server, try:</p>
-  <p><code class='block'>run "ls -a"</code></p><br/>
-  Alternatively, if you want to obtain the output as a string, use
-  <p><code class='block'>get "!ls -a"</code></p>
+										   <h3>Restrictions in place for the Macaulay2 server</h3>
+      <p>The server is being shared with other users, therefore memory and CPU time
+	are limited (generous, but limited).  Other restrictions include: upload file size, number of processes that
+	can run, and the amount of time that the session is saved on the server.
+      </p>
 
-  <h2>Macaulay2 and temporary files</h2>
 
-  <p>Sometimes \(\mac\) or one of its packages generate temporary files.
-  For example, the graph function below creates dot and svg files.
-  </p>
-    <p><code class='block'>needsPackage "Graphs"</code></p>
-    <p><code class='block'>A = graph({{a,b},{b,c},{b,d},{d,e}})</code></p>
+      <h3>Contributing</h3>
+      <p>
+	This is an open source project, hosted on <a href="http://github.com/pzinn/Macaulay2Web" target="_blank">GitHub</a>.
+      </p>
+      <p>
+	If you have tutorials that you would like to contribute, please contact
+	<a href='mailto:trym2@googlegroups.com'>the TryM2 team</a> or <a href="mailto:pzinn@unimelb.edu.au">me</a>.
+      </p>
 
-  <h2>Getting files back to your machine</h2>
-
-  <p>
-  Sometimes your \(\mac\) code will create a file as output.  How to download
-  this onto your machine?  Here is one way.  This first line creates a file for
-  the purpose of this example.<br/>
-  
-  <code class='block'>"important-results.txt" << "very important results" << close</code>  </p>
-
-  <p>The next line will open the file in your <b>Browse</b> tab.<br/>
-  <code class='block'>show URL "important-results.txt"</code></p>
-
-  <h2>Restrictions in place for the Macaulay2 server</h2>
-
-  <p>The server is being shared with other users, therefore memory and CPU time
-  are limited (generous, but limited).  Other restrictions include: upload file size, number of processes that
-  can run, and the amount of time that the session is saved on the server.
-  </p>
-  
-
-  <h2>Contributing</h2>
-
-  <p>
-  This is an open source project, hosted on <a href="http://github.com/pzinn/Macaulay2Web" target="_blank">GitHub</a>.
-  </p>
-  <p>
-    If you have tutorials that you would like to contribute, please contact
-    <a href='mailto:trym2@googlegroups.com'>the TryM2 team</a> or <a href="mailto:pzinn@unimelb.edu.au">me</a>.
-  </p>
-
-</div>
-</body>
+    </div>
+  </body>
 </html>

@@ -3,7 +3,7 @@ import { autoRender } from "./autoRender";
 import { mdToHTML } from "./md";
 
 interface Lesson {
-  title: string; // <h1> element
+  title: HTMLElement; // <h1> element
   html: HTMLElement;
 }
 
@@ -33,8 +33,8 @@ const sliceTutorial = function (theHtml) {
       children[i].childElementCount > 0
     )
       result.lessons.push({
-        title: children[i].firstElementChild.innerHTML,
-        html: children[i].innerHTML,
+        title: children[i].firstElementChild,
+        html: children[i],
       });
   }
   return result;
@@ -80,7 +80,8 @@ const loadLesson = function (tutorialid: number, lessonid: number) {
   const lessonContent = tutorials[tutorialNr].lessons[lessonNr].html;
   const title = tutorials[tutorialNr].title;
   const lesson = document.getElementById("lesson");
-  lesson.innerHTML = title.outerHTML + lessonContent;
+  lesson.innerHTML = "";
+  lesson.append(title, lessonContent);
   lesson.scrollTop = 0;
   //  MathJax.Hub.Queue(["Typeset", MathJax.Hub, "#lesson"]);
   // the next line colorized the tutorials

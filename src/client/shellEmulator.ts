@@ -751,7 +751,11 @@ const Shell = function (
       let url = htmlSec.dataset.code.trim();
       if (url.startsWith("file://")) url = url.slice(7);
       if (url[0] != "/" && !url.startsWith("http")) url = "/relative/" + url; // for relative URLs
-      if (iFrame) iFrame.src = url;
+      if (
+        iFrame &&
+        !(window.location.protocol == "https:" || url.startsWith("http:/")) // no insecure in frame
+      )
+        iFrame.src = url;
       else window.open(url, "M2 browse");
     } else if (htmlSec.classList.contains("M2Html")) {
       htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code);
@@ -833,15 +837,17 @@ const Shell = function (
             console.log("Warning: cell should close with CellEnd");
           // end of section
           closeHtml();
-        } else if (tag === webAppTags.CellEnd) {
-          while (!htmlSec.classList.contains("M2Cell")) {
-            console.log("Warning: CellEnd used for non cell");
-            if (htmlSec == shell) return; // we're in trouble if that happens (shouldn't)
+        } else if (tag === webAppTags.CellEnd)
+          endcell: {
+            while (!htmlSec.classList.contains("M2Cell")) {
+              console.log("Warning: CellEnd used for non cell");
+              if (htmlSec == shell) break endcell; // we're in trouble if that happens (shouldn't)
+              closeHtml();
+            }
+            // end of cell
             closeHtml();
           }
-          // end of cell
-          closeHtml();
-        } else if (tag === webAppTags.InputContd) {
+        else if (tag === webAppTags.InputContd) {
           // continuation of input section
           inputEndFlag = false;
         } else {
