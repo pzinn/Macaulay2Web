@@ -750,7 +750,7 @@ const Shell = function (
     } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
       if (url.startsWith("file://")) url = url.slice(7);
-      if (url[0] != "/" && !url.startsWith("http")) url = "/relative/" + url; // for relative URLs
+      if (url[0] != "/" && !url.startsWith("http")) url = "/relative/" + url; // for relative URLs in docker
       console.log("Opening URL " + url);
       if (
         iFrame &&
