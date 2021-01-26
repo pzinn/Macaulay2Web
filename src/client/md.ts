@@ -16,10 +16,7 @@ const mdReplace = function (str: string) {
   for (let i = 0; i < pieces.length; i += 2)
     pieces[i] = pieces[i]
       /*      .replace(/!\[([^\]]*)]\(([^(]+)\)/g, '<img alt="$1" src="$2">') */
-      .replace(
-        /\[([^\]]+)]\(([^(]+?)\)/g,
-        "<a href='$2' target='_blank'>$1</a>"
-      )
+      .replace(/\[([^\]]+)]\(([^(]+?)\)/g, "<a href='$2'>$1</a>")
       // [a link](https://github.com)
       .replace(/`([^`]*)`/g, "<code>$1</code>") // `R=QQ[x]`
       .replace(
