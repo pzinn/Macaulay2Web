@@ -245,8 +245,13 @@ const sendDataToClient = function (client: Client) {
       while (client.output.length > options.perContainerResources.maxOutput) {
         const m = client.output.match(
           new RegExp(
-            webAppTags.Cell + "[^" + webAppTags.Cell + "]*" + webAppTags.CellEnd
-          ) // probably better syntax with *?
+            webAppTags.Cell +
+              "[^" +
+              webAppTags.Cell +
+              webAppTags.CellEnd +
+              "]*" +
+              webAppTags.CellEnd
+          ) // tricky: because of possible nesting
         );
         if (m === null) break; // give up -- normally, shouldn't happen except transitionally
         client.output =
@@ -547,7 +552,7 @@ const socketChatAction = function (socket, client: Client) {
             : "");
       }
     }
-    socket.emit("chat", chat);
+    safeSocketEmit(socket, "chat", chat);
   };
 
   return client.id != "user" + options.adminName
