@@ -3,10 +3,8 @@ export interface Chat {
   alias: string;
   hash?: number;
   time: string; // TODO: should be number
-  recipients?: string[];
+  recipients?: any;
+  recipientsSummary?: string;
   message?: string;
-}
-export interface ChatExtra {
-  id: string;
-  recipients?: string[];
+  id?: string;
 }

@@ -39,7 +39,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
           exec(dockerInspectCmd, function (error, stdout, stderr) {
             const res = JSON.parse(stdout);
             const userId = res[0].Config.Labels.userId;
-            if (userId && userId.substring(0, 4) == "user") {
+            if (userId) {
               // find port
               const port = res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
               logger.info(

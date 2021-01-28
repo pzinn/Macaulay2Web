@@ -289,10 +289,26 @@ const toggleWrap = function () {
           message: chatInput.value,
           time: new Date().toISOString().replace("T", " ").substr(0, 19),
         };
-        if ((document.getElementById("pmtoggle") as HTMLInputElement).checked)
-          msg.recipients = (document.getElementById(
-            "pmto"
-          ) as HTMLInputElement).value.split(",");
+        if ((document.getElementById("pmtoggle") as HTMLInputElement).checked) {
+          msg.recipients = {};
+          // parse list of recipients
+          (document.getElementById("pmto") as HTMLInputElement).value
+            .split(",")
+            .forEach(function (rec: string) {
+              const i = rec.indexOf("/");
+              const id = i < 0 ? "" : "user" + rec.substring(0, i);
+              const alias = i < 0 ? rec : rec.substring(i + 1);
+              if ((id != "" || alias != "") && msg.recipients[id] !== null) {
+                // null means everyone
+                if (alias === "") msg.recipients[id] = null;
+                else {
+                  if (msg.recipients[id] === undefined) msg.recipients[id] = [];
+                  msg.recipients[id].push(alias);
+                }
+              }
+            });
+        } else msg.recipients = { "": null }; // to everyone
+
         socket.emit("chat", msg);
         chatInput.value = "";
       }
