@@ -54,7 +54,7 @@ const chatAction = function (msg: Chat, index?) {
       .substr(0, 19);
     const s2 = document.createElement("b");
     s2.textContent = msg.alias;
-    s2.className = msg.type + "-" + msg.alias;
+    s2.dataset.message = msg.alias;
     const s3 = document.createElement("span");
     //  s3.textContent = msg.message;
     s3.innerHTML = mdToHTML(msg.message, "br", null);
@@ -77,7 +77,7 @@ const chatAction = function (msg: Chat, index?) {
       // not if restoring
       const chatTitle = document.getElementById("chatTitle");
       if (document.location.hash != "#chat") {
-        chatTitle.classList.add(msg.type + "-" + msg.alias);
+        chatTitle.dataset.message = msg.alias;
       }
       chatTitle.classList.add("message-pop");
       setTimeout(function () {

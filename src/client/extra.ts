@@ -439,8 +439,7 @@ const toggleWrap = function () {
       panel.classList.add("is-active");
       tab.classList.add("is-active");
       if (loc == "chat") {
-        tab.classList.remove("message-user");
-        tab.classList.remove("message-admin");
+        tab.removeAttribute("data-message");
         // scroll. sadly, doesn't work if started with #chat
         const ul = document.getElementById("chatMessages");
         scrollDown(ul);
