@@ -117,6 +117,7 @@ const Shell = function (
     htmlSec = shell;
     //    createHtml(webAppClasses[webAppTags.Cell]);
 
+    htmlSec.appendChild(document.createElement("br")); // a bit of extra space doesn't hurt
     htmlSec.appendChild(inputSpan);
 
     inputSpan.focus();
