@@ -832,8 +832,9 @@ const Shell = function (
       if (i > 0) {
         const tag = txt[i - 1];
         if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
-          if (htmlSec != shell) {
+          if (htmlSec != shell || !createInputSpan) {
             // htmlSec == shell should only happen at very start
+            // or at the very end for rendering help -- then it's OK
             if (
               htmlSec.classList.contains("M2Cell") !=
               (tag == webAppTags.CellEnd)
