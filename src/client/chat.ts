@@ -21,7 +21,7 @@ const deleteChatWrap = function (h) {
         type: "delete",
         alias: (document.getElementById("chatAlias") as HTMLInputElement).value,
         hash: h,
-        time: new Date().toISOString().replace("T", " ").substr(0, 19),
+        time: Date.now(),
       });
     }
   };
@@ -48,7 +48,10 @@ const chatAction = function (msg: Chat, index?) {
     s0.textContent = "close";
     s0.onclick = deleteChatWrap(msg.hash);
     const s1 = document.createElement("i");
-    s1.textContent = msg.time;
+    s1.textContent = new Date(msg.time)
+      .toISOString()
+      .replace("T", " ")
+      .substr(0, 19);
     const s2 = document.createElement("b");
     s2.textContent = msg.alias;
     s2.className = msg.type + "-" + msg.alias;

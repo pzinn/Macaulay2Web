@@ -287,7 +287,7 @@ const toggleWrap = function () {
           type: "message",
           alias: chatAlias.value,
           message: chatInput.value,
-          time: new Date().toISOString().replace("T", " ").substr(0, 19),
+          time: Date.now(),
         };
         if ((document.getElementById("pmtoggle") as HTMLInputElement).checked) {
           msg.recipients = {};
@@ -318,7 +318,7 @@ const toggleWrap = function () {
       socket.emit("chat", {
         type: "login",
         alias: chatAlias.value,
-        time: new Date().toISOString().replace("T", " ").substr(0, 19),
+        time: Date.now(),
       });
     });
   }

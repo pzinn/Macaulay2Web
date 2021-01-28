@@ -532,7 +532,7 @@ const socketChatAction = function (socket, client: Client) {
         alias: "System",
         type: "message",
         hash: chatCounter++,
-        time: new Date().toISOString().replace("T", " ").substr(0, 19),
+        time: Date.now(),
       };
       io.emit("chat", stopChat);
       setTimeout(function () {
