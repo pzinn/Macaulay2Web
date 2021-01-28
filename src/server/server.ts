@@ -505,6 +505,7 @@ const socketChatAction = function (socket, client: Client) {
     io.emit("chat", chat);
   };
   const chatAdmin = function (chat: Chat) {
+    chat.recipients = null;
     if (chat.message.startsWith("@block")) {
       const i = chat.message.indexOf(" ");
       if (i < 0) {
@@ -525,6 +526,19 @@ const socketChatAction = function (socket, client: Client) {
               chat.message += " (false)";
             }
           });
+    } else if (chat.message.startsWith("@stop")) {
+      const stopChat: Chat = {
+        message: "The server is stopping.",
+        alias: "System",
+        type: "message",
+        hash: chatCounter++,
+        time: new Date().toISOString().replace("T", " ").substr(0, 19),
+      };
+      io.emit("chat", stopChat);
+      setTimeout(function () {
+        logger.info("Exiting.");
+        process.exit(0);
+      }, 5000);
     } else {
       // default: list
       chat.message +=

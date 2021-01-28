@@ -32,7 +32,7 @@ const chatAction = function (msg: Chat, index?) {
     deleteChat(msg.hash);
   } else if (msg.type == "message") {
     if (
-      msg.recipients !== null && // null is wild card
+      msg.recipients && // null is wild card
       msg.recipients.indexOf(
         (document.getElementById("chatAlias") as HTMLInputElement).value
       ) < 0
