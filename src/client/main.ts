@@ -70,8 +70,8 @@ const fixAnchor = function (t: HTMLAnchorElement) {
   if (!t.target) {
     if (MINIMAL || (t.host && t.host != window.location.host))
       t.target = "_blank";
-    else t.target = "browse";
-  } // external links in new tab, internal in frame
+    else if (!t.hash) t.target = "browse";
+  } // external links in new tab, internal in frame (except # which should stay default)
   if (url.startsWith("file://")) t.href = url.substring(7); // no local files
 };
 
