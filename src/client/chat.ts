@@ -21,7 +21,7 @@ const deleteChatWrap = function (h) {
         type: "delete",
         alias: (document.getElementById("chatAlias") as HTMLInputElement).value,
         hash: h,
-        time: new Date().toISOString().replace("T", " ").substr(0, 19),
+        time: Date.now(),
       });
     }
   };
@@ -31,17 +31,14 @@ const chatAction = function (msg: Chat, index?) {
   if (msg.type == "delete") {
     deleteChat(msg.hash);
   } else if (msg.type == "message") {
-    if (msg.recipients) {
-      const alias = (document.getElementById("chatAlias") as HTMLInputElement)
-        .value;
-      if (
-        !msg.recipients.some(
-          (name) => name.endsWith("/") || name == alias || name == "id/" + alias
-        )
-      )
-        // we don't have the right alias
-        return;
-    }
+    if (
+      msg.recipients && // null is wild card
+      msg.recipients.indexOf(
+        (document.getElementById("chatAlias") as HTMLInputElement).value
+      ) < 0
+    )
+      // we don't have the right alias
+      return;
     const ul = document.getElementById("chatMessages");
     const msgel = document.createElement("li");
     msgel.classList.add("chatMessage");
@@ -51,21 +48,19 @@ const chatAction = function (msg: Chat, index?) {
     s0.textContent = "close";
     s0.onclick = deleteChatWrap(msg.hash);
     const s1 = document.createElement("i");
-    s1.textContent = msg.time;
+    s1.textContent = new Date(msg.time)
+      .toISOString()
+      .replace("T", " ")
+      .substr(0, 19);
     const s2 = document.createElement("b");
     s2.textContent = msg.alias;
-    s2.className = msg.type + "-" + msg.alias;
+    s2.dataset.message = msg.alias;
     const s3 = document.createElement("span");
     //  s3.textContent = msg.message;
-    const test = mdToHTML(msg.message, "br", null);
-    s3.innerHTML = test;
+    s3.innerHTML = mdToHTML(msg.message, "br", null);
     autoRender(s3);
-    const recipients = msg.recipients
-      ? " (to " +
-        msg.recipients
-          .filter((name) => name != msg.alias && name != "id/" + msg.alias)
-          .join(", ") +
-        ")"
+    const recipients = msg.recipientsSummary
+      ? " (to " + msg.recipientsSummary + ")"
       : "";
     msgel.append(
       s0,
@@ -78,10 +73,11 @@ const chatAction = function (msg: Chat, index?) {
     );
     ul.appendChild(msgel);
     scrollDown(ul);
-    if (index === undefined && msg.alias != "System") {
+    if (index === undefined) {
+      // not if restoring
       const chatTitle = document.getElementById("chatTitle");
       if (document.location.hash != "#chat") {
-        chatTitle.classList.add(msg.type + "-" + msg.alias);
+        chatTitle.dataset.message = msg.alias;
       }
       chatTitle.classList.add("message-pop");
       setTimeout(function () {

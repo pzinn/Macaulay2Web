@@ -2,7 +2,7 @@
 
 import { Client, IClients } from "./client";
 import clientIdHelper from "./clientId";
-import { Chat, ChatExtra } from "../common/chatClass";
+import { Chat } from "../common/chatClass";
 import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
 import { LocalContainerManager } from "./LocalContainerManager";
@@ -437,7 +437,6 @@ const socketResetAction = function (client: Client) {
 };
 
 const chatList: Chat[] = []; // used to restore chat
-const chatIdList: ChatExtra[] = []; // eww
 const chatBlackList: string[] = [];
 let chatBlock = false;
 let chatCounter = 0;
@@ -447,11 +446,22 @@ const socketChatAction = function (socket, client: Client) {
     safeSocketEmit(
       socket,
       "chat",
-      chatList.filter(
-        (chat, index) =>
-          !chatIdList[index].recipients ||
-          chatIdList[index].recipients.indexOf(client.id) >= 0
-      )
+      chatList.map(function (chat: Chat) {
+        if (
+          chat.recipients[client.id] === undefined &&
+          chat.recipients[""] === undefined
+        )
+          return {};
+        const rec =
+          chat.recipients[client.id] === null || chat.recipients[""] === null
+            ? null
+            : chat.recipients[client.id] === undefined
+            ? chat.recipients[""]
+            : chat.recipients[""] === undefined
+            ? chat.recipients[client.id]
+            : chat.recipients[""].concat(chat.recipients[client.id]);
+        return Object.assign({}, chat, { recipients: rec, id: undefined });
+      })
     ); // provide past chat
     chat.message = chat.alias + " has arrived. Welcome!";
     chat.alias = "System";
@@ -464,38 +474,41 @@ const socketChatAction = function (socket, client: Client) {
     logClient(client.id, chat.alias + " said: " + short(chat.message));
     chat.hash = chatCounter++;
     chatList.push(chat); // right now, only non system messages logged
-    if (chat.recipients) {
-      if (chat.recipients.length == 1 && chat.recipients[0] == "")
-        chat.recipients[0] = client.id + "/";
-      // default pm: send to all with same id
-      else chat.recipients.push(client.id + "/" + chat.alias); // always send to oneself
-      let flag = true;
-      const recipients = [];
-      for (let i = 0; i < chat.recipients.length; i++) {
-        const index = chat.recipients[i].indexOf("/");
-        if (index < 0) flag = false;
-        else {
-          let id = chat.recipients[i].substring(0, index);
-          if (!id.startsWith("user")) id = "user" + id; // eww
-          if (recipients.indexOf(id) < 0) recipients.push(id);
-          // now encrypt
-          chat.recipients[i] = "id" + chat.recipients[i].substring(index);
+    // default: to user
+    if (Object.keys(chat.recipients).length == 0)
+      chat.recipients[client.id] = null;
+    if (chat.recipients[""] !== null)
+      chat.recipientsSummary = Object.values(chat.recipients)
+        .map((x) => (x === null ? "★" : (x as any).join(", ")))
+        .join(" & ");
+    // and make sure sender gets a copy
+    if (chat.recipients[""] !== null && chat.recipients[client.id] !== null) {
+      if (chat.recipients[client.id] === undefined)
+        chat.recipients[client.id] = [];
+      chat.recipients[client.id].push(chat.alias);
+    }
+    for (const id1 in chat.recipients) {
+      const chat1 = Object.assign({}, chat, {
+        recipients: chat.recipients[id1],
+      });
+      if (id1 == "") io.emit("chat", chat1);
+      // broadcast
+      else {
+        const client1 = clients[id1];
+        if (client1) {
+          client1.sockets.forEach((socket1) => socket1.emit("chat", chat1));
         }
       }
-      if (flag) {
-        chatIdList.push({ id: client.id, recipients: recipients });
-        recipients.forEach(function (id) {
-          const client1 = clients[id];
-          if (client1)
-            client1.sockets.forEach((socket1) => socket1.emit("chat", chat));
-        });
-        return;
-      }
     }
-    chatIdList.push({ id: client.id });
-    io.emit("chat", chat); // broadcast
+    chat.id = client.id;
+  };
+  const chatDelete = function (chat: Chat, index: number) {
+    logClient(client.id, chat.alias + " deleted #" + chat.hash);
+    chatList.splice(index, 1);
+    io.emit("chat", chat);
   };
   const chatAdmin = function (chat: Chat) {
+    chat.recipients = null;
     if (chat.message.startsWith("@block")) {
       const i = chat.message.indexOf(" ");
       if (i < 0) {
@@ -516,6 +529,19 @@ const socketChatAction = function (socket, client: Client) {
               chat.message += " (false)";
             }
           });
+    } else if (chat.message.startsWith("@stop")) {
+      const stopChat: Chat = {
+        message: "The server is stopping.",
+        alias: "System",
+        type: "message",
+        hash: chatCounter++,
+        time: Date.now(),
+      };
+      io.emit("chat", stopChat);
+      setTimeout(function () {
+        logger.info("Exiting.");
+        process.exit(0);
+      }, 5000);
     } else {
       // default: list
       chat.message +=
@@ -577,10 +603,13 @@ const socketChatAction = function (socket, client: Client) {
           return; // blocked
         if (chat.type == "delete") {
           const index = chatList.findIndex((x) => x.hash === chat.hash); // sigh
-          if (index < 0 || chatIdList[index].id != client.id) return; // false alarm
-          logClient(client.id, chat.alias + " deleted #" + chat.hash);
-          chatList.splice(index, 1);
-          chatIdList.splice(index, 1);
+          if (
+            index < 0 ||
+            chatList[index].id != client.id ||
+            chatList[index].alias != chat.alias
+          )
+            return; // false alarm
+          chatDelete(chat, index);
         } else if (chat.type === "login") chatLogin(chat);
         else if (chat.type === "message") chatMessage(chat);
       }
@@ -590,9 +619,7 @@ const socketChatAction = function (socket, client: Client) {
         if (chat.type == "delete") {
           const index = chatList.findIndex((x) => x.hash === chat.hash); // sigh
           if (index < 0) return; // false alarm
-          logClient(client.id, chat.alias + " deleted #" + chat.hash);
-          chatList.splice(index, 1);
-          chatIdList.splice(index, 1);
+          chatDelete(chat, index);
         } else if (chat.type === "login") chatLogin(chat);
         else if (chat.type === "message") {
           if (chat.message[0] == "@") chatAdmin(chat);
@@ -615,17 +642,11 @@ const initializeClientId = function (socket): string {
 };
 
 const setCookieOnSocket = function (socket, clientId: string): void {
-  if (clientId.substring(0, 4) === "user") {
-    const expDate = new Date(new Date().getTime() + options.cookieDuration);
-    const sessionCookie = Cookie.serialize(options.cookieName, clientId, {
-      expires: expDate,
-      /*
-    sameSite: "none",
-    secure: true,
-*/
-    });
-    safeSocketEmit(socket, "cookie", sessionCookie);
-  }
+  const expDate = new Date(new Date().getTime() + options.cookieDuration);
+  const sessionCookie = Cookie.serialize(options.cookieName, clientId, {
+    expires: expDate,
+  });
+  safeSocketEmit(socket, "cookie", sessionCookie);
 };
 
 const validateId = function (s): string {

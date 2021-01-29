@@ -13,14 +13,25 @@ const b64DecodeUnicode = function (str: string) {
   );
 };
 
+function extractTag(text: string, tag: string) {
+  // primitive extracter
+  const i1 = text.indexOf("<" + tag);
+  const i2 = text.lastIndexOf("</" + tag);
+  if (i1 < 0 || i2 < 0) return "";
+  const i1b = text.indexOf(">", i1);
+  if (i1b < 0) return "";
+  return text.substring(i1b + 1, i2);
+}
+
 window.renderhelp = function (text) {
   text = b64DecodeUnicode(text);
-  let b1 = text.indexOf("<body");
-  const b2 = text.lastIndexOf("</body>");
-  if (b1 < 0 || b2 < 0) return;
-  let msg = text.substring(b1, b2); // not quite yet
-  b1 = msg.indexOf(">");
-  msg = msg.substring(b1 + 1);
+  const msg = extractTag(text, "body");
+  const title = extractTag(text, "title");
+  if (title) {
+    const el = document.createElement("title");
+    el.textContent = title;
+    document.head.appendChild(el);
+  }
   const myshell = new Shell(
     document.body,
     null,
@@ -36,7 +47,6 @@ window.renderhelp = function (text) {
   // now cleanup for prerendering
   document.body.classList.remove("M2Html");
   document.body.removeAttribute("onload");
-  document.getElementById("katexscript").remove();
   document.getElementById("renderscript").remove();
   document.querySelector("base").remove();
 };

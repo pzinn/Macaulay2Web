@@ -8,8 +8,8 @@ const unlink = function (completePath: string) {
   return function () {
     fs.unlink(completePath, function (err) {
       if (err) {
-        logger.error(
-          "Error unlinking user generated file " + completePath + " : " + err
+        logger.warn(
+          "Unable to unlink user generated file " + completePath + " : " + err
         );
       }
     });

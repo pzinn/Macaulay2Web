@@ -248,15 +248,15 @@ input[type=checkbox]:not(:checked) + label {
     transition: text-shadow 0.5s;
 }
 
-.chatMessage b {
+[data-message] {
     color: #C07040;
 }
 
-.chatMessage b.message-System {
+[data-message=System] {
     color: #000000;
 }
 
-.chatMessage b.message-Admin {
+[data-message=Admin] {
     color: #FF0000;
 }
 
