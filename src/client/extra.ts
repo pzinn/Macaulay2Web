@@ -314,13 +314,13 @@ const toggleWrap = function () {
       }
     };
     // signal presence
-    window.addEventListener("load", function () {
-      socket.emit("chat", {
-        type: "login",
-        alias: chatAlias.value,
-        time: Date.now(),
-      });
+    //    window.addEventListener("load", function () {
+    socket.emit("chat", {
+      type: "login",
+      alias: chatAlias.value,
+      time: Date.now(),
     });
+    //    });
   }
 
   // zoom
@@ -487,26 +487,6 @@ const toggleWrap = function () {
   siofu = new SocketIOFileUpload(socket);
   attachClick("uploadBtn", siofu.prompt);
   siofu.addEventListener("complete", showUploadSuccessDialog);
-
-  // must add this due to failure of mdl, see https://stackoverflow.com/questions/31536467/how-to-hide-drawer-upon-user-click
-  const drawer = document.querySelector(".mdl-layout__drawer");
-  if (drawer)
-    drawer.addEventListener(
-      "click",
-      function () {
-        document
-          .querySelector(".mdl-layout__obfuscator")
-          .classList.remove("is-visible");
-        this.classList.remove("is-visible");
-      },
-      false
-    );
-  // supersede mdl's built-in tab handling
-  Array.from(document.getElementsByClassName("mdl-tabs__tab")).forEach((el) => {
-    (el as any).onclick = function (event) {
-      event.stopImmediatePropagation();
-    };
-  });
 
   if (editor)
     // only ask for confirmation if there's an editor
