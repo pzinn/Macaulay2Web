@@ -239,9 +239,9 @@ const sendDataToClient = function (client: Client) {
       return;
     }
     updateLastActiveTime(client);
+    client.output += data;
     // extra logging for *users* only
     if (client.id.substring(0, 4) === "user") {
-      client.output += data;
       while (client.output.length > options.perContainerResources.maxOutput) {
         const m = client.output.match(
           new RegExp(
@@ -259,7 +259,15 @@ const sendDataToClient = function (client: Client) {
           " \u2026\n" +
           client.output.substring(m.index + m[0].length);
       }
-    } else client.output = "i* : " + webAppTags.Input;
+    } else {
+      const i = client.output.lastIndexOf(webAppTags.Cell);
+      client.output =
+        i < 0 ||
+        client.output.length - i > options.perContainerResources.maxOutput
+          ? ""
+          : client.output.substring(i);
+      //client.output = webAppTags.Cell + "i* : " + webAppTags.Input; // a little better than that: keeps last cell
+    }
     emitOutputViaClientSockets(client, data);
   };
 };
