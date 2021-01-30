@@ -16,7 +16,6 @@ const app = express();
 import httpModule = require("http");
 const http = httpModule.createServer(app);
 import fs = require("fs");
-import Cookie = require("cookie");
 
 import ssh2 = require("ssh2");
 import socketioFileUpload = require("socketio-file-upload");
@@ -298,6 +297,7 @@ const killMathProgram = function (
   channel.close();
 };
 
+import Cookie = require("cookie"); // TODO remove
 const fileDownload = function (request, response, next) {
   const rawCookies = request.headers.cookie;
   if (rawCookies) {
@@ -351,7 +351,7 @@ const initializeServer = function () {
   app.use(unhandled);
 };
 
-const clientExistenceCheck = function (clientId: string, socket): Client {
+const clientExistenceCheck = function (clientId: string): Client {
   logger.info("Checking existence of client with id " + clientId);
   if (!clients[clientId]) {
     clients[clientId] = new Client(clientId);
@@ -422,7 +422,6 @@ const socketInputAction = function (socket, client: Client) {
   return function (msg: string) {
     logClient(client.id, "Receiving input: " + short(msg));
     if (checkClientSane(client)) {
-      // setCookieOnSocket(socket, client.id);
       updateLastActiveTime(client);
       checkAndWrite(client, msg);
     }
@@ -640,21 +639,10 @@ const socketRestoreAction = function (socket, client: Client) {
   };
 };
 
-const initializeClientId = function (socket): string {
+const initializeClientId = function (): string {
   const clientId = clientIdHelper(clients, logger.info).getNewId();
-  //  setCookieOnSocket(socket, clientId);
   return clientId;
 };
-
-/*
-const setCookieOnSocket = function (socket, clientId: string): void {
-  const expDate = new Date(new Date().getTime() + options.cookieDuration);
-  const sessionCookie = Cookie.serialize(options.cookieName, clientId, {
-    expires: expDate,
-  });
-  safeSocketEmit(socket, "cookie", sessionCookie);
-};
-*/
 
 const validateId = function (s): string {
   if (s === undefined) return undefined;
@@ -675,28 +663,20 @@ const listen = function () {
       );
       return; // brutal
     }
-    const publicId = validateId(socket.handshake.query.publicId);
-    const userId = validateId(socket.handshake.query.userId);
-    let clientId: string;
-    if (publicId !== undefined) {
-      clientId = "public";
-    } else if (userId !== undefined) {
-      clientId = "user" + userId;
-      // setCookieOnSocket(socket, clientId); // overwrite cookie if necessary
-    } else {
-      clientId = getClientIdFromSocket(socket);
-      if (clientId === undefined)
-        // need new one
-        clientId = initializeClientId(socket);
-      safeSocketEmit(socket, "id", clientId);
-    }
-    logClient(clientId, "Assigned clientId");
-    if (clientId === "deadCookie") {
-      logger.info("Disconnecting for dead cookie.");
+    let clientId: string = getClientIdFromSocket(socket);
+    if (clientId === "failed") {
+      logger.info("Disconnecting for failed authentication.");
       disconnectSocket(socket);
       return;
     }
-    const client = clientExistenceCheck(clientId, socket);
+    if (clientId === undefined) {
+      // need new one
+      clientId = initializeClientId();
+      safeSocketEmit(socket, "id", clientId);
+    }
+
+    logClient(clientId, " connected");
+    const client = clientExistenceCheck(clientId);
     sanitizeClient(client);
     addNewSocket(client, socket);
     const fileUpload = require("./fileUpload")(logger.info, sshCredentials);
@@ -712,7 +692,7 @@ const listen = function () {
   return listener;
 };
 
-const authorizeIfNecessary = function (authOption: boolean) {
+const getClientIdAuth = function (authOption: boolean) {
   if (authOption) {
     const auth = require("http-auth");
     const basic = auth.basic({
@@ -724,20 +704,13 @@ const authorizeIfNecessary = function (authOption: boolean) {
       try {
         return socket.request.headers.authorization.substring(6);
       } catch (error) {
-        return "deadCookie";
+        return "failed";
       }
     };
-  }
-  return function (socket: SocketIO.Socket) {
-    const rawCookies = socket.request.headers.cookie;
-    if (typeof rawCookies === "undefined") {
-      // Sometimes there are no cookies
-      return undefined;
-    } else {
-      const cookies = Cookie.parse(rawCookies);
-      return cookies[options.cookieName];
-    }
-  };
+  } else
+    return function (socket: SocketIO.Socket) {
+      return validateId(socket.handshake.query.id);
+    };
 };
 
 const mathServer = function (o) {
@@ -749,7 +722,7 @@ const mathServer = function (o) {
     throw new Error("No CONTAINERS!");
   }
 
-  getClientIdFromSocket = authorizeIfNecessary(options.authentication);
+  getClientIdFromSocket = getClientIdAuth(options.authentication);
   const resources = options.perContainerResources;
   const guestInstance = options.startInstance;
   const hostConfig = options.hostConfig;

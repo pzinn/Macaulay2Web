@@ -1,6 +1,6 @@
 import Cookie from "cookie";
 import { options } from "../common/global";
-import { socket, url, myshell } from "./main";
+import { socket, url, myshell, clientId } from "./main";
 import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 import { socketChat } from "./chat";
 import tutorials from "./tutorials";
@@ -9,8 +9,11 @@ import SocketIOFileUpload from "socketio-file-upload";
 import { Chat } from "../common/chatClass";
 import defaultEditor from "./default.m2";
 
-const setCookie = function (cookie) {
-  document.cookie = cookie;
+const setCookie = function (name: string, value: string): void {
+  const expDate = new Date(new Date().getTime() + options.cookieDuration);
+  document.cookie = Cookie.serialize(name, value, {
+    expires: expDate,
+  });
 };
 
 const getCookieId = function () {
@@ -242,9 +245,12 @@ const toggleWrap = function () {
 
   const queryCookie = function () {
     const id = getCookieId();
-    if (!id) alert("You don't have a cookie");
-    // it can happen now with temporary id
-    else alert("The user id stored in your cookie is: " + id.substring(4));
+    let msg: string = id
+      ? "The user id stored in your cookie is: " + id.substring(4)
+      : "You don't have a cookie.";
+    if (clientId != id)
+      msg += "\nYour temporary id is: " + clientId.substring(4);
+    alert(msg);
   };
 
   socket.on("chat", socketChat);
@@ -265,12 +271,7 @@ const toggleWrap = function () {
         alias.indexOf(",") >= 0
           ? options.defaultAlias
           : alias;
-      const expDate = new Date(new Date().getTime() + options.cookieDuration);
-      setCookie(
-        Cookie.serialize(options.cookieAliasName, chatAlias.value, {
-          expires: expDate,
-        })
-      );
+      setCookie(options.cookieAliasName, chatAlias.value);
     };
     chatInput.onkeypress = function (e) {
       if (e.key == "Enter" && e.shiftKey) {

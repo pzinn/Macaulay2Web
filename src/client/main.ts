@@ -4,9 +4,7 @@ declare const MINIMAL;
 
 import socketIo from "socket.io-client";
 
-import Cookie from "cookie"; // dumb TODO
-
-import { extra, setCookie, getCookieId } from "./extra"; // dumb TODO
+import { extra, setCookie, getCookieId } from "./extra";
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
@@ -26,7 +24,8 @@ import {
 import { options } from "../common/global";
 
 let myshell = null; // the terminal
-let clientId = MINIMAL ? "public" : getCookieId(); // client's id. server will tell us, or it's in the cookie, or in the URL...
+let clientId = MINIMAL ? "public" : getCookieId(); // client's id. it's public / in the cookie,
+// but can be overwritten by url or chosen by server if no cookie
 
 const keydownAction = function (e) {
   if (e.key == "F1") {
@@ -66,7 +65,6 @@ const wrapEmitForDisconnect = function (event, msg) {
   } else {
     socket.oldEmit(event, msg);
   }
-  // TODO update cookie time stamp
   return socket;
 };
 
@@ -117,13 +115,8 @@ const rightclickAction = function (e) {
 
 const setId = function (id: string): void {
   clientId = id;
-  if (cookieFlag) {
-    const expDate = new Date(new Date().getTime() + options.cookieDuration);
-    const sessionCookie = Cookie.serialize(options.cookieName, clientId, {
-      expires: expDate,
-    });
-    setCookie(sessionCookie);
-  }
+  console.log("Client id " + clientId);
+  if (!MINIMAL && cookieFlag) setCookie(options.cookieName, clientId);
 };
 
 const socketOutput = function (msg: string) {
@@ -139,8 +132,7 @@ const socketError = function (type) {
 
 const url = new URL(document.location.href);
 
-let cookieFlag = !MINIMAL;
-let ioParams = "?version=" + options.version;
+let cookieFlag = true; // we could write !MINIMAL here but for tree shaking purposes we don't :/
 
 const init = function () {
   if (!MINIMAL && !navigator.cookieEnabled) {
@@ -151,9 +143,9 @@ const init = function () {
   console.log("Macaulay2Web version " + options.version);
   const userId: any = url.searchParams.get("user");
   if (userId) {
-    ioParams += "&userId=" + userId;
+    const newId = "user" + userId;
     if (!MINIMAL) {
-      if (clientId !== "user" + userId) {
+      if (clientId !== newId) {
         const dialog = document.getElementById(
           "changeUserDialog"
         ) as HTMLDialogElement;
@@ -165,19 +157,21 @@ const init = function () {
           : "";
         dialog.onclose = function () {
           if (dialog.returnValue == "temporary") cookieFlag = false;
-          setId("user" + userId);
+          setId(newId);
           init2();
         };
         dialog.showModal();
         return;
       }
     }
-    setId("user" + userId);
-  } else if (MINIMAL) ioParams += "&publicId";
+    setId(newId);
+  } else if (clientId) setId(clientId); // reset the clock
   init2();
 };
 
 const init2 = function () {
+  let ioParams = "?version=" + options.version;
+  if (clientId) ioParams += "&id=" + clientId;
   socket = socketIo(ioParams);
   socket.on("reconnect_failed", socketError("reconnect_fail"));
   socket.on("reconnect_error", socketError("reconnect_error"));
@@ -215,4 +209,4 @@ const init2 = function () {
     }, 2000); // weak
 };
 
-export { init, myshell, socket, url };
+export { init, myshell, socket, url, clientId };
