@@ -697,12 +697,20 @@ const getClientIdAuth = function (authOption: boolean) {
     const auth = require("http-auth");
     const basic = auth.basic({
       realm: "Please enter your username and password.",
-      file: path.join(__dirname, "/../../../public/users.htpasswd"),
+      file: path.join(__dirname, "/../../public/users.htpasswd"),
     });
     app.use(auth.connect(basic));
     return function (socket: SocketIO.Socket) {
       try {
-        return socket.request.headers.authorization.substring(6);
+        return (
+          "user" +
+          Buffer.from(
+            socket.request.headers.authorization.split(" ").pop(),
+            "base64"
+          )
+            .toString()
+            .split(":")[0]
+        );
       } catch (error) {
         return "failed";
       }
