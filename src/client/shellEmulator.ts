@@ -115,9 +115,8 @@ const Shell = function (
     inputSpan.classList.add("M2Text");
 
     htmlSec = shell;
-    //    createHtml(webAppClasses[webAppTags.Cell]);
-
     htmlSec.appendChild(document.createElement("br")); // a bit of extra space doesn't hurt
+    if (!editor) createHtml(webAppClasses[webAppTags.Cell]); // VERY TEMP fix: server should just add the tag
     htmlSec.appendChild(inputSpan);
 
     inputSpan.focus();
@@ -749,7 +748,7 @@ const Shell = function (
     } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
       if (url.startsWith("file://")) url = url.slice(7);
-      if (url[0] != "/" && !url.startsWith("http")) url = "/relative/" + url; // for relative URLs in docker
+      if (!url.match(/^\/|^~|^http:\/|^https:\//)) url = "/relative/" + url; // for relative URLs in docker
       console.log("Opening URL " + url);
       if (
         iFrame &&
