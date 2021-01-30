@@ -9,7 +9,8 @@ import { LocalContainerManager } from "./LocalContainerManager";
 import { SshDockerContainers } from "./sshDockerContainers";
 import { SudoDockerContainers } from "./sudoDockerContainers";
 import { AddressInfo } from "net";
-import { directDownload } from "./fileDownload";
+import { downloadFromDocker } from "./fileDownload";
+import Cookie = require("cookie");
 
 import express = require("express");
 const app = express();
@@ -297,32 +298,34 @@ const killMathProgram = function (
   channel.close();
 };
 
-import Cookie = require("cookie"); // TODO remove
 const fileDownload = function (request, response, next) {
-  const rawCookies = request.headers.cookie;
-  if (rawCookies) {
-    const cookies = Cookie.parse(rawCookies);
-    const id = cookies[options.cookieName];
-    if (id && clients[id]) {
-      const client = clients[id];
-      logger.info("file request from " + id);
-      let sourcePath = decodeURIComponent(request.path);
-      if (sourcePath.startsWith("/relative/"))
-        sourcePath = sourcePath.substring(10); // for relative paths
-      directDownload(
-        client,
-        sourcePath,
-        userSpecificPath(client),
-        sshCredentials,
-        logger.info,
-        function (targetPath) {
-          if (targetPath) {
-            response.sendFile(targetPath);
-          } else next();
-        }
-      );
-    } else next();
-  } else next();
+  // try to find user's id
+  let id = request.query.id;
+  if (!id) {
+    const rawCookies = request.headers.cookie;
+    if (rawCookies) {
+      const cookies = Cookie.parse(rawCookies);
+      id = cookies[options.cookieName];
+    }
+  }
+  if (!id || !clients[id]) next();
+  const client = clients[id];
+  logger.info("file request from " + id);
+  let sourcePath = decodeURIComponent(request.path);
+  if (request.query.relative && sourcePath[0] == "/")
+    sourcePath = sourcePath.substring(1); // for relative paths. annoying
+  downloadFromDocker(
+    client,
+    sourcePath,
+    userSpecificPath(client),
+    sshCredentials,
+    logger.info,
+    function (targetPath) {
+      if (targetPath) {
+        response.sendFile(targetPath);
+      } else next();
+    }
+  );
 };
 
 const unhandled = function (request, response) {
@@ -339,14 +342,12 @@ const initializeServer = function () {
   const expressWinston = require("express-winston");
   serveStatic.mime.define({ "text/plain": ["m2"] }); // declare m2 files as plain text for browsing purposes
 
-  //  const admin = require("./admin")(clients, -1, serverConfig.MATH_PROGRAM); // retired
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
   app.use(socketioFileUpload.router);
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
   app.use(serveStatic(staticFolder));
-  //  app.use("/admin", admin.stats); // retired
   app.use(fileDownload);
   app.use(unhandled);
 };

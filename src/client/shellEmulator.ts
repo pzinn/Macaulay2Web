@@ -1,4 +1,4 @@
-import { Socket } from "./main";
+import { Socket, clientId } from "./main";
 
 import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "../common/tags";
@@ -747,12 +747,22 @@ const Shell = function (
       htmlSec.classList.add("M2PastInput");
     } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
-      if (url.startsWith("file://")) url = url.slice(7);
       console.log("Opening URL " + url);
-      if (!url.match(/^\/|^~|^http:\/|^https:\//)) url = "/relative/" + url; // for relative URLs in docker -- still WRONG
+      if (!url.startsWith("https://") && !url.startsWith("http://")) {
+        // internal link
+        const relative = !url.startsWith("/"); // annoying subtleties
+        const url1 = new URL(
+          url.startsWith("file://")
+            ? url
+            : "file://" + (relative ? "/" : "") + url
+        ); // eww
+        if (clientId != "public") url1.searchParams.append("id", clientId);
+        if (relative) url1.searchParams.append("relative", "true");
+        url = url1.toString().slice(7); // eww2
+      }
       if (
         iFrame &&
-        !(window.location.protocol == "https:" && url.startsWith("http:/")) // no insecure in frame
+        !(window.location.protocol == "https:" && url.startsWith("http://")) // no insecure in frame
       )
         iFrame.src = url;
       else window.open(url, "M2 browse");

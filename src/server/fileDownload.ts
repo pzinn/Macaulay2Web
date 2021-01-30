@@ -16,7 +16,7 @@ const unlink = function (completePath: string) {
   };
 };
 
-const directDownload = function (
+const downloadFromDocker = function (
   client: Client,
   sourcePath: string,
   targetPath: string,
@@ -68,4 +68,4 @@ const directDownload = function (
   sshConnection.connect(sshCredentials(client.instance));
 };
 
-export { directDownload };
+export { downloadFromDocker };
