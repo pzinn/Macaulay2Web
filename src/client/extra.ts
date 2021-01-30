@@ -17,7 +17,7 @@ const getCookieId = function () {
   const cookies = Cookie.parse(document.cookie);
   const cookie = cookies[options.cookieName];
   if (!cookie || !cookie.startsWith("user")) return; // shouldn't happen
-  return cookie.substring(4);
+  return cookie;
 };
 
 const extra = function () {
@@ -242,8 +242,9 @@ const toggleWrap = function () {
 
   const queryCookie = function () {
     const id = getCookieId();
-    if (!id) alert("You don't have a cookie (that's weird -- contact admin!)");
-    else alert("The user id stored in your cookie is: " + id);
+    if (!id) alert("You don't have a cookie");
+    // it can happen now with temporary id
+    else alert("The user id stored in your cookie is: " + id.substring(4));
   };
 
   socket.on("chat", socketChat);

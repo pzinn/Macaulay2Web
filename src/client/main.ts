@@ -4,7 +4,9 @@ declare const MINIMAL;
 
 import socketIo from "socket.io-client";
 
-import { extra, setCookie, getCookieId } from "./extra";
+import Cookie from "cookie"; // dumb TODO
+
+import { extra, setCookie, getCookieId } from "./extra"; // dumb TODO
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
@@ -23,7 +25,8 @@ import {
 
 import { options } from "../common/global";
 
-let myshell = null;
+let myshell = null; // the terminal
+let clientId = MINIMAL ? "public" : getCookieId(); // client's id. server will tell us, or it's in the cookie, or in the URL...
 
 const keydownAction = function (e) {
   if (e.key == "F1") {
@@ -51,10 +54,11 @@ const socketDisconnect = function (msg) {
 };
 
 const wrapEmitForDisconnect = function (event, msg) {
+  // TODO rewrite better
   if (serverDisconnect) {
     const events = ["reset", "input", "chat"];
     console.log("We are disconnected.");
-    if (events.indexOf(event) !== -1) {
+    if (events.indexOf(event) >= 0) {
       socket.connect();
       serverDisconnect = false;
       socket.oldEmit(event, msg);
@@ -62,6 +66,7 @@ const wrapEmitForDisconnect = function (event, msg) {
   } else {
     socket.oldEmit(event, msg);
   }
+  // TODO update cookie time stamp
   return socket;
 };
 
@@ -110,6 +115,17 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
+const setId = function (id: string): void {
+  clientId = id;
+  if (cookieFlag) {
+    const expDate = new Date(new Date().getTime() + options.cookieDuration);
+    const sessionCookie = Cookie.serialize(options.cookieName, clientId, {
+      expires: expDate,
+    });
+    setCookie(sessionCookie);
+  }
+};
+
 const socketOutput = function (msg: string) {
   myshell.displayOutput(msg);
 };
@@ -123,7 +139,7 @@ const socketError = function (type) {
 
 const url = new URL(document.location.href);
 
-let cookieFlag = true; // we could test MINIMAL here but for tree shaking purposes we don't :/
+let cookieFlag = !MINIMAL;
 let ioParams = "?version=" + options.version;
 
 const init = function () {
@@ -137,37 +153,38 @@ const init = function () {
   if (userId) {
     ioParams += "&userId=" + userId;
     if (!MINIMAL) {
-      const oldId = getCookieId();
-      if (oldId !== userId) {
+      if (clientId !== "user" + userId) {
         const dialog = document.getElementById(
           "changeUserDialog"
         ) as HTMLDialogElement;
         document.getElementById("newUserId").textContent = userId;
-        document.getElementById("oldUserIdReminder").innerHTML = oldId
+        document.getElementById("oldUserIdReminder").innerHTML = clientId
           ? "Choosing `permanent' will overwrite the current id <b>" +
-            oldId +
+            clientId.substring(4) +
             "</b> in your cookie."
           : "";
         dialog.onclose = function () {
           if (dialog.returnValue == "temporary") cookieFlag = false;
+          setId("user" + userId);
           init2();
         };
         dialog.showModal();
         return;
       }
     }
+    setId("user" + userId);
   } else if (MINIMAL) ioParams += "&publicId";
   init2();
 };
 
 const init2 = function () {
   socket = socketIo(ioParams);
-  if (!MINIMAL && cookieFlag) socket.on("cookie", setCookie);
   socket.on("reconnect_failed", socketError("reconnect_fail"));
   socket.on("reconnect_error", socketError("reconnect_error"));
   socket.on("connect_error", socketError("connect_error"));
   socket.on("output", socketOutput);
   socket.on("disconnect", socketDisconnect);
+  socket.on("id", setId);
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
 
@@ -198,4 +215,4 @@ const init2 = function () {
     }, 2000); // weak
 };
 
-export { init, myshell, socket, setCookie, url };
+export { init, myshell, socket, url };

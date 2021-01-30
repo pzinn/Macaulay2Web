@@ -422,7 +422,7 @@ const socketInputAction = function (socket, client: Client) {
   return function (msg: string) {
     logClient(client.id, "Receiving input: " + short(msg));
     if (checkClientSane(client)) {
-      setCookieOnSocket(socket, client.id);
+      // setCookieOnSocket(socket, client.id);
       updateLastActiveTime(client);
       checkAndWrite(client, msg);
     }
@@ -642,10 +642,11 @@ const socketRestoreAction = function (socket, client: Client) {
 
 const initializeClientId = function (socket): string {
   const clientId = clientIdHelper(clients, logger.info).getNewId();
-  setCookieOnSocket(socket, clientId);
+  //  setCookieOnSocket(socket, clientId);
   return clientId;
 };
 
+/*
 const setCookieOnSocket = function (socket, clientId: string): void {
   const expDate = new Date(new Date().getTime() + options.cookieDuration);
   const sessionCookie = Cookie.serialize(options.cookieName, clientId, {
@@ -653,6 +654,7 @@ const setCookieOnSocket = function (socket, clientId: string): void {
   });
   safeSocketEmit(socket, "cookie", sessionCookie);
 };
+*/
 
 const validateId = function (s): string {
   if (s === undefined) return undefined;
@@ -680,12 +682,13 @@ const listen = function () {
       clientId = "public";
     } else if (userId !== undefined) {
       clientId = "user" + userId;
-      setCookieOnSocket(socket, clientId); // overwrite cookie if necessary
+      // setCookieOnSocket(socket, clientId); // overwrite cookie if necessary
     } else {
       clientId = getClientIdFromSocket(socket);
       if (clientId === undefined)
         // need new one
         clientId = initializeClientId(socket);
+      safeSocketEmit(socket, "id", clientId);
     }
     logClient(clientId, "Assigned clientId");
     if (clientId === "deadCookie") {

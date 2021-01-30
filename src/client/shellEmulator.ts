@@ -748,8 +748,8 @@ const Shell = function (
     } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
       if (url.startsWith("file://")) url = url.slice(7);
-      if (!url.match(/^\/|^~|^http:\/|^https:\//)) url = "/relative/" + url; // for relative URLs in docker
       console.log("Opening URL " + url);
+      if (!url.match(/^\/|^~|^http:\/|^https:\//)) url = "/relative/" + url; // for relative URLs in docker -- still WRONG
       if (
         iFrame &&
         !(window.location.protocol == "https:" && url.startsWith("http:/")) // no insecure in frame
