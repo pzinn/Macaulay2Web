@@ -61,6 +61,7 @@
     "build:client": "./prebuild && webpack --env production",
     "build:minimal": "./prebuild && webpack --env minimal",
     "build:debug": "webpack --env debug",
+    "build:debug-minimal": "webpack --env debug --env minimal",
     "css": "cd src/client/css; lessc ../../../KaTeX/src/katex.less katex.css; cat katex.css VectorGraphics.css interface_common.css interface_minimal.css prism-M2.css | postcss -o ../../../public/minimal.css && cat material.indigo-deep_orange.min.css katex.css VectorGraphics.css interface_common.css interface_extra.css prism-M2.css | postcss -o ../../../public/index.css",
     "start": "node dist/server/index.js",
     "docker": "npm run build && npm start docker",
