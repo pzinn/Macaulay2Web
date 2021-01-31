@@ -32,14 +32,14 @@ class SshDockerContainersInstanceManager implements InstanceManager {
     instance.lastActiveTime = Date.now();
   }
 
-  public getNewInstance(userId, next) {
+  public getNewInstance(clientId, next) {
     if (this.currentContainers.length >= this.hostConfig.maxContainerNumber) {
-      this.killOldestContainer(userId, next);
+      this.killOldestContainer(clientId, next);
     } else {
       const currentInstance = JSON.parse(JSON.stringify(this.guestInstance));
       this.guestInstance.port++;
       currentInstance.containerName = "m2Port" + currentInstance.port;
-      currentInstance.userId = userId;
+      currentInstance.clientId = clientId;
       this.connectWithSshAndCreateContainer(currentInstance, next);
     }
   }
@@ -65,7 +65,7 @@ class SshDockerContainersInstanceManager implements InstanceManager {
           instance.containerId = dataObject.toString();
           self.checkForSuccessfulContainerStart(
             instance,
-            instance.userId,
+            instance.clientId,
             next
           );
         });
@@ -74,7 +74,7 @@ class SshDockerContainersInstanceManager implements InstanceManager {
           // afraid of data.
           const data = dataObject.toString();
           if (data.match(/ERROR/i)) {
-            self.getNewInstance(instance.userId, next);
+            self.getNewInstance(instance.clientId, next);
             stream.end();
           }
         });
@@ -146,7 +146,7 @@ class SshDockerContainersInstanceManager implements InstanceManager {
         stream.on("data", function (dataObject) {
           const data = dataObject.toString();
           if (data === "") {
-            self.getNewInstance(instance.userId, next);
+            self.getNewInstance(instance.clientId, next);
           } else {
             self.checkForRunningSshd(instance, next);
           }
@@ -220,12 +220,12 @@ class SshDockerContainersInstanceManager implements InstanceManager {
       });
   }
 
-  private killOldestContainer = function (userId: string, next) {
+  private killOldestContainer = function (clientId: string, next) {
     const self = this;
     self.sortInstancesByAge();
     if (self.isLegal(self.currentContainers[0])) {
       self.removeInstance(self.currentContainers[0], function () {
-        self.getNewInstance(userId, next);
+        self.getNewInstance(clientId, next);
       });
     } else {
       throw new Error("Too many active users.");

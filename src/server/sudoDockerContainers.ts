@@ -38,23 +38,23 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
           const dockerInspectCmd = "sudo docker inspect " + lst[i];
           exec(dockerInspectCmd, function (error, stdout, stderr) {
             const res = JSON.parse(stdout);
-            const userId = res[0].Config.Labels.userId;
-            if (userId) {
+            const clientId = res[0].Config.Labels.clientId;
+            if (clientId) {
               // find port
               const port = res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
               logger.info(
-                "Scanning " + lst[i] + " found " + userId + ":" + port
+                "Scanning " + lst[i] + " found " + clientId + ":" + port
               );
               const newInstance = JSON.parse(
                 JSON.stringify(self.currentInstance)
               ); // eww
               newInstance.port = port;
-              newInstance.userId = userId;
+              newInstance.clientId = clientId;
               newInstance.containerName = "m2Port" + newInstance.port;
-              if (!existing[userId]) {
+              if (!existing[clientId]) {
                 logger.info("Recovering");
                 // test for sshd?
-                existing[userId] = newInstance;
+                existing[clientId] = newInstance;
                 self.addInstanceToArray(newInstance);
               } else {
                 self.removeInstance(newInstance);
@@ -68,17 +68,17 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     });
   }
 
-  public getNewInstance(userId, next) {
+  public getNewInstance(clientId, next) {
     const self = this;
     if (this.currentContainers.length >= this.hostConfig.maxContainerNumber) {
       this.killOldestContainer(function () {
-        self.getNewInstance(userId, next);
+        self.getNewInstance(clientId, next);
       });
     } else {
       const newInstance = JSON.parse(JSON.stringify(self.currentInstance));
       self.currentInstance.port++;
       newInstance.containerName = "m2Port" + newInstance.port;
-      newInstance.userId = userId;
+      newInstance.clientId = clientId;
       exec(
         self.constructDockerRunCommand(self.resources, newInstance),
         function (error) {
@@ -87,7 +87,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               error.message.match(/Conflict. The name/) ||
               error.message.match(/Conflict. The container name/);
             if (containerAlreadyStarted) {
-              self.getNewInstance(userId, next);
+              self.getNewInstance(clientId, next);
             } else {
               logger.error(
                 "Error starting the docker container: " + error.message
@@ -163,9 +163,10 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     dockerRunCmd += ' --memory="' + resources.memory + 'm"';
     dockerRunCmd += " --name " + newInstance.containerName;
     dockerRunCmd += " -p " + newInstance.port + ":22";
-    dockerRunCmd += " -l " + "userId=" + newInstance.userId;
+    dockerRunCmd += " -l " + "clientId=" + newInstance.clientId;
     dockerRunCmd +=
       " " + this.hostConfig.containerType + " " + this.hostConfig.sshdCmd;
+    logger.info("Running " + dockerRunCmd);
     return dockerRunCmd;
   }
 

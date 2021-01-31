@@ -53,7 +53,7 @@ const sshCredentials = function (instance: Instance): ssh2.ConnectConfig {
 const clients: IClients = {};
 
 let instanceManager: InstanceManager = {
-  getNewInstance(userId: string, next: any) {
+  getNewInstance(clientId: string, next: any) {
     //
   },
   updateLastActiveTime() {
@@ -662,6 +662,7 @@ const listen = function () {
         "output",
         "Client/server version mismatch. Please refresh your page."
       );
+      disconnectSocket(socket);
       return; // brutal
     }
     let clientId: string = getClientIdFromSocket(socket);

@@ -1,7 +1,7 @@
 import { Instance } from "./instance";
 
 interface InstanceManager {
-  getNewInstance(userId: string, next: any);
+  getNewInstance(clientId: string, next: any);
   updateLastActiveTime(instance: Instance);
   recoverInstances(next: any);
 }
