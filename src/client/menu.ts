@@ -1,9 +1,14 @@
 const setupMenu = function (menuElement, menuFunction, keyFunction?) {
   let menuSelection = menuElement.firstElementChild;
   if (!menuSelection) return;
+  const wrapMenuFunction = function (arg, success) {
+    menuElement.onblur = null; // do this first to avoid bugs with remove
+    menuFunction(arg, success);
+  };
+
   menuSelection.classList.add("selected");
   menuElement.onclick = function (e) {
-    menuFunction(menuSelection);
+    wrapMenuFunction(menuSelection, true);
     e.preventDefault();
     e.stopPropagation();
     return;
@@ -25,7 +30,7 @@ const setupMenu = function (menuElement, menuFunction, keyFunction?) {
 
   menuElement.onkeydown = function (e) {
     if (e.key === "Enter") {
-      menuFunction(menuSelection);
+      wrapMenuFunction(menuSelection, true);
       e.preventDefault();
       e.stopPropagation();
       return;
@@ -46,7 +51,7 @@ const setupMenu = function (menuElement, menuFunction, keyFunction?) {
     }
     if (e.key == "Escape") {
       menuSelection.classList.remove("selected");
-      menuFunction(false);
+      wrapMenuFunction(false, true);
       e.preventDefault();
       e.stopPropagation();
       return;
@@ -54,6 +59,9 @@ const setupMenu = function (menuElement, menuFunction, keyFunction?) {
     if (keyFunction) keyFunction(e);
   };
   menuElement.focus();
+  menuElement.onblur = function () {
+    wrapMenuFunction(false, false);
+  };
   return changeSelection;
 };
 

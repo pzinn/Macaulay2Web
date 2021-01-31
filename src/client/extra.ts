@@ -1,13 +1,27 @@
 import Cookie from "cookie";
 import { options } from "../common/global";
 import { socket, url, myshell } from "./main";
-import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
+import {
+  scrollDown,
+  scrollDownLeft,
+  caretIsAtEnd,
+  getCaret,
+  setCaret,
+} from "./htmlTools";
 import { socketChat } from "./chat";
 import tutorials from "./tutorials";
 import Prism from "prismjs";
 import SocketIOFileUpload from "socketio-file-upload";
 import { Chat } from "../common/chatClass";
 import defaultEditor from "./default.m2";
+import {
+  escapeKeyHandling,
+  autoCompleteHandling,
+  removeAutoComplete,
+  getAutoComplete,
+  delimiterHandling,
+  removeDelimiterHighlight,
+} from "./editor";
 
 const setCookie = function (cookie) {
   document.cookie = cookie;
@@ -140,22 +154,27 @@ const toggleWrap = function () {
   };
 
   const hilite = function () {
-    editor.innerHTML = Prism.highlight(
-      editor.innerText,
-      Prism.languages.macaulay2
-    );
+    if (getAutoComplete()) return; // no highlighting while autocomplete menu is on, would make a mess!!
+    // sadly, never happens -- oninput sucks
 
-    // what follows doesn't preserve caret location
-    /*
-  var txt = input.textContent;
-
-  document.execCommand("selectAll");
-  document.execCommand(
-    "insertHTML",
-    false,
-    Prism.highlight(txt, Prism.languages.macaulay2)
-  );
-*/
+    const sel = window.getSelection();
+    if (sel.isCollapsed) {
+      // to simplify (TEMP?) no hiliting while selecting
+      const caret = getCaret(editor);
+      const newHTML = Prism.highlight(
+        editor.innerText,
+        Prism.languages.macaulay2
+      );
+      if (editor.innerHTML != newHTML) {
+        // avoid changing things if not necessary
+        editor.innerHTML = newHTML;
+        if (caret) {
+          // note that it could be zero but that's OK (I think)
+          setCaret(editor, caret);
+        }
+      }
+    }
+    prismaTimeout = 0;
   };
 
   const attachCtrlBtnActions = function () {
@@ -164,7 +183,7 @@ const toggleWrap = function () {
     attachClick("interruptBtn", myshell.interrupt);
     attachClick("saveBtn", saveFile);
     attachClick("loadBtn", loadFile);
-    attachClick("hiliteBtn", hilite);
+    //    attachClick("hiliteBtn", hilite);
     attachClick("clearBtn", clearOut);
     //  attachClick("wrapBtn", toggleWrap);
   };
@@ -228,16 +247,32 @@ const toggleWrap = function () {
     }
   };
 
+  let prismaTimeout = 0;
   const editorKeyDown = function (e) {
     //    var prismInvoked=false;
+    removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
+    removeDelimiterHighlight(editor);
     if (e.key == "Enter" && e.shiftKey) {
       if (!caretIsAtEnd()) e.preventDefault();
       const msg = getSelected();
       myshell.postMessage(msg, false, false);
-    } else if (e.key == "Tab") {
+    } else if (e.key == "Escape") escapeKeyHandling();
+    else if (e.key == "Tab") {
+      if (prismaTimeout) window.clearTimeout(prismaTimeout); // no highlighting while autoComplete is up
+      // try to avoid disrupting the normal tab use as much as possible
+      if (!e.shiftKey && autoCompleteHandling(hilite)) {
+        e.preventDefault();
+        return;
+      }
+      // actually never mind -- or revert this?
       e.preventDefault();
-      document.execCommand("insertHTML", false, "&#009"); // tab inserts an actual tab for now (auto-complete?)
-    }
+      document.execCommand("insertHTML", false, "&#009"); // tab inserts an actual tab
+    } else delimiterHandling(e.key, editor);
+  };
+
+  const delayedHilite = function () {
+    if (prismaTimeout) window.clearTimeout(prismaTimeout);
+    prismaTimeout = window.setTimeout(hilite, 2000);
   };
 
   const queryCookie = function () {
@@ -482,7 +517,10 @@ const toggleWrap = function () {
   attachCtrlBtnActions();
   attachCloseDialogBtns();
 
-  if (editor) editor.onkeydown = editorKeyDown;
+  if (editor) {
+    editor.onkeydown = editorKeyDown;
+    editor.oninput = delayedHilite;
+  }
 
   siofu = new SocketIOFileUpload(socket);
   attachClick("uploadBtn", siofu.prompt);

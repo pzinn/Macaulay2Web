@@ -23,6 +23,74 @@ const baselinePosition = function (el) {
   return result;
 };
 
+/*
+function getLength(node: Node): number {
+    if (node.nodeType === 3) {
+      // Text node
+	return node.textContent.length;
+    } else if (node.nodeType === 1) {
+	let l=0;
+	for (let i=0; i<node.child
+      // Element node
+    }
+}
+*/
+// caret (always assuming selection is collapsed)
+const getCaret = function (el): number | null {
+  const sel = window.getSelection();
+  let cur = el.firstChild;
+  if (!cur) return null;
+  let len = 0;
+  while (true) {
+    if (cur == sel.focusNode)
+      // bingo
+      return len + sel.focusOffset;
+    if (cur.nodeType === 3)
+      // Text node
+      len += cur.textContent.length;
+    if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
+      // backtrack
+      while (!cur.nextSibling)
+        if (cur == el) return null;
+        else cur = cur.parentElement;
+      cur = cur.nextSibling;
+    } else if (cur.nodeType === 1) cur = cur.firstChild; // forward
+  }
+};
+
+// this will supersede placeCaret
+// some of these edge cases need to be clarified (empty HTMLElements; etc)
+const setCaret = function (el, pos: number): void {
+  el.focus({ preventScroll: true });
+  let cur = el.firstChild;
+  if (!cur) return null;
+  while (true) {
+    if (cur.nodeType === 1 && pos === 0 && cur.childElementCount === 0) {
+      // edge case: not sure???
+      const sel = window.getSelection();
+      sel.collapse(cur, pos);
+      return;
+    }
+    if (cur.nodeType === 3) {
+      // Text node
+      if (pos === 0 || pos < cur.textContent.length) {
+        // bingo
+        const sel = window.getSelection();
+        sel.collapse(cur, pos);
+        return;
+      }
+      pos -= cur.textContent.length;
+    }
+    if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
+      // backtrack
+      while (!cur.nextSibling)
+        if (cur == el) return null;
+        else cur = cur.parentElement;
+      cur = cur.nextSibling;
+    } else if (cur.nodeType === 1) cur = cur.firstChild; // forward
+  }
+};
+
 // the next 4 functions require el to have a single text node!
 const placeCaret = function (el, pos) {
   el.focus({ preventScroll: true });
@@ -32,18 +100,7 @@ const placeCaret = function (el, pos) {
     sel.collapse(el.lastChild, pos);
   }
 };
-/*
-const addToElement = function (el, pos, s) {
-  // insert into a pure text element and move caret to end of insertion
-  //  const msg = el.textContent;
-  //  el.textContent = msg.substring(0, pos) + s + msg.substring(pos, msg.length);
-  // put the caret where it should be
-  //  el.focus();
-  //  placeCaret(el, pos + s.length);
-  placeCaret(el, pos);
-  document.execCommand("insertText", false, s);
-};
-*/
+
 const placeCaretAtEnd = function (el, flag?) {
   // flag means only do it if not already in input
   if (!flag || document.activeElement != el) {
@@ -51,6 +108,7 @@ const placeCaretAtEnd = function (el, flag?) {
     el.scrollIntoView({ inline: "end", block: "nearest" });
   }
 };
+
 const attachElement = function (el, container) {
   // move an HTML element (with single text node) while preserving focus/caret
   const flag = document.activeElement == el;
@@ -122,5 +180,7 @@ export {
   attachElement,
   sanitizeElement,
   caretIsAtEnd,
+  getCaret,
+  setCaret,
   //  fragInnerText,
 };
