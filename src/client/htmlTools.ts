@@ -23,21 +23,10 @@ const baselinePosition = function (el) {
   return result;
 };
 
-/*
-function getLength(node: Node): number {
-    if (node.nodeType === 3) {
-      // Text node
-	return node.textContent.length;
-    } else if (node.nodeType === 1) {
-	let l=0;
-	for (let i=0; i<node.child
-      // Element node
-    }
-}
-*/
 // caret (always assuming selection is collapsed)
 const getCaret = function (el): number | null {
   const sel = window.getSelection();
+  if (el === sel.focusNode) return sel.focusOffset;
   let cur = el.firstChild;
   if (!cur) return null;
   let len = 0;
@@ -58,25 +47,24 @@ const getCaret = function (el): number | null {
   }
 };
 
-// this will supersede placeCaret
+const setCaretInternal = function (el, pos: number): void {
+  const sel = window.getSelection();
+  sel.collapse(el, pos);
+};
 // some of these edge cases need to be clarified (empty HTMLElements; etc)
 const setCaret = function (el, pos: number): void {
   el.focus({ preventScroll: true });
+  if (pos === 0) {
+    setCaretInternal(el, pos);
+    return;
+  }
   let cur = el.firstChild;
-  if (!cur) return null;
+  if (!cur) return;
   while (true) {
-    if (cur.nodeType === 1 && pos === 0 && cur.childElementCount === 0) {
-      // edge case: not sure???
-      const sel = window.getSelection();
-      sel.collapse(cur, pos);
-      return;
-    }
     if (cur.nodeType === 3) {
-      // Text node
-      if (pos === 0 || pos < cur.textContent.length) {
+      if (pos <= cur.textContent.length) {
         // bingo
-        const sel = window.getSelection();
-        sel.collapse(cur, pos);
+        setCaretInternal(cur, pos);
         return;
       }
       pos -= cur.textContent.length;
@@ -87,58 +75,35 @@ const setCaret = function (el, pos: number): void {
         if (cur == el) return null;
         else cur = cur.parentElement;
       cur = cur.nextSibling;
-    } else if (cur.nodeType === 1) cur = cur.firstChild; // forward
+    } else cur = cur.firstChild; // forward
   }
 };
 
-// the next 4 functions require el to have a single text node!
-const placeCaret = function (el, pos) {
-  el.focus({ preventScroll: true });
-  if (el.childNodes.length > 1) sanitizeElement(el);
-  if (el.childNodes.length == 1) {
-    const sel = window.getSelection();
-    sel.collapse(el.lastChild, pos);
-  }
-};
-
-const placeCaretAtEnd = function (el, flag?) {
+const setCaretAtEndMaybe = function (el, flag?) {
   // flag means only do it if not already in input
   if (!flag || document.activeElement != el) {
-    placeCaret(el, el.textContent.length);
+    // not quite right... should test containance
+    setCaret(el, el.textContent.length);
     el.scrollIntoView({ inline: "end", block: "nearest" });
   }
 };
 
 const attachElement = function (el, container) {
   // move an HTML element (with single text node) while preserving focus/caret
-  const flag = document.activeElement == el;
-  const offset = flag ? window.getSelection().focusOffset : 0;
+  const caret = getCaret(el);
   container.appendChild(el);
-  if (flag) {
-    //    el.focus();
-    placeCaret(el, offset);
-  }
+  if (caret !== null)
+    // note that it could be zero
+    setCaret(el, caret);
 };
 
-// ... and this one forces the element to have one text node
-// we're assuming isCollapsed is true to simplify
-const sanitizeElement = function (el) {
-  const sel = window.getSelection();
-  let offset = -1;
-  let content = "";
-  for (let i = 0; i < el.childNodes.length; i++) {
-    let subel = el.childNodes[i];
-    if (subel instanceof HTMLElement) {
-      sanitizeElement(subel);
-      subel = subel.firstChild;
-    }
-    if (sel.focusNode == subel) {
-      offset = content.length + sel.focusOffset;
-    }
-    content += el.childNodes[i].textContent;
-  }
-  el.textContent = content;
-  if (offset >= 0) placeCaret(el, offset);
+// not used any more
+const stripElement = function (el) {
+  const caret = getCaret(el);
+  el.innerHTML = el.textContent;
+  if (caret !== null)
+    // note that it could be zero
+    setCaret(el, caret);
 };
 
 // this one works everywhere
@@ -174,13 +139,10 @@ export {
   scrollDown,
   scrollLeft,
   baselinePosition,
-  placeCaret,
-  //  addToElement,
-  placeCaretAtEnd,
   attachElement,
-  sanitizeElement,
+  stripElement,
   caretIsAtEnd,
   getCaret,
   setCaret,
-  //  fragInnerText,
+  setCaretAtEndMaybe,
 };

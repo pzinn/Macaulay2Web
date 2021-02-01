@@ -1,7 +1,8 @@
 // contains functions used by both terminal and editor
 import { setupMenu } from "./menu";
 import M2symbols from "./prism-M2";
-import { getCaret } from "./htmlTools";
+import { getCaret, setCaret } from "./htmlTools";
+import Prism from "prismjs";
 
 // partial support for unicode symbols
 // symbols are ordered; from most useful to least
@@ -75,11 +76,7 @@ const escapeKeyHandling = function () {
 
 let autoComplete = null; // autocomplete HTML element (when tab is pressed)
 let autoCompleteNode = null; // where it sits
-let autoCompleteNext = null; // execute after autoComplete closes
-
-const getAutoComplete = function () {
-  return autoComplete;
-};
+let autoCompleteEl = null; // ancestor element (editor) for hiliting
 
 const removeAutoComplete = function (autoCompleteSelection, caret: boolean) {
   // null or the menu element to insert
@@ -98,13 +95,13 @@ const removeAutoComplete = function (autoCompleteSelection, caret: boolean) {
       const sel = window.getSelection();
       sel.collapse(autoCompleteNode, pos);
     }
-    if (autoCompleteNext) autoCompleteNext();
+    if (autoCompleteEl) highlight(autoCompleteEl); // redo the highlighting
   }
 };
 
-const autoCompleteHandling = function (next, dictionary?) {
+const autoCompleteHandling = function (el, dictionary?) {
   if (autoComplete) return; // normally should never happen
-  autoCompleteNext = next;
+  autoCompleteEl = el;
   const sel = window.getSelection();
   autoCompleteNode = sel.focusNode; // or anchorNode? start vs end of selection
   let pos = sel.focusOffset;
@@ -366,12 +363,43 @@ const openingDelimiterHandling = function (index, el) {
   return true;
 };
 
+const highlight = function (el) {
+  if (autoComplete) return; // no highlighting while autocomplete menu is on, would make a mess!!
+  // sadly, never happens -- oninput sucks
+
+  const sel = window.getSelection();
+  if (sel.isCollapsed) {
+    // to simplify (TEMP?) no hiliting while selecting
+    const caret = getCaret(el);
+    const newHTML = Prism.highlight(el.innerText, Prism.languages.macaulay2);
+    if (el.innerHTML != newHTML) {
+      // avoid changing things if not necessary
+      el.innerHTML = newHTML;
+      if (caret)
+        // note that it could be zero but that's OK (I think)
+        setCaret(el, caret);
+    }
+  }
+};
+
+let highlightTimeout = 0;
+const delayedHighlight = function (el) {
+  return function () {
+    if (highlightTimeout) window.clearTimeout(highlightTimeout);
+    highlightTimeout = window.setTimeout(function () {
+      highlightTimeout = 0;
+      highlight(el);
+    }, 2000);
+  };
+};
+
 export {
   escapeKeyHandling,
   autoCompleteHandling,
   removeAutoComplete,
-  getAutoComplete,
   sanitizeInput,
   delimiterHandling,
   removeDelimiterHighlight,
+  highlight,
+  delayedHighlight,
 };

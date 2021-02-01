@@ -7,10 +7,9 @@ import {
   scrollDown,
   scrollLeft,
   baselinePosition,
-  placeCaret,
-  placeCaretAtEnd,
+  setCaret,
+  setCaretAtEndMaybe,
   attachElement,
-  sanitizeElement,
 } from "./htmlTools";
 import {
   escapeKeyHandling,
@@ -141,7 +140,7 @@ const Shell = function (
       let str = t.textContent;
       if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
       // inputSpan.textContent = str;
-      // placeCaretAtEnd(inputSpan);
+      // setCaretAtEndMaybe(inputSpan);
       inputSpan.focus();
       document.execCommand("selectAll");
       document.execCommand("insertText", false, str);
@@ -174,7 +173,7 @@ const Shell = function (
       procInputSpan.textContent += clean + returnSymbol;
       inputSpan.textContent = "";
       scrollDownLeft(shell);
-      if (flag2) placeCaret(inputSpan, 0);
+      if (flag2) setCaret(inputSpan, 0);
       clean = clean + "\n";
       if (flag1) obj.addToEditor(clean);
       postRawMessage(clean);
@@ -224,13 +223,16 @@ const Shell = function (
     }
   };
 
-  shell.onpaste = function () {
+  shell.onpaste = function (e) {
     if (!inputSpan) return;
-    placeCaretAtEnd(inputSpan, true);
-    inputSpan.oninput = function () {
-      inputSpan.oninput = null; // !
-      sanitizeElement(inputSpan); // remove HTML tags from pasted input
-    };
+    setCaretAtEndMaybe(inputSpan, true);
+    e.preventDefault();
+    // paste w/o formatting
+    document.execCommand(
+      "insertText",
+      false,
+      e.clipboardData.getData("text/plain")
+    );
   };
 
   shell.onclick = function (e) {
@@ -245,7 +247,7 @@ const Shell = function (
         return;
       t = t.parentElement;
     }
-    placeCaretAtEnd(inputSpan, true);
+    setCaretAtEndMaybe(inputSpan, true);
     scrollDown(shell);
   };
 
@@ -268,7 +270,7 @@ const Shell = function (
       if (e.key == "ArrowDown") downArrowKeyHandling();
       else upArrowKeyHandling();
       e.preventDefault();
-      placeCaretAtEnd(inputSpan);
+      setCaretAtEndMaybe(inputSpan);
       scrollDown(shell);
       //
       return;
@@ -292,13 +294,13 @@ const Shell = function (
     }
 
     if (e.key == "Home") {
-      placeCaret(inputSpan, 0); // the default would sometimes use this for vertical scrolling
+      setCaret(inputSpan, 0); // the default would sometimes use this for vertical scrolling
       scrollDownLeft(shell);
       return;
     }
 
     if (e.key == "End") {
-      placeCaretAtEnd(inputSpan); // the default would sometimes use this for vertical scrolling
+      setCaretAtEndMaybe(inputSpan); // the default would sometimes use this for vertical scrolling
       scrollDown(shell);
       return;
     }
@@ -328,7 +330,7 @@ const Shell = function (
       }
     }
 
-    placeCaretAtEnd(inputSpan, true);
+    setCaretAtEndMaybe(inputSpan, true);
     const pos = window.getSelection().focusOffset;
     if (pos == 0) scrollLeft(shell);
 
@@ -346,6 +348,19 @@ const Shell = function (
       return;
     }
   };
+
+  /*
+  inputSpan.oninput = function (e) {
+    if (
+      inputSpan.parentElement == htmlSec &&
+      htmlSec.classList.contains("M2Input")
+    )
+      delayedHighlight(htmlSec);
+      // multiple problems: 
+      // the test should be when hiliting, not delayed!!!!
+      // more importantly, Prism breaks existing HTML and that's fatal for inputSpan
+  };
+*/
 
   shell.onkeyup = function () {
     if (!inputSpan) return;
@@ -558,7 +573,7 @@ const Shell = function (
     inputSpan.textContent = "";
     removeDelimiterHighlight(htmlSec);
     postRawMessage("\x03");
-    placeCaretAtEnd(inputSpan);
+    setCaretAtEndMaybe(inputSpan);
   };
 
   if (inputSpan)

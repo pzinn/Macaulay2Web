@@ -1,13 +1,7 @@
 import Cookie from "cookie";
 import { options } from "../common/global";
 import { socket, url, myshell } from "./main";
-import {
-  scrollDown,
-  scrollDownLeft,
-  caretIsAtEnd,
-  getCaret,
-  setCaret,
-} from "./htmlTools";
+import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 import { socketChat } from "./chat";
 import tutorials from "./tutorials";
 import Prism from "prismjs";
@@ -18,9 +12,9 @@ import {
   escapeKeyHandling,
   autoCompleteHandling,
   removeAutoComplete,
-  getAutoComplete,
   delimiterHandling,
   removeDelimiterHighlight,
+  delayedHighlight,
 } from "./editor";
 
 const setCookie = function (cookie) {
@@ -153,37 +147,13 @@ const toggleWrap = function () {
     inputParagraph.click();
   };
 
-  const hilite = function () {
-    if (getAutoComplete()) return; // no highlighting while autocomplete menu is on, would make a mess!!
-    // sadly, never happens -- oninput sucks
-
-    const sel = window.getSelection();
-    if (sel.isCollapsed) {
-      // to simplify (TEMP?) no hiliting while selecting
-      const caret = getCaret(editor);
-      const newHTML = Prism.highlight(
-        editor.innerText,
-        Prism.languages.macaulay2
-      );
-      if (editor.innerHTML != newHTML) {
-        // avoid changing things if not necessary
-        editor.innerHTML = newHTML;
-        if (caret) {
-          // note that it could be zero but that's OK (I think)
-          setCaret(editor, caret);
-        }
-      }
-    }
-    prismaTimeout = 0;
-  };
-
   const attachCtrlBtnActions = function () {
     attachClick("sendBtn", editorEvaluate);
     attachClick("resetBtn", emitReset);
     attachClick("interruptBtn", myshell.interrupt);
     attachClick("saveBtn", saveFile);
     attachClick("loadBtn", loadFile);
-    //    attachClick("hiliteBtn", hilite);
+    //    attachClick("highlightBtn", highlight);
     attachClick("clearBtn", clearOut);
     //  attachClick("wrapBtn", toggleWrap);
   };
@@ -247,7 +217,6 @@ const toggleWrap = function () {
     }
   };
 
-  let prismaTimeout = 0;
   const editorKeyDown = function (e) {
     //    var prismInvoked=false;
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
@@ -258,9 +227,8 @@ const toggleWrap = function () {
       myshell.postMessage(msg, false, false);
     } else if (e.key == "Escape") escapeKeyHandling();
     else if (e.key == "Tab") {
-      if (prismaTimeout) window.clearTimeout(prismaTimeout); // no highlighting while autoComplete is up
       // try to avoid disrupting the normal tab use as much as possible
-      if (!e.shiftKey && autoCompleteHandling(hilite)) {
+      if (!e.shiftKey && autoCompleteHandling(editor)) {
         e.preventDefault();
         return;
       }
@@ -268,11 +236,6 @@ const toggleWrap = function () {
       e.preventDefault();
       document.execCommand("insertHTML", false, "&#009"); // tab inserts an actual tab
     } else delimiterHandling(e.key, editor);
-  };
-
-  const delayedHilite = function () {
-    if (prismaTimeout) window.clearTimeout(prismaTimeout);
-    prismaTimeout = window.setTimeout(hilite, 2000);
   };
 
   const queryCookie = function () {
@@ -519,7 +482,7 @@ const toggleWrap = function () {
 
   if (editor) {
     editor.onkeydown = editorKeyDown;
-    editor.oninput = delayedHilite;
+    editor.oninput = delayedHighlight(editor);
   }
 
   siofu = new SocketIOFileUpload(socket);
