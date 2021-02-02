@@ -22,7 +22,7 @@ import ssh2 = require("ssh2");
 import socketioFileUpload = require("socketio-file-upload");
 
 import socketio = require("socket.io");
-const io: SocketIO.Server = socketio(http, { pingTimeout: 3000 });
+const io: SocketIO.Server = socketio(http, { pingTimeout: 30000 });
 
 import { webAppTags } from "../common/tags";
 
@@ -259,10 +259,6 @@ const sendDataToClient = function (client: Client) {
       emitViaClientSockets(client, "output", webAppTags.CellEnd + "\n"); // to make it look nicer
       return;
     }
-    if (client.sockets.length === 0) {
-      logClient(client.id, "No socket for client.");
-      return;
-    }
     client.savedOutput += data;
     // extra logging for *users* only
     if (client.id.substring(0, 4) === "user") {
@@ -482,7 +478,7 @@ const systemChat = function (client: Client | null, msg: string) {
     alias: "System",
     type: "message",
     time: Date.now(),
-    hash: chatCounter++,
+    index: chatCounter++,
   };
   if (client) emitViaClientSockets(client, "chat", chat);
   else io.emit("chat", chat);
@@ -495,7 +491,7 @@ const socketChatAction = function (socket, client: Client) {
       "chat",
       chatList.map(function (chat: Chat) {
         if (
-          chat.hash <= chat0.hash ||
+          chat.index <= chat0.index ||
           (chat.recipients[client.id] === undefined &&
             chat.recipients[""] === undefined)
         )
@@ -511,12 +507,12 @@ const socketChatAction = function (socket, client: Client) {
         return Object.assign({}, chat, { recipients: rec, id: undefined });
       })
     ); // provide past chat
-    if (chat0.hash < 0)
+    if (chat0.index < 0)
       systemChat(client, chat0.alias + " has arrived. Welcome!"); // welcome only if first time
   };
   const chatMessage = function (chat: Chat) {
     logClient(client.id, chat.alias + " said: " + short(chat.message));
-    chat.hash = chatCounter++;
+    chat.index = chatCounter++;
     chatList.push(chat); // right now, only non system messages logged
     // default: to user
     if (Object.keys(chat.recipients).length == 0)
@@ -544,9 +540,9 @@ const socketChatAction = function (socket, client: Client) {
     }
     chat.id = client.id;
   };
-  const chatDelete = function (chat: Chat, index: number) {
-    logClient(client.id, chat.alias + " deleted #" + chat.hash);
-    chatList.splice(index, 1);
+  const chatDelete = function (chat: Chat, i: number) {
+    logClient(client.id, chat.alias + " deleted #" + chat.index);
+    chatList.splice(i, 1);
     io.emit("chat", chat);
   };
   const chatAdmin = function (chat: Chat) {
@@ -616,7 +612,7 @@ const socketChatAction = function (socket, client: Client) {
             : "");
       }
     }
-    chat.hash = chatCounter++;
+    chat.index = chatCounter++;
     safeSocketEmit(socket, "chat", chat);
   };
 
@@ -638,14 +634,14 @@ const socketChatAction = function (socket, client: Client) {
         )
           return; // blocked
         if (chat.type == "delete") {
-          const index = chatList.findIndex((x) => x.hash === chat.hash); // sigh
+          const i = chatList.findIndex((x) => x.index === chat.index); // sigh
           if (
-            index < 0 ||
-            chatList[index].id != client.id ||
-            chatList[index].alias != chat.alias
+            i < 0 ||
+            chatList[i].id != client.id ||
+            chatList[i].alias != chat.alias
           )
             return; // false alarm
-          chatDelete(chat, index);
+          chatDelete(chat, i);
         } else if (chat.type === "restore") chatRestore(chat);
         else if (chat.type === "message") chatMessage(chat);
       }
@@ -653,9 +649,9 @@ const socketChatAction = function (socket, client: Client) {
         // admin
         logClient(client.id, "chat of type " + chat.type);
         if (chat.type == "delete") {
-          const index = chatList.findIndex((x) => x.hash === chat.hash); // sigh
-          if (index < 0) return; // false alarm
-          chatDelete(chat, index);
+          const i = chatList.findIndex((x) => x.index === chat.index); // sigh
+          if (i < 0) return; // false alarm
+          chatDelete(chat, i);
         } else if (chat.type === "restore") chatRestore(chat);
         else if (chat.type === "message") {
           if (chat.message[0] == "@") chatAdmin(chat);
