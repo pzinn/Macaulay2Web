@@ -5,6 +5,7 @@ declare const MINIMAL;
 import socketIo from "socket.io-client";
 
 import { extra, setCookie, getCookieId } from "./extra";
+import { syncChat } from "./chat";
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
@@ -40,25 +41,16 @@ const keydownAction = function (e) {
 
 const socketDisconnect = function (msg) {
   console.log("We got disconnected. " + msg);
-  /*  myshell.onmessage(
-    webAppTags.Text +
-      "Sorry, your session was disconnected" +
-      " by the server.\n"
-  );
-  myshell.reset();*/
   serverDisconnect = true;
-  // Could use the following to automatically reload. Probably too invasive,
-  // might kill results.
-  // location.reload();
 };
 
 const wrapEmitForDisconnect = function (event, msg) {
-  // TODO rewrite better
   if (serverDisconnect) {
-    const events = ["reset", "input", "chat"];
-    console.log("We are disconnected.");
+    const events = ["reset", "input", "chat"]; // !!!
+    console.log("We are disconnected (" + event + ").");
     if (events.indexOf(event) >= 0) {
       socket.connect();
+      if (!MINIMAL) syncChat();
       serverDisconnect = false;
       socket.oldEmit(event, msg);
     }

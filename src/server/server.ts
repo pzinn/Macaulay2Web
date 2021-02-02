@@ -22,7 +22,7 @@ import ssh2 = require("ssh2");
 import socketioFileUpload = require("socketio-file-upload");
 
 import socketio = require("socket.io");
-const io: SocketIO.Server = socketio(http, { pingTimeout: 30000 });
+const io: SocketIO.Server = socketio(http, { pingTimeout: 3000 });
 
 import { webAppTags } from "../common/tags";
 
@@ -227,6 +227,14 @@ const updateLastActiveTime = function (client: Client) {
 const addNewSocket = function (client: Client, socket: SocketIO.Socket) {
   logClient(client.id, "Adding new socket");
   client.sockets.push(socket);
+};
+
+const socketDisconnectAction = function (socket, client: Client) {
+  return function () {
+    logClient(client.id, "Removing socket");
+    const index = client.sockets.indexOf(socket);
+    if (index >= 0) client.sockets.splice(index, 1);
+  };
 };
 
 const sendDataToClient = function (client: Client) {
@@ -481,14 +489,15 @@ const systemChat = function (client: Client | null, msg: string) {
 };
 
 const socketChatAction = function (socket, client: Client) {
-  const chatLogin = function (chat: Chat) {
+  const chatRestore = function (chat0: Chat) {
     safeSocketEmit(
       socket,
       "chat",
       chatList.map(function (chat: Chat) {
         if (
-          chat.recipients[client.id] === undefined &&
-          chat.recipients[""] === undefined
+          chat.hash <= chat0.hash ||
+          (chat.recipients[client.id] === undefined &&
+            chat.recipients[""] === undefined)
         )
           return {};
         const rec =
@@ -502,7 +511,8 @@ const socketChatAction = function (socket, client: Client) {
         return Object.assign({}, chat, { recipients: rec, id: undefined });
       })
     ); // provide past chat
-    systemChat(client, chat.alias + " has arrived. Welcome!");
+    if (chat0.hash < 0)
+      systemChat(client, chat0.alias + " has arrived. Welcome!"); // welcome only if first time
   };
   const chatMessage = function (chat: Chat) {
     logClient(client.id, chat.alias + " said: " + short(chat.message));
@@ -606,6 +616,7 @@ const socketChatAction = function (socket, client: Client) {
             : "");
       }
     }
+    chat.hash = chatCounter++;
     safeSocketEmit(socket, "chat", chat);
   };
 
@@ -635,7 +646,7 @@ const socketChatAction = function (socket, client: Client) {
           )
             return; // false alarm
           chatDelete(chat, index);
-        } else if (chat.type === "login") chatLogin(chat);
+        } else if (chat.type === "restore") chatRestore(chat);
         else if (chat.type === "message") chatMessage(chat);
       }
     : function (chat: Chat) {
@@ -645,7 +656,7 @@ const socketChatAction = function (socket, client: Client) {
           const index = chatList.findIndex((x) => x.hash === chat.hash); // sigh
           if (index < 0) return; // false alarm
           chatDelete(chat, index);
-        } else if (chat.type === "login") chatLogin(chat);
+        } else if (chat.type === "restore") chatRestore(chat);
         else if (chat.type === "message") {
           if (chat.message[0] == "@") chatAdmin(chat);
           else chatMessage(chat);
@@ -707,6 +718,7 @@ const listen = function () {
     socket.on("reset", socketResetAction(client));
     socket.on("chat", socketChatAction(socket, client));
     socket.on("restore", socketRestoreAction(socket, client));
+    socket.on("disconnect", socketDisconnectAction(socket, client));
   });
 
   const listener = http.listen(serverConfig.port);

@@ -2,7 +2,7 @@ import Cookie from "cookie";
 import { options } from "../common/global";
 import { socket, url, myshell, clientId } from "./main";
 import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
-import { socketChat } from "./chat";
+import { socketChat, syncChat } from "./chat";
 import tutorials from "./tutorials";
 import Prism from "prismjs";
 import SocketIOFileUpload from "socketio-file-upload";
@@ -317,11 +317,7 @@ const toggleWrap = function () {
     };
     // signal presence
     //    window.addEventListener("load", function () {
-    socket.emit("chat", {
-      type: "login",
-      alias: chatAlias.value,
-      time: Date.now(),
-    });
+    syncChat();
     //    });
   }
 

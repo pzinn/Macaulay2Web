@@ -1,5 +1,5 @@
 export interface Chat {
-  type: "message" | "delete" | "login";
+  type: "message" | "delete" | "restore";
   alias: string;
   hash?: number;
   time: number;
