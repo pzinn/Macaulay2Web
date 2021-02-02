@@ -50,6 +50,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               ); // eww
               newInstance.port = port;
               newInstance.clientId = clientId;
+              newInstance.lastActiveTime = Date.now();
               newInstance.containerName = "m2Port" + newInstance.port;
               if (!existing[clientId]) {
                 logger.info("Recovering");
@@ -79,6 +80,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       self.currentInstance.port++;
       newInstance.containerName = "m2Port" + newInstance.port;
       newInstance.clientId = clientId;
+      newInstance.lastActiveTime = Date.now();
       exec(
         self.constructDockerRunCommand(self.resources, newInstance),
         function (error) {
@@ -102,7 +104,6 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       );
     }
   }
-
   public updateLastActiveTime(instance: Instance) {
     instance.lastActiveTime = Date.now();
   }

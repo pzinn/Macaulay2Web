@@ -106,10 +106,10 @@ const safeSocketEmit = function (socket, type: string, data): void {
   }
 };
 
-const emitOutputViaClientSockets = function (client: Client, data) {
-  const s = short(data);
-  if (s != "") logClient(client.id, "Sending output: " + s);
-  client.sockets.forEach((socket) => safeSocketEmit(socket, "output", data));
+const emitViaClientSockets = function (client: Client, type: string, data) {
+  const s = short(data.toString());
+  logClient(client.id, "Sending " + type + ": " + s);
+  client.sockets.forEach((socket) => safeSocketEmit(socket, type, data));
 };
 
 const getInstance = function (client: Client, next) {
@@ -121,11 +121,9 @@ const getInstance = function (client: Client, next) {
         client.id,
         function (err, instance: Instance) {
           if (err) {
-            emitOutputViaClientSockets(
+            systemChat(
               client,
-              "Sorry, there was an error. Please come back later.\n" +
-                err +
-                "\n\n"
+              "Sorry, there was an error. Please come back later.\n" + err
             );
             deleteClientData(client);
           } else {
@@ -233,17 +231,37 @@ const addNewSocket = function (client: Client, socket: SocketIO.Socket) {
 
 const sendDataToClient = function (client: Client) {
   return function (dataObject) {
+    if (client.outputRate < 0) return; // output rate exceeded
+    if (!client.instance) {
+      logClient(client.id, "No instance for client.");
+      return;
+    }
     const data: string = dataObject.toString();
+    // new: prevent flooding
+    client.outputRate +=
+      data.length +
+      options.perContainerResources.maxRate *
+        (client.instance.lastActiveTime - Date.now());
+    updateLastActiveTime(client);
+    if (client.outputRate < 0) client.outputRate = 0;
+    else if (client.outputRate > options.perContainerResources.maxPacket) {
+      systemChat(client, "Output rate exceeded. Killing M2.");
+      killMathProgram(client.channel, client.id);
+      client.outputRate = -1; // signal to avoid repeat message
+      emitViaClientSockets(client, "output", webAppTags.CellEnd + "\n"); // to make it look nicer
+      return;
+    }
     if (client.sockets.length === 0) {
       logClient(client.id, "No socket for client.");
       return;
     }
-    updateLastActiveTime(client);
-    client.output += data;
+    client.savedOutput += data;
     // extra logging for *users* only
     if (client.id.substring(0, 4) === "user") {
-      while (client.output.length > options.perContainerResources.maxOutput) {
-        const m = client.output.match(
+      while (
+        client.savedOutput.length > options.perContainerResources.maxSavedOutput
+      ) {
+        const m = client.savedOutput.match(
           new RegExp(
             webAppTags.Cell +
               "[^" +
@@ -254,21 +272,22 @@ const sendDataToClient = function (client: Client) {
           ) // tricky: because of possible nesting
         );
         if (m === null) break; // give up -- normally, shouldn't happen except transitionally
-        client.output =
-          client.output.substring(0, m.index) +
+        client.savedOutput =
+          client.savedOutput.substring(0, m.index) +
           " \u2026\n" +
-          client.output.substring(m.index + m[0].length);
+          client.savedOutput.substring(m.index + m[0].length);
       }
     } else {
-      const i = client.output.lastIndexOf(webAppTags.Cell);
-      client.output =
+      const i = client.savedOutput.lastIndexOf(webAppTags.Cell);
+      client.savedOutput =
         i < 0 ||
-        client.output.length - i > options.perContainerResources.maxOutput
+        client.savedOutput.length - i >
+          options.perContainerResources.maxSavedOutput
           ? ""
-          : client.output.substring(i);
-      //client.output = webAppTags.Cell + "i* : " + webAppTags.Input; // a little better than that: keeps last cell
+          : client.savedOutput.substring(i);
+      //client.savedOutput = webAppTags.Cell + "i* : " + webAppTags.Input; // a little better than that: keeps last cell
     }
-    emitOutputViaClientSockets(client, data);
+    emitViaClientSockets(client, "output", data);
   };
 };
 
@@ -374,6 +393,9 @@ const sanitizeClient = function (client: Client, force?: boolean) {
     !client.instance
   ) {
     spawnMathProgramInSecureContainer(client);
+    client.savedOutput = "";
+    client.outputRate = 0;
+
     /*
   // Avoid stuck sanitizer.
   setTimeout(function () {
@@ -423,7 +445,7 @@ const socketInputAction = function (socket, client: Client) {
   return function (msg: string) {
     logClient(client.id, "Receiving input: " + short(msg));
     if (checkClientSane(client)) {
-      updateLastActiveTime(client);
+      //      updateLastActiveTime(client); // only output now triggers that
       checkAndWrite(client, msg);
     }
   };
@@ -433,9 +455,9 @@ const socketResetAction = function (client: Client) {
   return function () {
     optLogCmdToFile(client.id, "Resetting.\n");
     logClient(client.id, "Received reset.");
+    systemChat(client, "Resetting M2.");
     if (checkClientSane(client)) {
       if (client.channel) killMathProgram(client.channel, client.id);
-      client.output = "";
       sanitizeClient(client, true);
     }
   };
@@ -445,6 +467,18 @@ const chatList: Chat[] = []; // used to restore chat
 const chatBlackList: string[] = [];
 let chatBlock = false;
 let chatCounter = 0;
+
+const systemChat = function (client: Client | null, msg: string) {
+  const chat: Chat = {
+    message: msg,
+    alias: "System",
+    type: "message",
+    time: Date.now(),
+    hash: chatCounter++,
+  };
+  if (client) emitViaClientSockets(client, "chat", chat);
+  else io.emit("chat", chat);
+};
 
 const socketChatAction = function (socket, client: Client) {
   const chatLogin = function (chat: Chat) {
@@ -468,12 +502,7 @@ const socketChatAction = function (socket, client: Client) {
         return Object.assign({}, chat, { recipients: rec, id: undefined });
       })
     ); // provide past chat
-    chat.message = chat.alias + " has arrived. Welcome!";
-    chat.alias = "System";
-    chat.type = "message";
-    chat.hash = chatCounter++;
-    // send only to userId
-    client.sockets.forEach((socket1) => socket1.emit("chat", chat));
+    systemChat(client, chat.alias + " has arrived. Welcome!");
   };
   const chatMessage = function (chat: Chat) {
     logClient(client.id, chat.alias + " said: " + short(chat.message));
@@ -500,9 +529,7 @@ const socketChatAction = function (socket, client: Client) {
       // broadcast
       else {
         const client1 = clients[id1];
-        if (client1) {
-          client1.sockets.forEach((socket1) => socket1.emit("chat", chat1));
-        }
+        if (client1) emitViaClientSockets(client1, "chat", chat1);
       }
     }
     chat.id = client.id;
@@ -535,14 +562,7 @@ const socketChatAction = function (socket, client: Client) {
             }
           });
     } else if (chat.message.startsWith("@stop")) {
-      const stopChat: Chat = {
-        message: "The server is stopping.",
-        alias: "System",
-        type: "message",
-        hash: chatCounter++,
-        time: Date.now(),
-      };
-      io.emit("chat", stopChat);
+      systemChat(null, "The server is stopping.");
       setTimeout(function () {
         logger.info("Exiting.");
         process.exit(0);
@@ -566,10 +586,10 @@ const socketChatAction = function (socket, client: Client) {
           clients[id].sockets.length +
           ")" +
           "|" +
-          clients[id].output.length +
+          clients[id].savedOutput.length +
           "|\t" +
-          clients[id].output
-            .substring(clients[id].output.length - 48)
+          clients[id].savedOutput
+            .substring(clients[id].savedOutput.length - 48)
             .replace(/[^ -z{}]/g, " ") +
           "\t|" +
           (clients[id].instance
@@ -636,7 +656,7 @@ const socketChatAction = function (socket, client: Client) {
 const socketRestoreAction = function (socket, client: Client) {
   return function () {
     logClient(client.id, "Restoring output");
-    safeSocketEmit(socket, "output", client.output); // send previous output
+    safeSocketEmit(socket, "output", client.savedOutput); // send previous output
   };
 };
 

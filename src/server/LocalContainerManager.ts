@@ -28,11 +28,11 @@ class LocalContainerManager implements InstanceManager {
   }
 
   public getNewInstance = function (clientId: string, next: any) {
-    next(false, this.options.credentials);
+    next(false, { ...this.options.credentials, lastActiveTime: Date.now() });
   };
 
   public updateLastActiveTime(instance: Instance) {
-    //
+    instance.lastActiveTime = Date.now();
   }
 
   public recoverInstances(next) {

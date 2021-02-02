@@ -7,7 +7,9 @@ const options = {
   perContainerResources: {
     cpuShares: 0.5,
     memory: 384, // Mb
-    maxOutput: 200000, // size of saved output in bytes
+    maxSavedOutput: 200000, // size of saved output in bytes
+    maxRate: 0.1, // max rate of output per millisecond
+    maxPacket: 200000, // max packet size
   },
   serverConfig: {
     CONTAINERS: "../LocalContainerManager",
