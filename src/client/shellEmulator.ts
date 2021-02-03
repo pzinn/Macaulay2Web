@@ -2,21 +2,26 @@ import { Socket, clientId } from "./main";
 
 import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "../common/tags";
-import { setupMenu } from "./menu";
 import {
   scrollDownLeft,
   scrollDown,
   scrollLeft,
   baselinePosition,
-  placeCaret,
-  placeCaretAtEnd,
+  setCaret,
+  setCaretAtEndMaybe,
   attachElement,
-  sanitizeElement,
 } from "./htmlTools";
+import {
+  escapeKeyHandling,
+  autoCompleteHandling,
+  removeAutoComplete,
+  sanitizeInput,
+  delimiterHandling,
+  removeDelimiterHighlight,
+} from "./editor";
 
 //const unicodeBell = "\u0007";
 import Prism from "prismjs";
-import M2symbols from "./prism-M2";
 
 /*
 function dehtml(s) {
@@ -71,7 +76,6 @@ const Shell = function (
   const cmdHistory: any = []; // History of commands for shell-like arrow navigation
   cmdHistory.index = 0;
   cmdHistory.sorted = []; // a sorted version
-  let autoComplete = null; // autocomplete HTML element (when tab is pressed)
   // input is a bit messy...
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
@@ -136,7 +140,7 @@ const Shell = function (
       let str = t.textContent;
       if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
       // inputSpan.textContent = str;
-      // placeCaretAtEnd(inputSpan);
+      // setCaretAtEndMaybe(inputSpan);
       inputSpan.focus();
       document.execCommand("selectAll");
       document.execCommand("insertText", false, str);
@@ -147,59 +151,16 @@ const Shell = function (
     }, 100);
   };
 
-  const removeAutoComplete = function (autoCompleteSelection) {
-    // null or the menu element to insert
-    if (autoComplete) {
-      let pos = inputSpan.textContent.length;
-      let s = autoComplete.dataset.word;
-      if (autoCompleteSelection) s = autoCompleteSelection.dataset.fullword;
-      pos += s.length;
-      s += autoComplete.lastChild.textContent;
-      autoComplete.remove();
-      autoComplete = null;
-      inputSpan.textContent += s; // not ctrl-Z friendly
-      placeCaret(inputSpan, pos);
-    }
-  };
-
-  const removeDelimiterHighlight = function () {
-    inputSpan.removeAttribute("data-highlight");
-    inputSpan.removeAttribute("data-highlight-error");
-  };
-
-  // partial support for unicode symbols
-  // symbols are ordered; from most useful to least
-  // prettier-ignore
-  const UCsymbols = {
-      "Alpha": 0x391, "Beta": 0x392, "Chi": 0x3a7, "Delta": 0x394, "Epsilon": 0x395, "Eta": 0x397, "Gamma": 0x393, "Iota": 0x399, "Kappa": 0x39a, "Lambda": 0x39b, "Mu": 0x39c, "Nu": 0x39d, "Omega": 0x3a9, "Omicron": 0x39f, "Phi": 0x3a6, "Pi": 0x3a0, "Psi": 0x3a8, "Rho": 0x3a1, "Sigma": 0x3a3, "Tau": 0x3a4, "Theta": 0x398, "Upsilon": 0x3a5, "Xi": 0x39e, "Zeta": 0x396, "alpha": 0x3b1, "beta": 0x3b2, "chi": 0x3c7, "delta": 0x3b4, "epsilon": 0x3f5, "eta": 0x3b7, "gamma": 0x3b3, "iota": 0x3b9, "kappa": 0x3ba, "lambda": 0x3bb, "mu": 0x3bc, "nu": 0x3bd, "omega": 0x3c9, "omicron": 0x3bf, "phi": 0x3d5, "pi": 0x3c0, "psi": 0x3c8, "rho": 0x3c1, "sigma": 0x3c3, "tau": 0x3c4, "theta": 0x3b8, "upsilon": 0x3c5, "varepsilon": 0x3b5, "varphi": 0x3c6, "varpi": 0x3d6, "varrho": 0x3f1, "varsigma": 0x3c2, "vartheta": 0x3d1, "xi": 0x3be, "zeta": 0x3b6,
-      "CC": 0x2102, "HH": 0x210d, "NN": 0x2115, "PP": 0x2119, "QQ": 0x211a, "RR": 0x211d,  "ZZ": 0x2124,
-      "Im": 0x2111, "Re": 0x211c, "infty": 0x221e, "nabla": 0x2207, "wp": 0x2118,
-      "ell": 0x2113, "hbar": 0x210f,
-      "aleph": 0x2135, "beth": 0x2136, "gimel": 0x2137, "daleth": 0x2138,
-      "\n": 0xa
-  };
-
-  const UCsymbolKeys = Object.keys(UCsymbols).sort();
-
   const returnSymbol = "\u21B5";
 
   const postRawMessage = function (msg: string) {
     socket.emit("input", msg);
   };
 
-  const UCsymbolValues = Object.values(UCsymbols)
-    .map((i) => String.fromCharCode(i))
-    .join("");
-  const sanitizeRegEx = new RegExp("[^ -~" + UCsymbolValues + "]", "g"); // a bit too restrictive?
-  const sanitizeInput = function (msg: string) {
-    // sanitize input
-    return msg.replace(sanitizeRegEx, "").replace(/\n+$/, "");
-  };
-
   obj.postMessage = function (msg, flag1, flag2) {
     // send input, adding \n if necessary
-    removeAutoComplete(false); // remove autocomplete menu if open
-    removeDelimiterHighlight();
+    removeAutoComplete(false, false); // remove autocomplete menu if open
+    removeDelimiterHighlight(htmlSec);
     let clean = sanitizeInput(msg);
     if (clean.length > 0) {
       obj.addToHistory(clean);
@@ -212,7 +173,7 @@ const Shell = function (
       procInputSpan.textContent += clean + returnSymbol;
       inputSpan.textContent = "";
       scrollDownLeft(shell);
-      if (flag2) placeCaret(inputSpan, 0);
+      if (flag2) setCaret(inputSpan, 0);
       clean = clean + "\n";
       if (flag1) obj.addToEditor(clean);
       postRawMessage(clean);
@@ -262,319 +223,16 @@ const Shell = function (
     }
   };
 
-  const escapeKeyHandling = function (pos) {
-    let esc = inputSpan.textContent.indexOf("\u250B");
-    if (esc < 0) document.execCommand("insertText", false, "\u250B");
-    //addToElement(inputSpan, pos, "\u250B");
-    else {
-      let s;
-      if (esc < pos) {
-        s = inputSpan.textContent.substring(esc + 1, pos);
-        while (esc < pos) {
-          document.execCommand("delete");
-          pos--;
-        }
-        /*
-        inputSpan.textContent =
-          inputSpan.textContent.substring(0, esc) +
-          inputSpan.textContent.substring(pos, inputSpan.textContent.length);
-        pos = esc;
-	    */
-      } else {
-        s = inputSpan.textContent.substring(pos, esc);
-        /*
-        inputSpan.textContent =
-          inputSpan.textContent.substring(0, pos) +
-          inputSpan.textContent.substring(
-            esc + 1,
-            inputSpan.textContent.length
-            );*/
-        while (pos <= esc) {
-          document.execCommand("forwardDelete");
-          esc--;
-        }
-      }
-
-      let sss = "";
-      if (s.length > 0)
-        for (const ss in UCsymbols) {
-          if (ss.startsWith(s)) {
-            sss = String.fromCharCode(UCsymbols[ss]);
-            break;
-          }
-        }
-      //      addToElement(inputSpan, pos, sss);
-      document.execCommand("insertText", false, sss);
-    }
-  };
-
-  const autoCompleteHandling = function (key, pos) {
-    const msg = inputSpan.textContent;
-    let i = -1;
-    if (key == "Tab") {
-      i = pos - 1;
-      while (
-        i >= 0 &&
-        ((msg[i] >= "A" && msg[i] <= "Z") || (msg[i] >= "a" && msg[i] <= "z"))
-      )
-        i--; // would be faster with regex
-    }
-    const word = msg.substring(i + 1, pos);
-    if (word == "") return false;
-    scrollDown(shell);
-    const flag = i < 0 || msg[i] != "\u250B";
-    if (flag) i++; // !flag => include the escape symbol
-    const lst =
-      key == "ArrowRight" ? cmdHistory.sorted : flag ? M2symbols : UCsymbolKeys;
-
-    // find all symbols starting with last word of msg
-    let j = 0;
-    while (j < lst.length && lst[j] < word) j++;
-    if (j < lst.length) {
-      let k = j;
-      while (k < lst.length && lst[k].startsWith(word)) k++;
-      if (k > j) {
-        if (k == j + 1) {
-          // yay, one solution
-          if (flag) {
-            let ins = lst[j].substring(word.length, lst[j].length);
-            if (key == "Tab") ins += " ";
-            document.execCommand("insertText", false, ins);
-          } else {
-            while (i < pos) {
-              document.execCommand("delete");
-              pos--;
-            }
-            document.execCommand(
-              "insertText",
-              false,
-              String.fromCharCode(UCsymbols[lst[j]])
-            );
-            /*
-            inputSpan.textContent =
-              inputSpan.textContent.substring(0, i) +
-              inputSpan.textContent.substring(
-                pos,
-                inputSpan.textContent.length
-              );
-            addToElement(inputSpan, i, String.fromCharCode(UCsymbols[lst[j]]));
-*/
-          }
-        } else {
-          // more interesting: several solutions
-          // obvious implementation would've been datalist + input;
-          // sadly, the events generated by the input are 200% erratic, so can't use
-          autoComplete = document.createElement("span");
-          //          autoComplete.id="autocomplete";
-          autoComplete.dataset.word = flag ? word : "\u250B" + word;
-          const tabMenu = document.createElement("ul");
-          tabMenu.classList.add("menu");
-          tabMenu.tabIndex = 0;
-          for (let l = j; l < k; l++) {
-            const opt = document.createElement("li");
-            const wordb = document.createElement("b");
-            wordb.textContent = word;
-            opt.append(wordb, lst[l].substring(word.length, lst[l].length));
-            opt.dataset.fullword = flag
-              ? key == "Tab"
-                ? lst[l] + " "
-                : lst[l]
-              : String.fromCharCode(UCsymbols[lst[l]]);
-            tabMenu.appendChild(opt);
-          }
-          autoComplete.appendChild(tabMenu);
-          autoComplete.appendChild(
-            document.createTextNode(
-              inputSpan.textContent.substring(pos, inputSpan.textContent.length)
-            )
-          );
-          inputSpan.textContent = inputSpan.textContent.substring(0, i); // not ctrl-Z friendly
-          inputSpan.parentElement.appendChild(autoComplete);
-          const menuSel = setupMenu(tabMenu, removeAutoComplete, (e) => {
-            // keydown event
-            if (e.key == "Shift") {
-              e.preventDefault();
-              e.stopPropagation();
-              return;
-            }
-            if (
-              e.key.length == 1 &&
-              ((e.key >= "a" && e.key <= "z") || (e.key >= "A" && e.key <= "Z"))
-            ) {
-              let lostSelection = false;
-              Array.from(tabMenu.children).forEach((el) => {
-                if (
-                  el.lastChild.textContent.length > 0 &&
-                  el.lastChild.textContent[0] == e.key
-                ) {
-                  el.firstChild.textContent += e.key;
-                  el.lastChild.textContent = el.lastChild.textContent.substring(
-                    1
-                  );
-                } else {
-                  if (el.classList.contains("selected")) lostSelection = true;
-                  el.remove();
-                }
-              });
-              if (tabMenu.childElementCount == 0) return; // no choice => back to normal typing
-              autoComplete.dataset.word += e.key;
-              if (tabMenu.childElementCount == 1)
-                removeAutoComplete(tabMenu.firstChild);
-              if (lostSelection) menuSel(tabMenu.firstElementChild);
-              e.preventDefault();
-              e.stopPropagation();
-            }
-          });
-        }
-      }
-    }
-    return true;
-  };
-
-  const openingDelimiters = '([{"';
-  const closingDelimiters = ')]}"';
-
-  const closingDelimiterHandling = function (pos, closing) {
-    if (
-      inputSpan.parentElement != htmlSec ||
-      !htmlSec.classList.contains("M2Input")
-    )
-      return;
-    // the first only happens in transitional state; the second if we turned off webapp mode
-    // in both cases it's simpler to deactivate highlighting
-    const index = closingDelimiters.indexOf(closing);
-    if (index < 0) return;
-    removeDelimiterHighlight();
-    const opening = openingDelimiters[index];
-    const len = htmlSec.textContent.length - inputSpan.textContent.length + pos; // eww
-    const input = htmlSec.textContent;
-    const highlight = input.replace(/./g, " "); // only newlines left
-    if (openingDelimiters[index] == closing) {
-      // quotes need to be treated separately
-      if (pos > 0 && inputSpan.textContent[pos - 1] == "\\") return; // \" does not trigger highlighting
-      let flag = 0;
-      let last = -1;
-      let i;
-      for (i = 0; i < input.length && (i < len || flag == 0); i++)
-        if (input[i] == closing && (i == 0 || input[i - 1] != "\\")) {
-          flag = 1 - flag;
-          last = i;
-        }
-      if (flag == 0) return;
-      if (last < len) {
-        // it was closing "
-        inputSpan.dataset.highlight =
-          highlight.substring(0, last) +
-          opening +
-          highlight.substring(last + 1, len) +
-          closing;
-      } else {
-        // it was opening "
-        inputSpan.dataset.highlight =
-          highlight.substring(0, len) +
-          opening +
-          highlight.substring(len + 1, last + 1) +
-          closing;
-      }
-      setTimeout(function () {
-        inputSpan.removeAttribute("data-highlight");
-      }, 1000);
-    } else {
-      let i, j;
-      const depth = [];
-      for (i = 0; i < openingDelimiters.length; i++)
-        depth.push(i == index ? 1 : 0);
-      i = len;
-      while (i > 0 && depth[index] > 0) {
-        i--;
-        j = openingDelimiters.indexOf(input[i]);
-        if (j >= 0) {
-          if (openingDelimiters[j] == closingDelimiters[j]) {
-            if (i == 0 || input[i - 1] != "\\")
-              // ignore \"
-              depth[j] = 1 - depth[j];
-          } else {
-            depth[j]--;
-            if (depth[j] < 0) break;
-          }
-        } else {
-          j = closingDelimiters.indexOf(input[i]);
-          if (j >= 0) depth[j]++;
-        }
-      }
-      if (depth.every((val) => val == 0)) {
-        inputSpan.dataset.highlight =
-          highlight.substring(0, i) +
-          opening +
-          highlight.substring(i + 1, len) +
-          closing;
-        setTimeout(function () {
-          inputSpan.removeAttribute("data-highlight");
-        }, 1000);
-      } else
-        inputSpan.dataset.highlightError =
-          highlight.substring(0, len) + closing;
-      setTimeout(function () {
-        inputSpan.removeAttribute("data-highlight-error");
-      }, 1000);
-    }
-  };
-
-  const openingDelimiterHandling = function (pos, opening) {
-    if (
-      inputSpan.parentElement != htmlSec ||
-      !htmlSec.classList.contains("M2Input")
-    )
-      return;
-    // the first only happens in transitional state; the second if we turned off webapp mode
-    const index = openingDelimiters.indexOf(opening);
-    if (index < 0) return;
-    removeDelimiterHighlight();
-    const closing = closingDelimiters[index];
-    const len = htmlSec.textContent.length - inputSpan.textContent.length + pos; // eww
-    const input = htmlSec.textContent; // we don't truncate
-    const highlight = input.replace(/./g, " "); // only newlines left
-    let i, j;
-    const depth = [];
-    for (i = 0; i < openingDelimiters.length; i++)
-      depth.push(i == index ? 1 : 0);
-    i = len - 1;
-    while (i < input.length - 1 && depth[index] > 0) {
-      i++;
-      j = closingDelimiters.indexOf(input[i]);
-      if (j >= 0) {
-        if (openingDelimiters[j] == closingDelimiters[j]) {
-          if (i == 0 || input[i - 1] != "\\")
-            // ignore \"
-            depth[j] = 1 - depth[j];
-        } else {
-          depth[j]--;
-          if (depth[j] < 0) break;
-        }
-      } else {
-        j = openingDelimiters.indexOf(input[i]);
-        if (j >= 0) depth[j]++;
-      }
-    }
-    if (depth.every((val) => val == 0)) {
-      inputSpan.dataset.highlight =
-        highlight.substring(0, len) +
-        opening +
-        highlight.substring(len + 1, i + 1) +
-        closing;
-      setTimeout(function () {
-        inputSpan.removeAttribute("data-highlight");
-      }, 1000);
-    } // we never throw an error on an opening delimiter -- it's assumed more input is coming
-  };
-
-  shell.onpaste = function () {
+  shell.onpaste = function (e) {
     if (!inputSpan) return;
-    placeCaretAtEnd(inputSpan, true);
-    inputSpan.oninput = function () {
-      inputSpan.oninput = null; // !
-      sanitizeElement(inputSpan); // remove HTML tags from pasted input
-    };
+    setCaretAtEndMaybe(inputSpan, true);
+    e.preventDefault();
+    // paste w/o formatting
+    document.execCommand(
+      "insertText",
+      false,
+      e.clipboardData.getData("text/plain")
+    );
   };
 
   shell.onclick = function (e) {
@@ -589,14 +247,14 @@ const Shell = function (
         return;
       t = t.parentElement;
     }
-    placeCaretAtEnd(inputSpan, true);
+    setCaretAtEndMaybe(inputSpan, true);
     scrollDown(shell);
   };
 
   shell.onkeydown = function (e: KeyboardEvent) {
     if (!inputSpan) return;
-    removeAutoComplete(false); // remove autocomplete menu if open
-    removeDelimiterHighlight();
+    removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
+    removeDelimiterHighlight(htmlSec);
     if ((e.target as HTMLElement).classList.contains("M2CellBar")) return;
     if (e.key == "Enter") {
       obj.postMessage(
@@ -612,7 +270,7 @@ const Shell = function (
       if (e.key == "ArrowDown") downArrowKeyHandling();
       else upArrowKeyHandling();
       e.preventDefault();
-      placeCaretAtEnd(inputSpan);
+      setCaretAtEndMaybe(inputSpan);
       scrollDown(shell);
       //
       return;
@@ -636,13 +294,13 @@ const Shell = function (
     }
 
     if (e.key == "Home") {
-      placeCaret(inputSpan, 0); // the default would sometimes use this for vertical scrolling
+      setCaret(inputSpan, 0); // the default would sometimes use this for vertical scrolling
       scrollDownLeft(shell);
       return;
     }
 
     if (e.key == "End") {
-      placeCaretAtEnd(inputSpan); // the default would sometimes use this for vertical scrolling
+      setCaretAtEndMaybe(inputSpan); // the default would sometimes use this for vertical scrolling
       scrollDown(shell);
       return;
     }
@@ -653,37 +311,56 @@ const Shell = function (
       if (
         document.activeElement == inputSpan &&
         !e.shiftKey &&
-        autoCompleteHandling(e.key, window.getSelection().focusOffset)
-      )
+        autoCompleteHandling(null)
+      ) {
+        scrollDown(shell);
         e.preventDefault();
+      }
       return;
     }
     if (e.key == "ArrowRight" && document.activeElement == inputSpan) {
       const pos = window.getSelection().focusOffset;
       if (
         pos == inputSpan.textContent.length &&
-        autoCompleteHandling(e.key, pos)
+        autoCompleteHandling(null, cmdHistory.sorted)
       ) {
+        scrollDown(shell);
         e.preventDefault();
         return;
       }
     }
 
-    placeCaretAtEnd(inputSpan, true);
+    setCaretAtEndMaybe(inputSpan, true);
     const pos = window.getSelection().focusOffset;
     if (pos == 0) scrollLeft(shell);
 
-    if (closingDelimiters.indexOf(e.key) >= 0)
-      closingDelimiterHandling(pos, e.key);
-    else if (openingDelimiters.indexOf(e.key) >= 0)
-      openingDelimiterHandling(pos, e.key);
-    else if (e.key == "Escape") {
+    if (
+      inputSpan.parentElement == htmlSec &&
+      htmlSec.classList.contains("M2Input")
+    )
+      delimiterHandling(e.key, htmlSec);
+    // the negation of the first only happens in transitional state; of the second if we turned off webapp mode
+    // in both cases it's simpler to deactivate highlighting
+    if (e.key == "Escape") {
       scrollDown(shell);
-      escapeKeyHandling(pos);
+      escapeKeyHandling();
       e.preventDefault();
       return;
     }
   };
+
+  /*
+  inputSpan.oninput = function (e) {
+    if (
+      inputSpan.parentElement == htmlSec &&
+      htmlSec.classList.contains("M2Input")
+    )
+      delayedHighlight(htmlSec);
+      // multiple problems: 
+      // the test should be when hiliting, not delayed!!!!
+      // more importantly, Prism breaks existing HTML and that's fatal for inputSpan
+  };
+*/
 
   shell.onkeyup = function () {
     if (!inputSpan) return;
@@ -896,17 +573,17 @@ const Shell = function (
 
   obj.reset = function () {
     console.log("Reset");
-    removeAutoComplete(false); // remove autocomplete menu if open
+    removeAutoComplete(false, false); // remove autocomplete menu if open
     createInputEl(); // recreate the input area
     //    htmlSec.parentElement.insertBefore(document.createElement("hr"), htmlSec); // insert an additional horizontal line to distinguish successive M2  runs
   };
 
   obj.interrupt = function () {
-    removeAutoComplete(false); // remove autocomplete menu if open
+    removeAutoComplete(false, false); // remove autocomplete menu if open
     inputSpan.textContent = "";
-    removeDelimiterHighlight();
+    removeDelimiterHighlight(htmlSec);
     postRawMessage("\x03");
-    placeCaretAtEnd(inputSpan);
+    setCaretAtEndMaybe(inputSpan);
   };
 
   if (inputSpan)

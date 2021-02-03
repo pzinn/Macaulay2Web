@@ -8,6 +8,14 @@ import Prism from "prismjs";
 import SocketIOFileUpload from "socketio-file-upload";
 import { Chat } from "../common/chatClass";
 import defaultEditor from "./default.m2";
+import {
+  escapeKeyHandling,
+  autoCompleteHandling,
+  removeAutoComplete,
+  delimiterHandling,
+  removeDelimiterHighlight,
+  delayedHighlight,
+} from "./editor";
 
 const setCookie = function (name: string, value: string): void {
   const expDate = new Date(new Date().getTime() + options.cookieDuration);
@@ -142,32 +150,13 @@ const toggleWrap = function () {
     inputParagraph.click();
   };
 
-  const hilite = function () {
-    editor.innerHTML = Prism.highlight(
-      editor.innerText,
-      Prism.languages.macaulay2
-    );
-
-    // what follows doesn't preserve caret location
-    /*
-  var txt = input.textContent;
-
-  document.execCommand("selectAll");
-  document.execCommand(
-    "insertHTML",
-    false,
-    Prism.highlight(txt, Prism.languages.macaulay2)
-  );
-*/
-  };
-
   const attachCtrlBtnActions = function () {
     attachClick("sendBtn", editorEvaluate);
     attachClick("resetBtn", emitReset);
     attachClick("interruptBtn", myshell.interrupt);
     attachClick("saveBtn", saveFile);
     attachClick("loadBtn", loadFile);
-    attachClick("hiliteBtn", hilite);
+    //    attachClick("highlightBtn", highlight);
     attachClick("clearBtn", clearOut);
     //  attachClick("wrapBtn", toggleWrap);
   };
@@ -233,14 +222,23 @@ const toggleWrap = function () {
 
   const editorKeyDown = function (e) {
     //    var prismInvoked=false;
+    removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
+    removeDelimiterHighlight(editor);
     if (e.key == "Enter" && e.shiftKey) {
       if (!caretIsAtEnd()) e.preventDefault();
       const msg = getSelected();
       myshell.postMessage(msg, false, false);
-    } else if (e.key == "Tab") {
+    } else if (e.key == "Escape") escapeKeyHandling();
+    else if (e.key == "Tab") {
+      // try to avoid disrupting the normal tab use as much as possible
+      if (!e.shiftKey && autoCompleteHandling(editor)) {
+        e.preventDefault();
+        return;
+      }
+      // actually never mind -- or revert this?
       e.preventDefault();
-      document.execCommand("insertHTML", false, "&#009"); // tab inserts an actual tab for now (auto-complete?)
-    }
+      document.execCommand("insertHTML", false, "&#009"); // tab inserts an actual tab
+    } else delimiterHandling(e.key, editor);
   };
 
   const queryCookie = function () {
@@ -480,7 +478,10 @@ const toggleWrap = function () {
   attachCtrlBtnActions();
   attachCloseDialogBtns();
 
-  if (editor) editor.onkeydown = editorKeyDown;
+  if (editor) {
+    editor.onkeydown = editorKeyDown;
+    editor.oninput = delayedHighlight(editor);
+  }
 
   siofu = new SocketIOFileUpload(socket);
   attachClick("uploadBtn", siofu.prompt);

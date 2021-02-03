@@ -23,64 +23,87 @@ const baselinePosition = function (el) {
   return result;
 };
 
-// the next 4 functions require el to have a single text node!
-const placeCaret = function (el, pos) {
-  el.focus({ preventScroll: true });
-  if (el.childNodes.length > 1) sanitizeElement(el);
-  if (el.childNodes.length == 1) {
-    const sel = window.getSelection();
-    sel.collapse(el.lastChild, pos);
-  }
-};
-/*
-const addToElement = function (el, pos, s) {
-  // insert into a pure text element and move caret to end of insertion
-  //  const msg = el.textContent;
-  //  el.textContent = msg.substring(0, pos) + s + msg.substring(pos, msg.length);
-  // put the caret where it should be
-  //  el.focus();
-  //  placeCaret(el, pos + s.length);
-  placeCaret(el, pos);
-  document.execCommand("insertText", false, s);
-};
-*/
-const placeCaretAtEnd = function (el, flag?) {
-  // flag means only do it if not already in input
-  if (!flag || document.activeElement != el) {
-    placeCaret(el, el.textContent.length);
-    el.scrollIntoView({ inline: "end", block: "nearest" });
-  }
-};
-const attachElement = function (el, container) {
-  // move an HTML element (with single text node) while preserving focus/caret
-  const flag = document.activeElement == el;
-  const offset = flag ? window.getSelection().focusOffset : 0;
-  container.appendChild(el);
-  if (flag) {
-    //    el.focus();
-    placeCaret(el, offset);
+// caret (always assuming selection is collapsed)
+const getCaret = function (el): number | null {
+  const sel = window.getSelection();
+  if (el === sel.focusNode) return sel.focusOffset;
+  let cur = el.firstChild;
+  if (!cur) return null;
+  let len = 0;
+  while (true) {
+    if (cur == sel.focusNode)
+      // bingo
+      return len + sel.focusOffset;
+    if (cur.nodeType === 3)
+      // Text node
+      len += cur.textContent.length;
+    if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
+      // backtrack
+      while (!cur.nextSibling)
+        if (cur == el) return null;
+        else cur = cur.parentElement;
+      cur = cur.nextSibling;
+    } else if (cur.nodeType === 1) cur = cur.firstChild; // forward
   }
 };
 
-// ... and this one forces the element to have one text node
-// we're assuming isCollapsed is true to simplify
-const sanitizeElement = function (el) {
+const setCaretInternal = function (el, pos: number): void {
   const sel = window.getSelection();
-  let offset = -1;
-  let content = "";
-  for (let i = 0; i < el.childNodes.length; i++) {
-    let subel = el.childNodes[i];
-    if (subel instanceof HTMLElement) {
-      sanitizeElement(subel);
-      subel = subel.firstChild;
-    }
-    if (sel.focusNode == subel) {
-      offset = content.length + sel.focusOffset;
-    }
-    content += el.childNodes[i].textContent;
+  sel.collapse(el, pos);
+};
+// some of these edge cases need to be clarified (empty HTMLElements; etc)
+const setCaret = function (el, pos: number): void {
+  el.focus({ preventScroll: true });
+  if (pos === 0) {
+    setCaretInternal(el, pos);
+    return;
   }
-  el.textContent = content;
-  if (offset >= 0) placeCaret(el, offset);
+  let cur = el.firstChild;
+  if (!cur) return;
+  while (true) {
+    if (cur.nodeType === 3) {
+      if (pos <= cur.textContent.length) {
+        // bingo
+        setCaretInternal(cur, pos);
+        return;
+      }
+      pos -= cur.textContent.length;
+    }
+    if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
+      // backtrack
+      while (!cur.nextSibling)
+        if (cur == el) return null;
+        else cur = cur.parentElement;
+      cur = cur.nextSibling;
+    } else cur = cur.firstChild; // forward
+  }
+};
+
+const setCaretAtEndMaybe = function (el, flag?) {
+  // flag means only do it if not already in input
+  if (!flag || document.activeElement != el) {
+    // not quite right... should test containance
+    setCaret(el, el.textContent.length);
+    el.scrollIntoView({ inline: "end", block: "nearest" });
+  }
+};
+
+const attachElement = function (el, container) {
+  // move an HTML element (with single text node) while preserving focus/caret
+  const caret = getCaret(el);
+  container.appendChild(el);
+  if (caret !== null)
+    // note that it could be zero
+    setCaret(el, caret);
+};
+
+// not used any more
+const stripElement = function (el) {
+  const caret = getCaret(el);
+  el.innerHTML = el.textContent;
+  if (caret !== null)
+    // note that it could be zero
+    setCaret(el, caret);
 };
 
 // this one works everywhere
@@ -116,11 +139,10 @@ export {
   scrollDown,
   scrollLeft,
   baselinePosition,
-  placeCaret,
-  //  addToElement,
-  placeCaretAtEnd,
   attachElement,
-  sanitizeElement,
+  stripElement,
   caretIsAtEnd,
-  //  fragInnerText,
+  getCaret,
+  setCaret,
+  setCaretAtEndMaybe,
 };
