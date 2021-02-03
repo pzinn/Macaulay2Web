@@ -4,7 +4,7 @@ import fs = require("fs");
 import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
 
-const logger = require("./logger");
+import { logger } from "./logger";
 
 class SshDockerContainersInstanceManager implements InstanceManager {
   private resources: any;
@@ -26,10 +26,6 @@ class SshDockerContainersInstanceManager implements InstanceManager {
     const currentContainers = [];
     this.currentContainers = currentContainers;
     this.init();
-  }
-
-  public updateLastActiveTime(instance: Instance) {
-    instance.lastActiveTime = Date.now();
   }
 
   public getNewInstance(clientId, next) {

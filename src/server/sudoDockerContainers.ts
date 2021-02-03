@@ -4,7 +4,7 @@ import { InstanceManager } from "./instanceManager";
 import childProcess = require("child_process");
 const exec = childProcess.exec;
 
-const logger = require("./logger");
+import { logger } from "./logger";
 
 class SudoDockerContainersInstanceManager implements InstanceManager {
   private resources: any;

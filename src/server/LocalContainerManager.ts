@@ -31,12 +31,8 @@ class LocalContainerManager implements InstanceManager {
     next(false, { ...this.options.credentials, lastActiveTime: Date.now() });
   };
 
-  public updateLastActiveTime(instance: Instance) {
-    instance.lastActiveTime = Date.now();
-  }
-
   public recoverInstances(next) {
-    // not implemented yet
+    // not implemented
     next({});
   }
 }

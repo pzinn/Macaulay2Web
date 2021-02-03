@@ -3,11 +3,9 @@
 import { Client, IClients } from "./client";
 import clientIdHelper from "./clientId";
 import { Chat } from "../common/chatClass";
+import { socketChatAction, systemChat } from "./chat";
 import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
-import { LocalContainerManager } from "./LocalContainerManager";
-import { SshDockerContainers } from "./sshDockerContainers";
-import { SudoDockerContainers } from "./sudoDockerContainers";
 import { AddressInfo } from "net";
 import { downloadFromDocker } from "./fileDownload";
 import Cookie = require("cookie");
@@ -26,10 +24,10 @@ const io: SocketIO.Server = socketio(http, { pingTimeout: 30000 });
 
 import { webAppTags } from "../common/tags";
 
-const logger = require("./logger");
+import { logger, logClient } from "./logger";
 
 import path = require("path");
-let getClientIdFromSocket;
+let getClientId;
 let serverConfig = {
   MATH_PROGRAM: undefined,
   CMD_LOG_FOLDER: undefined,
@@ -52,23 +50,7 @@ const sshCredentials = function (instance: Instance): ssh2.ConnectConfig {
 
 const clients: IClients = {};
 
-let instanceManager: InstanceManager = {
-  getNewInstance(clientId: string, next: any) {
-    //
-  },
-  updateLastActiveTime() {
-    //
-  },
-  recoverInstances() {
-    //
-  },
-};
-
-const logClient = function (clientId, str) {
-  if (process.env.NODE_ENV !== "test") {
-    logger.info(clientId + ": " + str);
-  }
-};
+let instanceManager: InstanceManager;
 
 const userSpecificPath = function (client: Client): string {
   return staticFolder + client.id + "-files/";
@@ -83,33 +65,37 @@ const disconnectSocket = function (socket: SocketIO.Socket): void {
 };
 
 const deleteClientData = function (client: Client): void {
-  logClient(client.id, "deleting folder " + userSpecificPath(client));
+  logClient(client, "deleting folder " + userSpecificPath(client));
   try {
-    logClient(client.id, "Sending disconnect. ");
+    logClient(client, "Sending disconnect. ");
     clients[client.id].sockets.forEach(disconnectSocket);
   } catch (error) {
-    logClient(client.id, "Socket seems already dead: " + error);
+    logClient(client, "Socket seems already dead: " + error);
   }
   fs.rmdir(userSpecificPath(client), function (error) {
     if (error) {
-      logClient(client.id, "Error deleting user folder: " + error);
+      logClient(client, "Error deleting user folder: " + error);
     }
   });
   delete clients[client.id];
 };
 
-const safeSocketEmit = function (socket, type: string, data): void {
+const safeEmit = function (
+  target: SocketIO.Socket | SocketIO.Server,
+  type: string,
+  data
+): void {
   try {
-    socket.emit(type, data);
+    target.emit(type, data);
   } catch (error) {
-    logger.error("Error while executing socket.emit of type " + type);
+    logger.error("Error while executing SocketIO emit of type " + type);
   }
 };
 
 const emitViaClientSockets = function (client: Client, type: string, data) {
   const s = short(data.toString());
-  logClient(client.id, "Sending " + type + ": " + s);
-  client.sockets.forEach((socket) => safeSocketEmit(socket, type, data));
+  logClient(client, "Sending " + type + ": " + s);
+  client.sockets.forEach((socket) => safeEmit(socket, type, data));
 };
 
 const getInstance = function (client: Client, next) {
@@ -132,44 +118,26 @@ const getInstance = function (client: Client, next) {
         }
       );
     } catch (error) {
-      logClient(
-        client.id,
-        "Could not get new instance. Should not drop in here."
-      );
+      logClient(client, "Could not get new instance. Should not drop in here.");
     }
-  }
-};
-
-const optLogCmdToFile = function (clientId: string, msg: string) {
-  if (serverConfig.CMD_LOG_FOLDER) {
-    fs.appendFile(
-      serverConfig.CMD_LOG_FOLDER + "/" + clientId + ".log",
-      msg,
-      function (err) {
-        if (err) {
-          logClient(clientId, "logging msg failed: " + err);
-        }
-      }
-    );
   }
 };
 
 const killNotify = function (client: Client) {
   return function () {
-    logClient(client.id, "getting killed.");
+    logClient(client, "getting killed.");
     deleteClientData(client);
-    optLogCmdToFile(client.id, "Killed.\n");
   };
 };
 
 const spawnMathProgramInSecureContainer = function (client: Client) {
-  logClient(client.id, "Spawning new MathProgram process...");
+  logClient(client, "Spawning new MathProgram process...");
   getInstance(client, function (instance: Instance) {
     instance.killNotify = killNotify(client);
     const connection: ssh2.Client = new ssh2.Client();
     connection.on("error", function (err) {
       logClient(
-        client.id,
+        client,
         "Error when connecting. " + err + "; Retrying with new instance."
       );
       // Make sure the sanitizer runs.
@@ -179,7 +147,7 @@ const spawnMathProgramInSecureContainer = function (client: Client) {
         sanitizeClient(client);
       } catch (instanceDeleteError) {
         logClient(
-          client.id,
+          client,
           "Error when deleting instance: " + instanceDeleteError
         );
         deleteClientData(client);
@@ -195,14 +163,13 @@ const spawnMathProgramInSecureContainer = function (client: Client) {
             if (err) {
               throw err;
             }
-            optLogCmdToFile(client.id, "Starting.\n");
             channel.on("close", function () {
               connection.end();
             });
             channel.on("end", function () {
               channel.close();
               logClient(
-                client.id,
+                client,
                 "Channel to Math program ended, closing connection."
               );
               connection.end();
@@ -215,23 +182,14 @@ const spawnMathProgramInSecureContainer = function (client: Client) {
   });
 };
 
-const updateLastActiveTime = function (client: Client) {
-  try {
-    instanceManager.updateLastActiveTime(client.instance);
-  } catch (noInstanceError) {
-    logClient(client.id, "Found no instance.");
-    sanitizeClient(client);
-  }
-};
-
 const addNewSocket = function (client: Client, socket: SocketIO.Socket) {
-  logClient(client.id, "Adding new socket");
+  logClient(client, "Adding new socket");
   client.sockets.push(socket);
 };
 
 const socketDisconnectAction = function (socket, client: Client) {
   return function () {
-    logClient(client.id, "Removing socket");
+    logClient(client, "Removing socket");
     const index = client.sockets.indexOf(socket);
     if (index >= 0) client.sockets.splice(index, 1);
   };
@@ -241,7 +199,7 @@ const sendDataToClient = function (client: Client) {
   return function (dataObject) {
     if (client.outputRate < 0) return; // output rate exceeded
     if (!client.instance) {
-      logClient(client.id, "No instance for client.");
+      logClient(client, "No instance for client.");
       return;
     }
     const data: string = dataObject.toString();
@@ -250,11 +208,11 @@ const sendDataToClient = function (client: Client) {
       data.length +
       options.perContainerResources.maxRate *
         (client.instance.lastActiveTime - Date.now());
-    updateLastActiveTime(client);
+    client.instance.lastActiveTime = Date.now();
     if (client.outputRate < 0) client.outputRate = 0;
     else if (client.outputRate > options.perContainerResources.maxPacket) {
       systemChat(client, "Output rate exceeded. Killing M2.");
-      killMathProgram(client.channel, client.id);
+      killMathProgram(client);
       client.outputRate = -1; // signal to avoid repeat message
       emitViaClientSockets(client, "output", webAppTags.CellEnd + "\n"); // to make it look nicer
       return;
@@ -313,12 +271,9 @@ const attachChannelToClient = function (
   client.saneState = true;
 };
 
-const killMathProgram = function (
-  channel: ssh2.ClientChannel,
-  clientId: string
-) {
-  logClient(clientId, "killMathProgramClient.");
-  channel.close();
+const killMathProgram = function (client: Client) {
+  logClient(client, "killMathProgramClient.");
+  client.channel.close();
 };
 
 const fileDownload = function (request, response, next) {
@@ -385,7 +340,7 @@ const clientExistenceCheck = function (clientId: string): Client {
 
 const sanitizeClient = function (client: Client, force?: boolean) {
   if (!client.saneState) {
-    logClient(client.id, "Is already being sanitized.");
+    logClient(client, "Is already being sanitized.");
     return false;
   }
   client.saneState = false;
@@ -407,7 +362,7 @@ const sanitizeClient = function (client: Client, force?: boolean) {
   }, 2000);
 */
   } else {
-    logClient(client.id, "Has mathProgram instance.");
+    logClient(client, "Has mathProgram instance.");
     client.saneState = true;
   }
 };
@@ -415,10 +370,9 @@ const sanitizeClient = function (client: Client, force?: boolean) {
 const writeMsgOnStream = function (client: Client, msg: string) {
   client.channel.stdin.write(msg, function (err) {
     if (err) {
-      logClient(client.id, "write failed: " + err);
+      logClient(client, "write failed: " + err);
       sanitizeClient(client);
     }
-    optLogCmdToFile(client.id, msg);
   });
 };
 
@@ -441,13 +395,13 @@ const checkAndWrite = function (client: Client, msg: string) {
 };
 
 const checkClientSane = function (client: Client) {
-  logClient(client.id, "Checking sanity: " + client.saneState);
+  logClient(client, "Checking sanity: " + client.saneState);
   return client.saneState;
 };
 
 const socketInputAction = function (socket, client: Client) {
   return function (msg: string) {
-    logClient(client.id, "Receiving input: " + short(msg));
+    logClient(client, "Receiving input: " + short(msg));
     if (checkClientSane(client)) {
       //      updateLastActiveTime(client); // only output now triggers that
       checkAndWrite(client, msg);
@@ -457,213 +411,19 @@ const socketInputAction = function (socket, client: Client) {
 
 const socketResetAction = function (client: Client) {
   return function () {
-    optLogCmdToFile(client.id, "Resetting.\n");
-    logClient(client.id, "Received reset.");
+    logClient(client, "Received reset.");
     systemChat(client, "Resetting M2.");
     if (checkClientSane(client)) {
-      if (client.channel) killMathProgram(client.channel, client.id);
+      if (client.channel) killMathProgram(client);
       sanitizeClient(client, true);
     }
   };
 };
 
-const chatList: Chat[] = []; // used to restore chat
-const chatBlackList: string[] = [];
-let chatBlock = false;
-let chatCounter = 0;
-
-const systemChat = function (client: Client | null, msg: string) {
-  const chat: Chat = {
-    message: msg,
-    alias: "System",
-    type: "message",
-    time: Date.now(),
-    index: chatCounter++,
-  };
-  if (client) emitViaClientSockets(client, "chat", chat);
-  else io.emit("chat", chat);
-};
-
-const socketChatAction = function (socket, client: Client) {
-  const chatRestore = function (chat0: Chat) {
-    safeSocketEmit(
-      socket,
-      "chat",
-      chatList.map(function (chat: Chat) {
-        if (
-          chat.index <= chat0.index ||
-          (chat.recipients[client.id] === undefined &&
-            chat.recipients[""] === undefined)
-        )
-          return {};
-        const rec =
-          chat.recipients[client.id] === null || chat.recipients[""] === null
-            ? null
-            : chat.recipients[client.id] === undefined
-            ? chat.recipients[""]
-            : chat.recipients[""] === undefined
-            ? chat.recipients[client.id]
-            : chat.recipients[""].concat(chat.recipients[client.id]);
-        return Object.assign({}, chat, { recipients: rec, id: undefined });
-      })
-    ); // provide past chat
-    if (chat0.index < 0)
-      systemChat(client, chat0.alias + " has arrived. Welcome!"); // welcome only if first time
-  };
-  const chatMessage = function (chat: Chat) {
-    logClient(client.id, chat.alias + " said: " + short(chat.message));
-    chat.index = chatCounter++;
-    chatList.push(chat); // right now, only non system messages logged
-    // default: to user
-    if (Object.keys(chat.recipients).length == 0)
-      chat.recipients[client.id] = null;
-    if (chat.recipients[""] !== null)
-      chat.recipientsSummary = Object.values(chat.recipients)
-        .map((x) => (x === null ? "★" : (x as any).join(", ")))
-        .join(" & ");
-    // and make sure sender gets a copy
-    if (chat.recipients[""] !== null && chat.recipients[client.id] !== null) {
-      if (chat.recipients[client.id] === undefined)
-        chat.recipients[client.id] = [];
-      chat.recipients[client.id].push(chat.alias);
-    }
-    for (const id1 in chat.recipients) {
-      const chat1 = Object.assign({}, chat, {
-        recipients: chat.recipients[id1],
-      });
-      if (id1 == "") io.emit("chat", chat1);
-      // broadcast
-      else {
-        const client1 = clients[id1];
-        if (client1) emitViaClientSockets(client1, "chat", chat1);
-      }
-    }
-    chat.id = client.id;
-  };
-  const chatDelete = function (chat: Chat, i: number) {
-    logClient(client.id, chat.alias + " deleted #" + chat.index);
-    chatList.splice(i, 1);
-    io.emit("chat", chat);
-  };
-  const chatAdmin = function (chat: Chat) {
-    chat.recipients = null;
-    if (chat.message.startsWith("@block")) {
-      const i = chat.message.indexOf(" ");
-      if (i < 0) {
-        // toggle full block
-        chatBlock = !chatBlock;
-        chat.message += " (" + chatBlock + ")";
-      } else
-        chat.message
-          .substring(i + 1)
-          .split(" ")
-          .forEach((name) => {
-            const i = chatBlackList.indexOf(name);
-            if (i < 0) {
-              chatBlackList.push(name);
-              chat.message += " (true)";
-            } else {
-              chatBlackList.splice(i, 1);
-              chat.message += " (false)";
-            }
-          });
-    } else if (chat.message.startsWith("@stop")) {
-      systemChat(null, "The server is stopping.");
-      setTimeout(function () {
-        logger.info("Exiting.");
-        process.exit(0);
-      }, 5000);
-    } else {
-      // default: list
-      chat.message +=
-        "\n | id | sockets | output | last | docker | active time ";
-      for (const id in clients) {
-        chat.message +=
-          "\n|" +
-          id +
-          "|" +
-          //
-          clients[id].sockets
-            .map((x) => x.handshake.address)
-            .sort()
-            .filter((v, i, o) => v !== o[i - 1])
-            .join("\\n") +
-          "(" +
-          clients[id].sockets.length +
-          ")" +
-          "|" +
-          clients[id].savedOutput.length +
-          "|\t" +
-          clients[id].savedOutput
-            .substring(clients[id].savedOutput.length - 48)
-            .replace(/[^ -z{}]/g, " ") +
-          "\t|" +
-          (clients[id].instance
-            ? (clients[id].instance.containerName
-                ? clients[id].instance.containerName
-                : "") +
-              (clients[id].instance.lastActiveTime
-                ? "|" +
-                  new Date(clients[id].instance.lastActiveTime)
-                    .toISOString()
-                    .replace("T", " ")
-                    .substr(0, 19)
-                : "")
-            : "");
-      }
-    }
-    chat.index = chatCounter++;
-    safeSocketEmit(socket, "chat", chat);
-  };
-
-  return client.id != "user" + options.adminName
-    ? function (chat: Chat) {
-        // normal user
-        logClient(client.id, "chat of type " + chat.type);
-        if (
-          chat.alias == options.adminAlias ||
-          chat.alias == options.systemAlias
-        ) {
-          logClient(client.id, "tried to impersonate Admin or System");
-          chat.alias = options.defaultAlias;
-        }
-        if (
-          chatBlock ||
-          chatBlackList.indexOf(client.id) >= 0 ||
-          chatBlackList.indexOf(socket.handshake.address) >= 0
-        )
-          return; // blocked
-        if (chat.type == "delete") {
-          const i = chatList.findIndex((x) => x.index === chat.index); // sigh
-          if (
-            i < 0 ||
-            chatList[i].id != client.id ||
-            chatList[i].alias != chat.alias
-          )
-            return; // false alarm
-          chatDelete(chat, i);
-        } else if (chat.type === "restore") chatRestore(chat);
-        else if (chat.type === "message") chatMessage(chat);
-      }
-    : function (chat: Chat) {
-        // admin
-        logClient(client.id, "chat of type " + chat.type);
-        if (chat.type == "delete") {
-          const i = chatList.findIndex((x) => x.index === chat.index); // sigh
-          if (i < 0) return; // false alarm
-          chatDelete(chat, i);
-        } else if (chat.type === "restore") chatRestore(chat);
-        else if (chat.type === "message") {
-          if (chat.message[0] == "@") chatAdmin(chat);
-          else chatMessage(chat);
-        }
-      };
-};
-
 const socketRestoreAction = function (socket, client: Client) {
   return function () {
-    logClient(client.id, "Restoring output");
-    safeSocketEmit(socket, "output", client.savedOutput); // send previous output
+    logClient(client, "Restoring output");
+    safeEmit(socket, "output", client.savedOutput); // send previous output
   };
 };
 
@@ -684,7 +444,7 @@ const listen = function () {
     logger.info("Incoming new connection!");
     const version = socket.handshake.query.version;
     if (options.version && version != options.version) {
-      safeSocketEmit(
+      safeEmit(
         socket,
         "output",
         "Client/server version mismatch. Please refresh your page."
@@ -692,7 +452,7 @@ const listen = function () {
       disconnectSocket(socket);
       return; // brutal
     }
-    let clientId: string = getClientIdFromSocket(socket);
+    let clientId: string = getClientId(socket);
     if (clientId === "failed") {
       logger.info("Disconnecting for failed authentication.");
       disconnectSocket(socket);
@@ -701,11 +461,11 @@ const listen = function () {
     if (clientId === undefined) {
       // need new one
       clientId = initializeClientId();
-      safeSocketEmit(socket, "id", clientId);
+      safeEmit(socket, "id", clientId);
     }
 
-    logClient(clientId, " connected");
     const client = clientExistenceCheck(clientId);
+    logClient(client, "Connected");
     sanitizeClient(client);
     addNewSocket(client, socket);
     const fileUpload = require("./fileUpload")(logger.info, sshCredentials);
@@ -731,6 +491,8 @@ const getClientIdAuth = function (authOption: boolean) {
     });
     app.use(auth.connect(basic));
     return function (socket: SocketIO.Socket) {
+      if (socket.handshake.query.id)
+        logger.warn("Ignoring userId command line");
       try {
         return (
           "user" +
@@ -760,7 +522,7 @@ const mathServer = function (o) {
     throw new Error("No CONTAINERS!");
   }
 
-  getClientIdFromSocket = getClientIdAuth(options.authentication);
+  getClientId = getClientIdAuth(options.authentication);
   const resources = options.perContainerResources;
   const guestInstance = options.startInstance;
   const hostConfig = options.hostConfig;
@@ -784,4 +546,12 @@ const mathServer = function (o) {
   });
 };
 
-export { mathServer };
+export {
+  mathServer,
+  emitViaClientSockets,
+  safeEmit,
+  io,
+  short,
+  clients,
+  options,
+};

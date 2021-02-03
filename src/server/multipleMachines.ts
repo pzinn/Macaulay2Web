@@ -1,5 +1,5 @@
 /* eslint "no-unused-vars": "off" */
-const logger = require("./logger");
+import { logger } from "./logger";
 const multiMachineManager = function () {
   const Machine = function () {
     this.name = "";

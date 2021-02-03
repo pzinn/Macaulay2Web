@@ -2,7 +2,7 @@ const ssh2 = require("ssh2");
 import fs = require("fs");
 import { Client } from "./client";
 import path = require("path");
-const logger = require("./logger");
+import { logger } from "./logger";
 
 const unlink = function (completePath: string) {
   return function () {
