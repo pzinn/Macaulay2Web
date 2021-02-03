@@ -205,6 +205,7 @@ const sendDataToClient = function (client: Client) {
     const data: string = dataObject.toString();
     // new: prevent flooding
     client.outputRate +=
+      1 +
       data.length +
       options.perContainerResources.maxRate *
         (client.instance.lastActiveTime - Date.now());
@@ -297,7 +298,6 @@ const fileDownload = function (request, response, next) {
     sourcePath,
     userSpecificPath(client),
     sshCredentials,
-    logger.info,
     function (targetPath) {
       if (targetPath) {
         response.sendFile(targetPath);

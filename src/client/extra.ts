@@ -26,9 +26,7 @@ const setCookie = function (name: string, value: string): void {
 
 const getCookieId = function () {
   const cookies = Cookie.parse(document.cookie);
-  const cookie = cookies[options.cookieName];
-  if (!cookie || !cookie.startsWith("user")) return; // shouldn't happen
-  return cookie;
+  return cookies[options.cookieName];
 };
 
 const extra = function () {
@@ -495,6 +493,7 @@ const toggleWrap = function () {
     });
 
   if (iFrame) iFrame.onload = openBrowseTab;
+
   const cookieQuery = document.getElementById("cookieQuery");
   if (cookieQuery) cookieQuery.onclick = queryCookie;
 };

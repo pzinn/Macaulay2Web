@@ -100,13 +100,13 @@ const attachElement = function (el, container) {
 // not used any more
 const stripElement = function (el) {
   const caret = getCaret(el);
-  el.innerHTML = el.textContent;
+  el.textContent = el.textContent; // !
   if (caret !== null)
     // note that it could be zero
     setCaret(el, caret);
 };
 
-// this one works everywhere
+// bit of a trick
 const caretIsAtEnd = function () {
   const sel = window.getSelection() as any;
   if (!sel.isCollapsed) return false;
@@ -118,21 +118,6 @@ const caretIsAtEnd = function () {
     return false;
   }
 };
-
-/*
-// ~ like innerText, but for document fragments: textContent + <br>, </div>, </p> -> \n
-const fragInnerText = function (frag) {
-  if (frag.nodeName == "BR") return "\n";
-  else if (frag.nodeName == "#text") return frag.textContent;
-  else {
-    let s = "";
-    for (let i = 0; i < frag.childNodes.length; i++)
-      s = s + fragInnerText(frag.childNodes[i]);
-    if (frag.nodeName == "DIV" || frag.nodeName == "P") s = s + "\n";
-    return s;
-  }
-};
-*/
 
 export {
   scrollDownLeft,
