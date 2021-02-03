@@ -5,6 +5,7 @@ declare const MINIMAL;
 import socketIo from "socket.io-client";
 
 import { extra, setCookie, getCookieId } from "./extra";
+import { syncChat } from "./chat";
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
 
@@ -23,7 +24,9 @@ import {
 
 import { options } from "../common/global";
 
-let myshell = null;
+let myshell = null; // the terminal
+let clientId = MINIMAL ? "public" : getCookieId(); // client's id. it's public / in the cookie,
+// but can be overwritten by url or chosen by server if no cookie
 
 const keydownAction = function (e) {
   if (e.key == "F1") {
@@ -38,24 +41,16 @@ const keydownAction = function (e) {
 
 const socketDisconnect = function (msg) {
   console.log("We got disconnected. " + msg);
-  /*  myshell.onmessage(
-    webAppTags.Text +
-      "Sorry, your session was disconnected" +
-      " by the server.\n"
-  );
-  myshell.reset();*/
   serverDisconnect = true;
-  // Could use the following to automatically reload. Probably too invasive,
-  // might kill results.
-  // location.reload();
 };
 
 const wrapEmitForDisconnect = function (event, msg) {
   if (serverDisconnect) {
-    const events = ["reset", "input", "chat"];
-    console.log("We are disconnected.");
-    if (events.indexOf(event) !== -1) {
+    const events = ["reset", "input", "chat"]; // !!!
+    console.log("We are disconnected (" + event + ").");
+    if (events.indexOf(event) >= 0) {
       socket.connect();
+      if (!MINIMAL) syncChat();
       serverDisconnect = false;
       socket.oldEmit(event, msg);
     }
@@ -110,6 +105,12 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
+const setId = function (id: string): void {
+  clientId = id;
+  console.log("Client id " + clientId);
+  if (!MINIMAL && cookieFlag) setCookie(options.cookieName, clientId);
+};
+
 const socketOutput = function (msg: string) {
   myshell.displayOutput(msg);
 };
@@ -123,8 +124,7 @@ const socketError = function (type) {
 
 const url = new URL(document.location.href);
 
-let cookieFlag = true; // we could test MINIMAL here but for tree shaking purposes we don't :/
-let ioParams = "?version=" + options.version;
+let cookieFlag = true; // we could write !MINIMAL here but for tree shaking purposes we don't :/
 
 const init = function () {
   if (!MINIMAL && !navigator.cookieEnabled) {
@@ -135,39 +135,42 @@ const init = function () {
   console.log("Macaulay2Web version " + options.version);
   const userId: any = url.searchParams.get("user");
   if (userId) {
-    ioParams += "&userId=" + userId;
+    const newId = "user" + userId;
     if (!MINIMAL) {
-      const oldId = getCookieId();
-      if (oldId !== userId) {
+      if (clientId !== newId) {
         const dialog = document.getElementById(
           "changeUserDialog"
         ) as HTMLDialogElement;
         document.getElementById("newUserId").textContent = userId;
-        document.getElementById("oldUserIdReminder").innerHTML = oldId
+        document.getElementById("oldUserIdReminder").innerHTML = clientId
           ? "Choosing `permanent' will overwrite the current id <b>" +
-            oldId +
+            clientId.substring(4) +
             "</b> in your cookie."
           : "";
         dialog.onclose = function () {
           if (dialog.returnValue == "temporary") cookieFlag = false;
+          setId(newId);
           init2();
         };
         dialog.showModal();
         return;
       }
     }
-  } else if (MINIMAL) ioParams += "&publicId";
+    setId(newId);
+  } else if (clientId) setId(clientId); // reset the clock
   init2();
 };
 
 const init2 = function () {
+  let ioParams = "?version=" + options.version;
+  if (clientId) ioParams += "&id=" + clientId;
   socket = socketIo(ioParams);
-  if (!MINIMAL && cookieFlag) socket.on("cookie", setCookie);
   socket.on("reconnect_failed", socketError("reconnect_fail"));
   socket.on("reconnect_error", socketError("reconnect_error"));
   socket.on("connect_error", socketError("connect_error"));
   socket.on("output", socketOutput);
   socket.on("disconnect", socketDisconnect);
+  socket.on("id", setId);
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
 
@@ -198,4 +201,4 @@ const init2 = function () {
     }, 2000); // weak
 };
 
-export { init, myshell, socket, setCookie, url };
+export { init, myshell, socket, url, clientId };

@@ -20,16 +20,18 @@ const deleteChatWrap = function (h) {
       socket.emit("chat", {
         type: "delete",
         alias: (document.getElementById("chatAlias") as HTMLInputElement).value,
-        hash: h,
+        index: h,
         time: Date.now(),
       });
     }
   };
 };
 
+let lastIndex = -1;
+
 const chatAction = function (msg: Chat, index?) {
   if (msg.type == "delete") {
-    deleteChat(msg.hash);
+    deleteChat(msg.index);
   } else if (msg.type == "message") {
     if (
       msg.recipients && // null is wild card
@@ -39,14 +41,17 @@ const chatAction = function (msg: Chat, index?) {
     )
       // we don't have the right alias
       return;
+    lastIndex = msg.index; // in case of disconnect
     const ul = document.getElementById("chatMessages");
     const msgel = document.createElement("li");
     msgel.classList.add("chatMessage");
-    msgel.id = "message-" + msg.hash;
+    msgel.id = "message-" + msg.index;
+    if (document.getElementById(msgel.id))
+      document.getElementById(msgel.id).remove(); // should never happen
     const s0 = document.createElement("i");
     s0.className = "material-icons message-close";
     s0.textContent = "close";
-    s0.onclick = deleteChatWrap(msg.hash);
+    s0.onclick = deleteChatWrap(msg.index);
     const s1 = document.createElement("i");
     s1.textContent = new Date(msg.time)
       .toISOString()
@@ -93,4 +98,14 @@ const socketChat = function (msg) {
   else chatAction(msg);
 };
 
-export { socketChat };
+const syncChat = function () {
+  const chatAlias = document.getElementById("chatAlias") as HTMLInputElement;
+  socket.oldEmit("chat", {
+    type: "restore",
+    alias: chatAlias.value,
+    time: Date.now(),
+    index: lastIndex,
+  }); // not! emit because we get called during reconnect and that would create an infinite loop
+};
+
+export { socketChat, syncChat };

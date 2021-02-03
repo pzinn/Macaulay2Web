@@ -6,12 +6,10 @@ import fs = require("fs");
 import { options, overrideDefaultOptions } from "../startupConfigs/default";
 import { mathServer } from "./server";
 
-const logger = require("./logger");
+import { logger } from "./logger";
 
 const usage = function (): void {
-  logger.info(
-    "Usage: node dist/server/index.js {local|docker|ssh} [http port] [https port]"
-  );
+  logger.info("Usage: npm {run/start} {local|docker|ssh} [http port] [https port]");
 };
 
 logger.info("Macaulay2Web version " + options.version);
@@ -59,8 +57,6 @@ if (n > 4) {
   overrideDefaultOptions({ serverConfig: { port2: args[4] } }, options);
 }
 
-// This starts the main server!
-
 const fileExistsPromise = function (filename) {
   return new Promise(function (resolve) {
     fs.access(filename, fs.constants.R_OK, function (err) {
@@ -69,12 +65,14 @@ const fileExistsPromise = function (filename) {
   });
 };
 
+// This starts the main server!
+
 fileExistsPromise("public/users.htpasswd")
   .then(function (exists) {
     if (exists) {
-      overrideOptions.authentication = true;
+      options.authentication = true;
     } else {
-      overrideOptions.authentication = false;
+      options.authentication = false;
     }
   })
   .then(function () {

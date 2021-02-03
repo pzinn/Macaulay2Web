@@ -1,16 +1,19 @@
+3.6.0 02/2021
+    * cookie / id system revamped, and assorted server improvements
+
 3.5.0 01/2021
     * new chat function
     * previous session output memorized for restoring after client reload
 
 3.4.0 11/2020
-    * revert to $ for tex code, to better align with KaTeX documentation changes
+    * revert to $ for tex code
     * division of output into cells
-    * server now renders help as is
+    * prerendering help to be served by server
 
 3.3.0 08/2020
     * https branch
     * overhaul of server / docker interaction
-    * better bundling
+    * better bundling, KaTeX integrated as a submodule
 
 3.2.0 07/2020
     * name change

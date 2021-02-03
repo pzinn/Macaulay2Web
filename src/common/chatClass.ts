@@ -1,10 +1,10 @@
 export interface Chat {
-  type: "message" | "delete" | "login";
-  alias: string;
-  hash?: number;
+  type: "message" | "delete" | "restore";
+  alias: string; // alias of sender
   time: number;
+  message?: string; // content of message
+  index?: number; // index of message
   recipients?: any;
-  recipientsSummary?: string;
-  message?: string;
-  id?: string;
+  recipientsSummary?: string; // for display purposes
+  id?: string; // id of sender -- hidden
 }

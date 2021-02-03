@@ -60,6 +60,7 @@ body {
 
 #editorDiv {
     /* position: absolute; */ /* otherwise 2 scrollbars appear... fixed instead by inline style hack */
+    position: relative;
     display: inline-block; /* prevents chrome from creating new <div> when hitting \n.
 			      doesn't prevent firefox from inserting <br>, though.
 			      and incompatible with position: absolute */
@@ -83,35 +84,11 @@ body {
     right: 0.5em;
 }
 
-#sendBtn {
-    position: absolute;
-    z-index: 2;
-    top: 54px;
-    right: 100px;
-}
-#loadBtn {
+#editorBtns {
     position: absolute;
     z-index: 2;
     top: 8px;
-    right: 230px;
-}
-#saveBtn {
-    position: absolute;
-    z-index: 2;
-    top: 8px;
-    right: 150px;
-}
-#autoUploadSpan {
-    position: absolute;
-    z-index: 2;
-    top: 8px;
-    right: 50px;
-}
-#hiliteBtn {
-    position: absolute;
-    z-index: 2;
-    top: 54px;
-    right: 24px;
+    right: 25px;
 }
 
 /* Select all buttons within a class="mdl-dialog" element */

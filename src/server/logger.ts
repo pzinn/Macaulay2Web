@@ -1,3 +1,5 @@
+import { Client } from "./client";
+
 const winston = require("winston");
 const loggerSettings = {
   transports: [new winston.transports.Console()],
@@ -9,4 +11,10 @@ const loggerSettings = {
   ),
 };
 
-module.exports = winston.createLogger(loggerSettings);
+const logger = winston.createLogger(loggerSettings);
+
+const logClient = function (client: Client, str: string) {
+  logger.info(client.id + ": " + str);
+};
+
+export { logger, logClient };

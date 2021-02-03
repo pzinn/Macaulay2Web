@@ -25,7 +25,7 @@ body {
     text-decoration: inherit; /* for "closed" state */
 }
 
-.M2CurrentInput[data-highlight]::after {
+[data-highlight]::after {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -34,7 +34,7 @@ body {
     content: attr(data-highlight);
 }
 
-.M2CurrentInput[data-highlight-error]::after {
+[data-highlight-error]::after {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -43,7 +43,7 @@ body {
 }
 
 .M2CurrentInput {
-    position: static;
+    position: relative;
     outline: none;
     /* what's below is for textarea */
 /*    background: none;

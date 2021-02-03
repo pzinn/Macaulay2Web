@@ -3,14 +3,15 @@ import { options as globalOptions } from "../common/global";
 const options = {
   ...globalOptions,
   adminName: "", // to be set live only
-  authentication: false,
+  authentication: false, // overridden anyway depending on existence of public/users.htpasswd
   perContainerResources: {
     cpuShares: 0.5,
     memory: 384, // Mb
-    maxOutput: 200000, // size of saved output in bytes
+    maxSavedOutput: 200000, // size of saved output in bytes
+    maxRate: 0.1, // max rate of output per millisecond
+    maxPacket: 200000, // max packet size
   },
   serverConfig: {
-    CONTAINERS: "../LocalContainerManager",
     MATH_PROGRAM: "Macaulay2",
     MATH_PROGRAM_COMMAND: "stty cols 1000000000; M2MODE=default M2 --webapp",
     port: 80,

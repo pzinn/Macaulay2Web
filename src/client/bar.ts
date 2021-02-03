@@ -203,7 +203,6 @@ const barRightClick = function (e) {
       barKey(ee, e.target.parentElement);
     }
   );
-  contextMenu.onblur = hideContextMenu;
   e.preventDefault();
 };
 

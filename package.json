@@ -1,6 +1,6 @@
 {
   "name": "macaulay2web",
-  "version": "3.5.2",
+  "version": "3.6.0",
   "homepage": "https://github.com/pzinn/Macaulay2Web",
   "description": "Web app for Macaulay2",
   "author": {
@@ -68,7 +68,7 @@
     "docker": "npm run build && npm start docker",
     "local": "npm run build && npm start local",
     "debug": "npm run build:debug && npm start local",
-    "twoMachines": "npm run build && npm start ssh",
+    "ssh": "npm run build && npm start ssh",
     "stop": "kill `ps a | grep 'node dist/server/index.js' | grep -v grep | awk '{print $1}'`",
     "lint": "eslint src/*/*.ts --fix",
     "format": "prettier --write src/*/*.ts",
