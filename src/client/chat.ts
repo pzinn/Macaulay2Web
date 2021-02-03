@@ -46,7 +46,8 @@ const chatAction = function (msg: Chat, index?) {
     const msgel = document.createElement("li");
     msgel.classList.add("chatMessage");
     msgel.id = "message-" + msg.index;
-    if (document.getElementById(msgel.id)) return; // should never happen
+    if (document.getElementById(msgel.id))
+      document.getElementById(msgel.id).remove(); // should never happen
     const s0 = document.createElement("i");
     s0.className = "material-icons message-close";
     s0.textContent = "close";
