@@ -20,18 +20,23 @@ if (MINIMAL) {
   require("./js/material.js");
 
   // must add this due to failure of mdl, see https://stackoverflow.com/questions/31536467/how-to-hide-drawer-upon-user-click
-  const drawer = document.querySelector(".mdl-layout__drawer");
-  if (drawer)
-    drawer.addEventListener(
-      "click",
-      function () {
-        document
-          .querySelector(".mdl-layout__obfuscator")
-          .classList.remove("is-visible");
-        this.classList.remove("is-visible");
-      },
-      false
-    );
+  document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+      const drawer = document.querySelector(".mdl-layout__drawer");
+      drawer.addEventListener(
+        "click",
+        function () {
+          document
+            .querySelector(".mdl-layout__obfuscator")
+            .classList.remove("is-visible");
+          this.classList.remove("is-visible");
+        },
+        false
+      );
+    },
+    false
+  );
 }
 
 require("./js/VectorGraphics.js");
