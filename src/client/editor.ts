@@ -251,7 +251,7 @@ const quoteHandling = function (quote, el) {
   removeDelimiterHighlight(el);
   const pos = getCaret(el);
   const input = el.textContent;
-  const highlight = input.replace(/./g, " "); // only newlines left
+  const highlight = input.replace(/\S/g, " "); // only newlines left
   if (pos > 0 && input[pos - 1] == "\\") return true; // \" does not trigger highlighting
   let flag = 0;
   let last = -1;
@@ -283,7 +283,7 @@ const closingDelimiterHandling = function (index, el) {
   const closing = closingDelimiters[index];
 
   const input = el.textContent;
-  const highlight = input.replace(/./g, " "); // only newlines left
+  const highlight = input.replace(/\S/g, " "); // only newlines left
   let i, j;
   const depth = [];
   for (i = 0; i < openingDelimiters.length; i++) depth.push(i == index ? 1 : 0);
@@ -328,7 +328,7 @@ const openingDelimiterHandling = function (index, el) {
   const opening = openingDelimiters[index];
   const closing = closingDelimiters[index];
   const input = el.textContent; // we don't truncate
-  const highlight = input.replace(/./g, " "); // only newlines left
+  const highlight = input.replace(/\S/g, " "); // only newlines left
   let i, j;
   const depth = [];
   for (i = 0; i < openingDelimiters.length; i++) depth.push(i == index ? 1 : 0);

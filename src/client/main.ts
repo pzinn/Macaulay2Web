@@ -47,7 +47,7 @@ const socketDisconnect = function (msg) {
 const wrapEmitForDisconnect = function (event, msg) {
   if (serverDisconnect) {
     const events = ["reset", "input", "chat"]; // !!!
-    console.log("We are disconnected (" + event + ").");
+    console.log("We are disconnected.");
     if (events.indexOf(event) >= 0) {
       socket.connect();
       if (!MINIMAL) syncChat();

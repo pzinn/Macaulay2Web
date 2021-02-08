@@ -233,6 +233,7 @@ const Shell = function (
       false,
       e.clipboardData.getData("text/plain")
     );
+    scrollDown(shell);
   };
 
   shell.onclick = function (e) {

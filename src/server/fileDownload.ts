@@ -21,7 +21,6 @@ const downloadFromDocker = function (
   sourcePath: string,
   targetPath: string,
   sshCredentials,
-  logFunction,
   next
 ) {
   const fileName: string = path.basename(sourcePath);
@@ -30,7 +29,7 @@ const downloadFromDocker = function (
   }
   const sshConnection = ssh2();
   sshConnection.on("end", function () {
-    logFunction("File action ended.");
+    logger.info("File action ended.");
   });
 
   const handleUserGeneratedFile = function (generateError, sftp) {
@@ -41,7 +40,7 @@ const downloadFromDocker = function (
       if (fsError) {
         if (fsError.code !== "EEXIST")
           logger.error("Error creating directory: " + targetPath);
-        else logFunction("Folder exists");
+        else logger.info("Folder exists");
       }
       logger.info("File we want is " + sourcePath);
       const completePath = targetPath + fileName;
