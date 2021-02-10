@@ -2,12 +2,13 @@
 
 import { Client, IClients } from "./client";
 import clientIdHelper from "./clientId";
-import { Chat } from "../common/chatClass";
 import { socketChatAction, systemChat } from "./chat";
 import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
 import { AddressInfo } from "net";
 import { downloadFromDocker } from "./fileDownload";
+import { attachUploadListenerToSocket } from "./fileUpload";
+
 import Cookie = require("cookie");
 
 import express = require("express");
@@ -468,8 +469,7 @@ const listen = function () {
     logClient(client, "Connected");
     sanitizeClient(client);
     addNewSocket(client, socket);
-    const fileUpload = require("./fileUpload")(logger.info, sshCredentials);
-    fileUpload.attachUploadListenerToSocket(client, socket);
+    attachUploadListenerToSocket(sshCredentials, client, socket);
     socket.on("input", socketInputAction(socket, client));
     socket.on("reset", socketResetAction(client));
     socket.on("chat", socketChatAction(socket, client));
