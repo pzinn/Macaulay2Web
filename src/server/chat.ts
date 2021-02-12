@@ -90,7 +90,7 @@ const socketChatAction = function (socket, client: Client) {
   };
   const chatAdmin = function (chat: Chat) {
     chat.recipients = null;
-    if (chat.message.startsWith("@block")) {
+    if (chat.message.startsWith("/block")) {
       const i = chat.message.indexOf(" ");
       if (i < 0) {
         // toggle full block
@@ -110,7 +110,7 @@ const socketChatAction = function (socket, client: Client) {
               chat.message += " (false)";
             }
           });
-    } else if (chat.message.startsWith("@stop")) {
+    } else if (chat.message.startsWith("/stop")) {
       systemChat(null, "The server is stopping.");
       setTimeout(function () {
         logger.info("Exiting.");
@@ -193,7 +193,7 @@ const socketChatAction = function (socket, client: Client) {
           chatDelete(chat, i);
         } else if (chat.type === "restore") chatRestore(chat);
         else if (chat.type === "message") {
-          if (chat.message[0] == "@") chatAdmin(chat);
+          if (chat.message[0] == "/") chatAdmin(chat);
           else chatMessage(chat);
         }
       };

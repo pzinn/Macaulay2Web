@@ -16,6 +16,7 @@ export class Client {
     this.outputRate = 0;
     this.id = newId;
   }
+  public fileUploadChunks: Buffer[];
 }
 
 interface IClients {

@@ -1,8 +1,9 @@
+import { Client } from "./client";
 import ssh2 = require("ssh2");
 import SocketIOFileUpload = require("socketio-file-upload");
-const logger = require("./logger");
+import { logger, logClient } from "./logger";
 
-const completeFileUpload = function (client, sshCredentials) {
+const completeFileUpload = function (client: Client, sshCredentials) {
   return function (event) {
     const credentials = sshCredentials(client.instance);
     const connection: ssh2.Client = new ssh2.Client();
@@ -13,11 +14,10 @@ const completeFileUpload = function (client, sshCredentials) {
           logger.error("There was an error while connecting via sftp: " + err);
         }
         const stream = sftp.createWriteStream(event.file.name);
-        stream.write(client.fileUploadBuffer);
+        stream.write(Buffer.concat(client.fileUploadChunks));
         stream.end(function () {
           connection.end();
         });
-        client.fileUploadBuffer = "";
       });
     });
 
@@ -25,27 +25,31 @@ const completeFileUpload = function (client, sshCredentials) {
   };
 };
 
-module.exports = function (logExceptOnTest, sshCredentials) {
-  return {
-    attachUploadListenerToSocket(client, socket) {
-      const uploader = new SocketIOFileUpload();
-      uploader.listen(socket);
+const attachUploadListenerToSocket = function (
+  sshCredentials,
+  client: Client,
+  socket: SocketIO.Socket
+) {
+  const uploader = new SocketIOFileUpload();
+  uploader.listen(socket);
 
-      uploader.on("error", function (event) {
-        logger.error("Error in upload " + event);
-      });
+  uploader.on("error", function (event) {
+    logger.error("Error in upload " + event);
+  });
 
-      uploader.on("start", function (event) {
-        client.fileUploadBuffer = "";
-        logExceptOnTest("File upload name:" + event.file.name);
-        logExceptOnTest("File upload encoding: " + event.file.encoding);
-      });
+  uploader.on("start", function (event) {
+    client.fileUploadChunks = [];
+    logClient(
+      client,
+      "File upload: " + event.file.name + " (" + event.file.encoding + ")"
+    );
+  });
 
-      uploader.on("progress", function (event) {
-        client.fileUploadBuffer += event.buffer;
-      });
+  uploader.on("progress", function (event) {
+    client.fileUploadChunks.push(event.buffer);
+  });
 
-      uploader.on("complete", completeFileUpload(client, sshCredentials));
-    },
-  };
+  uploader.on("complete", completeFileUpload(client, sshCredentials));
 };
+
+export { attachUploadListenerToSocket };
