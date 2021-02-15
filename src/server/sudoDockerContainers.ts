@@ -77,7 +77,10 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       });
     } else {
       const newInstance = JSON.parse(JSON.stringify(self.currentInstance));
-      self.currentInstance.port++;
+      self.currentInstance.port =
+        self.currentInstance.port == 65535
+          ? this.hostConfig.instancePort
+          : self.currentInstance.port + 1;
       newInstance.containerName = "m2Port" + newInstance.port;
       newInstance.clientId = clientId;
       newInstance.lastActiveTime = Date.now();
