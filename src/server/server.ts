@@ -291,7 +291,7 @@ const fileDownload = function (request, response, next) {
       id = cookies[options.cookieName];
     }
   }
-  if (!id || !clients[id]) next();
+  if (!id || !clients[id]) return next();
   const client = clients[id];
   logger.info("file request from " + id);
   let sourcePath = decodeURIComponent(request.path);
