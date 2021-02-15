@@ -15,6 +15,7 @@ import {
   delimiterHandling,
   removeDelimiterHighlight,
   delayedHighlight,
+  autoIndent,
 } from "./editor";
 
 const setCookie = function (name: string, value: string): void {
@@ -233,14 +234,12 @@ const toggleWrap = function () {
         e.preventDefault();
         return;
       }
-      // actually never mind -- or revert this?
-      e.preventDefault();
-      document.execCommand("insertHTML", false, "&#009"); // tab inserts an actual tab
     }
   };
 
   const editorKeyUp = function (e) {
-    delimiterHandling(e.key, editor);
+    if (e.key == "Enter" && !e.shiftKey) autoIndent(editor);
+    else delimiterHandling(e.key, editor);
   };
 
   const queryCookie = function () {

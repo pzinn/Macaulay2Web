@@ -248,7 +248,7 @@ const delimiterHandling = function (key, el) {
 
 // quotes need to be treated separately
 const quoteHandling = function (quote, el) {
-  removeDelimiterHighlight(el);
+  //  removeDelimiterHighlight(el);
   const pos = getCaret(el) - 1;
   const input = el.innerText;
   const highlight = input.replace(/\S/g, " "); // only newlines left
@@ -276,7 +276,7 @@ const quoteHandling = function (quote, el) {
 };
 
 const closingDelimiterHandling = function (index, el) {
-  removeDelimiterHighlight(el);
+  //  removeDelimiterHighlight(el);
   const pos = getCaret(el) - 1;
 
   const opening = openingDelimiters[index];
@@ -323,11 +323,11 @@ const closingDelimiterHandling = function (index, el) {
 };
 
 const openingDelimiterHandling = function (index, el) {
-  removeDelimiterHighlight(el);
+  //  removeDelimiterHighlight(el);
   const pos = getCaret(el) - 1;
   const opening = openingDelimiters[index];
   const closing = closingDelimiters[index];
-  const input = el.innerText; // we don't truncate
+  const input = el.innerText;
   const highlight = input.replace(/\S/g, " "); // only newlines left
   let i, j;
   const depth = [];
@@ -361,6 +361,28 @@ const openingDelimiterHandling = function (index, el) {
     }, 1000);
   } // we never throw an error on an opening delimiter -- it's assumed more input is coming
   return true;
+};
+
+const M2indent = 4;
+
+const autoIndent = function (el) {
+  let pos = getCaret(el) - 1;
+  if (el.innerText[pos] != "\n") return; // e.g. when pressing enter in autocomplete menu
+  const input = el.innerText.substring(0, pos);
+  pos--;
+  let level = 0;
+  while (pos >= 0 && input[pos] != "\n") {
+    if (openingDelimiters.indexOf(input[pos]) >= 0) level++;
+    else if (closingDelimiters.indexOf(input[pos]) >= 0) level--;
+    pos--;
+  }
+  let currentIndent = 0;
+  while (input[pos + currentIndent + 1] == " ") currentIndent++;
+  let indent = currentIndent + level * M2indent;
+  while (indent > 0) {
+    indent--;
+    document.execCommand("insertText", false, " ");
+  }
 };
 
 const highlight = function (el) {
@@ -402,4 +424,5 @@ export {
   removeDelimiterHighlight,
   highlight,
   delayedHighlight,
+  autoIndent,
 };
