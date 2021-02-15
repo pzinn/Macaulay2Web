@@ -39,11 +39,14 @@ const getCaret = function (el): number | null {
       len += cur.textContent.length;
     if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
       // backtrack
-      while (!cur.nextSibling)
+      while (!cur.nextSibling) {
         if (cur == el) return null;
-        else cur = cur.parentElement;
+        if (cur.nodeName == "DIV" || cur.nodeName == "BR") len++; // for Firefox
+        cur = cur.parentElement;
+      }
+      if (cur.nodeName == "DIV" || cur.nodeName == "BR") len++; // for Firefox
       cur = cur.nextSibling;
-    } else if (cur.nodeType === 1) cur = cur.firstChild; // forward
+    } else cur = cur.firstChild; // forward
   }
 };
 
@@ -71,9 +74,12 @@ const setCaret = function (el, pos: number): void {
     }
     if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
       // backtrack
-      while (!cur.nextSibling)
+      while (!cur.nextSibling) {
         if (cur == el) return null;
-        else cur = cur.parentElement;
+        if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
+        cur = cur.parentElement;
+      }
+      if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
       cur = cur.nextSibling;
     } else cur = cur.firstChild; // forward
   }
