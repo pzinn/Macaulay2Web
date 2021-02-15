@@ -248,9 +248,9 @@ const delimiterHandling = function (key, el) {
 
 // quotes need to be treated separately
 const quoteHandling = function (quote, el) {
-  removeDelimiterHighlight(el);
-  const pos = getCaret(el);
-  const input = el.textContent;
+  //  removeDelimiterHighlight(el);
+  const pos = getCaret(el) - 1;
+  const input = el.innerText;
   const highlight = input.replace(/\S/g, " "); // only newlines left
   if (pos > 0 && input[pos - 1] == "\\") return true; // \" does not trigger highlighting
   let flag = 0;
@@ -276,13 +276,13 @@ const quoteHandling = function (quote, el) {
 };
 
 const closingDelimiterHandling = function (index, el) {
-  removeDelimiterHighlight(el);
-  const pos = getCaret(el);
+  //  removeDelimiterHighlight(el);
+  const pos = getCaret(el) - 1;
 
   const opening = openingDelimiters[index];
   const closing = closingDelimiters[index];
 
-  const input = el.textContent;
+  const input = el.innerText;
   const highlight = input.replace(/\S/g, " "); // only newlines left
   let i, j;
   const depth = [];
@@ -323,16 +323,16 @@ const closingDelimiterHandling = function (index, el) {
 };
 
 const openingDelimiterHandling = function (index, el) {
-  removeDelimiterHighlight(el);
-  const pos = getCaret(el);
+  //  removeDelimiterHighlight(el);
+  const pos = getCaret(el) - 1;
   const opening = openingDelimiters[index];
   const closing = closingDelimiters[index];
-  const input = el.textContent; // we don't truncate
+  const input = el.innerText;
   const highlight = input.replace(/\S/g, " "); // only newlines left
   let i, j;
   const depth = [];
   for (i = 0; i < openingDelimiters.length; i++) depth.push(i == index ? 1 : 0);
-  i = pos - 1;
+  i = pos;
   while (i < input.length - 1 && depth[index] > 0) {
     i++;
     j = closingDelimiters.indexOf(input[i]);
@@ -354,13 +354,35 @@ const openingDelimiterHandling = function (index, el) {
     el.dataset.highlight =
       highlight.substring(0, pos) +
       opening +
-      highlight.substring(pos, i) +
+      highlight.substring(pos + 1, i) +
       closing;
     setTimeout(function () {
       el.removeAttribute("data-highlight");
     }, 1000);
   } // we never throw an error on an opening delimiter -- it's assumed more input is coming
   return true;
+};
+
+const M2indent = 4;
+
+const autoIndent = function (el) {
+  let pos = getCaret(el) - 1;
+  if (el.innerText[pos] != "\n") return; // e.g. when pressing enter in autocomplete menu
+  const input = el.innerText.substring(0, pos);
+  pos--;
+  let level = 0;
+  while (pos >= 0 && input[pos] != "\n") {
+    if (openingDelimiters.indexOf(input[pos]) >= 0) level++;
+    else if (closingDelimiters.indexOf(input[pos]) >= 0) level--;
+    pos--;
+  }
+  let currentIndent = 0;
+  while (input[pos + currentIndent + 1] == " ") currentIndent++;
+  let indent = currentIndent + level * M2indent;
+  while (indent > 0) {
+    indent--;
+    document.execCommand("insertText", false, " ");
+  }
 };
 
 const highlight = function (el) {
@@ -402,4 +424,5 @@ export {
   removeDelimiterHighlight,
   highlight,
   delayedHighlight,
+  autoIndent,
 };

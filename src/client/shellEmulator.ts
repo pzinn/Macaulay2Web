@@ -335,13 +335,6 @@ const Shell = function (
     const pos = window.getSelection().focusOffset;
     if (pos == 0) scrollLeft(shell);
 
-    if (
-      inputSpan.parentElement == htmlSec &&
-      htmlSec.classList.contains("M2Input")
-    )
-      delimiterHandling(e.key, htmlSec);
-    // the negation of the first only happens in transitional state; of the second if we turned off webapp mode
-    // in both cases it's simpler to deactivate highlighting
     if (e.key == "Escape") {
       scrollDown(shell);
       escapeKeyHandling();
@@ -363,8 +356,16 @@ const Shell = function (
   };
 */
 
-  shell.onkeyup = function () {
+  shell.onkeyup = function (e) {
     if (!inputSpan) return;
+    if (
+      inputSpan.parentElement == htmlSec &&
+      htmlSec.classList.contains("M2Input")
+    )
+      delimiterHandling(e.key, htmlSec);
+    // the negation of the first only happens in transitional state; of the second if we turned off webapp mode
+    // in both cases it's simpler to deactivate highlighting
+
     if (
       document.activeElement == inputSpan &&
       window.getSelection().focusOffset == 0
