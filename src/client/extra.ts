@@ -236,7 +236,11 @@ const toggleWrap = function () {
       // actually never mind -- or revert this?
       e.preventDefault();
       document.execCommand("insertHTML", false, "&#009"); // tab inserts an actual tab
-    } else delimiterHandling(e.key, editor);
+    }
+  };
+
+  const editorKeyUp = function (e) {
+    delimiterHandling(e.key, editor);
   };
 
   const queryCookie = function () {
@@ -478,6 +482,7 @@ const toggleWrap = function () {
 
   if (editor) {
     editor.onkeydown = editorKeyDown;
+    editor.onkeyup = editorKeyUp;
     editor.oninput = delayedHighlight(editor);
   }
 

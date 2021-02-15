@@ -249,7 +249,7 @@ const delimiterHandling = function (key, el) {
 // quotes need to be treated separately
 const quoteHandling = function (quote, el) {
   removeDelimiterHighlight(el);
-  const pos = getCaret(el);
+  const pos = getCaret(el) - 1;
   const input = el.innerText;
   const highlight = input.replace(/\S/g, " "); // only newlines left
   if (pos > 0 && input[pos - 1] == "\\") return true; // \" does not trigger highlighting
@@ -277,7 +277,7 @@ const quoteHandling = function (quote, el) {
 
 const closingDelimiterHandling = function (index, el) {
   removeDelimiterHighlight(el);
-  const pos = getCaret(el);
+  const pos = getCaret(el) - 1;
 
   const opening = openingDelimiters[index];
   const closing = closingDelimiters[index];
@@ -324,7 +324,7 @@ const closingDelimiterHandling = function (index, el) {
 
 const openingDelimiterHandling = function (index, el) {
   removeDelimiterHighlight(el);
-  const pos = getCaret(el);
+  const pos = getCaret(el) - 1;
   const opening = openingDelimiters[index];
   const closing = closingDelimiters[index];
   const input = el.innerText; // we don't truncate
@@ -332,7 +332,7 @@ const openingDelimiterHandling = function (index, el) {
   let i, j;
   const depth = [];
   for (i = 0; i < openingDelimiters.length; i++) depth.push(i == index ? 1 : 0);
-  i = pos - 1;
+  i = pos;
   while (i < input.length - 1 && depth[index] > 0) {
     i++;
     j = closingDelimiters.indexOf(input[i]);
@@ -354,7 +354,7 @@ const openingDelimiterHandling = function (index, el) {
     el.dataset.highlight =
       highlight.substring(0, pos) +
       opening +
-      highlight.substring(pos, i) +
+      highlight.substring(pos + 1, i) +
       closing;
     setTimeout(function () {
       el.removeAttribute("data-highlight");
