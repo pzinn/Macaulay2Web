@@ -20,7 +20,6 @@ const options = {
   startInstance: {
     host: "127.0.0.1",
     username: "m2user",
-    port: 1000,
     sshKey: process.env.HOME + "/Macaulay2Web/id_rsa",
     containerName: "",
     lastActiveTime: 0,
@@ -33,7 +32,8 @@ const options = {
     dockerCmdPrefix: "sudo ",
     host: "192.168.2.42",
     username: "vagrant",
-    port: "22",
+    instancePort: 1024,
+    port: 22,
     sshKey: process.env.HOME + "/keys/host_key",
   },
 };

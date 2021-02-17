@@ -548,6 +548,7 @@ const mathServer = function (o) {
   const resources = options.perContainerResources;
   const guestInstance = options.startInstance;
   const hostConfig = options.hostConfig;
+  guestInstance.port = hostConfig.instancePort;
   instanceManager = serverConfig.CONTAINERS(
     resources,
     hostConfig,

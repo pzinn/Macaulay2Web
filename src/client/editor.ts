@@ -364,25 +364,29 @@ const openingDelimiterHandling = function (index, el) {
 };
 
 const M2indent = 4;
+const spacing = { " ": 1, "\t": 8 };
 
 const autoIndent = function (el) {
   let pos = getCaret(el) - 1;
   if (el.innerText[pos] != "\n") return; // e.g. when pressing enter in autocomplete menu
-  const input = el.innerText.substring(0, pos);
-  pos--;
+  const input = el.innerText;
+  let pos1 = pos - 1;
   let level = 0;
-  while (pos >= 0 && input[pos] != "\n") {
-    if (openingDelimiters.indexOf(input[pos]) >= 0) level++;
-    else if (closingDelimiters.indexOf(input[pos]) >= 0) level--;
+  while (pos1 >= 0 && input[pos1] != "\n") {
+    if (openingDelimiters.indexOf(input[pos1]) >= 0) level++;
+    else if (closingDelimiters.indexOf(input[pos1]) >= 0) level--;
+    pos1--;
+  }
+  let indent = input.substring(pos1 + 1, pos).match(/^[ \t]*/)[0];
+  let extraIndent = level * M2indent;
+  pos = indent.length;
+  while (extraIndent < 0 && pos > 0) {
+    extraIndent += spacing[indent[pos - 1]];
     pos--;
   }
-  let currentIndent = 0;
-  while (input[pos + currentIndent + 1] == " ") currentIndent++;
-  let indent = currentIndent + level * M2indent;
-  while (indent > 0) {
-    indent--;
-    document.execCommand("insertText", false, " ");
-  }
+  indent = indent.substring(0, pos);
+  if (extraIndent > 0) indent += " ".repeat(extraIndent);
+  document.execCommand("insertText", false, indent);
 };
 
 const highlight = function (el) {
