@@ -40,11 +40,11 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
             const res = JSON.parse(stdout);
             const clientId = res[0].Config.Labels.clientId;
             if (clientId) {
+              logger.info(
+                "Scanning " + lst[i] + " found " + clientId + res[0].Name
+              );
               // find port
               const port = res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
-              logger.info(
-                "Scanning " + lst[i] + " found " + clientId + ":" + port
-              );
               const newInstance = JSON.parse(
                 JSON.stringify(self.currentInstance)
               ); // eww
@@ -90,7 +90,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
           if (error) {
             const containerAlreadyStarted =
               error.message.match(/Conflict. The name/) ||
-              error.message.match(/Conflict. The container name/);
+              error.message.match(/Conflict. The container name/); // weak TODO
             if (containerAlreadyStarted) {
               self.getNewInstance(clientId, next);
             } else {
@@ -100,6 +100,12 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               throw error;
             }
           } else {
+            logger.info(
+              "Docker container " +
+                newInstance.containerName +
+                " created for " +
+                newInstance.clientId
+            );
             self.addInstanceToArray(newInstance);
             self.waitForSshd(next, newInstance);
           }
@@ -170,7 +176,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     dockerRunCmd += " -l " + "clientId=" + newInstance.clientId;
     dockerRunCmd +=
       " " + this.hostConfig.containerType + " " + this.hostConfig.sshdCmd;
-    logger.info("Running " + dockerRunCmd);
+    //    logger.info("Running " + dockerRunCmd);
     return dockerRunCmd;
   }
 
