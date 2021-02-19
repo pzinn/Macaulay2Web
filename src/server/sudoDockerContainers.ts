@@ -4,6 +4,8 @@ import { InstanceManager } from "./instanceManager";
 import childProcess = require("child_process");
 const exec = childProcess.exec;
 
+import { Client } from "./client";
+import { clients } from "./server";
 import { logger } from "./logger";
 
 class SudoDockerContainersInstanceManager implements InstanceManager {
@@ -24,13 +26,12 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   public recoverInstances(next) {
     const self = this;
     const dockerPsCmd = "sudo docker ps -q";
-    const existing = {};
     exec(dockerPsCmd, function (error, stdout, stderr) {
       const lst = stdout.split("\n");
 
       const asyncLoop = function (i) {
         if (i == 0) {
-          next(existing);
+          next();
           return;
         }
         i--;
@@ -44,18 +45,22 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                 "Scanning " + lst[i] + " found " + clientId + res[0].Name
               );
               // find port
-              const port = res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
+              const port = +res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
               const newInstance = JSON.parse(
                 JSON.stringify(self.currentInstance)
               ); // eww
               newInstance.port = port;
+              if (self.currentInstance.port <= port)
+                self.currentInstance.port = port + 1;
               newInstance.clientId = clientId;
               newInstance.lastActiveTime = Date.now();
               newInstance.containerName = "m2Port" + newInstance.port;
-              if (!existing[clientId]) {
+              if (!clients[clientId]) {
                 logger.info("Recovering");
                 // test for sshd?
-                existing[clientId] = newInstance;
+                const client = new Client(clientId);
+                clients[clientId] = client;
+                client.instance = newInstance;
                 self.addInstanceToArray(newInstance);
               } else {
                 self.removeInstance(newInstance);
@@ -160,6 +165,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
             error
         );
       }
+      clients[instance.clientId].instance = null;
       self.removeInstanceFromArray(instance);
       if (next) {
         next();

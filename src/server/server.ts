@@ -341,9 +341,10 @@ const clientExistenceCheck = function (clientId: string): Client {
 
 const sanitizeClient = function (client: Client, force?: boolean) {
   if (!client.saneState) {
-    logClient(client, "Is already being sanitized.");
+    logClient(client, "Is already being sanitized");
     return false;
   }
+  logClient(client, "Sanitizing");
   client.saneState = false;
 
   if (
@@ -356,12 +357,10 @@ const sanitizeClient = function (client: Client, force?: boolean) {
     client.savedOutput = "";
     client.outputRate = 0;
 
-    /*
-  // Avoid stuck sanitizer.
-  setTimeout(function () {
+    // Avoid stuck sanitizer. shouldn't happen in theory...
+    setTimeout(function () {
       client.saneState = true;
-  }, 2000);
-*/
+    }, 10000);
   } else {
     logClient(client, "Has mathProgram instance.");
     client.saneState = true;
@@ -533,14 +532,7 @@ const mathServer = function (o) {
     guestInstance
   );
 
-  instanceManager.recoverInstances(function (lst) {
-    logger.info("Recovered " + Object.keys(lst).length + " instances");
-    for (const clientId in lst) {
-      const client = new Client(clientId);
-      clients[clientId] = client;
-      client.instance = lst[clientId];
-      //      spawnMathProgramInSecureContainer(client);
-    }
+  instanceManager.recoverInstances(function () {
     logger.info("start init");
     initializeServer();
     listen();

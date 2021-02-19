@@ -33,7 +33,7 @@ class LocalContainerManager implements InstanceManager {
 
   public recoverInstances(next) {
     // not implemented
-    next({});
+    next();
   }
 }
 
