@@ -198,24 +198,24 @@ const socketDisconnectAction = function (socket, client: Client) {
 
 const sendDataToClient = function (client: Client) {
   return function (dataObject) {
-    if (client.outputRate < 0) return; // output rate exceeded
+    if (client.outputStat < 0) return; // output rate exceeded
     if (!client.instance) {
       logClient(client, "No instance for client.");
       return;
     }
     const data: string = dataObject.toString();
     // new: prevent flooding
-    client.outputRate +=
+    client.outputStat +=
       1 +
-      data.length +
-      options.perContainerResources.maxRate *
+      0.002 * data.length +
+      options.perContainerResources.maxOutputRate *
         (client.instance.lastActiveTime - Date.now());
     client.instance.lastActiveTime = Date.now();
-    if (client.outputRate < 0) client.outputRate = 0;
-    else if (client.outputRate > options.perContainerResources.maxPacket) {
+    if (client.outputStat < 0) client.outputStat = 0;
+    else if (client.outputStat > options.perContainerResources.maxOutputStat) {
       systemChat(client, "Output rate exceeded. Killing M2.");
       killMathProgram(client);
-      client.outputRate = -1; // signal to avoid repeat message
+      client.outputStat = -1; // signal to avoid repeat message
       emitViaClientSockets(client, "output", webAppTags.CellEnd + "\n"); // to make it look nicer
       return;
     }
@@ -355,7 +355,7 @@ const sanitizeClient = function (client: Client, force?: boolean) {
   ) {
     spawnMathProgramInSecureContainer(client);
     client.savedOutput = "";
-    client.outputRate = 0;
+    client.outputStat = 0;
 
     // Avoid stuck sanitizer. shouldn't happen in theory...
     setTimeout(function () {

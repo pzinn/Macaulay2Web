@@ -42,7 +42,7 @@ if (mode === "local") {
 } else if (mode === "ssh") {
   overrideOptions = require(path + "Macaulay2SshDocker");
 } else {
-  logger.error("There is no mode " + mode);
+  throw new Error("There is no mode " + mode);
 }
 
 overrideDefaultOptions(overrideOptions.options, options);

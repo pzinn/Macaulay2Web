@@ -22,7 +22,14 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     this.currentContainers = currentContainers;
   }
 
-  // experimental: scan existing dockers
+  private incrementPort() {
+    this.currentInstance.port =
+      this.currentInstance.port == 65535
+        ? this.hostConfig.instancePort
+        : this.currentInstance.port + 1;
+  }
+
+  // scan existing dockers
   public recoverInstances(next) {
     const self = this;
     const dockerPsCmd = "sudo docker ps -q";
@@ -31,6 +38,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
       const asyncLoop = function (i) {
         if (i == 0) {
+          self.incrementPort();
           next();
           return;
         }
@@ -50,8 +58,8 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                 JSON.stringify(self.currentInstance)
               ); // eww
               newInstance.port = port;
-              if (self.currentInstance.port <= port)
-                self.currentInstance.port = port + 1;
+              if (self.currentInstance.port < port)
+                self.currentInstance.port = port;
               newInstance.clientId = clientId;
               newInstance.lastActiveTime = Date.now();
               newInstance.containerName = "m2Port" + newInstance.port;
@@ -76,16 +84,13 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
   public getNewInstance(clientId, next) {
     const self = this;
-    if (this.currentContainers.length >= this.hostConfig.maxContainerNumber) {
-      this.killOldestContainer(function () {
+    if (self.currentContainers.length >= self.hostConfig.maxContainerNumber) {
+      self.killOldestContainer(function () {
         self.getNewInstance(clientId, next);
       });
     } else {
       const newInstance = JSON.parse(JSON.stringify(self.currentInstance));
-      self.currentInstance.port =
-        self.currentInstance.port == 65535
-          ? this.hostConfig.instancePort
-          : self.currentInstance.port + 1;
+      self.incrementPort();
       newInstance.containerName = "m2Port" + newInstance.port;
       newInstance.clientId = clientId;
       newInstance.lastActiveTime = Date.now();
