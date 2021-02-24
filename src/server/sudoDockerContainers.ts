@@ -4,6 +4,8 @@ import { InstanceManager } from "./instanceManager";
 import childProcess = require("child_process");
 const exec = childProcess.exec;
 
+import { Client } from "./client";
+import { clients } from "./server";
 import { logger } from "./logger";
 
 class SudoDockerContainersInstanceManager implements InstanceManager {
@@ -20,17 +22,24 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     this.currentContainers = currentContainers;
   }
 
-  // experimental: scan existing dockers
+  private incrementPort() {
+    this.currentInstance.port =
+      this.currentInstance.port == 65535
+        ? this.hostConfig.instancePort
+        : this.currentInstance.port + 1;
+  }
+
+  // scan existing dockers
   public recoverInstances(next) {
     const self = this;
     const dockerPsCmd = "sudo docker ps -q";
-    const existing = {};
     exec(dockerPsCmd, function (error, stdout, stderr) {
       const lst = stdout.split("\n");
 
       const asyncLoop = function (i) {
         if (i == 0) {
-          next(existing);
+          self.incrementPort();
+          next();
           return;
         }
         i--;
@@ -40,22 +49,26 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
             const res = JSON.parse(stdout);
             const clientId = res[0].Config.Labels.clientId;
             if (clientId) {
-              // find port
-              const port = res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
               logger.info(
-                "Scanning " + lst[i] + " found " + clientId + ":" + port
+                "Scanning " + lst[i] + " found " + clientId + res[0].Name
               );
+              // find port
+              const port = +res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
               const newInstance = JSON.parse(
                 JSON.stringify(self.currentInstance)
               ); // eww
               newInstance.port = port;
+              if (self.currentInstance.port < port)
+                self.currentInstance.port = port;
               newInstance.clientId = clientId;
               newInstance.lastActiveTime = Date.now();
               newInstance.containerName = "m2Port" + newInstance.port;
-              if (!existing[clientId]) {
+              if (!clients[clientId]) {
                 logger.info("Recovering");
                 // test for sshd?
-                existing[clientId] = newInstance;
+                const client = new Client(clientId);
+                clients[clientId] = client;
+                client.instance = newInstance;
                 self.addInstanceToArray(newInstance);
               } else {
                 self.removeInstance(newInstance);
@@ -71,16 +84,13 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
   public getNewInstance(clientId, next) {
     const self = this;
-    if (this.currentContainers.length >= this.hostConfig.maxContainerNumber) {
-      this.killOldestContainer(function () {
+    if (self.currentContainers.length >= self.hostConfig.maxContainerNumber) {
+      self.killOldestContainer(function () {
         self.getNewInstance(clientId, next);
       });
     } else {
       const newInstance = JSON.parse(JSON.stringify(self.currentInstance));
-      self.currentInstance.port =
-        self.currentInstance.port == 65535
-          ? this.hostConfig.instancePort
-          : self.currentInstance.port + 1;
+      self.incrementPort();
       newInstance.containerName = "m2Port" + newInstance.port;
       newInstance.clientId = clientId;
       newInstance.lastActiveTime = Date.now();
@@ -90,7 +100,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
           if (error) {
             const containerAlreadyStarted =
               error.message.match(/Conflict. The name/) ||
-              error.message.match(/Conflict. The container name/);
+              error.message.match(/Conflict. The container name/); // weak TODO
             if (containerAlreadyStarted) {
               self.getNewInstance(clientId, next);
             } else {
@@ -100,6 +110,12 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               throw error;
             }
           } else {
+            logger.info(
+              "Docker container " +
+                newInstance.containerName +
+                " created for " +
+                newInstance.clientId
+            );
             self.addInstanceToArray(newInstance);
             self.waitForSshd(next, newInstance);
           }
@@ -154,6 +170,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
             error
         );
       }
+      clients[instance.clientId].instance = null;
       self.removeInstanceFromArray(instance);
       if (next) {
         next();
@@ -170,7 +187,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     dockerRunCmd += " -l " + "clientId=" + newInstance.clientId;
     dockerRunCmd +=
       " " + this.hostConfig.containerType + " " + this.hostConfig.sshdCmd;
-    logger.info("Running " + dockerRunCmd);
+    //    logger.info("Running " + dockerRunCmd);
     return dockerRunCmd;
   }
 

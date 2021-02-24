@@ -230,7 +230,7 @@ class SshDockerContainersInstanceManager implements InstanceManager {
 
   public recoverInstances(next) {
     // not implemented yet
-    next({});
+    next();
   }
 }
 

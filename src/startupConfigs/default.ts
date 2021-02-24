@@ -5,11 +5,11 @@ const options = {
   adminName: "", // to be set live only
   authentication: false, // overridden anyway depending on existence of public/users.htpasswd
   perContainerResources: {
-    cpuShares: 0.5,
+    cpuShares: 0.75,
     memory: 384, // Mb
     maxSavedOutput: 200000, // size of saved output in bytes
-    maxRate: 0.1, // max rate of output per millisecond
-    maxPacket: 200000, // max packet size
+    maxOutputRate: 0.01, // max rate of output per millisecond
+    maxOutputStat: 1000, // # outputs before error thrown
   },
   serverConfig: {
     MATH_PROGRAM: "Macaulay2",
@@ -32,7 +32,7 @@ const options = {
     dockerCmdPrefix: "sudo ",
     host: "192.168.2.42",
     username: "vagrant",
-    instancePort: 1024,
+    instancePort: 1000,
     port: 22,
     sshKey: process.env.HOME + "/keys/host_key",
   },

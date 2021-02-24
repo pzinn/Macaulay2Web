@@ -201,24 +201,24 @@ const socketDisconnectAction = function (socket, client: Client) {
 
 const sendDataToClient = function (client: Client) {
   return function (dataObject) {
-    if (client.outputRate < 0) return; // output rate exceeded
+    if (client.outputStat < 0) return; // output rate exceeded
     if (!client.instance) {
       logClient(client, "No instance for client.");
       return;
     }
     const data: string = dataObject.toString();
     // new: prevent flooding
-    client.outputRate +=
+    client.outputStat +=
       1 +
-      data.length +
-      options.perContainerResources.maxRate *
+      0.002 * data.length +
+      options.perContainerResources.maxOutputRate *
         (client.instance.lastActiveTime - Date.now());
     client.instance.lastActiveTime = Date.now();
-    if (client.outputRate < 0) client.outputRate = 0;
-    else if (client.outputRate > options.perContainerResources.maxPacket) {
+    if (client.outputStat < 0) client.outputStat = 0;
+    else if (client.outputStat > options.perContainerResources.maxOutputStat) {
       systemChat(client, "Output rate exceeded. Killing M2.");
       killMathProgram(client);
-      client.outputRate = -1; // signal to avoid repeat message
+      client.outputStat = -1; // signal to avoid repeat message
       emitViaClientSockets(client, "output", webAppTags.CellEnd + "\n"); // to make it look nicer
       return;
     }
@@ -344,9 +344,10 @@ const clientExistenceCheck = function (clientId: string): Client {
 
 const sanitizeClient = function (client: Client, force?: boolean) {
   if (!client.saneState) {
-    logClient(client, "Is already being sanitized.");
+    logClient(client, "Is already being sanitized");
     return false;
   }
+  logClient(client, "Sanitizing");
   client.saneState = false;
 
   if (
@@ -357,14 +358,12 @@ const sanitizeClient = function (client: Client, force?: boolean) {
   ) {
     spawnMathProgramInSecureContainer(client);
     client.savedOutput = "";
-    client.outputRate = 0;
+    client.outputStat = 0;
 
-    /*
-  // Avoid stuck sanitizer.
-  setTimeout(function () {
+    // Avoid stuck sanitizer. shouldn't happen in theory...
+    setTimeout(function () {
       client.saneState = true;
-  }, 2000);
-*/
+    }, 10000);
   } else {
     logClient(client, "Has mathProgram instance.");
     client.saneState = true;
@@ -555,14 +554,7 @@ const mathServer = function (o) {
     guestInstance
   );
 
-  instanceManager.recoverInstances(function (lst) {
-    logger.info("Recovered " + Object.keys(lst).length + " instances");
-    for (const clientId in lst) {
-      const client = new Client(clientId);
-      clients[clientId] = client;
-      client.instance = lst[clientId];
-      //      spawnMathProgramInSecureContainer(client);
-    }
+  instanceManager.recoverInstances(function () {
     logger.info("start init");
     initializeServer();
     listen();
