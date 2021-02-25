@@ -91,6 +91,15 @@ body {
     right: 25px;
 }
 
+#editorFileName {
+    position: absolute;
+    z-index: 2;
+    bottom: 20px;
+    right: 20px;
+    border:1px solid gray;
+    border-radius:4px;
+}
+
 /* Select all buttons within a class="mdl-dialog" element */
 .mdl-dialog > button {
     float: right;

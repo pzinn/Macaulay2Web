@@ -95,7 +95,7 @@ const removeAutoComplete = function (autoCompleteSelection, caret: boolean) {
       const sel = window.getSelection();
       sel.collapse(autoCompleteNode, pos);
     }
-    if (autoCompleteEl) highlight(autoCompleteEl); // redo the highlighting
+    if (autoCompleteEl) syntaxHighlight(autoCompleteEl); // redo the highlighting
   }
 };
 
@@ -389,7 +389,7 @@ const autoIndent = function (el) {
   document.execCommand("insertText", false, indent);
 };
 
-const highlight = function (el) {
+const syntaxHighlight = function (el) {
   if (autoComplete) return; // no highlighting while autocomplete menu is on, would make a mess!!
   // sadly, never happens -- oninput sucks
 
@@ -408,17 +408,6 @@ const highlight = function (el) {
   }
 };
 
-let highlightTimeout = 0;
-const delayedHighlight = function (el) {
-  return function () {
-    if (highlightTimeout) window.clearTimeout(highlightTimeout);
-    highlightTimeout = window.setTimeout(function () {
-      highlightTimeout = 0;
-      highlight(el);
-    }, 2000);
-  };
-};
-
 export {
   escapeKeyHandling,
   autoCompleteHandling,
@@ -426,7 +415,6 @@ export {
   sanitizeInput,
   delimiterHandling,
   removeDelimiterHighlight,
-  highlight,
-  delayedHighlight,
+  syntaxHighlight,
   autoIndent,
 };

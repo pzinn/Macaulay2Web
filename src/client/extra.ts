@@ -7,15 +7,15 @@ import tutorials from "./tutorials";
 import Prism from "prismjs";
 import SocketIOFileUpload from "socketio-file-upload";
 import { Chat } from "../common/chatClass";
-import defaultEditor from "./default.m2";
+import defaultEditor from "./default.m2"; // TODO retire
 import {
   escapeKeyHandling,
   autoCompleteHandling,
   removeAutoComplete,
   delimiterHandling,
   removeDelimiterHighlight,
-  delayedHighlight,
   autoIndent,
+  syntaxHighlight,
 } from "./editor";
 
 const setCookie = function (name: string, value: string): void {
@@ -25,9 +25,24 @@ const setCookie = function (name: string, value: string): void {
   });
 };
 
-const getCookieId = function () {
+const getCookie = function (name, deflt?) {
   const cookies = Cookie.parse(document.cookie);
-  return cookies[options.cookieName];
+  const cookie = cookies[name];
+  return cookie ? cookie : deflt;
+};
+
+const getCookieId = function () {
+  return getCookie(options.cookieName);
+};
+
+const emitReset = function () {
+  myshell.reset();
+  socket.emit("reset");
+};
+
+const attachClick = function (id: string, f) {
+  const el = document.getElementById(id);
+  if (el) el.onclick = f;
 };
 
 const extra = function () {
@@ -37,16 +52,6 @@ const extra = function () {
   const iFrame = document.getElementById("browseFrame");
   const chatForm = document.getElementById("chatForm");
   const tabs = document.getElementById("tabs") as any;
-
-  const emitReset = function () {
-    myshell.reset();
-    socket.emit("reset");
-  };
-
-  const attachClick = function (id: string, f) {
-    const el = document.getElementById(id);
-    if (el) el.onclick = f;
-  };
 
   const getSelected = function () {
     // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
@@ -99,14 +104,46 @@ const toggleWrap = function () {
   btn.classList.toggle("rotated");
   out.classList.toggle("M2Wrapped");
 };
-*/
+  */
+  let fileName;
 
-  let fileName = "default.m2";
+  const fileNameEl = document.getElementById(
+    "editorFileName"
+  ) as HTMLInputElement;
+  const updateFileName = function (newName: string) {
+    fileNameEl.value = fileName = newName;
+    setCookie(options.cookieFileName, fileName);
+  };
+  fileNameEl.onchange = function () {
+    updateFileName(fileNameEl.value.trim());
+  };
+  fileNameEl.onkeydown = function (e) {
+    if (e.key == "Enter") {
+      editor.focus();
+      e.preventDefault();
+    }
+  };
+
+  updateFileName(getCookie(options.cookieFileName, "default.m2"));
+
+  let autoSaveTimeout = 0;
+  const autoSave = function () {
+    if (autoSaveTimeout) {
+      window.clearTimeout(autoSaveTimeout);
+      autoSaveTimeout = 0;
+    }
+    if ((document.getElementById("autoUpload") as HTMLInputElement).checked) {
+      const content = editor.innerText as string;
+      const file = new File([content], fileName);
+      (file as any).auto = true;
+      siofu.submitFiles([file]);
+    }
+  };
 
   const loadFileProcess = function (event) {
     if (event.target.files.length > 0) {
       const fileToLoad = event.target.files[0];
-      fileName = fileToLoad.name;
+      updateFileName(fileToLoad.name);
       const fileReader = new FileReader();
       fileReader.onload = function () {
         // var textFromFileLoaded = e.target.result;
@@ -119,10 +156,13 @@ const toggleWrap = function () {
       };
       fileReader.readAsText(fileToLoad, "UTF-8");
 
+      autoSave();
+      /*
       if ((document.getElementById("autoUpload") as HTMLInputElement).checked) {
         event.target.files[0].auto = true;
         siofu.submitFiles(event.target.files);
-      }
+	}
+	*/
     }
   };
   const loadFile = function () {
@@ -135,18 +175,23 @@ const toggleWrap = function () {
   const saveFile = function () {
     const content = editor.innerText as string;
 
-    if ((document.getElementById("autoUpload") as HTMLInputElement).checked) {
-      const file = new File([content], fileName);
-      (file as any).auto = true;
-      siofu.submitFiles([file]);
-    }
-
+    autoSave(); // may be wrong name!!! same pbl as right below
     const inputLink =
       "data:application/octet-stream," + encodeURIComponent(content);
     const inputParagraph = document.createElement("a");
     inputParagraph.setAttribute("href", inputLink);
-    inputParagraph.setAttribute("download", fileName); // reuses the last loaded file name
+    inputParagraph.setAttribute("download", fileName); // reuses the last loaded file name (but not saved!)
     inputParagraph.click();
+  };
+
+  let highlightTimeout = 0;
+  const delayedAction = function () {
+    if (highlightTimeout) window.clearTimeout(highlightTimeout);
+    highlightTimeout = window.setTimeout(function () {
+      highlightTimeout = 0;
+      syntaxHighlight(editor);
+    }, 1500);
+    autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
 
   const attachCtrlBtnActions = function () {
@@ -252,74 +297,6 @@ const toggleWrap = function () {
     alert(msg);
   };
 
-  socket.on("chat", socketChat);
-
-  if (chatForm) {
-    const chatInput = document.getElementById("chatInput") as HTMLInputElement;
-    const chatAlias = document.getElementById("chatAlias") as HTMLInputElement;
-    // init alias as cookie or default
-    const cookies = Cookie.parse(document.cookie);
-    const cookie = cookies[options.cookieAliasName];
-    chatAlias.value = cookie ? cookie : options.defaultAlias;
-    chatAlias.onchange = function () {
-      const alias = chatAlias.value.trim();
-      chatAlias.value =
-        alias === options.adminAlias ||
-        alias === options.systemAlias ||
-        alias.indexOf("/") >= 0 ||
-        alias.indexOf(",") >= 0
-          ? options.defaultAlias
-          : alias;
-      setCookie(options.cookieAliasName, chatAlias.value);
-    };
-    chatInput.onkeypress = function (e) {
-      if (e.key == "Enter" && e.shiftKey) {
-        e.preventDefault();
-        chatInput.value =
-          chatInput.value.substring(0, chatInput.selectionStart) +
-          " \u21B5 " +
-          chatInput.value.substring(chatInput.selectionEnd);
-      }
-    };
-    chatForm.onsubmit = function (e) {
-      e.preventDefault();
-      if (chatInput.value != "") {
-        const msg: Chat = {
-          type: "message",
-          alias: chatAlias.value,
-          message: chatInput.value,
-          time: Date.now(),
-        };
-        if ((document.getElementById("pmtoggle") as HTMLInputElement).checked) {
-          msg.recipients = {};
-          // parse list of recipients
-          (document.getElementById("pmto") as HTMLInputElement).value
-            .split(",")
-            .forEach(function (rec: string) {
-              const i = rec.indexOf("/");
-              const id = i < 0 ? "" : "user" + rec.substring(0, i);
-              const alias = i < 0 ? rec : rec.substring(i + 1);
-              if ((id != "" || alias != "") && msg.recipients[id] !== null) {
-                // null means everyone
-                if (alias === "") msg.recipients[id] = null;
-                else {
-                  if (msg.recipients[id] === undefined) msg.recipients[id] = [];
-                  msg.recipients[id].push(alias);
-                }
-              }
-            });
-        } else msg.recipients = { "": null }; // to everyone
-
-        socket.emit("chat", msg);
-        chatInput.value = "";
-      }
-    };
-    // signal presence
-    //    window.addEventListener("load", function () {
-    syncChat();
-    //    });
-  }
-
   // zoom
   function sanitizeFactor(factor) {
     let result = factor;
@@ -379,6 +356,81 @@ const toggleWrap = function () {
     attachClick(resetID, reset);
   };
 
+  socket.on("chat", socketChat);
+
+  if (chatForm) {
+    const chatInput = document.getElementById("chatInput") as HTMLInputElement;
+    const chatAlias = document.getElementById("chatAlias") as HTMLInputElement;
+    // init alias as cookie or default
+    chatAlias.value = getCookie(options.cookieAliasName, options.defaultAlias);
+    chatAlias.onchange = function () {
+      const alias = chatAlias.value.trim();
+      chatAlias.value =
+        alias === options.adminAlias ||
+        alias === options.systemAlias ||
+        alias.indexOf("/") >= 0 ||
+        alias.indexOf(",") >= 0
+          ? options.defaultAlias
+          : alias;
+      setCookie(options.cookieAliasName, chatAlias.value);
+    };
+    document.getElementById("pmto").onkeydown = chatAlias.onkeydown = function (
+      e
+    ) {
+      if (e.key == "Enter") {
+        chatInput.focus();
+        e.preventDefault();
+      }
+    };
+
+    chatInput.onkeypress = function (e) {
+      if (e.key == "Enter" && e.shiftKey) {
+        e.preventDefault();
+        chatInput.value =
+          chatInput.value.substring(0, chatInput.selectionStart) +
+          " \u21B5 " +
+          chatInput.value.substring(chatInput.selectionEnd);
+      }
+    };
+    chatForm.onsubmit = function (e) {
+      e.preventDefault();
+      if (chatInput.value != "") {
+        const msg: Chat = {
+          type: "message",
+          alias: chatAlias.value,
+          message: chatInput.value,
+          time: Date.now(),
+        };
+        if ((document.getElementById("pmtoggle") as HTMLInputElement).checked) {
+          msg.recipients = {};
+          // parse list of recipients
+          (document.getElementById("pmto") as HTMLInputElement).value
+            .split(",")
+            .forEach(function (rec: string) {
+              const i = rec.indexOf("/");
+              const id = i < 0 ? "" : "user" + rec.substring(0, i);
+              const alias = i < 0 ? rec : rec.substring(i + 1);
+              if ((id != "" || alias != "") && msg.recipients[id] !== null) {
+                // null means everyone
+                if (alias === "") msg.recipients[id] = null;
+                else {
+                  if (msg.recipients[id] === undefined) msg.recipients[id] = [];
+                  msg.recipients[id].push(alias);
+                }
+              }
+            });
+        } else msg.recipients = { "": null }; // to everyone
+
+        socket.emit("chat", msg);
+        chatInput.value = "";
+      }
+    };
+    // signal presence
+    //    window.addEventListener("load", function () {
+    syncChat();
+    //    });
+  }
+
   attachZoomButtons(
     "terminal",
     "terminalZoomIn",
@@ -392,13 +444,17 @@ const toggleWrap = function () {
       .checked;
   });
 
-  // take care of default editor text
-  if (editor) {
-    editor.innerHTML = Prism.highlight(
-      defaultEditor,
-      Prism.languages.macaulay2
-    );
-  }
+  // starting text in editor
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", fileName + "?id=" + clientId + "&relative=true", true);
+  xhr.onload = function (e) {
+    const text =
+      xhr.readyState === 4 && xhr.status === 200
+        ? xhr.responseText
+        : defaultEditor;
+    editor.innerHTML = Prism.highlight(text, Prism.languages.macaulay2);
+  }; // have defaultEditor on docker anyway?
+  xhr.send(null);
 
   let tab = url.hash;
 
@@ -482,19 +538,14 @@ const toggleWrap = function () {
   if (editor) {
     editor.onkeydown = editorKeyDown;
     editor.onkeyup = editorKeyUp;
-    editor.oninput = delayedHighlight(editor);
+    editor.oninput = delayedAction;
   }
 
   siofu = new SocketIOFileUpload(socket);
   attachClick("uploadBtn", siofu.prompt);
   siofu.addEventListener("complete", showUploadSuccessDialog);
 
-  if (editor)
-    // only ask for confirmation if there's an editor
-    window.addEventListener("beforeunload", function (e) {
-      e.preventDefault();
-      e.returnValue = "";
-    });
+  window.addEventListener("beforeunload", autoSave);
 
   if (iFrame) iFrame.onload = openBrowseTab;
 
