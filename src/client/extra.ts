@@ -384,45 +384,42 @@ const toggleWrap = function () {
     };
 
     chatInput.onkeypress = function (e) {
-      if (e.key == "Enter" && e.shiftKey) {
+      if (e.key == "Enter" && !e.shiftKey) {
         e.preventDefault();
-        chatInput.value =
-          chatInput.value.substring(0, chatInput.selectionStart) +
-          " \u21B5 " +
-          chatInput.value.substring(chatInput.selectionEnd);
-      }
-    };
-    chatForm.onsubmit = function (e) {
-      e.preventDefault();
-      if (chatInput.value != "") {
-        const msg: Chat = {
-          type: "message",
-          alias: chatAlias.value,
-          message: chatInput.value,
-          time: Date.now(),
-        };
-        if ((document.getElementById("pmtoggle") as HTMLInputElement).checked) {
-          msg.recipients = {};
-          // parse list of recipients
-          (document.getElementById("pmto") as HTMLInputElement).value
-            .split(",")
-            .forEach(function (rec: string) {
-              const i = rec.indexOf("/");
-              const id = i < 0 ? "" : "user" + rec.substring(0, i);
-              const alias = i < 0 ? rec : rec.substring(i + 1);
-              if ((id != "" || alias != "") && msg.recipients[id] !== null) {
-                // null means everyone
-                if (alias === "") msg.recipients[id] = null;
-                else {
-                  if (msg.recipients[id] === undefined) msg.recipients[id] = [];
-                  msg.recipients[id].push(alias);
+        const txt = chatInput.innerText; // or textContent?
+        if (txt != "") {
+          const msg: Chat = {
+            type: "message",
+            alias: chatAlias.value,
+            message: txt,
+            time: Date.now(),
+          };
+          if (
+            (document.getElementById("pmtoggle") as HTMLInputElement).checked
+          ) {
+            msg.recipients = {};
+            // parse list of recipients
+            (document.getElementById("pmto") as HTMLInputElement).value
+              .split(",")
+              .forEach(function (rec: string) {
+                const i = rec.indexOf("/");
+                const id = i < 0 ? "" : "user" + rec.substring(0, i);
+                const alias = i < 0 ? rec : rec.substring(i + 1);
+                if ((id != "" || alias != "") && msg.recipients[id] !== null) {
+                  // null means everyone
+                  if (alias === "") msg.recipients[id] = null;
+                  else {
+                    if (msg.recipients[id] === undefined)
+                      msg.recipients[id] = [];
+                    msg.recipients[id].push(alias);
+                  }
                 }
-              }
-            });
-        } else msg.recipients = { "": null }; // to everyone
+              });
+          } else msg.recipients = { "": null }; // to everyone
 
-        socket.emit("chat", msg);
-        chatInput.value = "";
+          socket.emit("chat", msg);
+          chatInput.textContent = "";
+        }
       }
     };
     // signal presence
@@ -445,7 +442,7 @@ const toggleWrap = function () {
   });
 
   // starting text in editor
-  var xhr = new XMLHttpRequest();
+  const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName + "?id=" + clientId + "&relative=true", true);
   xhr.onload = function (e) {
     const text =
