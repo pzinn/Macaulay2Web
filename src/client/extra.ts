@@ -445,7 +445,7 @@ const toggleWrap = function () {
   });
 
   // starting text in editor
-  var xhr = new XMLHttpRequest();
+  const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName + "?id=" + clientId + "&relative=true", true);
   xhr.onload = function (e) {
     const text =
