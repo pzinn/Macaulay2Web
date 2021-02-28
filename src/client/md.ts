@@ -81,7 +81,10 @@ const mdToHTML = function (src, sep, doublesep) {
       if (i == oldi) {
         i = -1;
         s = "";
-      } else i = oldi;
+      } else {
+        i = oldi;
+        x = null;
+      }
     }
     if (i != oldi) {
       if (oldi >= 0 && patterns[oldi].tag !== null)
