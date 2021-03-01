@@ -386,7 +386,7 @@ const toggleWrap = function () {
     chatInput.onkeypress = function (e) {
       if (e.key == "Enter" && !e.shiftKey) {
         e.preventDefault();
-        const txt = chatInput.innerText; // or textContent?
+        const txt = chatInput.innerHTML;
         if (txt != "") {
           const msg: Chat = {
             type: "message",
