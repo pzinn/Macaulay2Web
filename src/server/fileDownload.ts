@@ -3,6 +3,11 @@ import fs = require("fs");
 import { Client } from "./client";
 import path = require("path");
 import { logger } from "./logger";
+import { staticFolder } from "./server";
+
+const userSpecificPath = function (client: Client): string {
+  return client.id + "-files/";
+};
 
 const unlink = function (completePath: string) {
   return function () {
@@ -18,12 +23,11 @@ const unlink = function (completePath: string) {
 
 const downloadFromDocker = function (
   client: Client,
-  sourcePath: string,
-  targetPath: string,
+  sourceFileName: string,
   sshCredentials,
   next
 ) {
-  const fileName: string = path.basename(sourcePath);
+  const fileName: string = path.basename(sourceFileName);
   if (!fileName) {
     return;
   }
@@ -31,6 +35,9 @@ const downloadFromDocker = function (
   sshConnection.on("end", function () {
     logger.info("File action ended.");
   });
+
+  const userPath = userSpecificPath(client);
+  const targetPath = staticFolder + userPath;
 
   const handleUserGeneratedFile = function (generateError, sftp) {
     if (generateError) {
@@ -42,20 +49,20 @@ const downloadFromDocker = function (
           logger.error("Error creating directory: " + targetPath);
         else logger.info("Folder exists");
       }
-      logger.info("File we want is " + sourcePath);
-      const completePath = targetPath + fileName;
-      sftp.fastGet(sourcePath, completePath, function (sftpError) {
+      logger.info("File we want is " + sourceFileName);
+      const targetFileName = targetPath + fileName;
+      sftp.fastGet(sourceFileName, targetFileName, function (sftpError) {
         if (sftpError) {
           logger.error(
             "Error while downloading file. PATH: " +
-              sourcePath +
+              sourceFileName +
               ", ERROR: " +
               sftpError
           );
           next();
         } else {
-          setTimeout(unlink(completePath), 1000 * 60 * 10);
-          next(completePath);
+          setTimeout(unlink(targetFileName), 1000 * 60 * 10);
+          next(userPath + fileName);
         }
       });
     });

@@ -116,6 +116,29 @@ const toggleWrap = function () {
   };
   fileNameEl.onchange = function () {
     updateFileName(fileNameEl.value.trim());
+    socket.emit("fileexists", fileName, function (response) {
+      if (response) {
+        const dialog = document.getElementById(
+          "changeEditorFileName"
+        ) as HTMLDialogElement;
+        document.getElementById("newEditorFileName").textContent = fileName;
+        dialog.onclose = function () {
+          if (dialog.returnValue == "overwrite") autoSave();
+          else {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", response, true);
+            xhr.onload = function () {
+              editor.innerHTML = Prism.highlight(
+                xhr.responseText,
+                Prism.languages.macaulay2
+              );
+            };
+            xhr.send(null);
+          }
+        };
+        dialog.showModal();
+      } else autoSave();
+    });
   };
   fileNameEl.onkeydown = function (e) {
     if (e.key == "Enter") {
@@ -212,14 +235,9 @@ const toggleWrap = function () {
       ) as HTMLDialogElement;
       // console.log('we uploaded the file: ' + event.success);
       // console.log(event.file);
-      const filename = event.file.name;
       // console.log("File uploaded successfully!" + filename);
-      const successSentence =
-        filename +
-        " has been uploaded and you can use it by loading it into your session.";
-      document.getElementById(
-        "uploadSuccessDialogContent"
-      ).innerText = successSentence;
+      document.getElementById("uploadSuccessDialogFileName").textContent =
+        event.file.name;
       dialog.showModal();
     }
   };
@@ -442,17 +460,19 @@ const toggleWrap = function () {
   });
 
   // starting text in editor
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET", fileName + "?id=" + clientId + "&relative=true", true);
-  xhr.onload = function (e) {
-    const text =
-      xhr.readyState === 4 && xhr.status === 200
-        ? xhr.responseText
-        : defaultEditor;
-    editor.innerHTML = Prism.highlight(text, Prism.languages.macaulay2);
-  }; // have defaultEditor on docker anyway?
-  xhr.send(null);
-
+  socket.emit("fileexists", fileName, function (response) {
+    if (response) {
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", response, true);
+      xhr.onload = function () {
+        editor.innerHTML = Prism.highlight(
+          xhr.responseText,
+          Prism.languages.macaulay2
+        );
+      }; // have defaultEditor on docker anyway?
+      xhr.send(null);
+    } else editor.innerHTML = Prism.highlight(defaultEditor, Prism.languages.macaulay2);
+  });
   let tab = url.hash;
 
   //  const loadtute = url.searchParams.get("loadtutorial");

@@ -53,10 +53,6 @@ const clients: IClients = {};
 
 let instanceManager: InstanceManager;
 
-const userSpecificPath = function (client: Client): string {
-  return staticFolder + client.id + "-files/";
-};
-
 const disconnectSocket = function (socket: SocketIO.Socket): void {
   try {
     socket.disconnect();
@@ -66,7 +62,7 @@ const disconnectSocket = function (socket: SocketIO.Socket): void {
 };
 
 const deleteClientData = function (client: Client): void {
-  logClient(client, "deleting folder " + userSpecificPath(client));
+  /*  logClient(client, "deleting folder " + userSpecificPath(client));
   try {
     logClient(client, "Sending disconnect. ");
     clients[client.id].sockets.forEach(disconnectSocket);
@@ -77,7 +73,7 @@ const deleteClientData = function (client: Client): void {
     if (error) {
       logClient(client, "Error deleting user folder: " + error);
     }
-  });
+  });*/
   delete clients[client.id];
 };
 
@@ -188,7 +184,10 @@ const addNewSocket = function (client: Client, socket: SocketIO.Socket) {
   client.sockets.push(socket);
 };
 
-const socketDisconnectAction = function (socket, client: Client) {
+const socketDisconnectAction = function (
+  socket: SocketIO.Socket,
+  client: Client
+) {
   return function () {
     logClient(client, "Removing socket");
     const index = client.sockets.indexOf(socket);
@@ -294,17 +293,11 @@ const fileDownload = function (request, response, next) {
   let sourcePath = decodeURIComponent(request.path);
   if (request.query.relative && sourcePath[0] == "/")
     sourcePath = sourcePath.substring(1); // for relative paths. annoying
-  downloadFromDocker(
-    client,
-    sourcePath,
-    userSpecificPath(client),
-    sshCredentials,
-    function (targetPath) {
-      if (targetPath) {
-        response.sendFile(targetPath);
-      } else next();
-    }
-  );
+  downloadFromDocker(client, sourcePath, sshCredentials, function (targetPath) {
+    if (targetPath) {
+      response.sendFile(staticFolder + targetPath);
+    } else next();
+  });
 };
 
 const unhandled = function (request, response) {
@@ -399,7 +392,7 @@ const checkClientSane = function (client: Client) {
   return client.saneState;
 };
 
-const socketInputAction = function (socket, client: Client) {
+const socketInputAction = function (socket: SocketIO.Socket, client: Client) {
   return function (msg: string) {
     logClient(client, "Receiving input: " + short(msg));
     if (checkClientSane(client)) {
@@ -420,10 +413,17 @@ const socketResetAction = function (client: Client) {
   };
 };
 
-const socketRestoreAction = function (socket, client: Client) {
+const socketRestoreAction = function (socket: SocketIO.Socket, client: Client) {
   return function () {
     logClient(client, "Restoring output");
     safeEmit(socket, "output", client.savedOutput); // send previous output
+  };
+};
+
+const socketFileExists = function (socket: SocketIO.Socket, client: Client) {
+  return function (fileName: string, callback) {
+    //	console.log("fileexists: "+fileName+" | "+callback);
+    downloadFromDocker(client, fileName, sshCredentials, callback);
   };
 };
 
@@ -474,6 +474,7 @@ const listen = function () {
     socket.on("chat", socketChatAction(socket, client));
     socket.on("restore", socketRestoreAction(socket, client));
     socket.on("disconnect", socketDisconnectAction(socket, client));
+    socket.on("fileexists", socketFileExists(socket, client));
   });
 
   const listener = http.listen(serverConfig.port);
@@ -547,4 +548,5 @@ export {
   short,
   clients,
   options,
+  staticFolder,
 };

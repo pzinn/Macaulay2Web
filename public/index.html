@@ -26,20 +26,29 @@
     <dialog id="changeUserDialog" class="mdl-dialog">
       <form method="dialog">
 	You have requested the new user id <b id="newUserId"></b>. Is this change:
-	  <menu>
-	    <button id="changeUserTemporary" value="temporary" class="mdl-button mdl-js-button">temporary</button>
-	    <button id="changeUserPermanent" value="permanent" class="mdl-button mdl-js-button">permanent</button>
-	  </menu>
-	  <span id="oldUserIdReminder"></span>
+	<menu>
+	  <button id="changeUserTemporary" value="temporary" class="mdl-button mdl-js-button">temporary</button>
+	  <button id="changeUserPermanent" value="permanent" class="mdl-button mdl-js-button">permanent</button>
+	</menu>
+	<span id="oldUserIdReminder"></span>
       </form>
     </dialog>
 
+    <dialog id="changeEditorFileName" class="mdl-dialog">
+      <form method="dialog">
+	The file <b id="newEditorFileName"></b> exists on the server. Do you want to:
+	<menu>
+	  <button id="loadEditorFileName" value="load" class="mdl-button mdl-js-button">load it</button>
+	  <button id="overwriteEditorFileName" value="overwrite" class="mdl-button mdl-js-button">overwrite it</button>
+	</menu>
+      </form>
+    </dialog>
     <dialog id="uploadSuccessDialog" class="mdl-dialog">
-      <button id="uploadSuccessDialogClose"
-              class="saveDialogButton mdl-button mdl-js-button mdl-button--icon">
+      <button id="uploadSuccessDialogClose" class="saveDialogButton mdl-button mdl-js-button mdl-button--icon">
         <i class="material-icons">close</i>
       </button>
-      <div class="mdl-dialog__content" id="uploadSuccessDialogContent">
+      <div class="mdl-dialog__content">
+	<b id="uploadSuccessDialogFileName"></b> has been uploaded and you can use it by loading it into your session.
       </div>
     </dialog>
 

@@ -44,7 +44,7 @@ const socketDisconnect = function (msg) {
   serverDisconnect = true;
 };
 
-const wrapEmitForDisconnect = function (event, msg) {
+const wrapEmitForDisconnect = function (event, msg, callback?) {
   if (serverDisconnect) {
     const events = ["reset", "input", "chat"]; // !!!
     console.log("We are disconnected.");
@@ -52,10 +52,10 @@ const wrapEmitForDisconnect = function (event, msg) {
       socket.connect();
       if (!MINIMAL) syncChat();
       serverDisconnect = false;
-      socket.oldEmit(event, msg);
+      socket.oldEmit(event, msg, callback);
     }
   } else {
-    socket.oldEmit(event, msg);
+    socket.oldEmit(event, msg, callback);
   }
   return socket;
 };
