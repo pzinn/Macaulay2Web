@@ -303,7 +303,7 @@ const fileDownload = function (request, response, next) {
 const unhandled = function (request, response) {
   logger.error("Request for something we don't serve: " + request.url);
   response.writeHead(404, "Request for something we don't serve.");
-  response.write("404");
+  response.write("404"); // TODO: something nicer
   response.end();
 };
 

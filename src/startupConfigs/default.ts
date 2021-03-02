@@ -25,7 +25,7 @@ const options = {
   },
   hostConfig: {
     minContainerAge: 10,
-    maxContainerNumber: 384,
+    maxContainerNumber: 400,
     containerType: "m2container",
     sshdCmd: "/usr/sbin/sshd -D",
     dockerCmdPrefix: "sudo ",

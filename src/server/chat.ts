@@ -118,38 +118,45 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
       }, 5000);
     } else {
       // default: list
+      const clientsList = Object.values(clients).sort(function (a, b) {
+        const timea = a.instance ? a.instance.lastActiveTime : 0;
+        const timeb = b.instance ? b.instance.lastActiveTime : 0;
+        return timea - timeb;
+      });
       chat.message +=
-        "\n | id | sockets | output | last | docker | active time ";
-      for (const id in clients) {
-        chat.message +=
-          "\n|" +
-          id +
-          "|" +
-          clients[id].sockets
-            .map((x) => x.handshake.address)
-            .sort()
-            .filter((v, i, o) => v !== o[i - 1])
-            .join("\\n") +
-          "|" +
-          clients[id].savedOutput.length +
-          "|\t" +
-          clients[id].savedOutput
-            .substring(clients[id].savedOutput.length - 48)
-            .replace(/[^ -z{}]/g, " ") +
-          "\t|" +
-          (clients[id].instance
-            ? (clients[id].instance.containerName
-                ? clients[id].instance.containerName
-                : "") +
-              (clients[id].instance.lastActiveTime
-                ? "|" +
-                  new Date(clients[id].instance.lastActiveTime)
-                    .toISOString()
-                    .replace("T", " ")
-                    .substr(0, 19)
+        "\n | id | sockets | output | last | docker | active time " +
+        clientsList
+          .map(
+            (client) =>
+              "\n|" +
+              client.id +
+              "|" +
+              client.sockets
+                .map((x) => x.handshake.address)
+                .sort()
+                .filter((v, i, o) => v !== o[i - 1])
+                .join("\\n") +
+              "|" +
+              client.savedOutput.length +
+              "|\t" +
+              client.savedOutput
+                .substring(client.savedOutput.length - 48)
+                .replace(/[^ -z{}]/g, " ") +
+              "\t|" +
+              (client.instance
+                ? (client.instance.containerName
+                    ? client.instance.containerName
+                    : "") +
+                  (client.instance.lastActiveTime
+                    ? "|" +
+                      new Date(client.instance.lastActiveTime)
+                        .toISOString()
+                        .replace("T", " ")
+                        .substr(0, 19)
+                    : "")
                 : "")
-            : "");
-      }
+          )
+          .join("");
     }
     chat.index = chatCounter++;
     safeEmit(socket, "chat", chat);

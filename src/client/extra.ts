@@ -214,6 +214,7 @@ const toggleWrap = function () {
       highlightTimeout = 0;
       syntaxHighlight(editor);
     }, 1500);
+    if (autosaveTimeout) window.clearTimeout(autosaveTimeout);
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
 

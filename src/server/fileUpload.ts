@@ -34,7 +34,7 @@ const attachUploadListenerToSocket = function (
   uploader.listen(socket);
 
   uploader.on("error", function (event) {
-    logger.error("Error in upload " + event);
+    logger.error("Error in upload (" + event.memo + ")" + event.error);
   });
 
   uploader.on("start", function (event) {
