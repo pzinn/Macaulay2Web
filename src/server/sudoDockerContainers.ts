@@ -61,7 +61,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               if (self.currentInstance.port < port)
                 self.currentInstance.port = port;
               newInstance.clientId = clientId;
-              newInstance.lastActiveTime = Date.now();
+              newInstance.lastActiveTime = Date.now() - 1000 * 3600 * 24 * 365; // not really active => 1 year handicap
               newInstance.containerName = "m2Port" + newInstance.port;
               if (!clients[clientId]) {
                 logger.info("Recovering");

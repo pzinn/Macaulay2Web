@@ -4,7 +4,7 @@ declare const MINIMAL;
 
 import socketIo from "socket.io-client";
 
-import { extra, setCookie, getCookieId } from "./extra";
+import { extra1, extra2, setCookie, getCookieId } from "./extra";
 import { syncChat } from "./chat";
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
@@ -74,7 +74,7 @@ const clickAction = function (e) {
   if (e.button != 0) return;
   hideContextMenu();
   let t = e.target as HTMLElement;
-  while (t != e.currentTarget) {
+  while (t && t != e.currentTarget) {
     if (t.classList.contains("M2CellBar")) {
       e.stopPropagation();
       // bar stuff is handled my mousedown, not click (needed for shift-click)
@@ -133,6 +133,9 @@ const init = function () {
   }
 
   console.log("Macaulay2Web version " + options.version);
+
+  if (!MINIMAL) extra1();
+
   const userId: any = url.searchParams.get("user");
   if (userId) {
     const newId = "user" + userId;
@@ -157,7 +160,21 @@ const init = function () {
       }
     }
     setId(newId);
-  } else if (clientId) setId(clientId); // reset the clock
+  } else if (clientId) setId(clientId);
+  // reset the cookie clock
+  else if (!MINIMAL) {
+    // should always be true
+    const resetBtn = document.getElementById("resetBtn");
+    resetBtn.firstElementChild.textContent = "Start";
+    resetBtn.firstElementChild.classList.add("startButton");
+    resetBtn.onclick = function (e) {
+      e.stopPropagation();
+      resetBtn.firstElementChild.textContent = "Reset";
+      resetBtn.firstElementChild.classList.remove("startButton");
+      init2();
+    };
+    return;
+  }
   init2();
 };
 
@@ -192,7 +209,7 @@ const init2 = function () {
   socket.emit("restore");
   //  });
 
-  if (!MINIMAL) extra();
+  if (!MINIMAL) extra2();
 
   const exec = url.searchParams.get("exec");
   if (exec)

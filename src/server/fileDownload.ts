@@ -28,7 +28,7 @@ const downloadFromDocker = function (
   next
 ) {
   const fileName: string = path.basename(sourceFileName);
-  if (!fileName) {
+  if (!fileName || !client.instance || !client.instance.host) {
     return;
   }
   const sshConnection = ssh2();

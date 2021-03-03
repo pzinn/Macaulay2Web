@@ -45,13 +45,92 @@ const attachClick = function (id: string, f) {
   if (el) el.onclick = f;
 };
 
-const extra = function () {
+const extra1 = function () {
+  const tabs = document.getElementById("tabs") as any;
+  const iFrame = document.getElementById("browseFrame");
+  let tab = url.hash;
+
+  //  const loadtute = url.searchParams.get("loadtutorial");
+  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab);
+  let tute = 0,
+    page = 1;
+  if (m) {
+    tute = +m[1] || 0;
+    page = +m[2] || 1;
+  }
+  const tutorialManager = tutorials(tute, page - 1);
+  const upTutorial = document.getElementById("uptutorial");
+  if (upTutorial) {
+    upTutorial.onchange = tutorialManager.uploadTutorial;
+  }
+
+  // supersedes mdl's internal tab handling
+  const openTab = function () {
+    let loc = document.location.hash.substring(1);
+    // new syntax for navigating tutorial
+    const m = /^tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(loc);
+    if (m) {
+      loc = "tutorial";
+      if (m[1] || m[2])
+        tutorialManager.loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
+    }
+    const panel = document.getElementById(loc);
+    if (panel) {
+      const tab = document.getElementById(loc + "Title");
+      if (tabs.MaterialTabs) {
+        tabs.MaterialTabs.resetPanelState_();
+        tabs.MaterialTabs.resetTabState_();
+      }
+      panel.classList.add("is-active");
+      tab.classList.add("is-active");
+      if (loc == "chat") {
+        tab.removeAttribute("data-message");
+        // scroll. sadly, doesn't work if started with #chat
+        const ul = document.getElementById("chatMessages");
+        scrollDown(ul);
+      }
+    }
+  };
+
+  let ignoreFirstLoad = true;
+  const openBrowseTab = function (event) {
+    const el = document.getElementById("browseTitle");
+    // show tab panel
+    if (el && tabs.classList.contains("is-upgraded")) {
+      if (ignoreFirstLoad) ignoreFirstLoad = false;
+      else el.click();
+    }
+    // try to enable actions
+    const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
+    if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
+      const bdy = iFrame.contentDocument.body;
+      bdy.onclick = document.body.onclick;
+      bdy.onkeydown = document.body.onkeydown;
+      bdy.onmousedown = document.body.onmousedown;
+      bdy.oncontextmenu = document.body.oncontextmenu;
+    }
+    // do not follow link
+    event.preventDefault();
+  };
+
+  if (tabs) {
+    document.location.hash = "";
+    window.addEventListener("hashchange", openTab);
+    if (tab === "")
+      //      if (loadtute) tab = "#tutorial";
+      //	else
+      tab = "#home";
+    document.location.hash = tab;
+  }
+
+  if (iFrame) iFrame.onload = openBrowseTab;
+};
+
+const extra2 = function () {
   let siofu = null;
   const terminal = document.getElementById("terminal");
   const editor = document.getElementById("editorDiv");
-  const iFrame = document.getElementById("browseFrame");
   const chatForm = document.getElementById("chatForm");
-  const tabs = document.getElementById("tabs") as any;
 
   const getSelected = function () {
     // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
@@ -214,7 +293,7 @@ const toggleWrap = function () {
       highlightTimeout = 0;
       syntaxHighlight(editor);
     }, 1500);
-    if (autosaveTimeout) window.clearTimeout(autosaveTimeout);
+    if (autoSaveTimeout) window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
 
@@ -474,80 +553,6 @@ const toggleWrap = function () {
       xhr.send(null);
     } else editor.innerHTML = Prism.highlight(defaultEditor, Prism.languages.macaulay2);
   });
-  let tab = url.hash;
-
-  //  const loadtute = url.searchParams.get("loadtutorial");
-  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab);
-  let tute = 0,
-    page = 1;
-  if (m) {
-    tute = +m[1] || 0;
-    page = +m[2] || 1;
-  }
-  const tutorialManager = tutorials(tute, page - 1);
-  const upTutorial = document.getElementById("uptutorial");
-  if (upTutorial) {
-    upTutorial.onchange = tutorialManager.uploadTutorial;
-  }
-
-  // supersedes mdl's internal tab handling
-  const openTab = function () {
-    let loc = document.location.hash.substring(1);
-    // new syntax for navigating tutorial
-    const m = /^tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(loc);
-    if (m) {
-      loc = "tutorial";
-      if (m[1] || m[2])
-        tutorialManager.loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
-    }
-    const panel = document.getElementById(loc);
-    if (panel) {
-      const tab = document.getElementById(loc + "Title");
-      if (tabs.MaterialTabs) {
-        tabs.MaterialTabs.resetPanelState_();
-        tabs.MaterialTabs.resetTabState_();
-      }
-      panel.classList.add("is-active");
-      tab.classList.add("is-active");
-      if (loc == "chat") {
-        tab.removeAttribute("data-message");
-        // scroll. sadly, doesn't work if started with #chat
-        const ul = document.getElementById("chatMessages");
-        scrollDown(ul);
-      }
-    }
-  };
-
-  let ignoreFirstLoad = true;
-  const openBrowseTab = function (event) {
-    const el = document.getElementById("browseTitle");
-    // show tab panel
-    if (el && tabs.classList.contains("is-upgraded")) {
-      if (ignoreFirstLoad) ignoreFirstLoad = false;
-      else el.click();
-    }
-    // try to enable actions
-    const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
-    if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
-      const bdy = iFrame.contentDocument.body;
-      bdy.onclick = document.body.onclick;
-      bdy.onkeydown = document.body.onkeydown;
-      bdy.onmousedown = document.body.onmousedown;
-      bdy.oncontextmenu = document.body.oncontextmenu;
-    }
-    // do not follow link
-    event.preventDefault();
-  };
-
-  if (tabs) {
-    document.location.hash = "";
-    window.addEventListener("hashchange", openTab);
-    if (tab === "")
-      //      if (loadtute) tab = "#tutorial";
-      //	else
-      tab = "#home";
-    document.location.hash = tab;
-  }
 
   attachMinMaxBtnActions();
   attachCtrlBtnActions();
@@ -565,10 +570,8 @@ const toggleWrap = function () {
 
   window.addEventListener("beforeunload", autoSave);
 
-  if (iFrame) iFrame.onload = openBrowseTab;
-
   const cookieQuery = document.getElementById("cookieQuery");
   if (cookieQuery) cookieQuery.onclick = queryCookie;
 };
 
-export { extra, setCookie, getCookieId };
+export { extra1, extra2, setCookie, getCookieId };
