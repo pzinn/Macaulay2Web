@@ -1,3 +1,5 @@
+const webpack = require('webpack');
+
 module.exports = env => {
     var mode,devtool;
     if (env.debug) {
@@ -36,6 +38,10 @@ module.exports = env => {
 	    extensions: [ '.ts', '.js' ],
 	},
 	mode: mode,
-	devtool: devtool
+	devtool: devtool,
+	plugins: [
+	    new webpack.DefinePlugin({ "MINIMAL": "true",
+				       "process.env.npm_package_version": JSON.stringify(process.env.npm_package_version) }),
+	]
     };
 };

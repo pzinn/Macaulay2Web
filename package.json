@@ -72,7 +72,7 @@
     "lint": "eslint src/*/*.ts --fix",
     "format": "prettier --write src/*/*.ts",
     "build:renderhelp": "webpack --config webpack-renderhelp.config.js",
-    "renderhelp": "npm run build:renderhelp && cd src/renderhelp && node index.js"
+    "renderhelp": "node src/renderhelp/index.js"
   },
   "repository": {
     "type": "git",
