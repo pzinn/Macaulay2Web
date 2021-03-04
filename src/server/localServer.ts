@@ -37,6 +37,8 @@ class LocalContainerManager implements InstanceManager {
 
 const options = {
   serverConfig: {
+    MATH_PROGRAM_COMMAND:
+      "stty cols 1000000000; M2MODE=localServer M2 --webapp",
     CONTAINERS(): InstanceManager {
       return new LocalContainerManager();
     },

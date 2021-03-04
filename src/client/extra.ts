@@ -234,12 +234,10 @@ const toggleWrap = function () {
       window.clearTimeout(autoSaveTimeout);
       autoSaveTimeout = 0;
     }
-    if ((document.getElementById("autoUpload") as HTMLInputElement).checked) {
-      const content = editor.innerText as string;
-      const file = new File([content], fileName);
-      (file as any).auto = true;
-      siofu.submitFiles([file]);
-    }
+    const content = editor.innerText as string;
+    const file = new File([content], fileName);
+    (file as any).auto = true;
+    siofu.submitFiles([file]);
   };
 
   const loadFileProcess = function (event) {
@@ -259,12 +257,6 @@ const toggleWrap = function () {
       fileReader.readAsText(fileToLoad, "UTF-8");
 
       autoSave();
-      /*
-      if ((document.getElementById("autoUpload") as HTMLInputElement).checked) {
-        event.target.files[0].auto = true;
-        siofu.submitFiles(event.target.files);
-	}
-	*/
     }
   };
   const loadFile = function () {
