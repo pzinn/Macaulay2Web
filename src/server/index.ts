@@ -3,7 +3,7 @@ const args: string[] = process.argv;
 const n: number = args.length;
 import fs = require("fs");
 
-import { options, overrideDefaultOptions } from "../startupConfigs/default";
+import { options, overrideDefaultOptions } from "./defaultOptions";
 import { mathServer } from "./server";
 
 import { logger } from "./logger";
@@ -27,7 +27,7 @@ if (n > 4) {
 
 // Dirname is dist.
 import p = require("path"); // eslint-disable-line  no-undef
-const path = p.join(__dirname, "/startupConfigs/"); // eslint-disable-line  no-undef
+const path = p.join(__dirname, "/"); // eslint-disable-line  no-undef
 
 if (mode === "--help") {
   usage();
@@ -36,11 +36,11 @@ if (mode === "--help") {
 
 let overrideOptions;
 if (mode === "local") {
-  overrideOptions = require(path + "Macaulay2LocalServer");
+  overrideOptions = require(path + "localServer");
 } else if (mode === "docker") {
-  overrideOptions = require(path + "Macaulay2SudoDocker");
+  overrideOptions = require(path + "sudoDocker");
 } else if (mode === "ssh") {
-  overrideOptions = require(path + "Macaulay2SshDocker");
+  overrideOptions = require(path + "sshDocker");
 } else {
   throw new Error("There is no mode " + mode);
 }

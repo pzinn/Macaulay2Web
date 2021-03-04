@@ -9,8 +9,7 @@
   },
   "include": [
     "src/server/*.ts",
-    "src/common/*.ts",
-    "src/server/startupConfigs/*.ts"
+    "src/common/*.ts"
   ],
   "exclude": [
     "node_modules",

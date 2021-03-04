@@ -1,8 +1,8 @@
+import { InstanceManager } from "./instanceManager";
 import ssh2 = require("ssh2");
 import fs = require("fs");
 
 import { Instance } from "./instance";
-import { InstanceManager } from "./instanceManager";
 
 import { logger } from "./logger";
 
@@ -234,4 +234,24 @@ class SshDockerContainersInstanceManager implements InstanceManager {
   }
 }
 
-export { SshDockerContainersInstanceManager as SshDockerContainers };
+const options = {
+  serverConfig: {
+    MATH_PROGRAM_COMMAND:
+      "stty cols 1000000000; M2MODE=Macaulay2SshDocker M2 --webapp",
+    CONTAINERS(resources, hostConfig, guestInstance): InstanceManager {
+      return new SshDockerContainersInstanceManager(
+        resources,
+        hostConfig,
+        guestInstance
+      );
+    },
+  },
+  startInstance: {
+    host: "192.168.2.42",
+    username: "m2user",
+    port: "5000",
+    sshKey: process.env.HOME + "/keys/docker_key",
+  },
+};
+
+export { options };
