@@ -5,7 +5,7 @@ const options = {
   adminName: "pzinn", // to be set live only
   authentication: false, // overridden anyway depending on existence of public/users.htpasswd
   perContainerResources: {
-    cpuShares: 0.75,
+    cpuShares: 1,
     memory: 384, // Mb
     maxSavedOutput: 200000, // size of saved output in bytes
     maxOutputRate: 0.01, // max rate of output per millisecond
