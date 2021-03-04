@@ -402,6 +402,15 @@ const toggleWrap = function () {
     return result;
   }
 
+    const newUpload = function() { // TODO allow multiple files
+	let file = (document.getElementById("newUploadBtn") as HTMLInputElement).files[0];  // file from input
+	let req = new XMLHttpRequest();
+	let formData = new FormData();
+	formData.append("file", file);                                
+	req.open("POST", '/upload');
+	req.send(formData);
+    }
+
   const attachZoomButtons = function (
     textareaID,
     zoominID,
@@ -558,6 +567,7 @@ const toggleWrap = function () {
 
   siofu = new SocketIOFileUpload(socket);
   attachClick("uploadBtn", siofu.prompt);
+    document.getElementById("newUploadBtn").onchange= newUpload;
   siofu.addEventListener("complete", showUploadSuccessDialog);
 
   window.addEventListener("beforeunload", autoSave);

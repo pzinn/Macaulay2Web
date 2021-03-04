@@ -300,6 +300,16 @@ const fileDownload = function (request, response, next) {
   });
 };
 
+const newFileUpload = function (request, response) {
+    console.log("newFileUpload");
+    const chunks = [];
+  request.on('data', chunk => chunks.push(chunk));
+  request.on('end', () => {
+    const data = Buffer.concat(chunks);
+    console.log('Data: ', data); // problem is, data still has headers. TODO find right package to parse it
+  })
+}
+
 const unhandled = function (request, response) {
   logger.error("Request for something we don't serve: " + request.url);
   response.writeHead(404, "Request for something we don't serve.");
@@ -315,7 +325,8 @@ const initializeServer = function () {
   serveStatic.mime.define({ "text/plain": ["m2"] }); // declare m2 files as plain text for browsing purposes
 
   app.use(expressWinston.logger(logger));
-  app.use(favicon(staticFolder + "favicon.ico"));
+    app.use(favicon(staticFolder + "favicon.ico"));
+app.post("/upload/",newFileUpload);
   app.use(socketioFileUpload.router);
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
