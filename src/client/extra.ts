@@ -5,7 +5,6 @@ import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import tutorials from "./tutorials";
 import Prism from "prismjs";
-import SocketIOFileUpload from "socketio-file-upload";
 import { Chat } from "../common/chatClass";
 import defaultEditor from "./default.m2"; // TODO retire
 import {
@@ -127,7 +126,6 @@ const extra1 = function () {
 };
 
 const extra2 = function () {
-  let siofu = null;
   const terminal = document.getElementById("terminal");
   const editor = document.getElementById("editorDiv");
   const chatForm = document.getElementById("chatForm");
@@ -236,8 +234,14 @@ const toggleWrap = function () {
     }
     const content = editor.innerText as string;
     const file = new File([content], fileName);
-    (file as any).auto = true;
-    siofu.submitFiles([file]);
+    const formData = new FormData();
+    formData.append("files[]", file);
+    formData.append("id", clientId);
+/*    const req = new XMLHttpRequest();
+      req.open("POST", "/upload");
+    //req.onloadend = showUploadDialog;
+      req.send(formData);*/
+      navigator.sendBeacon("/upload",formData);
   };
 
   const loadFileProcess = function (event) {
@@ -252,11 +256,10 @@ const toggleWrap = function () {
           textFromFileLoaded,
           Prism.languages.macaulay2
         );
-        document.getElementById("editorTitle").click();
+        //        document.getElementById("editorTitle").click();
+        autoSave();
       };
       fileReader.readAsText(fileToLoad, "UTF-8");
-
-      autoSave();
     }
   };
 
@@ -404,9 +407,6 @@ const toggleWrap = function () {
       const dialog = document.getElementById(
         "uploadSuccessDialog"
       ) as HTMLDialogElement;
-      // console.log('we uploaded the file: ' + event.success);
-      // console.log(event.file);
-      // console.log("File uploaded successfully!" + filename);
       document.getElementById("uploadSuccessText").innerHTML = response;
       dialog.showModal();
     }
@@ -578,10 +578,7 @@ const toggleWrap = function () {
     editor.oninput = delayedAction;
   }
 
-  siofu = new SocketIOFileUpload(socket);
-  //  attachClick("uploadBtn", siofu.prompt);
   attachClick("uploadBtn", uploadFile);
-  //  siofu.addEventListener("complete", showUploadSuccessDialog);
 
   window.addEventListener("beforeunload", autoSave);
 

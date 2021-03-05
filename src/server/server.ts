@@ -8,7 +8,6 @@ import { InstanceManager } from "./instanceManager";
 import { AddressInfo } from "net";
 import { downloadFromDocker } from "./fileDownload";
 import { uploadToDocker } from "./fileUpload";
-import { attachUploadListenerToSocket } from "./fileUpload";
 
 import Cookie = require("cookie");
 
@@ -19,7 +18,6 @@ const http = httpModule.createServer(app);
 import fs = require("fs");
 import formidable = require("formidable");
 import ssh2 = require("ssh2");
-import socketioFileUpload = require("socketio-file-upload");
 
 import socketio = require("socket.io");
 const io: SocketIO.Server = socketio(http, { pingTimeout: 30000 });
@@ -313,7 +311,7 @@ const unlink = function (completePath: string) {
   };
 };
 
-const newFileUpload = function (request, response) {
+const fileUpload = function (request, response) {
   const form = formidable({ multiples: true, maxFileSize: 10 * 1024 * 1024 });
   form.parse(request, (err, fields, files) => {
     if (err) return;
@@ -359,8 +357,7 @@ const initializeServer = function () {
 
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
-  app.post("/upload/", newFileUpload);
-  app.use(socketioFileUpload.router);
+  app.post("/upload/", fileUpload);
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
   app.use(serveStatic(staticFolder));
@@ -511,7 +508,6 @@ const listen = function () {
     logClient(client, "Connected");
     sanitizeClient(client);
     addNewSocket(client, socket);
-    attachUploadListenerToSocket(sshCredentials, client, socket);
     socket.on("input", socketInputAction(socket, client));
     socket.on("reset", socketResetAction(client));
     socket.on("chat", socketChatAction(socket, client));
