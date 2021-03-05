@@ -105,10 +105,8 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
-const setId = function (id: string): void {
-  clientId = id;
-  console.log("Client id " + clientId);
-  if (!MINIMAL && cookieFlag) setCookie(options.cookieName, clientId);
+const setCookieId = function (): void {
+  if (!MINIMAL) setCookie(options.cookieName, clientId);
 };
 
 const socketOutput = function (msg: string) {
@@ -124,7 +122,7 @@ const socketError = function (type) {
 
 const url = new URL(document.location.href);
 
-let cookieFlag = true; // we could write !MINIMAL here but for tree shaking purposes we don't :/
+const cookieFlag = true; // we could write !MINIMAL here but for tree shaking purposes we don't :/
 
 const init = function () {
   if (!MINIMAL && !navigator.cookieEnabled) {
@@ -151,16 +149,16 @@ const init = function () {
             "</b> in your cookie."
           : "";
         dialog.onclose = function () {
-          if (dialog.returnValue == "temporary") cookieFlag = false;
-          setId(newId);
+          clientId = newId;
+          if (dialog.returnValue !== "temporary") setCookieId();
           init2();
         };
         dialog.showModal();
         return;
       }
-    }
-    setId(newId);
-  } else if (clientId) setId(clientId);
+    } else clientId = newId;
+    setCookieId();
+  } else if (clientId) setCookieId();
   // reset the cookie clock
   else if (!MINIMAL) {
     // should always be true
@@ -182,12 +180,20 @@ const init2 = function () {
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
   socket = socketIo(ioParams);
+  socket.on("instance", function (id) {
+    console.log("Instance with id " + id);
+    if (id != clientId) {
+      // new id was generated
+      clientId = id;
+      setCookieId();
+    }
+    // TODO session cookie too?
+  });
   socket.on("reconnect_failed", socketError("reconnect_fail"));
   socket.on("reconnect_error", socketError("reconnect_error"));
   socket.on("connect_error", socketError("connect_error"));
   socket.on("output", socketOutput);
   socket.on("disconnect", socketDisconnect);
-  socket.on("id", setId);
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
 

@@ -10,6 +10,7 @@ const uploadToDocker = function (
   sshCredentials,
   next
 ) {
+  if (!fileName || !client.instance || !client.instance.host) return;
   if (!fileName.startsWith("/"))
     fileName = options.serverConfig.baseDirectory + fileName;
   const credentials = sshCredentials(client.instance);

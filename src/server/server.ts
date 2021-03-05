@@ -40,12 +40,13 @@ let options;
 const staticFolder = path.join(__dirname, "../../public/");
 
 const sshCredentials = function (instance: Instance): ssh2.ConnectConfig {
-  return {
-    host: instance.host,
-    port: instance.port,
-    username: instance.username,
-    privateKey: fs.readFileSync(instance.sshKey),
-  };
+  if (instance)
+    return {
+      host: instance.host,
+      port: instance.port,
+      username: instance.username,
+      privateKey: fs.readFileSync(instance.sshKey),
+    };
 };
 
 const clients: IClients = {};
@@ -62,17 +63,17 @@ const disconnectSocket = function (socket: SocketIO.Socket): void {
 
 const deleteClientData = function (client: Client): void {
   /*  logClient(client, "deleting folder " + userSpecificPath(client));
+  fs.rmdir(userSpecificPath(client), function (error) {
+    if (error) {
+      logClient(client, "Error deleting user folder: " + error);
+    }
+  });*/
   try {
     logClient(client, "Sending disconnect. ");
     clients[client.id].sockets.forEach(disconnectSocket);
   } catch (error) {
     logClient(client, "Socket seems already dead: " + error);
   }
-  fs.rmdir(userSpecificPath(client), function (error) {
-    if (error) {
-      logClient(client, "Error deleting user folder: " + error);
-    }
-  });*/
   delete clients[client.id];
 };
 
@@ -96,7 +97,7 @@ const emitViaClientSockets = function (client: Client, type: string, data) {
 
 const getInstance = function (client: Client, next) {
   if (client.instance) {
-    next(client.instance);
+    next();
   } else {
     try {
       instanceManager.getNewInstance(
@@ -109,7 +110,9 @@ const getInstance = function (client: Client, next) {
             );
             deleteClientData(client);
           } else {
-            next(instance);
+            client.instance = instance;
+            client.instance.killNotify = killNotify(client); // what is this for???
+            next();
           }
         }
       );
@@ -126,10 +129,9 @@ const killNotify = function (client: Client) {
   };
 };
 
-const spawnMathProgramInSecureContainer = function (client: Client) {
+const spawnMathProgram = function (client: Client) {
   logClient(client, "Spawning new MathProgram process...");
-  getInstance(client, function (instance: Instance) {
-    instance.killNotify = killNotify(client);
+  getInstance(client, function () {
     const connection: ssh2.Client = new ssh2.Client();
     connection.on("error", function (err) {
       logClient(
@@ -151,7 +153,6 @@ const spawnMathProgramInSecureContainer = function (client: Client) {
     });
     connection
       .on("ready", function () {
-        client.instance = instance;
         connection.exec(
           serverConfig.MATH_PROGRAM_COMMAND,
           { pty: true },
@@ -174,7 +175,7 @@ const spawnMathProgramInSecureContainer = function (client: Client) {
           }
         );
       })
-      .connect(sshCredentials(instance));
+      .connect(sshCredentials(client.instance));
   });
 };
 
@@ -320,7 +321,10 @@ const fileUpload = function (request, response) {
       response.end();
       return;
     }
-    const client = fields.id && clients[fields.id] ? clients[fields.id] : null;
+    const client =
+      fields.id && clients[fields.id] && clients[fields.id].instance
+        ? clients[fields.id]
+        : null;
     if (client) logger.info("File upload from " + client.id);
     const fileList = files["files[]"];
     let str = "";
@@ -421,7 +425,7 @@ const sanitizeClient = function (client: Client, force?: boolean) {
     !client.channel.writable ||
     !client.instance
   ) {
-    spawnMathProgramInSecureContainer(client);
+    spawnMathProgram(client);
     client.savedOutput = "";
     client.outputStat = 0;
 
@@ -535,13 +539,16 @@ const listen = function () {
     if (clientId === undefined) {
       // need new one
       clientId = initializeClientId();
-      safeEmit(socket, "id", clientId);
     }
 
     const client = clientExistenceCheck(clientId);
     logClient(client, "Connected");
-    sanitizeClient(client);
     addNewSocket(client, socket);
+    getInstance(client, function () {
+      // sanitize would do it anway but we want to emit
+      safeEmit(socket, "instance", clientId);
+      sanitizeClient(client);
+    });
     socket.on("input", socketInputAction(socket, client));
     socket.on("reset", socketResetAction(client));
     socket.on("chat", socketChatAction(socket, client));
