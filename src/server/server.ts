@@ -290,7 +290,7 @@ const fileDownload = function (request, response, next) {
   }
   if (!id || !clients[id]) return next();
   const client = clients[id];
-  logger.info("file request from " + id);
+  logger.info("File request from " + id);
   let sourcePath = decodeURIComponent(request.path);
   if (request.query.relative && sourcePath[0] == "/")
     sourcePath = sourcePath.substring(1); // for relative paths. annoying
@@ -318,6 +318,7 @@ const newFileUpload = function (request, response) {
   form.parse(request, (err, fields, files) => {
     if (err) return;
     const client = fields.id && clients[fields.id] ? clients[fields.id] : null;
+    if (client) logger.info("File upload from " + client.id);
     const fileList = files["files[]"];
     let str = "";
     if (fileList) {
@@ -576,7 +577,7 @@ const mathServer = function (o) {
   );
 
   instanceManager.recoverInstances(function () {
-    logger.info("start init");
+    logger.info("Start init");
     initializeServer();
     listen();
   });

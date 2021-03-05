@@ -259,6 +259,15 @@ const toggleWrap = function () {
       autoSave();
     }
   };
+
+  const uploadFile = function () {
+    const dialog = document.createElement("input");
+    dialog.setAttribute("type", "file"),
+      dialog.setAttribute("multiple", "true");
+    dialog.addEventListener("change", newUpload, false);
+    dialog.click();
+  };
+
   const loadFile = function () {
     const dialog = document.createElement("input");
     dialog.setAttribute("type", "file"),
@@ -298,20 +307,6 @@ const toggleWrap = function () {
     //    attachClick("highlightBtn", highlight);
     attachClick("clearBtn", clearOut);
     //  attachClick("wrapBtn", toggleWrap);
-  };
-
-  const showUploadSuccessDialog = function (event) {
-    if (!event.file.auto) {
-      const dialog = document.getElementById(
-        "uploadSuccessDialog"
-      ) as HTMLDialogElement;
-      // console.log('we uploaded the file: ' + event.success);
-      // console.log(event.file);
-      // console.log("File uploaded successfully!" + filename);
-      document.getElementById("uploadSuccessDialogFileName").textContent =
-        event.file.name;
-      dialog.showModal();
-    }
   };
 
   const attachCloseDialogBtns = function () {
@@ -402,27 +397,29 @@ const toggleWrap = function () {
     return result;
   }
 
-  const newshowUploadDialog = function (event) {
+  const showUploadDialog = function (event) {
     console.log("file upload returned status code " + event.target.status);
-    const dialog = document.getElementById(
-      "uploadSuccessDialog"
-    ) as HTMLDialogElement;
-    // console.log('we uploaded the file: ' + event.success);
-    // console.log(event.file);
-    // console.log("File uploaded successfully!" + filename);
-    document.getElementById("uploadSuccessText").innerHTML =
-      event.target.responseText;
-    dialog.showModal();
+    const response = event.target.responseText;
+    if (response) {
+      const dialog = document.getElementById(
+        "uploadSuccessDialog"
+      ) as HTMLDialogElement;
+      // console.log('we uploaded the file: ' + event.success);
+      // console.log(event.file);
+      // console.log("File uploaded successfully!" + filename);
+      document.getElementById("uploadSuccessText").innerHTML = response;
+      dialog.showModal();
+    }
   };
 
-  const newUpload = function () {
-    const files = (document.getElementById("newUploadBtn") as HTMLInputElement)
-      .files;
+  const newUpload = function (event) {
+    //    const files = (document.getElementById("newUploadBtn") as HTMLInputElement).files;
+    const files = event.target.files;
     const req = new XMLHttpRequest();
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) formData.append("files[]", files[i]);
     formData.append("id", clientId);
-    req.onloadend = newshowUploadDialog;
+    req.onloadend = showUploadDialog;
     req.open("POST", "/upload");
     req.send(formData);
   };
@@ -582,9 +579,9 @@ const toggleWrap = function () {
   }
 
   siofu = new SocketIOFileUpload(socket);
-  attachClick("uploadBtn", siofu.prompt);
-  document.getElementById("newUploadBtn").onchange = newUpload;
-  siofu.addEventListener("complete", showUploadSuccessDialog);
+  //  attachClick("uploadBtn", siofu.prompt);
+  attachClick("uploadBtn", uploadFile);
+  //  siofu.addEventListener("complete", showUploadSuccessDialog);
 
   window.addEventListener("beforeunload", autoSave);
 
