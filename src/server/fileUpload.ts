@@ -1,8 +1,7 @@
-import fs = require("fs");
 import { Client } from "./client";
 import ssh2 = require("ssh2");
 import { logger, logClient } from "./logger";
-import { unlink } from "./server";
+import { unlink, options } from "./server";
 
 const uploadToDocker = function (
   client: Client,
@@ -11,6 +10,8 @@ const uploadToDocker = function (
   sshCredentials,
   next
 ) {
+  if (!fileName.startsWith("/"))
+    fileName = options.serverConfig.baseDirectory + fileName;
   const credentials = sshCredentials(client.instance);
   const connection: ssh2.Client = new ssh2.Client();
   connection.on("ready", function () {
@@ -19,7 +20,7 @@ const uploadToDocker = function (
         logger.error("There was an error while connecting via sftp: " + err);
         return; // ?
       }
-      logger.info("Uploading " + fileName);
+      logClient(client, "Uploading " + fileName);
       sftp.fastPut(filePath, fileName, function (sftpError) {
         unlink(filePath);
         if (sftpError)

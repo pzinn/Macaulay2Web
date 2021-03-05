@@ -2,8 +2,8 @@ const ssh2 = require("ssh2");
 import fs = require("fs");
 import { Client } from "./client";
 import path = require("path");
-import { logger } from "./logger";
-import { staticFolder, unlink } from "./server";
+import { logger, logClient } from "./logger";
+import { staticFolder, unlink, options } from "./server";
 
 const userSpecificPath = function (client: Client): string {
   return client.id + "-files/";
@@ -19,6 +19,8 @@ const downloadFromDocker = function (
   if (!fileName || !client.instance || !client.instance.host) {
     return;
   }
+  if (!sourceFileName.startsWith("/"))
+    sourceFileName = options.serverConfig.baseDirectory + sourceFileName;
   const sshConnection = ssh2();
   sshConnection.on("end", function () {
     logger.info("File action ended.");
@@ -37,7 +39,7 @@ const downloadFromDocker = function (
           logger.error("Error creating directory: " + targetPath);
         else logger.info("Folder exists");
       }
-      logger.info("File we want is " + sourceFileName);
+      logClient(client, "File we want is " + sourceFileName);
       const targetFileName = targetPath + fileName;
       sftp.fastGet(sourceFileName, targetFileName, function (sftpError) {
         if (sftpError) {

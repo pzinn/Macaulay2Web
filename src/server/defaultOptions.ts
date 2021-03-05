@@ -13,8 +13,9 @@ const options = {
   },
   serverConfig: {
     MATH_PROGRAM: "Macaulay2",
-    MATH_PROGRAM_COMMAND: "stty cols 1000000000; M2MODE=default M2 --webapp",
+    MATH_PROGRAM_COMMAND: "stty cols 1000000000; M2 --webapp",
     port: 8002,
+    baseDirectory: "", // to change the directory in which M2 is started & files are up/downloaded
   },
   startInstance: {
     host: "127.0.0.1",
