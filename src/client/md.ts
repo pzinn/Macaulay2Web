@@ -10,7 +10,7 @@
         "'": "&#39;",
         '"': "&quot;",
       }[tag])
-  );*/
+      );*/
 const forbiddenTags = [
   "script",
   "base",
@@ -26,9 +26,11 @@ const forbiddenTags = [
   "object",
 ];
 const forbiddenTagsRegex = new RegExp(
-  forbiddenTags.map((tag) => "<" + tag + "[^>]*>|</" + tag + ">").join("|")
+  forbiddenTags.map((tag) => "(?<=<|</)" + tag).join("|") +
+    "|(?<=<[^>]*\\s)id=|(?<=<[^>]*\\s)for=|(?<=<[^>]*)mdl-",
+  "g"
 );
-const removeForbiddenTags = (str) => str.split(forbiddenTagsRegex).join("");
+const removeForbiddenTags = (str) => str.replace(forbiddenTagsRegex, "no$&");
 
 const mdReplace = function (str: string) {
   const pieces = str.split("\t"); // \t to prevent any markdown changes
