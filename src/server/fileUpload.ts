@@ -18,6 +18,7 @@ const uploadToDocker = function (
         logger.error("There was an error while connecting via sftp: " + err);
         return; // ?
       }
+      logger.info("Uploading " + fileName);
       sftp.fastPut(filePath, fileName, function (sftpError) {
         if (sftpError)
           logger.error(

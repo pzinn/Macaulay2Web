@@ -23,7 +23,7 @@
       </div>
     </dialog>
 
-    <dialog id="changeUserDialog" class="mdl-dialog">
+    <dialog id="changeUserDialog" class="mdl-dialog" style="max-height:160px">
       <form method="dialog">
 	You have requested the new user id <b id="newUserId"></b>. Is this change:
 	<menu>
@@ -34,7 +34,7 @@
       </form>
     </dialog>
 
-    <dialog id="changeEditorFileName" class="mdl-dialog">
+    <dialog id="changeEditorFileName" class="mdl-dialog" style="max-height:160px">
       <form method="dialog">
 	The file <b id="newEditorFileName"></b> exists on the server. Do you want to:
 	<menu>
@@ -43,7 +43,7 @@
 	</menu>
       </form>
     </dialog>
-    <dialog id="uploadSuccessDialog" class="mdl-dialog">
+    <dialog id="uploadSuccessDialog" class="mdl-dialog" style="max-height:250px">
       <button id="uploadSuccessDialogClose" class="saveDialogButton mdl-button mdl-js-button mdl-button--icon">
         <i class="material-icons">close</i>
       </button>
@@ -140,7 +140,7 @@
                     algebra</b>, and related fields in mathematics or
                   applications. </p>
 		<p>This web site is hosted on the Melbourne Research Cloud.
-		  The interface requires a modern browser (tested thoroughly on chrome and firefox [some issues remain with the latter], and succinctly on brave and edge). It uses a <a id="cookieQuery">cookie</a> to identify users.
+		  The interface requires a modern browser (tested thoroughly on chrome and firefox [some <a href="https://github.com/pzinn/Macaulay2Web/issues/18">issues</a> remain with the latter], and succinctly on brave and edge). It uses a <a id="cookieQuery">cookie</a> to identify users.
 		</p>
 		<div id="accordion"></div>
                 <p style="font-size:0.8em">

@@ -237,11 +237,45 @@ const toggleWrap = function () {
     const formData = new FormData();
     formData.append("files[]", file);
     formData.append("id", clientId);
-/*    const req = new XMLHttpRequest();
+    /*    const req = new XMLHttpRequest();
       req.open("POST", "/upload");
     //req.onloadend = showUploadDialog;
       req.send(formData);*/
-      navigator.sendBeacon("/upload",formData);
+    navigator.sendBeacon("/upload", formData);
+  };
+
+  const showUploadDialog = function (event) {
+    console.log("file upload returned status code " + event.target.status);
+    const response = event.target.responseText;
+    if (response) {
+      const dialog = document.getElementById(
+        "uploadSuccessDialog"
+      ) as HTMLDialogElement;
+      document.getElementById("uploadSuccessText").innerHTML = response;
+      dialog.showModal();
+    }
+  };
+
+  const uploadFileProcess = function (event) {
+    const files = event.target.files;
+    if (files.length > 0) {
+      const req = new XMLHttpRequest();
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++)
+        formData.append("files[]", files[i]);
+      formData.append("id", clientId);
+      req.onloadend = showUploadDialog;
+      req.open("POST", "/upload");
+      req.send(formData);
+    }
+  };
+
+  const uploadFile = function () {
+    const dialog = document.createElement("input");
+    dialog.setAttribute("type", "file"),
+      dialog.setAttribute("multiple", "true");
+    dialog.addEventListener("change", uploadFileProcess, false);
+    dialog.click();
   };
 
   const loadFileProcess = function (event) {
@@ -261,14 +295,6 @@ const toggleWrap = function () {
       };
       fileReader.readAsText(fileToLoad, "UTF-8");
     }
-  };
-
-  const uploadFile = function () {
-    const dialog = document.createElement("input");
-    dialog.setAttribute("type", "file"),
-      dialog.setAttribute("multiple", "true");
-    dialog.addEventListener("change", newUpload, false);
-    dialog.click();
   };
 
   const loadFile = function () {
@@ -399,30 +425,6 @@ const toggleWrap = function () {
     }
     return result;
   }
-
-  const showUploadDialog = function (event) {
-    console.log("file upload returned status code " + event.target.status);
-    const response = event.target.responseText;
-    if (response) {
-      const dialog = document.getElementById(
-        "uploadSuccessDialog"
-      ) as HTMLDialogElement;
-      document.getElementById("uploadSuccessText").innerHTML = response;
-      dialog.showModal();
-    }
-  };
-
-  const newUpload = function (event) {
-    //    const files = (document.getElementById("newUploadBtn") as HTMLInputElement).files;
-    const files = event.target.files;
-    const req = new XMLHttpRequest();
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) formData.append("files[]", files[i]);
-    formData.append("id", clientId);
-    req.onloadend = showUploadDialog;
-    req.open("POST", "/upload");
-    req.send(formData);
-  };
 
   const attachZoomButtons = function (
     textareaID,
