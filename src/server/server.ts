@@ -7,6 +7,7 @@ import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
 import { AddressInfo } from "net";
 import { downloadFromDocker } from "./fileDownload";
+import { uploadToDocker } from "./fileUpload";
 import { attachUploadListenerToSocket } from "./fileUpload";
 
 import Cookie = require("cookie");
@@ -16,7 +17,7 @@ const app = express();
 import httpModule = require("http");
 const http = httpModule.createServer(app);
 import fs = require("fs");
-
+import formidable = require("formidable");
 import ssh2 = require("ssh2");
 import socketioFileUpload = require("socketio-file-upload");
 
@@ -300,20 +301,51 @@ const fileDownload = function (request, response, next) {
   });
 };
 
+const unlink = function (completePath: string) {
+  return function () {
+    fs.unlink(completePath, function (err) {
+      if (err) {
+        logger.warn(
+          "Unable to unlink user generated file " + completePath + " : " + err
+        );
+      }
+    });
+  };
+};
+
 const newFileUpload = function (request, response) {
-    console.log("newFileUpload");
-    const chunks = [];
-  request.on('data', chunk => chunks.push(chunk));
-  request.on('end', () => {
-    const data = Buffer.concat(chunks);
-    console.log('Data: ', data); // problem is, data still has headers. TODO find right package to parse it
-  })
-}
+  const form = formidable({ multiples: true, maxFileSize: 10 * 1024 * 1024 });
+  form.parse(request, (err, fields, files) => {
+    if (err) return;
+    const client = fields.id && clients[fields.id] ? clients[fields.id] : null;
+    const fileList = files["files[]"];
+    let str = "";
+    if (fileList) {
+      const callUpload = client
+        ? (file) => {
+            str += file.name + "<br/>";
+            uploadToDocker(client, file.path, file.name, sshCredentials);
+          }
+        : (file) => unlink(file.path);
+      if (Array.isArray(fileList)) fileList.forEach(callUpload);
+      else callUpload(fileList);
+    }
+    if (client) {
+      response.writeHead(200); // TODO: check upload success!!
+      response.write(
+        "The following files have been uploaded and can be used in your session:<br/><b>" +
+          str +
+          "</b>"
+      );
+    } else response.writeHead(400);
+    response.end();
+  });
+};
 
 const unhandled = function (request, response) {
   logger.error("Request for something we don't serve: " + request.url);
   response.writeHead(404, "Request for something we don't serve.");
-  response.write("404"); // TODO: something nicer
+  response.write("2^2*101"); // TODO: something nicer
   response.end();
 };
 
@@ -325,8 +357,8 @@ const initializeServer = function () {
   serveStatic.mime.define({ "text/plain": ["m2"] }); // declare m2 files as plain text for browsing purposes
 
   app.use(expressWinston.logger(logger));
-    app.use(favicon(staticFolder + "favicon.ico"));
-app.post("/upload/",newFileUpload);
+  app.use(favicon(staticFolder + "favicon.ico"));
+  app.post("/upload/", newFileUpload);
   app.use(socketioFileUpload.router);
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
@@ -433,7 +465,6 @@ const socketRestoreAction = function (socket: SocketIO.Socket, client: Client) {
 
 const socketFileExists = function (socket: SocketIO.Socket, client: Client) {
   return function (fileName: string, callback) {
-    //	console.log("fileexists: "+fileName+" | "+callback);
     downloadFromDocker(client, fileName, sshCredentials, callback);
   };
 };
@@ -560,4 +591,5 @@ export {
   clients,
   options,
   staticFolder,
+  unlink,
 };

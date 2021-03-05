@@ -402,14 +402,30 @@ const toggleWrap = function () {
     return result;
   }
 
-    const newUpload = function() { // TODO allow multiple files
-	let file = (document.getElementById("newUploadBtn") as HTMLInputElement).files[0];  // file from input
-	let req = new XMLHttpRequest();
-	let formData = new FormData();
-	formData.append("file", file);                                
-	req.open("POST", '/upload');
-	req.send(formData);
-    }
+  const newshowUploadDialog = function (event) {
+    console.log("file upload returned status code " + event.target.status);
+    const dialog = document.getElementById(
+      "uploadSuccessDialog"
+    ) as HTMLDialogElement;
+    // console.log('we uploaded the file: ' + event.success);
+    // console.log(event.file);
+    // console.log("File uploaded successfully!" + filename);
+    document.getElementById("uploadSuccessText").innerHTML =
+      event.target.responseText;
+    dialog.showModal();
+  };
+
+  const newUpload = function () {
+    const files = (document.getElementById("newUploadBtn") as HTMLInputElement)
+      .files;
+    const req = new XMLHttpRequest();
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) formData.append("files[]", files[i]);
+    formData.append("id", clientId);
+    req.onloadend = newshowUploadDialog;
+    req.open("POST", "/upload");
+    req.send(formData);
+  };
 
   const attachZoomButtons = function (
     textareaID,
@@ -567,7 +583,7 @@ const toggleWrap = function () {
 
   siofu = new SocketIOFileUpload(socket);
   attachClick("uploadBtn", siofu.prompt);
-    document.getElementById("newUploadBtn").onchange= newUpload;
+  document.getElementById("newUploadBtn").onchange = newUpload;
   siofu.addEventListener("complete", showUploadSuccessDialog);
 
   window.addEventListener("beforeunload", autoSave);

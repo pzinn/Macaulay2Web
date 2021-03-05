@@ -3,22 +3,10 @@ import fs = require("fs");
 import { Client } from "./client";
 import path = require("path");
 import { logger } from "./logger";
-import { staticFolder } from "./server";
+import { staticFolder, unlink } from "./server";
 
 const userSpecificPath = function (client: Client): string {
   return client.id + "-files/";
-};
-
-const unlink = function (completePath: string) {
-  return function () {
-    fs.unlink(completePath, function (err) {
-      if (err) {
-        logger.warn(
-          "Unable to unlink user generated file " + completePath + " : " + err
-        );
-      }
-    });
-  };
 };
 
 const downloadFromDocker = function (
