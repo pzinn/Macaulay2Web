@@ -314,30 +314,64 @@ const unlink = function (completePath: string) {
 const fileUpload = function (request, response) {
   const form = formidable({ multiples: true, maxFileSize: 10 * 1024 * 1024 });
   form.parse(request, (err, fields, files) => {
-    if (err) return;
+    if (err) {
+      response.writeHead(400);
+      response.write(err.toString());
+      response.end();
+      return;
+    }
     const client = fields.id && clients[fields.id] ? clients[fields.id] : null;
     if (client) logger.info("File upload from " + client.id);
     const fileList = files["files[]"];
     let str = "";
     if (fileList) {
+      let errorFlag = false;
+      let nFiles;
       const callUpload = client
         ? (file) => {
-            str += file.name + "<br/>";
-            uploadToDocker(client, file.path, file.name, sshCredentials);
+            uploadToDocker(
+              client,
+              file.path,
+              file.name,
+              sshCredentials,
+              function (err) {
+                if (err) errorFlag = true;
+                else str += file.name + "<br/>";
+                nFiles--;
+                if (nFiles == 0) {
+                  if (errorFlag) {
+                    response.writeHead(500);
+                    response.write(
+                      "File upload failed. Please try again later.<br/><b>" +
+                        str +
+                        "</b>"
+                    );
+                  } else {
+                    response.writeHead(200);
+                    response.write(
+                      "The following files have been uploaded and can be used in your session:<br/><b>" +
+                        str +
+                        "</b>"
+                    );
+                  }
+                  response.end();
+                }
+              }
+            );
           }
         : (file) => unlink(file.path);
-      if (Array.isArray(fileList)) fileList.forEach(callUpload);
-      else callUpload(fileList);
+      if (Array.isArray(fileList)) {
+        nFiles = fileList.length;
+        fileList.forEach(callUpload);
+      } else {
+        nFiles = 1;
+        callUpload(fileList);
+      }
     }
-    if (client) {
-      response.writeHead(200); // TODO: check upload success!!
-      response.write(
-        "The following files have been uploaded and can be used in your session:<br/><b>" +
-          str +
-          "</b>"
-      );
-    } else response.writeHead(400);
-    response.end();
+    if (!client) {
+      response.writeHead(400);
+      response.end();
+    }
   });
 };
 

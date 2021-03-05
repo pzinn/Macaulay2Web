@@ -8,7 +8,8 @@ const uploadToDocker = function (
   client: Client,
   filePath: string,
   fileName: string,
-  sshCredentials
+  sshCredentials,
+  next
 ) {
   const credentials = sshCredentials(client.instance);
   const connection: ssh2.Client = new ssh2.Client();
@@ -20,11 +21,12 @@ const uploadToDocker = function (
       }
       logger.info("Uploading " + fileName);
       sftp.fastPut(filePath, fileName, function (sftpError) {
+        unlink(filePath);
         if (sftpError)
           logger.error(
             "Error while uploading file: " + fileName + ", ERROR: " + sftpError
           );
-        unlink(filePath);
+        next(sftpError);
       });
     });
   });
