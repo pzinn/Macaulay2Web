@@ -9,7 +9,9 @@ import { mathServer } from "./server";
 import { logger } from "./logger";
 
 const usage = function (): void {
-  logger.info("Usage: npm {run/start} {local|docker|ssh} [http port] [https port]");
+  logger.info(
+    "Usage: npm {run/start} {local|docker|ssh} [http port] [https port]"
+  );
 };
 
 logger.info("Macaulay2Web version " + options.version);
