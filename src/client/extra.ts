@@ -34,6 +34,17 @@ const getCookieId = function () {
   return getCookie(options.cookieName);
 };
 
+const setCookieId = function (): void {
+  setCookie(options.cookieName, clientId);
+};
+
+const unsetCookie = function (name: string): void {
+  document.cookie = Cookie.serialize(name, "", {
+    expires: new Date(0),
+    path: "/",
+  });
+};
+
 const emitReset = function () {
   myshell.reset();
   socket.emit("reset");
@@ -582,10 +593,13 @@ const toggleWrap = function () {
 
   attachClick("uploadBtn", uploadFile);
 
-  window.addEventListener("beforeunload", autoSave);
+  window.addEventListener("beforeunload", function () {
+    unsetCookie(options.cookieInstanceName);
+    autoSave();
+  });
 
   const cookieQuery = document.getElementById("cookieQuery");
   if (cookieQuery) cookieQuery.onclick = queryCookie;
 };
 
-export { extra1, extra2, setCookie, getCookieId };
+export { extra1, extra2, setCookie, getCookieId, setCookieId };

@@ -432,7 +432,6 @@ const Shell = function (
         if (url.startsWith("file://")) url = url.slice(7);
         const relative = !url.startsWith("/"); // annoying subtleties
         const url1 = new URL("file://" + (relative ? "/" : "") + url); // eww
-        if (clientId != "public") url1.searchParams.append("id", clientId);
         if (relative) url1.searchParams.append("relative", "true");
         url = url1.toString().slice(7); // eww2
       }

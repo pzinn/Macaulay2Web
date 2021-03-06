@@ -279,14 +279,10 @@ const killMathProgram = function (client: Client) {
 
 const fileDownload = function (request, response, next) {
   // try to find user's id
-  let id = request.query.id;
-  if (!id) {
-    const rawCookies = request.headers.cookie;
-    if (rawCookies) {
-      const cookies = Cookie.parse(rawCookies);
-      id = cookies[options.cookieName];
-    }
-  }
+  const rawCookies = request.headers.cookie;
+  if (!rawCookies) return next();
+  const cookies = Cookie.parse(rawCookies);
+  const id = cookies[options.cookieInstanceName];
   if (!id || !clients[id]) return next();
   const client = clients[id];
   logger.info("File request from " + id);

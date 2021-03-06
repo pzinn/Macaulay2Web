@@ -4,7 +4,7 @@ declare const MINIMAL;
 
 import socketIo from "socket.io-client";
 
-import { extra1, extra2, setCookie, getCookieId } from "./extra";
+import { extra1, extra2, setCookie, getCookieId, setCookieId } from "./extra";
 import { syncChat } from "./chat";
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
@@ -105,10 +105,6 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
-const setCookieId = function (): void {
-  if (!MINIMAL) setCookie(options.cookieName, clientId);
-};
-
 const socketOutput = function (msg: string) {
   myshell.displayOutput(msg);
 };
@@ -135,43 +131,42 @@ const init = function () {
   if (!MINIMAL) extra1();
 
   const userId: any = url.searchParams.get("user");
-  if (userId) {
-    const newId = "user" + userId;
-    if (!MINIMAL) {
-      if (clientId !== newId) {
-        const dialog = document.getElementById(
-          "changeUserDialog"
-        ) as HTMLDialogElement;
-        document.getElementById("newUserId").textContent = userId;
-        document.getElementById("oldUserIdReminder").innerHTML = clientId
-          ? "Choosing `permanent' will overwrite the current id <b>" +
-            clientId.substring(4) +
-            "</b> in your cookie."
-          : "";
-        dialog.onclose = function () {
-          clientId = newId;
-          if (dialog.returnValue !== "temporary") setCookieId();
-          init2();
-        };
-        dialog.showModal();
-        return;
-      }
-    } else clientId = newId;
-    setCookieId();
-  } else if (clientId) setCookieId();
-  // reset the cookie clock
-  else if (!MINIMAL) {
-    // should always be true
-    const resetBtn = document.getElementById("resetBtn");
-    resetBtn.firstElementChild.textContent = "Start";
-    resetBtn.firstElementChild.classList.add("startButton");
-    resetBtn.onclick = function (e) {
-      e.stopPropagation();
-      resetBtn.firstElementChild.textContent = "Reset";
-      resetBtn.firstElementChild.classList.remove("startButton");
-      init2();
-    };
-    return;
+  const newId = userId ? "user" + userId : "";
+  if (userId && clientId !== newId) {
+    if (MINIMAL) clientId = newId;
+    else {
+      const dialog = document.getElementById(
+        "changeUserDialog"
+      ) as HTMLDialogElement;
+      document.getElementById("newUserId").textContent = userId;
+      document.getElementById("oldUserIdReminder").innerHTML = clientId
+        ? "Choosing `permanent' will overwrite the current id <b>" +
+          clientId.substring(4) +
+          "</b> in your cookie."
+        : "";
+      dialog.onclose = function () {
+        clientId = newId;
+        if (dialog.returnValue !== "temporary") setCookieId();
+        init2();
+      };
+      dialog.showModal();
+      return;
+    }
+  } else if (!MINIMAL) {
+    if (clientId) setCookieId();
+    // reset the cookie clock
+    else {
+      const resetBtn = document.getElementById("resetBtn");
+      resetBtn.firstElementChild.textContent = "Start";
+      resetBtn.firstElementChild.classList.add("startButton");
+      resetBtn.onclick = function (e) {
+        e.stopPropagation();
+        resetBtn.firstElementChild.textContent = "Reset";
+        resetBtn.firstElementChild.classList.remove("startButton");
+        init2();
+      };
+      return;
+    }
   }
   init2();
 };
@@ -185,9 +180,12 @@ const init2 = function () {
     if (id != clientId) {
       // new id was generated
       clientId = id;
-      setCookieId();
+      if (!MINIMAL) setCookieId();
     }
-    // TODO session cookie too?
+    if (!MINIMAL) {
+      setCookie(options.cookieInstanceName, clientId);
+      extra2();
+    }
   });
   socket.on("reconnect_failed", socketError("reconnect_fail"));
   socket.on("reconnect_error", socketError("reconnect_error"));
@@ -214,8 +212,6 @@ const init2 = function () {
   //  window.addEventListener("load", function () {
   socket.emit("restore");
   //  });
-
-  if (!MINIMAL) extra2();
 
   const exec = url.searchParams.get("exec");
   if (exec)
