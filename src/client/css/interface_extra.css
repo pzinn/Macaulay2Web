@@ -255,3 +255,13 @@ input[type=checkbox]:not(:checked) + label {
     float: right;
     cursor: pointer;
 }
+
+@keyframes startButton-anim {
+    50% {background-color:#FF9040;}
+}
+.startButton {
+    animation-name: startButton-anim;
+    animation-duration: 2s;
+    animation-delay: 1s;
+    animation-iteration-count: infinite;
+}

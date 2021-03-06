@@ -40,7 +40,7 @@ const walk = function (dir, prefix) {
 if (fileList.length == 0) fileList = walk(sourcePath, "");
 console.log(fileList.length + " files to process...");
 
-const head = fs.readFileSync("head.html").toString();
+const head = fs.readFileSync("src/renderhelp/head.html").toString();
 
 (async () => {
   const puppeteer = require("puppeteer-core");

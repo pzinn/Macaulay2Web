@@ -1,5 +1,6 @@
 3.6.0 02/2021
     * cookie / id system revamped, and assorted server improvements
+    * editor revamped
 
 3.5.0 01/2021
     * new chat function

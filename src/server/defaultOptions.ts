@@ -5,7 +5,7 @@ const options = {
   adminName: "", // to be set live only
   authentication: false, // overridden anyway depending on existence of public/users.htpasswd
   perContainerResources: {
-    cpuShares: 0.75,
+    cpuShares: 1,
     memory: 384, // Mb
     maxSavedOutput: 200000, // size of saved output in bytes
     maxOutputRate: 0.01, // max rate of output per millisecond
@@ -13,9 +13,10 @@ const options = {
   },
   serverConfig: {
     MATH_PROGRAM: "Macaulay2",
-    MATH_PROGRAM_COMMAND: "stty cols 1000000000; M2MODE=default M2 --webapp",
+    MATH_PROGRAM_COMMAND: "stty cols 1000000000; M2 --webapp",
     port: 80,
     port2: 443,
+    baseDirectory: "", // to change the directory in which M2 is started & files are up/downloaded
   },
   startInstance: {
     host: "127.0.0.1",
@@ -26,7 +27,7 @@ const options = {
   },
   hostConfig: {
     minContainerAge: 10,
-    maxContainerNumber: 384,
+    maxContainerNumber: 400,
     containerType: "m2container",
     sshdCmd: "/usr/sbin/sshd -D",
     dockerCmdPrefix: "sudo ",

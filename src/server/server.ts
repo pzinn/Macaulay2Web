@@ -7,7 +7,7 @@ import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
 import { AddressInfo } from "net";
 import { downloadFromDocker } from "./fileDownload";
-import { attachUploadListenerToSocket } from "./fileUpload";
+import { uploadToDocker } from "./fileUpload";
 
 import Cookie = require("cookie");
 
@@ -16,9 +16,8 @@ const app = express();
 //import httpModule = require("http");
 //const http = httpModule.createServer(app);
 import fs = require("fs");
-
+import formidable = require("formidable");
 import ssh2 = require("ssh2");
-import socketioFileUpload = require("socketio-file-upload");
 
 import socketio = require("socket.io");
 let io: SocketIO.Server; // = socketio(http, { pingTimeout: 30000 });
@@ -44,21 +43,18 @@ let options;
 const staticFolder = path.join(__dirname, "../../public/");
 
 const sshCredentials = function (instance: Instance): ssh2.ConnectConfig {
-  return {
-    host: instance.host,
-    port: instance.port,
-    username: instance.username,
-    privateKey: fs.readFileSync(instance.sshKey),
-  };
+  if (instance)
+    return {
+      host: instance.host,
+      port: instance.port,
+      username: instance.username,
+      privateKey: fs.readFileSync(instance.sshKey),
+    };
 };
 
 const clients: IClients = {};
 
 let instanceManager: InstanceManager;
-
-const userSpecificPath = function (client: Client): string {
-  return staticFolder + client.id + "-files/";
-};
 
 const disconnectSocket = function (socket: SocketIO.Socket): void {
   try {
@@ -69,18 +65,18 @@ const disconnectSocket = function (socket: SocketIO.Socket): void {
 };
 
 const deleteClientData = function (client: Client): void {
-  logClient(client, "deleting folder " + userSpecificPath(client));
+  /*  logClient(client, "deleting folder " + userSpecificPath(client));
+  fs.rmdir(userSpecificPath(client), function (error) {
+    if (error) {
+      logClient(client, "Error deleting user folder: " + error);
+    }
+  });*/
   try {
     logClient(client, "Sending disconnect. ");
     clients[client.id].sockets.forEach(disconnectSocket);
   } catch (error) {
     logClient(client, "Socket seems already dead: " + error);
   }
-  fs.rmdir(userSpecificPath(client), function (error) {
-    if (error) {
-      logClient(client, "Error deleting user folder: " + error);
-    }
-  });
   delete clients[client.id];
 };
 
@@ -104,7 +100,7 @@ const emitViaClientSockets = function (client: Client, type: string, data) {
 
 const getInstance = function (client: Client, next) {
   if (client.instance) {
-    next(client.instance);
+    next();
   } else {
     try {
       instanceManager.getNewInstance(
@@ -117,7 +113,9 @@ const getInstance = function (client: Client, next) {
             );
             deleteClientData(client);
           } else {
-            next(instance);
+            client.instance = instance;
+            client.instance.killNotify = killNotify(client); // what is this for???
+            next();
           }
         }
       );
@@ -134,10 +132,9 @@ const killNotify = function (client: Client) {
   };
 };
 
-const spawnMathProgramInSecureContainer = function (client: Client) {
+const spawnMathProgram = function (client: Client) {
   logClient(client, "Spawning new MathProgram process...");
-  getInstance(client, function (instance: Instance) {
-    instance.killNotify = killNotify(client);
+  getInstance(client, function () {
     const connection: ssh2.Client = new ssh2.Client();
     connection.on("error", function (err) {
       logClient(
@@ -159,7 +156,6 @@ const spawnMathProgramInSecureContainer = function (client: Client) {
     });
     connection
       .on("ready", function () {
-        client.instance = instance;
         connection.exec(
           serverConfig.MATH_PROGRAM_COMMAND,
           { pty: true },
@@ -182,7 +178,7 @@ const spawnMathProgramInSecureContainer = function (client: Client) {
           }
         );
       })
-      .connect(sshCredentials(instance));
+      .connect(sshCredentials(client.instance));
   });
 };
 
@@ -191,7 +187,10 @@ const addNewSocket = function (client: Client, socket: SocketIO.Socket) {
   client.sockets.push(socket);
 };
 
-const socketDisconnectAction = function (socket, client: Client) {
+const socketDisconnectAction = function (
+  socket: SocketIO.Socket,
+  client: Client
+) {
   return function () {
     logClient(client, "Removing socket");
     const index = client.sockets.indexOf(socket);
@@ -283,37 +282,104 @@ const killMathProgram = function (client: Client) {
 
 const fileDownload = function (request, response, next) {
   // try to find user's id
-  let id = request.query.id;
-  if (!id) {
-    const rawCookies = request.headers.cookie;
-    if (rawCookies) {
-      const cookies = Cookie.parse(rawCookies);
-      id = cookies[options.cookieName];
-    }
-  }
+  const rawCookies = request.headers.cookie;
+  if (!rawCookies) return next();
+  const cookies = Cookie.parse(rawCookies);
+  const id = cookies[options.cookieInstanceName];
   if (!id || !clients[id]) return next();
   const client = clients[id];
-  logger.info("file request from " + id);
+  logger.info("File request from " + id);
   let sourcePath = decodeURIComponent(request.path);
-  if (request.query.relative && sourcePath[0] == "/")
-    sourcePath = sourcePath.substring(1); // for relative paths. annoying
-  downloadFromDocker(
-    client,
-    sourcePath,
-    userSpecificPath(client),
-    sshCredentials,
-    function (targetPath) {
-      if (targetPath) {
-        response.sendFile(targetPath);
-      } else next();
+  downloadFromDocker(client, sourcePath, sshCredentials, function (targetPath) {
+    if (targetPath) {
+      response.sendFile(staticFolder + targetPath);
+    } else next();
+  });
+};
+
+const unlink = function (completePath: string) {
+  return function () {
+    fs.unlink(completePath, function (err) {
+      if (err) {
+        logger.warn(
+          "Unable to unlink user generated file " + completePath + " : " + err
+        );
+      }
+    });
+  };
+};
+
+const fileUpload = function (request, response) {
+  const form = formidable({ multiples: true, maxFileSize: 10 * 1024 * 1024 });
+  form.parse(request, (err, fields, files) => {
+    if (err) {
+      response.writeHead(400);
+      response.write(err.toString());
+      response.end();
+      return;
     }
-  );
+    const client =
+      fields.id && clients[fields.id] && clients[fields.id].instance
+        ? clients[fields.id]
+        : null;
+    if (client) logger.info("File upload from " + client.id);
+    const fileList = files["files[]"];
+    let str = "";
+    if (fileList) {
+      let errorFlag = false;
+      let nFiles;
+      const callUpload = client
+        ? (file) => {
+            uploadToDocker(
+              client,
+              file.path,
+              file.name,
+              sshCredentials,
+              function (err) {
+                if (err) errorFlag = true;
+                else str += file.name + "<br/>";
+                nFiles--;
+                if (nFiles == 0) {
+                  if (errorFlag) {
+                    response.writeHead(500);
+                    response.write(
+                      "File upload failed. Please try again later.<br/><b>" +
+                        str +
+                        "</b>"
+                    );
+                  } else {
+                    response.writeHead(200);
+                    response.write(
+                      "The following files have been uploaded and can be used in your session:<br/><b>" +
+                        str +
+                        "</b>"
+                    );
+                  }
+                  response.end();
+                }
+              }
+            );
+          }
+        : (file) => unlink(file.path);
+      if (Array.isArray(fileList)) {
+        nFiles = fileList.length;
+        fileList.forEach(callUpload);
+      } else {
+        nFiles = 1;
+        callUpload(fileList);
+      }
+    }
+    if (!client) {
+      response.writeHead(400);
+      response.end();
+    }
+  });
 };
 
 const unhandled = function (request, response) {
   logger.error("Request for something we don't serve: " + request.url);
   response.writeHead(404, "Request for something we don't serve.");
-  response.write("404");
+  response.write("2^2*101"); // TODO: something nicer
   response.end();
 };
 
@@ -326,7 +392,7 @@ const initializeServer = function () {
 
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
-  app.use(socketioFileUpload.router);
+  app.post("/upload/", fileUpload);
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
   app.use(serveStatic(staticFolder));
@@ -356,7 +422,7 @@ const sanitizeClient = function (client: Client, force?: boolean) {
     !client.channel.writable ||
     !client.instance
   ) {
-    spawnMathProgramInSecureContainer(client);
+    spawnMathProgram(client);
     client.savedOutput = "";
     client.outputStat = 0;
 
@@ -402,7 +468,7 @@ const checkClientSane = function (client: Client) {
   return client.saneState;
 };
 
-const socketInputAction = function (socket, client: Client) {
+const socketInputAction = function (socket: SocketIO.Socket, client: Client) {
   return function (msg: string) {
     logClient(client, "Receiving input: " + short(msg));
     if (checkClientSane(client)) {
@@ -423,10 +489,16 @@ const socketResetAction = function (client: Client) {
   };
 };
 
-const socketRestoreAction = function (socket, client: Client) {
+const socketRestoreAction = function (socket: SocketIO.Socket, client: Client) {
   return function () {
     logClient(client, "Restoring output");
     safeEmit(socket, "output", client.savedOutput); // send previous output
+  };
+};
+
+const socketFileExists = function (socket: SocketIO.Socket, client: Client) {
+  return function (fileName: string, callback) {
+    downloadFromDocker(client, fileName, sshCredentials, callback);
   };
 };
 
@@ -468,19 +540,22 @@ const httpsWorker = function (glx) {
     if (clientId === undefined) {
       // need new one
       clientId = initializeClientId();
-      safeEmit(socket, "id", clientId);
     }
 
     const client = clientExistenceCheck(clientId);
     logClient(client, "Connected");
-    sanitizeClient(client);
     addNewSocket(client, socket);
-    attachUploadListenerToSocket(sshCredentials, client, socket);
+    getInstance(client, function () {
+      // sanitize would do it anway but we want to emit
+      safeEmit(socket, "instance", clientId);
+      sanitizeClient(client);
+    });
     socket.on("input", socketInputAction(socket, client));
     socket.on("reset", socketResetAction(client));
     socket.on("chat", socketChatAction(socket, client));
     socket.on("restore", socketRestoreAction(socket, client));
     socket.on("disconnect", socketDisconnectAction(socket, client));
+    socket.on("fileexists", socketFileExists(socket, client));
   });
 
   glx.serveApp(app);
@@ -555,7 +630,7 @@ const mathServer = function (o) {
   );
 
   instanceManager.recoverInstances(function () {
-    logger.info("start init");
+    logger.info("Start init");
     initializeServer();
     listen();
   });
@@ -569,4 +644,6 @@ export {
   short,
   clients,
   options,
+  staticFolder,
+  unlink,
 };

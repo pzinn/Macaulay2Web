@@ -134,7 +134,7 @@ const Shell = function (
   obj.codeInputAction = function (t) {
     t.classList.add("codetrigger");
     if (t.tagName.substring(0, 4) == "CODE")
-      obj.postMessage(t.textContent, false, false);
+      obj.postMessage(t.innerText, false, false);
     else {
       // past input: almost the same but not quite: code not sent, just replaces input
       let str = t.textContent;
@@ -427,15 +427,7 @@ const Shell = function (
     } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
       console.log("Opening URL " + url);
-      if (!url.startsWith("https://") && !url.startsWith("http://")) {
-        // internal link
-        if (url.startsWith("file://")) url = url.slice(7);
-        const relative = !url.startsWith("/"); // annoying subtleties
-        const url1 = new URL("file://" + (relative ? "/" : "") + url); // eww
-        if (clientId != "public") url1.searchParams.append("id", clientId);
-        if (relative) url1.searchParams.append("relative", "true");
-        url = url1.toString().slice(7); // eww2
-      }
+      if (url.startsWith("file://")) url = url.slice(7); // internal link
       if (
         iFrame &&
         !(window.location.protocol == "https:" && url.startsWith("http://")) // no insecure in frame

@@ -61,7 +61,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               if (self.currentInstance.port < port)
                 self.currentInstance.port = port;
               newInstance.clientId = clientId;
-              newInstance.lastActiveTime = Date.now();
+              newInstance.lastActiveTime = Date.now() - 1000 * 3600 * 24 * 365; // not really active => 1 year handicap
               newInstance.containerName = "m2Port" + newInstance.port;
               if (!clients[clientId]) {
                 logger.info("Recovering");
@@ -220,4 +220,17 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   }
 }
 
-export { SudoDockerContainersInstanceManager as SudoDockerContainers };
+const options = {
+  serverConfig: {
+    MATH_PROGRAM_COMMAND: "stty cols 1000000000; M2MODE=sudoDocker M2 --webapp",
+    CONTAINERS(resources, hostConfig, guestInstance): InstanceManager {
+      return new SudoDockerContainersInstanceManager(
+        resources,
+        hostConfig,
+        guestInstance
+      );
+    },
+  },
+};
+
+export { options };

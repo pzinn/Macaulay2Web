@@ -4,7 +4,7 @@ declare const MINIMAL;
 
 import socketIo from "socket.io-client";
 
-import { extra, setCookie, getCookieId } from "./extra";
+import { extra1, extra2, setCookie, getCookieId, setCookieId } from "./extra";
 import { syncChat } from "./chat";
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
@@ -44,7 +44,7 @@ const socketDisconnect = function (msg) {
   serverDisconnect = true;
 };
 
-const wrapEmitForDisconnect = function (event, msg) {
+const wrapEmitForDisconnect = function (event, msg, callback?) {
   if (serverDisconnect) {
     const events = ["reset", "input", "chat"]; // !!!
     console.log("We are disconnected.");
@@ -52,10 +52,10 @@ const wrapEmitForDisconnect = function (event, msg) {
       socket.connect();
       if (!MINIMAL) syncChat();
       serverDisconnect = false;
-      socket.oldEmit(event, msg);
+      socket.oldEmit(event, msg, callback);
     }
   } else {
-    socket.oldEmit(event, msg);
+    socket.oldEmit(event, msg, callback);
   }
   return socket;
 };
@@ -74,7 +74,7 @@ const clickAction = function (e) {
   if (e.button != 0) return;
   hideContextMenu();
   let t = e.target as HTMLElement;
-  while (t != e.currentTarget) {
+  while (t && t != e.currentTarget) {
     if (t.classList.contains("M2CellBar")) {
       e.stopPropagation();
       // bar stuff is handled my mousedown, not click (needed for shift-click)
@@ -105,12 +105,6 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
-const setId = function (id: string): void {
-  clientId = id;
-  console.log("Client id " + clientId);
-  if (!MINIMAL && cookieFlag) setCookie(options.cookieName, clientId);
-};
-
 const socketOutput = function (msg: string) {
   myshell.displayOutput(msg);
 };
@@ -124,7 +118,7 @@ const socketError = function (type) {
 
 const url = new URL(document.location.href);
 
-let cookieFlag = true; // we could write !MINIMAL here but for tree shaking purposes we don't :/
+const cookieFlag = true; // we could write !MINIMAL here but for tree shaking purposes we don't :/
 
 const init = function () {
   if (!MINIMAL && !navigator.cookieEnabled) {
@@ -133,31 +127,47 @@ const init = function () {
   }
 
   console.log("Macaulay2Web version " + options.version);
+
+  if (!MINIMAL) extra1();
+
   const userId: any = url.searchParams.get("user");
-  if (userId) {
-    const newId = "user" + userId;
-    if (!MINIMAL) {
-      if (clientId !== newId) {
-        const dialog = document.getElementById(
-          "changeUserDialog"
-        ) as HTMLDialogElement;
-        document.getElementById("newUserId").textContent = userId;
-        document.getElementById("oldUserIdReminder").innerHTML = clientId
-          ? "Choosing `permanent' will overwrite the current id <b>" +
-            clientId.substring(4) +
-            "</b> in your cookie."
-          : "";
-        dialog.onclose = function () {
-          if (dialog.returnValue == "temporary") cookieFlag = false;
-          setId(newId);
-          init2();
-        };
-        dialog.showModal();
-        return;
-      }
+  const newId = userId ? "user" + userId : "";
+  if (userId && clientId !== newId) {
+    if (MINIMAL) clientId = newId;
+    else {
+      const dialog = document.getElementById(
+        "changeUserDialog"
+      ) as HTMLDialogElement;
+      document.getElementById("newUserId").textContent = userId;
+      document.getElementById("oldUserIdReminder").innerHTML = clientId
+        ? "Choosing `permanent' will overwrite the current id <b>" +
+          clientId.substring(4) +
+          "</b> in your cookie."
+        : "";
+      dialog.onclose = function () {
+        clientId = newId;
+        if (dialog.returnValue !== "temporary") setCookieId();
+        init2();
+      };
+      dialog.showModal();
+      return;
     }
-    setId(newId);
-  } else if (clientId) setId(clientId); // reset the clock
+  } else if (!MINIMAL) {
+    if (clientId) setCookieId();
+    // reset the cookie clock
+    else {
+      const resetBtn = document.getElementById("resetBtn");
+      resetBtn.firstElementChild.textContent = "Start";
+      resetBtn.firstElementChild.classList.add("startButton");
+      resetBtn.onclick = function (e) {
+        e.stopPropagation();
+        resetBtn.firstElementChild.textContent = "Reset";
+        resetBtn.firstElementChild.classList.remove("startButton");
+        init2();
+      };
+      return;
+    }
+  }
   init2();
 };
 
@@ -165,12 +175,23 @@ const init2 = function () {
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
   socket = socketIo(ioParams);
+  socket.on("instance", function (id) {
+    console.log("Instance with id " + id);
+    if (id != clientId) {
+      // new id was generated
+      clientId = id;
+      if (!MINIMAL) setCookieId();
+    }
+    if (!MINIMAL) {
+      setCookie(options.cookieInstanceName, clientId);
+      extra2();
+    }
+  });
   socket.on("reconnect_failed", socketError("reconnect_fail"));
   socket.on("reconnect_error", socketError("reconnect_error"));
   socket.on("connect_error", socketError("connect_error"));
   socket.on("output", socketOutput);
   socket.on("disconnect", socketDisconnect);
-  socket.on("id", setId);
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
 
@@ -191,8 +212,6 @@ const init2 = function () {
   //  window.addEventListener("load", function () {
   socket.emit("restore");
   //  });
-
-  if (!MINIMAL) extra();
 
   const exec = url.searchParams.get("exec");
   if (exec)

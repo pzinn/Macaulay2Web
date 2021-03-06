@@ -5,7 +5,6 @@ import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import tutorials from "./tutorials";
 import Prism from "prismjs";
-import SocketIOFileUpload from "socketio-file-upload";
 import { Chat } from "../common/chatClass";
 import defaultEditor from "./default.m2"; // TODO retire
 import {
@@ -35,6 +34,17 @@ const getCookieId = function () {
   return getCookie(options.cookieName);
 };
 
+const setCookieId = function (): void {
+  setCookie(options.cookieName, clientId);
+};
+
+const unsetCookie = function (name: string): void {
+  document.cookie = Cookie.serialize(name, "", {
+    expires: new Date(0),
+    path: "/",
+  });
+};
+
 const emitReset = function () {
   myshell.reset();
   socket.emit("reset");
@@ -45,13 +55,91 @@ const attachClick = function (id: string, f) {
   if (el) el.onclick = f;
 };
 
-const extra = function () {
-  let siofu = null;
+const extra1 = function () {
+  const tabs = document.getElementById("tabs") as any;
+  const iFrame = document.getElementById("browseFrame");
+  let tab = url.hash;
+
+  //  const loadtute = url.searchParams.get("loadtutorial");
+  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab);
+  let tute = 0,
+    page = 1;
+  if (m) {
+    tute = +m[1] || 0;
+    page = +m[2] || 1;
+  }
+  const tutorialManager = tutorials(tute, page - 1);
+  const upTutorial = document.getElementById("uptutorial");
+  if (upTutorial) {
+    upTutorial.onchange = tutorialManager.uploadTutorial;
+  }
+
+  // supersedes mdl's internal tab handling
+  const openTab = function () {
+    let loc = document.location.hash.substring(1);
+    // new syntax for navigating tutorial
+    const m = /^tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(loc);
+    if (m) {
+      loc = "tutorial";
+      if (m[1] || m[2])
+        tutorialManager.loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
+    }
+    const panel = document.getElementById(loc);
+    if (panel) {
+      const tab = document.getElementById(loc + "Title");
+      if (tabs.MaterialTabs) {
+        tabs.MaterialTabs.resetPanelState_();
+        tabs.MaterialTabs.resetTabState_();
+      }
+      panel.classList.add("is-active");
+      tab.classList.add("is-active");
+      if (loc == "chat") {
+        tab.removeAttribute("data-message");
+        // scroll. sadly, doesn't work if started with #chat
+        const ul = document.getElementById("chatMessages");
+        scrollDown(ul);
+      }
+    }
+  };
+
+  let ignoreFirstLoad = true;
+  const openBrowseTab = function (event) {
+    const el = document.getElementById("browseTitle");
+    // show tab panel
+    if (el && tabs.classList.contains("is-upgraded")) {
+      if (ignoreFirstLoad) ignoreFirstLoad = false;
+      else el.click();
+    }
+    // try to enable actions
+    const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
+    if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
+      const bdy = iFrame.contentDocument.body;
+      bdy.onclick = document.body.onclick;
+      bdy.onkeydown = document.body.onkeydown;
+      bdy.onmousedown = document.body.onmousedown;
+      bdy.oncontextmenu = document.body.oncontextmenu;
+    }
+    // do not follow link
+    event.preventDefault();
+  };
+
+  if (tabs) {
+    document.location.hash = "";
+    window.addEventListener("hashchange", openTab);
+    if (tab === "")
+      //      if (loadtute) tab = "#tutorial";
+      //	else
+      tab = "#home";
+    document.location.hash = tab;
+  }
+
+  if (iFrame) iFrame.onload = openBrowseTab;
+};
+
+const extra2 = function () {
   const terminal = document.getElementById("terminal");
   const editor = document.getElementById("editorDiv");
-  const iFrame = document.getElementById("browseFrame");
   const chatForm = document.getElementById("chatForm");
-  const tabs = document.getElementById("tabs") as any;
 
   const getSelected = function () {
     // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
@@ -116,6 +204,29 @@ const toggleWrap = function () {
   };
   fileNameEl.onchange = function () {
     updateFileName(fileNameEl.value.trim());
+    socket.emit("fileexists", fileName, function (response) {
+      if (response) {
+        const dialog = document.getElementById(
+          "changeEditorFileName"
+        ) as HTMLDialogElement;
+        document.getElementById("newEditorFileName").textContent = fileName;
+        dialog.onclose = function () {
+          if (dialog.returnValue == "overwrite") autoSave();
+          else {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", response, true);
+            xhr.onload = function () {
+              editor.innerHTML = Prism.highlight(
+                xhr.responseText,
+                Prism.languages.macaulay2
+              );
+            };
+            xhr.send(null);
+          }
+        };
+        dialog.showModal();
+      } else autoSave();
+    });
   };
   fileNameEl.onkeydown = function (e) {
     if (e.key == "Enter") {
@@ -132,12 +243,50 @@ const toggleWrap = function () {
       window.clearTimeout(autoSaveTimeout);
       autoSaveTimeout = 0;
     }
-    if ((document.getElementById("autoUpload") as HTMLInputElement).checked) {
-      const content = editor.innerText as string;
-      const file = new File([content], fileName);
-      (file as any).auto = true;
-      siofu.submitFiles([file]);
+    const content = editor.innerText as string;
+    const file = new File([content], fileName);
+    const formData = new FormData();
+    formData.append("files[]", file);
+    formData.append("id", clientId);
+    /*    const req = new XMLHttpRequest();
+      req.open("POST", "/upload");
+    //req.onloadend = showUploadDialog;
+      req.send(formData);*/
+    navigator.sendBeacon("/upload", formData);
+  };
+
+  const showUploadDialog = function (event) {
+    console.log("file upload returned status code " + event.target.status);
+    const response = event.target.responseText;
+    if (response) {
+      const dialog = document.getElementById(
+        "uploadSuccessDialog"
+      ) as HTMLDialogElement;
+      document.getElementById("uploadSuccessText").innerHTML = response;
+      dialog.showModal();
     }
+  };
+
+  const uploadFileProcess = function (event) {
+    const files = event.target.files;
+    if (files.length > 0) {
+      const req = new XMLHttpRequest();
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++)
+        formData.append("files[]", files[i]);
+      formData.append("id", clientId);
+      req.onloadend = showUploadDialog;
+      req.open("POST", "/upload");
+      req.send(formData);
+    }
+  };
+
+  const uploadFile = function () {
+    const dialog = document.createElement("input");
+    dialog.setAttribute("type", "file"),
+      dialog.setAttribute("multiple", "true");
+    dialog.addEventListener("change", uploadFileProcess, false);
+    dialog.click();
   };
 
   const loadFileProcess = function (event) {
@@ -152,19 +301,13 @@ const toggleWrap = function () {
           textFromFileLoaded,
           Prism.languages.macaulay2
         );
-        document.getElementById("editorTitle").click();
+        //        document.getElementById("editorTitle").click();
+        autoSave();
       };
       fileReader.readAsText(fileToLoad, "UTF-8");
-
-      autoSave();
-      /*
-      if ((document.getElementById("autoUpload") as HTMLInputElement).checked) {
-        event.target.files[0].auto = true;
-        siofu.submitFiles(event.target.files);
-	}
-	*/
     }
   };
+
   const loadFile = function () {
     const dialog = document.createElement("input");
     dialog.setAttribute("type", "file"),
@@ -191,6 +334,7 @@ const toggleWrap = function () {
       highlightTimeout = 0;
       syntaxHighlight(editor);
     }, 1500);
+    if (autoSaveTimeout) window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
 
@@ -203,25 +347,6 @@ const toggleWrap = function () {
     //    attachClick("highlightBtn", highlight);
     attachClick("clearBtn", clearOut);
     //  attachClick("wrapBtn", toggleWrap);
-  };
-
-  const showUploadSuccessDialog = function (event) {
-    if (!event.file.auto) {
-      const dialog = document.getElementById(
-        "uploadSuccessDialog"
-      ) as HTMLDialogElement;
-      // console.log('we uploaded the file: ' + event.success);
-      // console.log(event.file);
-      const filename = event.file.name;
-      // console.log("File uploaded successfully!" + filename);
-      const successSentence =
-        filename +
-        " has been uploaded and you can use it by loading it into your session.";
-      document.getElementById(
-        "uploadSuccessDialogContent"
-      ).innerText = successSentence;
-      dialog.showModal();
-    }
   };
 
   const attachCloseDialogBtns = function () {
@@ -386,7 +511,7 @@ const toggleWrap = function () {
     chatInput.onkeypress = function (e) {
       if (e.key == "Enter" && !e.shiftKey) {
         e.preventDefault();
-        const txt = chatInput.innerText; // or textContent?
+        const txt = chatInput.innerHTML;
         if (txt != "") {
           const msg: Chat = {
             type: "message",
@@ -442,91 +567,19 @@ const toggleWrap = function () {
   });
 
   // starting text in editor
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET", fileName + "?id=" + clientId + "&relative=true", true);
-  xhr.onload = function (e) {
-    const text =
-      xhr.readyState === 4 && xhr.status === 200
-        ? xhr.responseText
-        : defaultEditor;
-    editor.innerHTML = Prism.highlight(text, Prism.languages.macaulay2);
-  }; // have defaultEditor on docker anyway?
-  xhr.send(null);
-
-  let tab = url.hash;
-
-  //  const loadtute = url.searchParams.get("loadtutorial");
-  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab);
-  let tute = 0,
-    page = 1;
-  if (m) {
-    tute = +m[1] || 0;
-    page = +m[2] || 1;
-  }
-  const tutorialManager = tutorials(tute, page - 1);
-  const upTutorial = document.getElementById("uptutorial");
-  if (upTutorial) {
-    upTutorial.onchange = tutorialManager.uploadTutorial;
-  }
-
-  // supersedes mdl's internal tab handling
-  const openTab = function () {
-    let loc = document.location.hash.substring(1);
-    // new syntax for navigating tutorial
-    const m = /^tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(loc);
-    if (m) {
-      loc = "tutorial";
-      if (m[1] || m[2])
-        tutorialManager.loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
-    }
-    const panel = document.getElementById(loc);
-    if (panel) {
-      const tab = document.getElementById(loc + "Title");
-      if (tabs.MaterialTabs) {
-        tabs.MaterialTabs.resetPanelState_();
-        tabs.MaterialTabs.resetTabState_();
-      }
-      panel.classList.add("is-active");
-      tab.classList.add("is-active");
-      if (loc == "chat") {
-        tab.removeAttribute("data-message");
-        // scroll. sadly, doesn't work if started with #chat
-        const ul = document.getElementById("chatMessages");
-        scrollDown(ul);
-      }
-    }
-  };
-
-  let ignoreFirstLoad = true;
-  const openBrowseTab = function (event) {
-    const el = document.getElementById("browseTitle");
-    // show tab panel
-    if (el && tabs.classList.contains("is-upgraded")) {
-      if (ignoreFirstLoad) ignoreFirstLoad = false;
-      else el.click();
-    }
-    // try to enable actions
-    const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
-    if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
-      const bdy = iFrame.contentDocument.body;
-      bdy.onclick = document.body.onclick;
-      bdy.onkeydown = document.body.onkeydown;
-      bdy.onmousedown = document.body.onmousedown;
-      bdy.oncontextmenu = document.body.oncontextmenu;
-    }
-    // do not follow link
-    event.preventDefault();
-  };
-
-  if (tabs) {
-    document.location.hash = "";
-    window.addEventListener("hashchange", openTab);
-    if (tab === "")
-      //      if (loadtute) tab = "#tutorial";
-      //	else
-      tab = "#home";
-    document.location.hash = tab;
-  }
+  socket.emit("fileexists", fileName, function (response) {
+    if (response) {
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", response, true);
+      xhr.onload = function () {
+        editor.innerHTML = Prism.highlight(
+          xhr.responseText,
+          Prism.languages.macaulay2
+        );
+      }; // have defaultEditor on docker anyway?
+      xhr.send(null);
+    } else editor.innerHTML = Prism.highlight(defaultEditor, Prism.languages.macaulay2);
+  });
 
   attachMinMaxBtnActions();
   attachCtrlBtnActions();
@@ -538,16 +591,15 @@ const toggleWrap = function () {
     editor.oninput = delayedAction;
   }
 
-  siofu = new SocketIOFileUpload(socket);
-  attachClick("uploadBtn", siofu.prompt);
-  siofu.addEventListener("complete", showUploadSuccessDialog);
+  attachClick("uploadBtn", uploadFile);
 
-  window.addEventListener("beforeunload", autoSave);
-
-  if (iFrame) iFrame.onload = openBrowseTab;
+  window.addEventListener("beforeunload", function () {
+    unsetCookie(options.cookieInstanceName);
+    autoSave();
+  });
 
   const cookieQuery = document.getElementById("cookieQuery");
   if (cookieQuery) cookieQuery.onclick = queryCookie;
 };
 
-export { extra, setCookie, getCookieId };
+export { extra1, extra2, setCookie, getCookieId, setCookieId };

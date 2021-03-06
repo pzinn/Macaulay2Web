@@ -1,6 +1,4 @@
-import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
-
 import childProcess = require("child_process");
 const exec = childProcess.exec;
 
@@ -37,4 +35,15 @@ class LocalContainerManager implements InstanceManager {
   }
 }
 
-export { LocalContainerManager };
+const options = {
+  serverConfig: {
+    baseDirectory: "m2/",
+    MATH_PROGRAM_COMMAND:
+      "stty cols 1000000000; mkdir -p m2; cd m2; M2MODE=localServer M2 --webapp",
+    CONTAINERS(): InstanceManager {
+      return new LocalContainerManager();
+    },
+  },
+};
+
+export { options };
