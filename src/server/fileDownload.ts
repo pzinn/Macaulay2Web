@@ -1,4 +1,4 @@
-const ssh2 = require("ssh2");
+import ssh2 = require("ssh2");
 import fs = require("fs");
 import { Client } from "./client";
 import path = require("path");
@@ -17,21 +17,23 @@ const downloadFromDocker = function (
 ) {
   const fileName: string = path.basename(sourceFileName);
   if (!fileName || !client.instance || !client.instance.host) return;
-  const sshConnection = ssh2();
-  sshConnection.on("end", function () {
-    logger.info("File action ended."); // ???
-  });
+  const sshConnection: ssh2.Client = new ssh2.Client();
 
   const userPath = userSpecificPath(client);
   const targetPath = staticFolder + userPath;
   const targetFileName = targetPath + fileName;
 
-  logClient(client, "File download request: " + sourceFileName);
-
   const success = function () {
     logClient(client, "Successfully downloaded " + sourceFileName);
     setTimeout(unlink(targetFileName), 1000 * 60 * 10);
+    sshConnection.end();
     next(userPath + fileName);
+  };
+
+  const failure = function () {
+    logClient(client, "failed to download " + sourceFileName);
+    sshConnection.end();
+    next();
   };
 
   fs.mkdir(targetPath, function (fsError) {
@@ -43,7 +45,7 @@ const downloadFromDocker = function (
       sshConnection.sftp(function (generateError, sftp) {
         if (generateError) {
           logger.error("ssh2.sftp() failed: " + generateError);
-          return next();
+          return failure();
         }
         sftp.fastGet(sourceFileName, targetFileName, function (sftpError) {
           if (!sftpError) success();
@@ -58,10 +60,10 @@ const downloadFromDocker = function (
                 targetFileName,
                 function (sftpError) {
                   if (!sftpError) success();
-                  else next();
+                  else failure();
                 }
               );
-            } else next();
+            } else failure();
           }
         });
       });

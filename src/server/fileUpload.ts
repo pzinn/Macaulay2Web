@@ -14,12 +14,13 @@ const uploadToDocker = function (
   if (!fileName.startsWith("/"))
     fileName = options.serverConfig.baseDirectory + fileName;
   const credentials = sshCredentials(client.instance);
-  const connection: ssh2.Client = new ssh2.Client();
-  connection.on("ready", function () {
-    connection.sftp(function (err, sftp) {
+  const sshConnection: ssh2.Client = new ssh2.Client();
+  sshConnection.on("ready", function () {
+    sshConnection.sftp(function (err, sftp) {
       if (err) {
         logger.error("There was an error while connecting via sftp: " + err);
-        return; // ?
+        sshConnection.end();
+        return next(err);
       }
       logClient(client, "Uploading " + fileName);
       sftp.fastPut(filePath, fileName, function (sftpError) {
@@ -28,11 +29,12 @@ const uploadToDocker = function (
           logger.error(
             "Error while uploading file: " + fileName + ", ERROR: " + sftpError
           );
+        sshConnection.end();
         next(sftpError);
       });
     });
   });
-  connection.connect(credentials);
+  sshConnection.connect(credentials);
 };
 
 export { uploadToDocker };
