@@ -1,8 +1,10 @@
 body {
+    /*
     --left-color: whitesmoke;
     --right-color: lightsteelblue;
-    /* --right-color: #F0FFE0; */
     background: linear-gradient(to right, var(--left-color), var(--right-color));
+*/
+    background: #d2dce9;
 }
 
 .mdl-grid {
