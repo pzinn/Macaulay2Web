@@ -1,7 +1,7 @@
 const webpack = require('webpack');
 
 module.exports = env => {
-    var mode,filename,devtool;
+    var mode,devtool;
     if (env.debug) {
 	mode = "development";
 	devtool = "inline-source-map";
@@ -10,12 +10,11 @@ module.exports = env => {
 	mode = "production";
 	devtool = false;
     }
-    if (env.minimal) filename = "public/minimal.js"; else filename = "public/index.js";
     return {
-	entry: "./src/client/index.ts",
+	entry: "./src/renderhelp/renderhelp.ts",
 	output: {
 	    path: __dirname, // otherwise is put in "dist/"
-	    filename: filename
+	    filename: "public/renderhelp.js"
 	},
 	module: {
 	    rules: [
@@ -41,7 +40,7 @@ module.exports = env => {
 	mode: mode,
 	devtool: devtool,
 	plugins: [
-	    new webpack.DefinePlugin({ "MINIMAL": JSON.stringify(env.minimal),
+	    new webpack.DefinePlugin({ "MINIMAL": "true",
 				       "process.env.npm_package_version": JSON.stringify(process.env.npm_package_version) }),
 	]
     };

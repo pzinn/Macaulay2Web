@@ -2,11 +2,17 @@ let mode = "docker";
 const args: string[] = process.argv;
 const n: number = args.length;
 import fs = require("fs");
-import { AuthOption } from "./enums";
 
-import { options, overrideDefaultOptions } from "./startupConfigs/default";
+import { options, overrideDefaultOptions } from "./defaultOptions";
+import { mathServer } from "./server";
 
-const logger = require("./logger");
+import { logger } from "./logger";
+
+const usage = function (): void {
+  logger.info("Usage: npm {run/start} {local|docker|ssh} [port]");
+};
+
+logger.info("Macaulay2Web version " + options.version);
 
 if (n > 2) {
   logger.info("mode " + args[2] + " requested");
@@ -19,13 +25,9 @@ if (n > 4) {
   process.exit(0);
 }
 
-function usage(): void {
-  logger.info("Usage: node dist/server/index.js {local|docker|ssh} [port]");
-}
-
 // Dirname is dist.
 import p = require("path"); // eslint-disable-line  no-undef
-const path = p.join(__dirname, "/startupConfigs/"); // eslint-disable-line  no-undef
+const path = p.join(__dirname, "/"); // eslint-disable-line  no-undef
 
 if (mode === "--help") {
   usage();
@@ -34,13 +36,13 @@ if (mode === "--help") {
 
 let overrideOptions;
 if (mode === "local") {
-  overrideOptions = require(path + "Macaulay2LocalServer");
+  overrideOptions = require(path + "localServer");
 } else if (mode === "docker") {
-  overrideOptions = require(path + "Macaulay2SudoDocker");
+  overrideOptions = require(path + "sudoDocker");
 } else if (mode === "ssh") {
-  overrideOptions = require(path + "Macaulay2SshDocker");
+  overrideOptions = require(path + "sshDocker");
 } else {
-  logger.error("There is no mode " + mode);
+  throw new Error("There is no mode " + mode);
 }
 
 overrideDefaultOptions(overrideOptions.options, options);
@@ -50,8 +52,6 @@ if (n > 3) {
   overrideDefaultOptions({ serverConfig: { port: args[3] } }, options);
 }
 
-// This starts the main server!
-
 const fileExistsPromise = function (filename) {
   return new Promise(function (resolve) {
     fs.access(filename, fs.constants.R_OK, function (err) {
@@ -60,16 +60,18 @@ const fileExistsPromise = function (filename) {
   });
 };
 
+// This starts the main server!
+
 fileExistsPromise("public/users.htpasswd")
   .then(function (exists) {
     if (exists) {
-      overrideOptions.authentication = AuthOption.basic;
+      options.authentication = true;
     } else {
-      overrideOptions.authentication = AuthOption.none;
+      options.authentication = false;
     }
   })
   .then(function () {
-    require("./server").mathServer(options);
+    mathServer(options);
   })
   .catch(function (err) {
     logger.error(err);

@@ -6,20 +6,15 @@ you upload the resulting file via the "LOAD YOUR OWN TUTORIAL" tab
 from the home page.  Give your modfied file to your students, and
 after they upload it themselves, they can work through your lessons.
 
-We use very little markdown currently.  The line that begins with # is
+The line that begins with # is
 the title for the tutorial.  Lines that begin with ## give the names
 of each lesson.  Latex math, via mathjax, can be used, and Macaulay2
-code that you wish to become buttons should be enclosed by triple backquotes (```),
-as is shown below.
-    
-We use katex, which means that you can include math, in the form
-like the following: \(f(x) = x^3-\sin x + 1\), or in display form via:
-\[ \sum_{i=0}^n (x_i y_i + 1). \]
+code that you wish to become buttons should be enclosed by backquotes (	`	) or
+triple backquotes (	```	), as is shown below.
 
-Blank lines start new paragraphs.  You can put in html here if you wish
-e.g. <tt>hi</tt>.
-<!-- html comments are allowed too, which will not display -->
+Blank lines start new paragraphs.
 
+## Code
 Macaulay2 commands (which will be displayed as clickable buttons) are
 enclosed in triple backquotes (as is standard in many markdown
 languages). Here we have blank lines between them, but that is not
@@ -33,7 +28,8 @@ R = QQ[x]
 x^3-x-1
 ```
 
-## Lesson 2 title    
+or inline: `factor(x^2-1)`.
+
 Multiple lines can be placed in one button too.
 
 ```
@@ -42,45 +38,27 @@ f = x -> (
     )
 ```
 
-Some caveats:
+## KaTeX
+We use katex, which means that you can include math, in the following way:
+using **\(** **\)** for inline: \(f(x) = x^3-\sin x + 1\), or in display form via
+**\[** **\]**:
+\[ \sum_{i=0}^n (x_i y_i + 1). \]
 
-(a) Some html will interact poorly with the markdown.  Using h3, h4 tags in particular,
-    will likely cause problems, as the title and lesson headings use these tags.
 
-(b) Not all latex is allowed. But math is fairly well represented, it seems.
+## More markdown
+Other recognized markdown includes:
+* lists
+* *various* _standard_ **style** __modifications__
+* [links](https://github.com/pzinn/Macaulay2Web)
+* tables
+| 1 | 2 | 3 |
+| 4 | 5 | 6 |
 
-(c) Only items in lessons (i.e. started by ##) are displayed.  Therefore any lines between
-    then title and the first lesson title are never displayed.    
+Caveat: markdown conversion can interfere with (Ka)TeX code. Since most markdown is based on the start of each line, make sure
+there is no markup symbols there (|,#,*,`,_) in your TeX code, or add a tab at the start (anything after a tab is not markdown encoded).
 
-## If you have written tutorials previously, in simpledoc format
 
-We have simplified the process of writing tutorials.  The markdown method shown
-    on the previous pages should be sufficient.
-
-However, if you have written tutorials for this website previously in
-    simpledoc format, one can still translate those to the markdown format used here.
-
-First load the package (on the website M2, or in your own installed M2):
-        
-```
-needsPackage "SimpledocToMarkdown"
-```
-
-Now upload your file, say it is "tutorial.simpledoc".  It needs to end in ".simpledoc".
-
-```
-fileToMarkdown "tutorial"
-```
-
-Download the resulting "tutorial.md" file with
-
-```
-get "!open tutorial.md"
-```
-
-You can use the md file now by loading it with "LOAD YOUR OWN TUTORIAL"
-
-## If you have written tutorials previously, in html format.
-
-Currently, we do not support uploading files in this manner.  Please convert your html file into md format
-as in the previous lesson.  If you have any issues with this, please contact us.        
+## HTML lessons
+You can also upload html lessons, using <title> (or <h1>) for the title. Each page should be one <div>.
+For consistency of style, it is advised to
+start each page with a title with tag <h2>.

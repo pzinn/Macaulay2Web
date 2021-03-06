@@ -1,7 +1,13 @@
 {
-  "name": "Macaulay2Web",
-  "version": "3.3.0",
+  "name": "macaulay2web",
+  "version": "3.6.1",
+  "homepage": "https://github.com/pzinn/Macaulay2Web",
   "description": "Web app for Macaulay2",
+  "author": {
+    "name": "Paul Zinn-Justin",
+    "email": "pzinn@unimelb.edu.au",
+    "url": "https://blogs.unimelb.edu.au/paul-zinn-justin/"
+  },
   "contributors": [
     {
       "name": "Franziska Hinkelmann",
@@ -20,58 +26,85 @@
       "email": "pzinn@unimelb.edu.au"
     }
   ],
+  "bugs": {
+    "url": "https://github.com/pzinn/Macaulay2Web/issues"
+  },
   "engine": {
     "node": ">=10.0.0"
   },
+  "sideEffects": false,
   "dependencies": {
-    "@types/express": "^4.17.9",
-    "@types/node": "^14.14.10",
-    "@types/socket.io": "^2.1.11",
-    "@types/socket.io-client": "^1.4.34",
-    "@types/ssh2": "^0.5.45",
+    "@babel/runtime": "^7.13.7",
+    "@types/express": "^4.17.11",
+    "@types/node": "^14.14.25",
+    "@types/socket.io": "^2.1.13",
+    "@types/socket.io-client": "^1.4.35",
+    "@types/ssh2": "^0.5.46",
     "cookie": "^0.4.1",
-    "express": "4.16.1",
-    "express-winston": "3.1.0",
-    "http-auth": "3.2.3",
-    "prismjs": "^1.22.0",
+    "express": "^4.17.1",
+    "express-winston": "^3.4.0",
+    "formidable": "^2.0.0-canary.20200504.1",
+    "http-auth": "^3.2.4",
+    "prismjs": "^1.23.0",
     "serve-favicon": "^2.5.0",
     "serve-index": "^1.9.1",
     "serve-static": "^1.14.1",
-    "socket.io": "2.2.0",
-    "socket.io-client": "2.2.0",
-    "socketio-file-upload": "^0.7.2",
-    "ssh2": "0.8.2",
-    "ts-node": "^8.10.2",
-    "typescript": "^3.9.7",
+    "socket.io": "^2.4.0",
+    "socket.io-client": "^2.4.0",
+    "ssh2": "^0.8.9",
     "winston": "^3.3.2"
   },
   "scripts": {
     "postinstall": "./postinstall",
-    "tsc": "tsc && tsc -p src/frontend",
-    "build": "npm run lint && npm run format && npm run tsc && ./node_modules/.bin/webpack",
+    "build": "npm run lint && npm run format && npm run build:server && npm run build:client && npm run build:minimal && npm run css",
+    "build:server": "tsc",
+    "build:client": "./prebuild && webpack --env production",
+    "build:minimal": "./prebuild && webpack --env minimal",
+    "build:debug": "webpack --env debug",
+    "build:debug-minimal": "webpack --env debug --env minimal",
+    "css": "cd src/client/css; lessc ../../../KaTeX/src/katex.less katex.css; cat katex.css VectorGraphics.css interface_common.css interface_minimal.css prism-M2.css | postcss -o ../../../public/minimal.css && cat material.indigo-deep_orange.min.css katex.css VectorGraphics.css interface_common.css interface_extra.css prism-M2.css | postcss -o ../../../public/index.css",
     "start": "node dist/server/index.js",
     "docker": "npm run build && npm start docker",
     "local": "npm run build && npm start local",
-    "debug": "npm run tsc && webpack --config webpack.debug-config.js && npm start local",
-    "twoMachines": "npm run build && npm start ssh",
-    "twoMachines_forever": "npm run build && forever start -l $HOME/webm2.logs/forever.log -o $HOME/webm2.logs/out.log -e $HOME/webm2.logs/err.log --append dist/index.js ssh",
-    "stop": "kill `ps ax | grep Server | grep -v monitor | grep node | awk '{print $1}'`",
-    "lint": "eslint src/server/*.ts src/server/startupConfigs/*.ts src/frontend/*.ts --fix",
-    "format": "prettier --write src/server/*.ts src/server/startupConfigs/*.ts src/frontend/*.ts"
+    "debug": "npm run build:debug && npm start local",
+    "ssh": "npm run build && npm start ssh",
+    "stop": "kill `ps a | grep 'node dist/server/index.js' | grep -v grep | awk '{print $1}'`",
+    "lint": "eslint src/*/*.ts --fix",
+    "format": "prettier --write src/*/*.ts",
+    "build:renderhelp": "webpack --config webpack-renderhelp.config.js",
+    "renderhelp": "node src/renderhelp/index.js"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:pzinn/Macaulay2Web.git"
   },
   "devDependencies": {
+    "@babel/core": "^7.13.1",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
+    "@babel/plugin-transform-runtime": "^7.13.7",
+    "@babel/preset-env": "^7.13.5",
+    "@babel/preset-flow": "^7.12.13",
     "@typescript-eslint/eslint-plugin": "^2.34.0",
     "@typescript-eslint/parser": "^2.34.0",
+    "babel-loader": "^8.2.2",
+    "babel-plugin-preval": "^5.0.0",
+    "babel-plugin-version-inline": "^1.0.0",
+    "cssnano": "^4.1.10",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^6.15.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "prettier": "^2.2.0",
-    "webpack": "^5.8.0",
-    "webpack-cli": "^4.2.0"
+    "eslint-plugin-prettier": "^3.3.1",
+    "less": "3.13.1",
+    "postcss": "^8.2.4",
+    "postcss-cli": "^8.3.1",
+    "prettier": "^2.2.1",
+    "raw-loader": "^4.0.2",
+    "ts-loader": "^8.0.15",
+    "typescript": "^4.2.2",
+    "webpack": "^5.24.2",
+    "webpack-cli": "^4.5.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "optionalDependencies": {
+    "puppeteer-core": "^5.5.0"
+  }
 }

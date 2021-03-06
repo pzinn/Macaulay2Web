@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "es6",
+    "outDir": "../../dist",
+    "sourceMap": true, 
+      "lib": ["es7", "dom"],
+      "moduleResolution": "node",
+      "allowSyntheticDefaultImports": true
+  },
+  "include": [
+    "*.ts"
+  ]
+}

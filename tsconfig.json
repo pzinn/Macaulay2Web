@@ -9,10 +9,10 @@
   },
   "include": [
     "src/server/*.ts",
-    "src/server/startupConfigs/*.ts"
+    "src/common/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "src/frontend/*.ts"
+    "src/client/*.ts"
   ]
 }

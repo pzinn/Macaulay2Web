@@ -1,5 +1,5 @@
 /* eslint "no-unused-vars": "off" */
-const logger = require("./logger");
+import { logger } from "./logger";
 const multiMachineManager = function () {
   const Machine = function () {
     this.name = "";
@@ -28,17 +28,20 @@ const multiMachineManager = function () {
       this.containerManager = require(containerManagerFile)(config);
       this.config = config;
       this.maxContainerNumber = maxContainerNumber;
-      this.getNewInstance = function (userId, next) {
-        this.containerManager.getNewInstance(userId, function (err, instance) {
-          if (err) {
-            next(err);
-          } else {
-            this.currentContainerNumber++;
-            this.updateLoad();
-            instance.machine = this;
-            next(instance);
+      this.getNewInstance = function (clientId, next) {
+        this.containerManager.getNewInstance(
+          clientId,
+          function (err, instance) {
+            if (err) {
+              next(err);
+            } else {
+              this.currentContainerNumber++;
+              this.updateLoad();
+              instance.machine = this;
+              next(instance);
+            }
           }
-        });
+        );
       };
       this.removeInstance = function (instance, next) {
         this.containerManager.removeInstance(instance, function () {
@@ -61,11 +64,11 @@ const multiMachineManager = function () {
     instance.machine.updateLastActiveTime(instance);
   };
 
-  const getNewInstance = function (userId, next) {
+  const getNewInstance = function (clientId, next) {
     machines.sort(function (a, b) {
       return a.load - b.load;
     });
-    machines[0].getNewInstance(userId, next);
+    machines[0].getNewInstance(clientId, next);
   };
 
   const removeInstance = function (instance, next) {
