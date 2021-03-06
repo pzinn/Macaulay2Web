@@ -93,7 +93,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       self.incrementPort();
       newInstance.containerName = "m2Port" + newInstance.port;
       newInstance.clientId = clientId;
-      newInstance.lastActiveTime = Date.now();
+      newInstance.lastActiveTime = Date.now() - 1000 * 3600 * 24 * 365; // not really active => 1 year handicap
       exec(
         self.constructDockerRunCommand(self.resources, newInstance),
         function (error) {
