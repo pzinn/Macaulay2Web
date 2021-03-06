@@ -286,7 +286,7 @@ const fileDownload = function (request, response, next) {
   if (!id || !clients[id]) return next();
   const client = clients[id];
   logger.info("File request from " + id);
-  let sourcePath = decodeURIComponent(request.path);
+  const sourcePath = decodeURIComponent(request.path);
   downloadFromDocker(client, sourcePath, sshCredentials, function (targetPath) {
     if (targetPath) {
       response.sendFile(staticFolder + targetPath);
