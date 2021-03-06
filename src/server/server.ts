@@ -287,8 +287,6 @@ const fileDownload = function (request, response, next) {
   const client = clients[id];
   logger.info("File request from " + id);
   let sourcePath = decodeURIComponent(request.path);
-  if (request.query.relative && sourcePath[0] == "/")
-    sourcePath = sourcePath.substring(1); // for relative paths. annoying
   downloadFromDocker(client, sourcePath, sshCredentials, function (targetPath) {
     if (targetPath) {
       response.sendFile(staticFolder + targetPath);

@@ -17,49 +17,57 @@ const downloadFromDocker = function (
 ) {
   const fileName: string = path.basename(sourceFileName);
   if (!fileName || !client.instance || !client.instance.host) return;
-  if (!sourceFileName.startsWith("/"))
-    sourceFileName = options.serverConfig.baseDirectory + sourceFileName;
   const sshConnection = ssh2();
   sshConnection.on("end", function () {
-    logger.info("File action ended.");
+    logger.info("File action ended."); // ???
   });
 
   const userPath = userSpecificPath(client);
   const targetPath = staticFolder + userPath;
+  const targetFileName = targetPath + fileName;
 
-  const handleUserGeneratedFile = function (generateError, sftp) {
-    if (generateError) {
-      throw new Error("ssh2.sftp() failed: " + generateError);
+  logClient(client, "File download request: " + sourceFileName);
+
+  const success = function () {
+    logClient(client, "Successfully downloaded " + sourceFileName);
+    setTimeout(unlink(targetFileName), 1000 * 60 * 10);
+    next(userPath + fileName);
+  };
+
+  fs.mkdir(targetPath, function (fsError) {
+    if (fsError) {
+      if (fsError.code !== "EEXIST")
+        logger.error("Error creating directory: " + targetPath);
     }
-    fs.mkdir(targetPath, function (fsError) {
-      if (fsError) {
-        if (fsError.code !== "EEXIST")
-          logger.error("Error creating directory: " + targetPath);
-        else logger.info("Folder exists");
-      }
-      logClient(client, "File we want is " + sourceFileName);
-      const targetFileName = targetPath + fileName;
-      sftp.fastGet(sourceFileName, targetFileName, function (sftpError) {
-        if (sftpError) {
-          logger.error(
-            "Error while downloading file. PATH: " +
-              sourceFileName +
-              ", ERROR: " +
-              sftpError
-          );
-          next();
-        } else {
-          setTimeout(unlink(targetFileName), 1000 * 60 * 10);
-          next(userPath + fileName);
+    sshConnection.on("ready", function () {
+      sshConnection.sftp(function (generateError, sftp) {
+        if (generateError) {
+          logger.error("ssh2.sftp() failed: " + generateError);
+          return next();
         }
+        sftp.fastGet(sourceFileName, targetFileName, function (sftpError) {
+          if (!sftpError) success();
+          else {
+            // annoying subtlety: we don't know if path relative or absolute => try both :/
+            if (sourceFileName.startsWith("/")) {
+              sourceFileName =
+                options.serverConfig.baseDirectory +
+                sourceFileName.substring(1);
+              sftp.fastGet(
+                sourceFileName,
+                targetFileName,
+                function (sftpError) {
+                  if (!sftpError) success();
+                  else next();
+                }
+              );
+            } else next();
+          }
+        });
       });
     });
-  };
-  sshConnection.on("ready", function () {
-    sshConnection.sftp(handleUserGeneratedFile);
+    sshConnection.connect(sshCredentials(client.instance));
   });
-
-  sshConnection.connect(sshCredentials(client.instance));
 };
 
 export { downloadFromDocker };
