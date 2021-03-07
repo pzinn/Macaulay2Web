@@ -83,9 +83,7 @@ const loadLesson = function (tutorialid: number, lessonid: number) {
   lesson.innerHTML = "";
   lesson.append(title, lessonContent);
   lesson.scrollTop = 0;
-  //  MathJax.Hub.Queue(["Typeset", MathJax.Hub, "#lesson"]);
-  // the next line colorized the tutorials
-  // $("code").each(function() { this.innerHTML=Prism.highlight(this.textContent,Prism.languages.macaulay2)});
+  // should we syntax highlight tutorials?
 
   autoRender(lesson);
   updateTutorialNav();
