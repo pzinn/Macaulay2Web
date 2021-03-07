@@ -4,7 +4,6 @@ import { socket, url, myshell, clientId } from "./main";
 import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import tutorials from "./tutorials";
-import Prism from "prismjs";
 import { Chat } from "../common/chatClass";
 import defaultEditor from "./default.m2"; // TODO retire
 import {
@@ -15,6 +14,7 @@ import {
   removeDelimiterHighlight,
   autoIndent,
   syntaxHighlight,
+  updateAndHighlightMaybe,
 } from "./editor";
 
 const setCookie = function (name: string, value: string): void {
@@ -216,10 +216,7 @@ const toggleWrap = function () {
             const xhr = new XMLHttpRequest();
             xhr.open("GET", response, true);
             xhr.onload = function () {
-              editor.innerHTML = Prism.highlight(
-                xhr.responseText,
-                Prism.languages.macaulay2
-              );
+              updateAndHighlightMaybe(editor, xhr.responseText, fileName);
             };
             xhr.send(null);
           }
@@ -283,8 +280,8 @@ const toggleWrap = function () {
 
   const uploadFile = function () {
     const dialog = document.createElement("input");
-    dialog.setAttribute("type", "file"),
-      dialog.setAttribute("multiple", "true");
+    dialog.setAttribute("type", "file");
+    dialog.setAttribute("multiple", "true");
     dialog.addEventListener("change", uploadFileProcess, false);
     dialog.click();
   };
@@ -295,12 +292,7 @@ const toggleWrap = function () {
       updateFileName(fileToLoad.name);
       const fileReader = new FileReader();
       fileReader.onload = function () {
-        // var textFromFileLoaded = e.target.result;
-        const textFromFileLoaded = fileReader.result;
-        editor.innerHTML = Prism.highlight(
-          textFromFileLoaded,
-          Prism.languages.macaulay2
-        );
+        updateAndHighlightMaybe(editor, fileReader.result as string, fileName);
         //        document.getElementById("editorTitle").click();
         autoSave();
       };
@@ -329,11 +321,13 @@ const toggleWrap = function () {
 
   let highlightTimeout = 0;
   const delayedAction = function () {
-    if (highlightTimeout) window.clearTimeout(highlightTimeout);
-    highlightTimeout = window.setTimeout(function () {
-      highlightTimeout = 0;
-      syntaxHighlight(editor);
-    }, 1500);
+    if (fileName.endsWith(".m2")) {
+      if (highlightTimeout) window.clearTimeout(highlightTimeout);
+      highlightTimeout = window.setTimeout(function () {
+        highlightTimeout = 0;
+        syntaxHighlight(editor);
+      }, 1500);
+    }
     if (autoSaveTimeout) window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
@@ -572,13 +566,10 @@ const toggleWrap = function () {
       const xhr = new XMLHttpRequest();
       xhr.open("GET", response, true);
       xhr.onload = function () {
-        editor.innerHTML = Prism.highlight(
-          xhr.responseText,
-          Prism.languages.macaulay2
-        );
+        updateAndHighlightMaybe(editor, xhr.responseText, fileName);
       }; // have defaultEditor on docker anyway?
       xhr.send(null);
-    } else editor.innerHTML = Prism.highlight(defaultEditor, Prism.languages.macaulay2);
+    } else updateAndHighlightMaybe(editor, defaultEditor, fileName); // TODO: retire
   });
 
   attachMinMaxBtnActions();

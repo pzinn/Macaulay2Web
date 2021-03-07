@@ -389,7 +389,7 @@ const autoIndent = function (el) {
   document.execCommand("insertText", false, indent);
 };
 
-const syntaxHighlight = function (el) {
+const syntaxHighlight = function (el: HTMLElement) {
   if (autoComplete) return; // no highlighting while autocomplete menu is on, would make a mess!!
   // sadly, never happens -- oninput sucks
 
@@ -408,6 +408,17 @@ const syntaxHighlight = function (el) {
   }
 };
 
+const updateAndHighlightMaybe = function (
+  el: HTMLElement,
+  txt: string,
+  fileName: string
+) {
+  // different: replace content
+  if (fileName.endsWith(".m2"))
+    el.innerHTML = Prism.highlight(txt, Prism.languages.macaulay2);
+  else el.textContent = txt;
+};
+
 export {
   escapeKeyHandling,
   autoCompleteHandling,
@@ -416,5 +427,6 @@ export {
   delimiterHandling,
   removeDelimiterHighlight,
   syntaxHighlight,
+  updateAndHighlightMaybe,
   autoIndent,
 };
