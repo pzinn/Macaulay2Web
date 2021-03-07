@@ -81,9 +81,11 @@ const chatAction = function (msg: Chat, index?) {
     if (index === undefined) {
       // not if restoring
       const chatTitle = document.getElementById("chatTitle");
-      if (document.location.hash != "#chat") {
+      if (
+        document.location.hash != "#chat" &&
+        chatTitle.dataset.message != "Admin" // admin has precedence
+      )
         chatTitle.dataset.message = msg.alias;
-      }
       chatTitle.classList.add("message-pop");
       setTimeout(function () {
         chatTitle.classList.remove("message-pop");
