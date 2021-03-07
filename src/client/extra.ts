@@ -203,6 +203,7 @@ const toggleWrap = function () {
     setCookie(options.cookieFileName, fileName);
   };
   fileNameEl.onchange = function () {
+    autoSave();
     updateFileName(fileNameEl.value.trim());
     socket.emit("fileexists", fileName, function (response) {
       if (response) {
