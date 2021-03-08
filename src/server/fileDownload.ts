@@ -22,9 +22,10 @@ const downloadFromDocker = function (
   const userPath = userSpecificPath(client);
   const targetPath = staticFolder + userPath;
   const targetFileName = targetPath + fileName;
+  let sourceFileName1 = sourceFileName; // adjusted for possible base dir
 
   const success = function () {
-    logClient(client, "Successfully downloaded " + sourceFileName);
+    logClient(client, "Successfully downloaded " + sourceFileName1);
     setTimeout(unlink(targetFileName), 1000 * 60 * 10);
     sshConnection.end();
     next(userPath + fileName);
@@ -47,23 +48,20 @@ const downloadFromDocker = function (
           logger.error("ssh2.sftp() failed: " + generateError);
           return failure();
         }
-        sftp.fastGet(sourceFileName, targetFileName, function (sftpError) {
+        const relative = !sourceFileName.startsWith("/");
+        sourceFileName1 =
+          options.serverConfig.baseDirectory +
+          (relative ? sourceFileName : sourceFileName.substring(1));
+        sftp.fastGet(sourceFileName1, targetFileName, function (sftpError) {
           if (!sftpError) success();
+          else if (relative) failure();
           else {
-            // annoying subtlety: we don't know if path relative or absolute => try both :/
-            if (sourceFileName.startsWith("/")) {
-              sourceFileName =
-                options.serverConfig.baseDirectory +
-                sourceFileName.substring(1);
-              sftp.fastGet(
-                sourceFileName,
-                targetFileName,
-                function (sftpError) {
-                  if (!sftpError) success();
-                  else failure();
-                }
-              );
-            } else failure();
+            // annoying subtlety: if relative false, we don't know if path relative or absolute => try both :/
+            sourceFileName1 = sourceFileName;
+            sftp.fastGet(sourceFileName1, targetFileName, function (sftpError) {
+              if (!sftpError) success();
+              else failure();
+            });
           }
         });
       });
