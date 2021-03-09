@@ -4,7 +4,7 @@ body {
     --right-color: lightsteelblue;
     background: linear-gradient(to right, var(--left-color), var(--right-color));
 */
-    background: #d2dce9;
+    background-color: #d2dce9;
 }
 
 .mdl-grid {
@@ -108,7 +108,7 @@ body {
 }
 
 #fullScreenOutput {
-    background: var(--left-color);
+    background: whitesmoke; /* var(--left-color); */
     width: 100%;
     height: 100%;
     box-sizing: border-box;
