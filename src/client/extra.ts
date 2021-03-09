@@ -195,6 +195,24 @@ const toggleWrap = function () {
   */
   let fileName;
 
+  let autoSaveTimeout = 0;
+  const autoSave = function () {
+    if (autoSaveTimeout) {
+      window.clearTimeout(autoSaveTimeout);
+      autoSaveTimeout = 0;
+    }
+    const content = editor.innerText as string;
+    const file = new File([content], fileName);
+    const formData = new FormData();
+    formData.append("files[]", file);
+    formData.append("id", clientId);
+    /*    const req = new XMLHttpRequest();
+      req.open("POST", "/upload");
+    //req.onloadend = showUploadDialog;
+      req.send(formData);*/
+    navigator.sendBeacon("/upload", formData);
+  };
+
   const fileNameEl = document.getElementById(
     "editorFileName"
   ) as HTMLInputElement;
@@ -202,8 +220,8 @@ const toggleWrap = function () {
     fileNameEl.value = fileName = newName;
     setCookie(options.cookieFileName, fileName);
   };
+  fileNameEl.onfocus = autoSave; // simple way to save, plus avoids issues with autosaving while onchange running
   fileNameEl.onchange = function () {
-    autoSave();
     updateFileName(fileNameEl.value.trim());
     socket.emit("fileexists", fileName, function (response) {
       if (response) {
@@ -234,24 +252,6 @@ const toggleWrap = function () {
   };
 
   updateFileName(getCookie(options.cookieFileName, "default.m2"));
-
-  let autoSaveTimeout = 0;
-  const autoSave = function () {
-    if (autoSaveTimeout) {
-      window.clearTimeout(autoSaveTimeout);
-      autoSaveTimeout = 0;
-    }
-    const content = editor.innerText as string;
-    const file = new File([content], fileName);
-    const formData = new FormData();
-    formData.append("files[]", file);
-    formData.append("id", clientId);
-    /*    const req = new XMLHttpRequest();
-      req.open("POST", "/upload");
-    //req.onloadend = showUploadDialog;
-      req.send(formData);*/
-    navigator.sendBeacon("/upload", formData);
-  };
 
   const showUploadDialog = function (event) {
     console.log("file upload returned status code " + event.target.status);
