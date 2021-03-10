@@ -94,9 +94,11 @@ const dockerToEditor = function (
     ) as HTMLDialogElement;
     document.getElementById("newEditorFileName").textContent = newName;
     dialog.onclose = function () {
-      updateFileName(newName);
       if (dialog.returnValue == "overwrite") failure();
-      else localFileToEditor(response, success);
+      else {
+        updateFileName(newName);
+        localFileToEditor(response, success);
+      }
     };
     dialog.showModal();
   });
@@ -265,7 +267,16 @@ const toggleWrap = function () {
 
   fileNameEl.onfocus = autoSave; // simple way to save, plus avoids issues with autosaving while onchange running
   fileNameEl.onchange = function () {
-    dockerToEditor(fileNameEl.value.trim(), true, function () {}, autoSave);
+    const newName = fileNameEl.value.trim();
+    dockerToEditor(
+      newName,
+      true,
+      function () {},
+      function () {
+        updateFileName(newName);
+        autoSave();
+      }
+    );
   };
   fileNameEl.onkeydown = function (e) {
     if (e.key == "Enter") {

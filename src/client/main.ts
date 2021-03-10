@@ -46,31 +46,46 @@ const keydownAction = function (e) {
     if (sel == "") return;
     socket.emit("input", 'viewHelp "' + sel + '"\n');
   } else if (!MINIMAL && e.key == "F2") {
+    // of course this stuff shouldn't be in main.ts -- TEMP
     e.preventDefault();
     e.stopPropagation();
     const sel = e.currentTarget.ownerDocument.getSelection().toString(); // works in iframe too
     if (sel == "") return;
     // figure out filename
-    const i = sel.indexOf(":");
-    const fileName = i < 0 ? sel : sel.substring(0, i);
+    const m = sel.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
+    if (!m) return;
     dockerToEditor(
-      fileName,
+      m[1],
       false, // no overwrite dialog
       function () {
-        if (i < 0) return;
         // find location in file
-        //const m = sel.match(/:(\d+):(\d+)-(\d+):(\d+)/);
-        const m = sel.match(/:(\d+):(\d+)/);
-        if (!m) return;
-        // TEMP for now only 2nd case
-        const editorText = document.getElementById("editorDiv").innerText;
-        let j = 0;
-        let k = m[1];
-        while (j >= 0 && k > 0) {
+        if (!m[2]) return;
+        let row1 = +m[2];
+        if (row1 < 1) row1 = 1;
+        let col1 = m[3] ? +m[3] : 1;
+        if (col1 < 1) col1 = 1;
+        let row2 = m[5] ? +m[4] : row1;
+        if (row2 < row1) row2 = row1;
+        let col2 = m[5] ? +m[5] : m[4] ? +m[4] : col1;
+        if (row2 == row1 && col2 < col1) col2 = col1;
+        const editor = document.getElementById("editorDiv");
+        const editorText = editor.innerText;
+        let j = -1;
+        let k = 1;
+        let j1;
+        while (true) {
+          if (k == row1) j1 = j;
+          if (k == row2) break;
           j = editorText.indexOf("\n", j + 1);
-          k--;
+          if (j < 0) {
+            setCaret(editor, editorText.length);
+            return;
+          }
+          k++;
         }
-        if (j >= 0) setCaret(document.getElementById("editorDiv"), j + 1); // TEMP
+        if (m[4]) setCaret(editor, j1 + col1, j + col2 + 1);
+        else setCaret(editor, j1 + col1);
+        editor.focus(); // does this actually scroll to caret? CHECK
       },
       function () {}
     );

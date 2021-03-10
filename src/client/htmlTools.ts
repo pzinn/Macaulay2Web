@@ -50,25 +50,39 @@ const getCaret = function (el): number | null {
   }
 };
 
-const setCaretInternal = function (el, pos: number): void {
-  const sel = window.getSelection();
-  sel.collapse(el, pos);
-};
 // some of these edge cases need to be clarified (empty HTMLElements; etc)
-const setCaret = function (el, pos: number): void {
+const setCaret = function (el, pos: number, pos2?: number): void {
+  let len;
+  if (!pos2) len = 0;
+  else if (pos2 < pos) {
+    len = pos - pos2;
+    pos = pos2;
+  } else len = pos2 - pos;
   el.focus({ preventScroll: true });
-  if (pos === 0) {
-    setCaretInternal(el, pos);
+  const sel = window.getSelection();
+  if (pos === 0 && len === 0) {
+    sel.collapse(el, pos);
     return;
   }
   let cur = el.firstChild;
+  let first = null;
+  let firstpos;
   if (!cur) return;
   while (true) {
     if (cur.nodeType === 3) {
       if (pos <= cur.textContent.length) {
         // bingo
-        setCaretInternal(cur, pos);
-        return;
+        if (first) {
+          sel.setBaseAndExtent(first, firstpos, cur, pos);
+          return;
+        } else if (pos + len <= cur.textContent.length) {
+          sel.setBaseAndExtent(cur, pos, cur, pos + len);
+          return;
+        } else {
+          first = cur;
+          firstpos = pos;
+          pos += len;
+        }
       }
       pos -= cur.textContent.length;
     }
@@ -86,10 +100,10 @@ const setCaret = function (el, pos: number): void {
 };
 
 const setCaretAtEndMaybe = function (el, flag?) {
-  // flag means only do it if not already in input
+  // flag means only do it if not already in el
   if (!flag || document.activeElement != el) {
     // not quite right... should test containance
-    setCaret(el, el.textContent.length);
+    setCaret(el, el.innerText.length);
     el.scrollIntoView({ inline: "end", block: "nearest" });
   }
 };
