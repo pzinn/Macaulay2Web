@@ -4,7 +4,14 @@ declare const MINIMAL;
 
 import socketIo from "socket.io-client";
 
-import { extra1, extra2, setCookie, getCookieId, setCookieId } from "./extra";
+import {
+  extra1,
+  extra2,
+  setCookie,
+  getCookieId,
+  setCookieId,
+  dockerToEditor,
+} from "./extra";
 import { syncChat } from "./chat";
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
@@ -22,6 +29,8 @@ import {
   unselectCells,
 } from "./bar";
 
+import { setCaret } from "./htmlTools";
+
 import { options } from "../common/global";
 
 let myshell = null; // the terminal
@@ -30,11 +39,41 @@ let clientId = MINIMAL ? "public" : getCookieId(); // client's id. it's public /
 
 const keydownAction = function (e) {
   if (e.key == "F1") {
-    //    const sel = window.getSelection().toString();
-    const sel = e.currentTarget.ownerDocument.getSelection().toString(); // works in iframe too
-    if (sel != "") socket.emit("input", 'viewHelp "' + sel + '"\n');
     e.preventDefault();
     e.stopPropagation();
+    //    const sel = window.getSelection().toString();
+    const sel = e.currentTarget.ownerDocument.getSelection().toString(); // works in iframe too
+    if (sel == "") return;
+    socket.emit("input", 'viewHelp "' + sel + '"\n');
+  } else if (!MINIMAL && e.key == "F2") {
+    e.preventDefault();
+    e.stopPropagation();
+    const sel = e.currentTarget.ownerDocument.getSelection().toString(); // works in iframe too
+    if (sel == "") return;
+    // figure out filename
+    const i = sel.indexOf(":");
+    const fileName = i < 0 ? sel : sel.substring(0, i);
+    dockerToEditor(
+      fileName,
+      false, // no overwrite dialog
+      function () {
+        if (i < 0) return;
+        // find location in file
+        //const m = sel.match(/:(\d+):(\d+)-(\d+):(\d+)/);
+        const m = sel.match(/:(\d+):(\d+)/);
+        if (!m) return;
+        // TEMP for now only 2nd case
+        const editorText = document.getElementById("editorDiv").innerText;
+        let j = 0;
+        let k = m[1];
+        while (j >= 0 && k > 0) {
+          j = editorText.indexOf("\n", j + 1);
+          k--;
+        }
+        if (j >= 0) setCaret(document.getElementById("editorDiv"), j + 1); // TEMP
+      },
+      function () {}
+    );
   } else if (e.target.classList.contains("M2CellBar"))
     barKey(e, e.target.parentElement);
 };

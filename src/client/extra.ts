@@ -55,6 +55,53 @@ const attachClick = function (id: string, f) {
   if (el) el.onclick = f;
 };
 
+let fileName;
+const updateFileName = function (newName: string) {
+  const fileNameEl = document.getElementById(
+    "editorFileName"
+  ) as HTMLInputElement;
+  fileNameEl.value = fileName = newName;
+  setCookie(options.cookieFileName, fileName);
+};
+
+const localFileToEditor = function (fileName: string, next) {
+  const editor = document.getElementById("editorDiv");
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", fileName, true);
+  xhr.onload = function () {
+    updateAndHighlightMaybe(editor, xhr.responseText, fileName);
+    next();
+  };
+  xhr.send(null);
+};
+
+const dockerToEditor = function (
+  newName: string,
+  dialogFlag: boolean,
+  success,
+  failure
+) {
+  if (fileName == newName) return success(); // really? rethink
+  socket.emit("fileexists", newName, function (response) {
+    if (!response) return failure();
+    if (!dialogFlag) {
+      updateFileName(newName);
+      localFileToEditor(response, success);
+      return;
+    }
+    const dialog = document.getElementById(
+      "changeEditorFileName"
+    ) as HTMLDialogElement;
+    document.getElementById("newEditorFileName").textContent = newName;
+    dialog.onclose = function () {
+      updateFileName(newName);
+      if (dialog.returnValue == "overwrite") failure();
+      else localFileToEditor(response, success);
+    };
+    dialog.showModal();
+  });
+};
+
 const extra1 = function () {
   const tabs = document.getElementById("tabs") as any;
   const iFrame = document.getElementById("browseFrame");
@@ -193,7 +240,6 @@ const toggleWrap = function () {
   out.classList.toggle("M2Wrapped");
 };
   */
-  let fileName;
 
   let autoSaveTimeout = 0;
   const autoSave = function () {
@@ -216,33 +262,10 @@ const toggleWrap = function () {
   const fileNameEl = document.getElementById(
     "editorFileName"
   ) as HTMLInputElement;
-  const updateFileName = function (newName: string) {
-    fileNameEl.value = fileName = newName;
-    setCookie(options.cookieFileName, fileName);
-  };
+
   fileNameEl.onfocus = autoSave; // simple way to save, plus avoids issues with autosaving while onchange running
   fileNameEl.onchange = function () {
-    updateFileName(fileNameEl.value.trim());
-    socket.emit("fileexists", fileName, function (response) {
-      if (response) {
-        const dialog = document.getElementById(
-          "changeEditorFileName"
-        ) as HTMLDialogElement;
-        document.getElementById("newEditorFileName").textContent = fileName;
-        dialog.onclose = function () {
-          if (dialog.returnValue == "overwrite") autoSave();
-          else {
-            const xhr = new XMLHttpRequest();
-            xhr.open("GET", response, true);
-            xhr.onload = function () {
-              updateAndHighlightMaybe(editor, xhr.responseText, fileName);
-            };
-            xhr.send(null);
-          }
-        };
-        dialog.showModal();
-      } else autoSave();
-    });
+    dockerToEditor(fileNameEl.value.trim(), true, function () {}, autoSave);
   };
   fileNameEl.onkeydown = function (e) {
     if (e.key == "Enter") {
@@ -594,4 +617,4 @@ const toggleWrap = function () {
   if (cookieQuery) cookieQuery.onclick = queryCookie;
 };
 
-export { extra1, extra2, setCookie, getCookieId, setCookieId };
+export { extra1, extra2, setCookie, getCookieId, setCookieId, dockerToEditor };
