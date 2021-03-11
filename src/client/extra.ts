@@ -271,7 +271,9 @@ const toggleWrap = function () {
     dockerToEditor(
       newName,
       true,
-      function () {},
+      function () {
+        // successful load
+      },
       function () {
         updateFileName(newName);
         autoSave();

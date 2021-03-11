@@ -95,7 +95,9 @@ const keydownAction = function (e) {
           document.execCommand("undo", false, null);
         }, 0);
       },
-      function () {}
+      function () {
+        // file not found: do nothing
+      }
     );
   } else if (e.target.classList.contains("M2CellBar"))
     barKey(e, e.target.parentElement);
