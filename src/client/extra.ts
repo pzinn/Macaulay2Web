@@ -282,7 +282,7 @@ const toggleWrap = function () {
   };
   fileNameEl.onkeydown = function (e) {
     if (e.key == "Enter") {
-      editor.focus();
+      editor.focus({ preventScroll: true });
       e.preventDefault();
     }
   };

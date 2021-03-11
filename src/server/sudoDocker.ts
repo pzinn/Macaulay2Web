@@ -57,22 +57,19 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               const newInstance = JSON.parse(
                 JSON.stringify(self.currentInstance)
               ); // eww
+              // test for sshd?
               newInstance.port = port;
               if (self.currentInstance.port < port)
                 self.currentInstance.port = port;
               newInstance.clientId = clientId;
               newInstance.lastActiveTime = Date.now() - 1000 * 3600 * 24 * 365; // not really active => 1 year handicap
               newInstance.containerName = "m2Port" + newInstance.port;
-              if (!clients[clientId]) {
-                logger.info("Recovering");
-                // test for sshd?
-                const client = new Client(clientId);
-                clients[clientId] = client;
-                client.instance = newInstance;
-                self.addInstanceToArray(newInstance);
-              } else {
-                self.removeInstance(newInstance);
-              }
+              if (clients[clientId]) {
+                if (clients[clientId].instance)
+                  self.removeInstance(clients[clientId].instance);
+              } else clients[clientId] = new Client(clientId);
+              clients[clientId].instance = newInstance;
+              self.addInstanceToArray(newInstance);
             }
             asyncLoop(i);
           });
