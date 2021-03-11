@@ -45,7 +45,8 @@ const keydownAction = function (e) {
     const sel = e.currentTarget.ownerDocument.getSelection().toString(); // works in iframe too
     if (sel == "") return;
     socket.emit("input", 'viewHelp "' + sel + '"\n');
-  } else if (!MINIMAL && e.key == "F2") {
+  } else if (!MINIMAL && e.key == "Alt") {
+    // one of the few keys that doesn't kill selection outside contentEditable
     // of course this stuff shouldn't be in main.ts -- TEMP
     e.preventDefault();
     e.stopPropagation();
@@ -58,6 +59,7 @@ const keydownAction = function (e) {
       m[1],
       false, // no overwrite dialog
       function () {
+        document.location.hash = "editor";
         // find location in file
         if (!m[2]) return;
         let row1 = +m[2];
@@ -85,7 +87,13 @@ const keydownAction = function (e) {
         }
         if (m[4]) setCaret(editor, j1 + col1, j + col2 + 1);
         else setCaret(editor, j1 + col1);
-        editor.focus(); // does this actually scroll to caret? CHECK
+        // painful way of getting scrolling to work
+        setTimeout(function () {
+          // in case not in editor tab, need to wait
+          document.execCommand("insertHTML", false, "<span id='scrll'></span>");
+          document.getElementById("scrll").scrollIntoView();
+          document.execCommand("undo", false, null);
+        }, 0);
       },
       function () {}
     );
