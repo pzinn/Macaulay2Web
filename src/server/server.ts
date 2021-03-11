@@ -16,7 +16,11 @@ const app = express();
 //import httpModule = require("http");
 //const http = httpModule.createServer(app);
 import fs = require("fs");
-import formidable = require("formidable");
+import multer = require("multer");
+const upload = multer({
+  dest: "/tmp/",
+  limits: { fieldSize: 1000, fields: 10, fileSize: 1024 * 1024, files: 100 },
+});
 import ssh2 = require("ssh2");
 
 import socketio = require("socket.io");
@@ -310,34 +314,27 @@ const unlink = function (completePath: string) {
 };
 
 const fileUpload = function (request, response) {
-  const form = formidable({ multiples: true, maxFileSize: 10 * 1024 * 1024 });
-  form.parse(request, (err, fields, files) => {
-    if (err) {
-      response.writeHead(400);
-      response.write(err.toString());
-      response.end();
-      return;
-    }
-    const client =
-      fields.id && clients[fields.id] && clients[fields.id].instance
-        ? clients[fields.id]
-        : null;
-    if (client) logger.info("File upload from " + client.id);
-    const fileList = files["files[]"];
+  const id = request.body.id;
+  const client = id && clients[id] && clients[id].instance ? clients[id] : null;
+  if (client) logger.info("File upload from " + id);
+  const fileList = request.files;
+
+  if (fileList) {
     let str = "";
-    if (fileList) {
-      let errorFlag = false;
-      let nFiles;
-      const callUpload = client
+    let errorFlag = false;
+    let nFiles = fileList.length;
+    nFiles = fileList.length;
+    fileList.forEach(
+      client
         ? (file) => {
             uploadToDocker(
               client,
               file.path,
-              file.name,
+              file.originalname,
               sshCredentials,
               function (err) {
                 if (err) errorFlag = true;
-                else str += file.name + "<br/>";
+                else str += file.originalname + "<br/>";
                 nFiles--;
                 if (nFiles == 0) {
                   if (errorFlag) {
@@ -360,20 +357,13 @@ const fileUpload = function (request, response) {
               }
             );
           }
-        : (file) => unlink(file.path);
-      if (Array.isArray(fileList)) {
-        nFiles = fileList.length;
-        fileList.forEach(callUpload);
-      } else {
-        nFiles = 1;
-        callUpload(fileList);
-      }
-    }
-    if (!client) {
-      response.writeHead(400);
-      response.end();
-    }
-  });
+        : (file) => unlink(file.path)
+    );
+  }
+  if (!client) {
+    response.writeHead(400);
+    response.end();
+  }
 };
 
 const unhandled = function (request, response) {
@@ -392,7 +382,7 @@ const initializeServer = function () {
 
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
-  app.post("/upload/", fileUpload);
+  app.post("/upload/", upload.array("files[]"), fileUpload);
   app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
   app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
   app.use(serveStatic(staticFolder));

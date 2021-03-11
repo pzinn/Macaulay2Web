@@ -4,7 +4,14 @@ declare const MINIMAL;
 
 import socketIo from "socket.io-client";
 
-import { extra1, extra2, setCookie, getCookieId, setCookieId } from "./extra";
+import {
+  extra1,
+  extra2,
+  setCookie,
+  getCookieId,
+  setCookieId,
+  dockerToEditor,
+} from "./extra";
 import { syncChat } from "./chat";
 
 type Socket = SocketIOClient.Socket & { oldEmit?: any };
@@ -22,6 +29,8 @@ import {
   unselectCells,
 } from "./bar";
 
+import { setCaret } from "./htmlTools";
+
 import { options } from "../common/global";
 
 let myshell = null; // the terminal
@@ -30,11 +39,66 @@ let clientId = MINIMAL ? "public" : getCookieId(); // client's id. it's public /
 
 const keydownAction = function (e) {
   if (e.key == "F1") {
-    //    const sel = window.getSelection().toString();
-    const sel = e.currentTarget.ownerDocument.getSelection().toString(); // works in iframe too
-    if (sel != "") socket.emit("input", 'viewHelp "' + sel + '"\n');
     e.preventDefault();
     e.stopPropagation();
+    //    const sel = window.getSelection().toString();
+    const sel = e.currentTarget.ownerDocument.getSelection().toString(); // works in iframe too
+    if (sel == "") return;
+    socket.emit("input", 'viewHelp "' + sel + '"\n');
+  } else if (!MINIMAL && e.key == "Alt") {
+    // one of the few keys that doesn't kill selection outside contentEditable
+    // of course this stuff shouldn't be in main.ts -- TEMP
+    e.preventDefault();
+    e.stopPropagation();
+    const sel = e.currentTarget.ownerDocument.getSelection().toString(); // works in iframe too
+    if (sel == "") return;
+    // figure out filename
+    const m = sel.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
+    if (!m) return;
+    dockerToEditor(
+      m[1],
+      false, // no overwrite dialog
+      function () {
+        document.location.hash = "editor";
+        // find location in file
+        if (!m[2]) return;
+        let row1 = +m[2];
+        if (row1 < 1) row1 = 1;
+        let col1 = m[3] ? +m[3] : 1;
+        if (col1 < 1) col1 = 1;
+        let row2 = m[5] ? +m[4] : row1;
+        if (row2 < row1) row2 = row1;
+        let col2 = m[5] ? +m[5] : m[4] ? +m[4] : col1;
+        if (row2 == row1 && col2 < col1) col2 = col1;
+        const editor = document.getElementById("editorDiv");
+        const editorText = editor.innerText;
+        let j = -1;
+        let k = 1;
+        let j1;
+        while (true) {
+          if (k == row1) j1 = j;
+          if (k == row2) break;
+          j = editorText.indexOf("\n", j + 1);
+          if (j < 0) {
+            setCaret(editor, editorText.length);
+            return;
+          }
+          k++;
+        }
+        if (m[4]) setCaret(editor, j1 + col1, j + col2 + 1);
+        else setCaret(editor, j1 + col1);
+        // painful way of getting scrolling to work
+        setTimeout(function () {
+          // in case not in editor tab, need to wait
+          document.execCommand("insertHTML", false, "<span id='scrll'></span>");
+          document.getElementById("scrll").scrollIntoView();
+          document.execCommand("undo", false, null);
+        }, 0);
+      },
+      function () {
+        // file not found: do nothing
+      }
+    );
   } else if (e.target.classList.contains("M2CellBar"))
     barKey(e, e.target.parentElement);
 };
