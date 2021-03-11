@@ -142,6 +142,7 @@ const newEditorFileMaybe = function (arg: string, overwrite: boolean) {
   const m = arg.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
   const newName = m ? m[1] : arg;
   if (fileName == newName) {
+    updateFileName(newName); // in case of positioning data
     positioning(m);
     return;
   }
