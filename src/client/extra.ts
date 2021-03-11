@@ -1,7 +1,12 @@
 import Cookie from "cookie";
 import { options } from "../common/global";
 import { socket, url, myshell, clientId } from "./main";
-import { scrollDown, scrollDownLeft, caretIsAtEnd } from "./htmlTools";
+import {
+  scrollDown,
+  scrollDownLeft,
+  setCaret,
+  caretIsAtEnd,
+} from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import tutorials from "./tutorials";
 import { Chat } from "../common/chatClass";
@@ -64,6 +69,24 @@ const updateFileName = function (newName: string) {
   setCookie(options.cookieFileName, fileName);
 };
 
+let autoSaveTimeout = 0;
+const autoSave = function () {
+  if (autoSaveTimeout) {
+    window.clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = 0;
+  }
+  const content = document.getElementById("editorDiv").innerText as string;
+  const file = new File([content], fileName);
+  const formData = new FormData();
+  formData.append("files[]", file);
+  formData.append("id", clientId);
+  /*    const req = new XMLHttpRequest();
+      req.open("POST", "/upload");
+    //req.onloadend = showUploadDialog;
+      req.send(formData);*/
+  navigator.sendBeacon("/upload", formData);
+};
+
 const localFileToEditor = function (fileName: string, next) {
   const editor = document.getElementById("editorDiv");
   const xhr = new XMLHttpRequest();
@@ -75,18 +98,69 @@ const localFileToEditor = function (fileName: string, next) {
   xhr.send(null);
 };
 
-const dockerToEditor = function (
-  newName: string,
-  dialogFlag: boolean,
-  success,
-  failure
-) {
-  if (fileName == newName) return success(); // really? rethink
+const positioning = function (m) {
+  document.location.hash = "editor";
+  // find location in file
+  if (!m || !m[2]) return;
+  let row1 = +m[2];
+  if (row1 < 1) row1 = 1;
+  let col1 = m[3] ? +m[3] : 1;
+  if (col1 < 1) col1 = 1;
+  let row2 = m[5] ? +m[4] : row1;
+  if (row2 < row1) row2 = row1;
+  let col2 = m[5] ? +m[5] : m[4] ? +m[4] : col1;
+  if (row2 == row1 && col2 < col1) col2 = col1;
+  const editor = document.getElementById("editorDiv");
+  const editorText = editor.innerText;
+  let j = -1;
+  let k = 1;
+  let j1;
+  while (true) {
+    if (k == row1) j1 = j;
+    if (k == row2) break;
+    j = editorText.indexOf("\n", j + 1);
+    if (j < 0) {
+      setCaret(editor, editorText.length);
+      return;
+    }
+    k++;
+  }
+  if (m[4]) setCaret(editor, j1 + col1, j + col2 + 1);
+  else setCaret(editor, j1 + col1);
+  // painful way of getting scrolling to work
+  setTimeout(function () {
+    // in case not in editor tab, need to wait
+    document.execCommand("insertHTML", false, "<span id='scrll'></span>");
+    document.getElementById("scrll").scrollIntoView();
+    document.execCommand("undo", false, null);
+  }, 0);
+};
+
+const newEditorFileMaybe = function (arg: string, overwrite: boolean) {
+  // parse newName for positioning
+  // figure out filename
+  const m = arg.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
+  const newName = m ? m[1] : arg;
+  if (fileName == newName) {
+    positioning(m);
+    return;
+  }
+
   socket.emit("fileexists", newName, function (response) {
-    if (!response) return failure();
-    if (!dialogFlag) {
+    if (!response) {
+      if (overwrite) {
+        updateFileName(newName);
+        positioning(m);
+        autoSave();
+      }
+      return;
+    }
+    if (!overwrite) {
+      autoSave();
       updateFileName(newName);
-      localFileToEditor(response, success);
+      localFileToEditor(response, function () {
+        positioning(m);
+      });
       return;
     }
     const dialog = document.getElementById(
@@ -94,10 +168,14 @@ const dockerToEditor = function (
     ) as HTMLDialogElement;
     document.getElementById("newEditorFileName").textContent = newName;
     dialog.onclose = function () {
-      if (dialog.returnValue == "overwrite") failure();
-      else {
-        updateFileName(newName);
-        localFileToEditor(response, success);
+      updateFileName(newName);
+      if (dialog.returnValue == "overwrite") {
+        positioning(m);
+        autoSave();
+      } else {
+        localFileToEditor(response, function () {
+          positioning(m);
+        });
       }
     };
     dialog.showModal();
@@ -243,24 +321,6 @@ const toggleWrap = function () {
 };
   */
 
-  let autoSaveTimeout = 0;
-  const autoSave = function () {
-    if (autoSaveTimeout) {
-      window.clearTimeout(autoSaveTimeout);
-      autoSaveTimeout = 0;
-    }
-    const content = editor.innerText as string;
-    const file = new File([content], fileName);
-    const formData = new FormData();
-    formData.append("files[]", file);
-    formData.append("id", clientId);
-    /*    const req = new XMLHttpRequest();
-      req.open("POST", "/upload");
-    //req.onloadend = showUploadDialog;
-      req.send(formData);*/
-    navigator.sendBeacon("/upload", formData);
-  };
-
   const fileNameEl = document.getElementById(
     "editorFileName"
   ) as HTMLInputElement;
@@ -268,17 +328,7 @@ const toggleWrap = function () {
   fileNameEl.onfocus = autoSave; // simple way to save, plus avoids issues with autosaving while onchange running
   fileNameEl.onchange = function () {
     const newName = fileNameEl.value.trim();
-    dockerToEditor(
-      newName,
-      true,
-      function () {
-        // successful load
-      },
-      function () {
-        updateFileName(newName);
-        autoSave();
-      }
-    );
+    newEditorFileMaybe(newName, true);
   };
   fileNameEl.onkeydown = function (e) {
     if (e.key == "Enter") {
@@ -630,4 +680,11 @@ const toggleWrap = function () {
   if (cookieQuery) cookieQuery.onclick = queryCookie;
 };
 
-export { extra1, extra2, setCookie, getCookieId, setCookieId, dockerToEditor };
+export {
+  extra1,
+  extra2,
+  setCookie,
+  getCookieId,
+  setCookieId,
+  newEditorFileMaybe,
+};
