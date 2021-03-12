@@ -1,37 +1,26 @@
 <html>
   <head>
-    <title>More on the interface</title>
+    <title>More on the interface: the WebApp mode</title>
   </head>
   <body>
     <div>
       <h2>Introduction</h2>
       <p>If you've used previously the ``habanero'' server, you should recognize much of the interface. If not, the welcome tutorial can help.
-	Here we focus on new features:</p>
-      <ul>
-	<li>(Ka)TeX output</li>
-	<li>Input greek letters and other unicode symbols with [Escape]start of name[Escape] (also works with ZZ, QQ etc)</li>
-	<li>Syntax highlighting and delimiter matching in editor and terminal</li>
-	<li>Auto-complete: keywords with [Tab]; previous input with [RightArrow] at end of line (terminal only)</li>
-	<li>Click on past input (including help input) to make it the current input</li>
-	<li>Click on bar left of a cell to copy/paste/shrink/wrap/group/run it</li>
-	<li>Press F1 to get help on selection</li>
-	<li>Native support for HTML classes</li>
-	<li>You may jump directly to a particular lesson by adding e.g. <a href="#tutorial-4-2" target="_self">#tutorial-4-2</a> to the URL.
-	<li>A chatroom. Supports some markdown (`` for code, lists, tables, etc), (La)TeX. Default sends to everyone, with private messaging turned on default sends to your user id, or to the specified comma-separated list of recipients, where each recipient is of the form [alias], [userid]/, [userid]/[alias].</li>
-	<li>In order to work, this web interface uses <code>topLevelMode=WebApp</code>, a special output mode of \(\mac\) adapted to mixing TeX and HTML.
-	  If you're nostalgic, you can always revert to <code>topLevelMode=Standard</code> for your usual terminal/ascii output.</li>
-      </ul>
-      <p>Some of these points are developed in the next pages.</p>
-      <p>Also note that a <a href="minimal.html" target="_blank">minimal version</a> of this interface exists. It can be embedded as an iframe into any web page.</p>
+      </p>
+      <p>
+	There are various new features of this interface. Here we focus on the underlying \(\mac\) code: in order to work and produce LaTeX/HTML output, this web interface uses <code>topLevelMode=WebApp</code>, a special output mode of \(\mac\).
+	(If you're nostalgic, you can always revert to <code>topLevelMode=Standard</code> for your usual terminal/ascii output.)
+      </p>
+      <p>The next few pages are meant for package developers or advanced users who wish to understand how to make the output of their programs look nice in WebApp mode.</p>
     </div>
     <div>
       <h2>KaTeX</h2>
-      <p>By default, all output is processed by the \(\mac\) command <tt>texMath</tt> and then rendered to the browser using <a href="https://katex.org/">KaTeX</a>:
+      <p>By default, all mathematical output is processed by the \(\mac\) command <tt>texMath</tt> and then rendered to the browser using <a href="https://katex.org/">KaTeX</a>:
 	<code class='block'>matrix table(5,5,(i,j)->i*j)</code>
       </p>
-      <p>All built-in types have a method <tt>texMath</tt> (or at least they should!). If you define your own type, say,
+      <p>All built-in mathematical types have a method <tt>texMath</tt> (or at least they should!). If you define your own type, say,
 	<code class='block'>MyType = new Type of BasicList</code>
-	  then it is a good idea to define your own method <tt>texMath</tt>. One way to do that is to write
+	then it is a good idea to define your own method <tt>texMath</tt>. One way to do that is to write
 	<code class='block'>texMath MyType := x -> texMath expression x;</code>
 	and then for example
 	<code class='block'>expression MyType := x -> (
@@ -46,20 +35,22 @@
 	<code class='block'>net A</code>
 	<code class='block'>toString A</code>
       </p>
-      <p><small><i>Remark:</i> In future versions of \(\mac\), it may not even be needed to write <tt>texMath MyType := x -> texMath expression x</tt>
-	  and similarly for other outputs. Stay tuned!</small></p>
+      <!--      <p><small><i>Remark:</i> In future versions of \(\mac\), it may not even be needed to write <tt>texMath MyType := x -> texMath expression x</tt>
+		and similarly for other outputs. Stay tuned!</small></p> -->
     </div>
     <div>
-      <h2>Hypertext</h2>
-      <p>This interface has native support for HTML output.</p>
+      <h2>HTML and Hypertext</h2>
+      <p>Being a web interface, this interface has native support for HTML output.</p>
+      <p>
+	For non mathematical types such as <tt>Net</tt> and <tt>String</tt>, direct HTML output (rather than KaTeX) is used.
+	This is controlled by the method <tt>html</tt>.
+      </p>
+      <p>
+	One can also produce arbitrary HTML output using the package <tt>Text</tt>:<br/>
+	<code class='block'>needsPackage "Text"</code>
+      </p>
       <p>
 	Here is how one can create HTML classes in \(\mac\); they are <tt>MarkUpType</tt>s with common ancestor the type <tt>Hypertext</tt>.
-      </p>
-      <p>
-      The package <tt>Text</tt> must be (re)loaded:
-      <code class='block'>needsPackage "Text"</code>
-      </p>
-      <p>
 	<tt>MarkUpType</tt>s are self-initializing:
 	<code class='block'> DIV { BOLD { "hello" }, HR {}, OL {"stuff", "more stuff", LI {"and more"} },
 	  ANCHOR { "href" => "http://macaulay2.com", "A link" } }</code>
@@ -92,13 +83,13 @@
       <p>
 	Some examples:
 	<code class='block'>uglyLogo=gList(Ellipse{(0,0),90,30,"stroke"=>"none",Blur=>0.3,
-	    "fill"=>linearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")}},
-	    GraphicsText{(-65,-7),"Macaulay2",
-	      FontSize=>25,"stroke"=>"black","stroke-width"=>"0.5%","fill"=>"white"},
-	    AnimMatrix=>translation(0,0,10),SizeY=>12)</code>
+	  "fill"=>linearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")}},
+	  GraphicsText{(-65,-7),"Macaulay2",
+	  FontSize=>25,"stroke"=>"black","stroke-width"=>"0.5%","fill"=>"white"},
+	  AnimMatrix=>translation(0,0,10),SizeY=>12)</code>
 	The next one mixes KaTeX and HTML output:
 	<code class='block'>rgb={"red","green","blue"}; scan(rgb, x -> globalAssign(value x,
-	    Circle{"fill"=>x,"stroke"=>"black",SizeX=>0.8,SizeY=>0.8,Margin=>0}));
+	  Circle{"fill"=>x,"stroke"=>"black",SizeX=>0.8,SizeY=>0.8,Margin=>0}));
 	  R=QQ[x_red,x_green,x_blue]; print describe R; res cokernel vars R</code>
       </p>
       <p>To access the underlying SVG object, just write
@@ -113,18 +104,19 @@
       <h2>Other packages</h2>
       <p>
 	For your package to work with this interface,
-	it needs to have either a <tt>texMath</tt> or <tt>html</tt> method for all defined types.
+	it needs to have either a <tt>texMath</tt> or <tt>html</tt> method for all defined types. (By default,
+	these methods will be inherited from ancestor types, which may or may not be to your liking.)
       </p>
       <p>Say your type is
 	<code class='block'>MyType = new Type of BasicList</code>
-	One can define as explained before a <tt>texMath</tt> method.
+	For types corresponding to mathematical objects, you should define as explained before a <tt>texMath</tt> method.
 	Let us try instead the <tt>html</tt> method for our type: (we could define it via <tt>expression</tt> as we did earlier for other modes of output, but for simplicity we define it directly here)
 	<code class='block'>needsPackage "Text"; html MyType := x -> html ( UL toList x )</code>
 	Let us test it:
 	<code class='block'>new MyType from {"ha","hi",1-ii,QQ[x]}</code>
       </p>
       <p>
-	Here we show how an existing package which already has HTML output can be easily converted to the new interface:
+	Here we show how an existing package which already has support for HTML output can be easily converted to the new interface:
 	<code class='block'>needsPackage "Graphs"</code>
 	Now check out:
 	<code class='block'>help graph</code>
