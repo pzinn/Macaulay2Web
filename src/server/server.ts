@@ -19,6 +19,7 @@ import fs = require("fs");
 import multer = require("multer");
 const upload = multer({
   dest: "/tmp/",
+  preservePath: true,
   limits: { fieldSize: 1000, fields: 10, fileSize: 1024 * 1024, files: 100 },
 });
 import ssh2 = require("ssh2");
