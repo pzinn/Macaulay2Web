@@ -60,130 +60,170 @@
     </div>
 
     <div>
-      <h2>Using the terminal and the editor</h2>
-      <h3>Using the Terminal on the right</h2>
-<p> You can type in \(\mac\) commands directly into the right hand side terminal.
-  You have various options to execute again past input:
-  <ul>
-    <li>You can click on it, possibly edit it further, then press Return;</li>
-    <li>You can select the bar on the left of its cell, then press Return;</li>
-    <li>You can use the up and down arrow keys to go through the list of previous inputs;</li>
-    <li>You can type the beginning of the line, then press the right arrow key for auto-completion.</li>
-  </ul>
-  You can also use the tab key for \(\mac\) keyword auto-completion.</p>
+      <h2>Using the Terminal</h2>
+      <p>
+	The right half of the screen is the <b>Terminal</b>, where the \(\mac\) action takes place!
+	(You can make it expand to the whole window by pressing the <i class="material-icons">fullscreen</i> icon in the
+	top right corner.)</p>
 
-<h3>Using the Editor window on the left</h2>
-<p>When you write M2 functions or long loops, it is often more convenient to write your code
-  in a separate window and execute the code after you wrote it. This allows you to easily modify previous code and
-  move the cursor around freely.</p>
+      <p> You can type in \(\mac\) commands directly into the right hand side terminal; pressing <b>Return</b>
+	sends your commands to \(\mac\) to be executed.</p>
 
-<p>Clicking or tapping the <b>Editor</b> button at the top of the page, navigates you to the editor tab.
-  This is where you may type in \(\mac\) code and have it evaluated.</p>
+      <p>  You have various options to execute again past input:
+	<ul>
+	  <li>You can click on it, possibly edit it further;</li>
+	  <li>You can select the bar on the left of its cell (possibly select multiple cells using <b>Shift</b> or <b>Ctrl</b>-clicking);</li>
+	  <li>You can use the <b>Up</b> and <b>Down</b> arrow keys to go through the list of previous inputs;</li>
+	  <li>You can type the beginning of the line, then press the <b>Right arrow</b> key for auto-completion.</li>
+	</ul>
+	In each case, press <b>Return</b> as usual to send your input to \(\mac\).
+      </p>
+      <p>
+	You can also use the <b>Tab</b> key for \(\mac\) keyword auto-completion.</p>
+    </div>
+    <div>
+      <h2>Using the Editor</h2>
+      <p>When you write M2 functions or long loops, it is often more convenient to write your code
+	in a separate window and execute the code after you wrote it. This allows you to easily modify previous code and
+	move the cursor around freely.</p>
 
-<p>In that window, place your cursor on a line that you wish to evaluate, and either click the
-  <b>Evaluate</b> button, or press Shift-Return (both keys at the same time).</p>
+      <p>Clicking or tapping the <b>Editor</b> button at the top of the page, navigates you to the editor tab in the
+	left half of the screen.
+	This is where you may type in \(\mac\) code and have it evaluated.</p>
 
-<p>Alternatively, you may select several lines, or a part of a line, and clicking
-  <b>Evaluate</b> (or press Shift-Return) will evaluate the selection.</p>
+      <p>In that window, place your cursor on a line that you wish to evaluate, and either click the
+	<b>Evaluate</b> button, or press Shift-Return (both keys at the same time).</p>
 
-<p>You try it!  Click <b>Editor</b>, type in some \(\mac\) input, or try out some of the example
-  lines already there. To come back to the tutorial, click or tap on the
-  <b>Tutorial</b> button at the top of the page. </p>
+      <p>Alternatively, you may select several lines, or a part of a line, and clicking
+	<b>Evaluate</b> (or press Shift-Return) will evaluate the selection.</p>
 
-</div>
+      <p>You try it!  Click <b>Editor</b>, type in some \(\mac\) input, or try out some of the example
+	lines already there. To come back to the tutorial, click or tap on the
+	<b>Tutorial</b> button at the top of the page. </p>
 
-<div>
+      <p>
+	Click on the <b>Load</b> and <b>Save</b> buttons at the top right of the editor tab to transfer the contents of a local file to the editor, and vice versa.
+      </p>
+    </div>
+    <div>
+      <h2>Macaulay2 sessions and the Reset button</h2>
 
-  <h2>Macaulay2 sessions and the Reset button</h2>
+      <p> When your browser starts, once you press the <b>Start</b> button, a \(\mac\) process is started on the server.
+	All of your input, either typed and evaluated, or run by pressing buttons,
+	goes to this process.  If you open a second window or tab in the same
+	browser, you will get the same session.
+      </p>
 
-  <p> When your browser starts, once you press the <b>Start</b> button, a \(\mac\) process is started on the server.
-    All of your input, either typed and evaluated, or run by pressing buttons,
-    goes to this process.  If you open a second window or tab in the same
-    browser, you will get the same session.
-  </p>
+      <p>
+	You might wish to start fresh, or restart \(\mac\), if a computation is
+	going on too long.  In this case, press the <b>Reset</b> button (which replaces the initial <b>Start</b> button)
+	at the top of the page.
+      </p>
 
-  <p>
-    You might wish to start fresh, or restart \(\mac\), if a computation is
-    going on too long.  In this case, press the <b>Reset</b> button at the top of
-    the page.
-  </p>
+      <p>
+	When you first connect to this web site and press <b>Start</b>, a cookie is generated, and that is used to connect to
+	your \(\mac\) process on the server.  If you close your window or quit your browser, the
+	cookie allows you to reconnect back to the same session next time. The \(\mac\) output will also be restored starting
+	from the last time you pressed the <b>Start/Reset</b> button.
+      </p>
 
-  <p>
-    When you first connect to this web site, a cookie is generated, and that is used to connect to
-    your \(\mac\) process on the server.  If you quit your browser, and it is set to remember windows, then
-    it remembers the cookie, and you can reconnect back to the same session.  If not, then a new session
-    is created.
-  </p>
-
-  <p>
-    Sometimes the server must be restarted for maintenance or other reasons, and at those times, all sessions
-    are terminated.
-  </p>
-
-  <h3>Loading/Saving your work</h2>
-
-<p>
-  Click on the <b>Load</b> and <b>Save</b> buttons at the top right of the editor tab to transfer the contents of a local file to the editor, and vice versa.
-</p>
-
-</div>
-
-<div>
-  <h2>Advanced topics</h2>
-  <h3>Uploading files</h3>
-  <p>Use the <b>Upload File</b> button to upload files to the \(\mac\) server that can then be loaded into your \(\mac\) session. Suppose that you have uploaded a file named \(\verb|foo.m2|\) which contains \(\mac\) code.
-    You may then load this file into \(\mac\) using either:
-  </p>
-  <p><code class='block'>load "foo.m2"</code></p>
-  <p>
-    or, if you wish to see all of the lines executed one by one:
-  </p>
-  <p><code class='block'>input "foo.m2"</code></p>
-  <p><b>Note</b>: these lines will likely give errors now, as the file
-    \(\verb|foo.m2|\) probably doesn't exist on the server!</p>
-  <p>For your convenience, when you load or save files to the editor, they are automatically uploaded as well.</p>
-
-  <h3>Running shell commands in your Macaulay2 session</h3>
-  <p>It is possible to run shell commands from within \(\mac\), although many operations are restricted.
-    For example, to see what files you have in your home directory on the server, try:</p>
-  <p><code class='block'>run "ls -a"</code></p>
-  Alternatively, if you want to obtain the output as a string, use
-  <p><code class='block'>get "!ls -a"</code></p>
-
-  <h3>Macaulay2 and temporary files</h3>
-  <p>Sometimes \(\mac\) or one of its packages generate temporary files.
-    For example, the graph function below creates dot and svg files.
-  </p>
-  <p><code class='block'>needsPackage "Graphs"</code></p>
-  <p><code class='block'>A = graph({{a,b},{b,c},{b,d},{d,e}})</code></p>
-
-  <h3>Getting files back to your machine</h3>
-  <p>
-    Sometimes your \(\mac\) code will create a file as output.  How to download
-    this onto your machine?  Here is one way.  This first line creates a file for
-    the purpose of this example.
-    <code class='block'>"important-results.txt" &lt;&lt; "very important results" &lt;&lt; close</code>
-    The next line will open the file in your <b>Browse</b> tab.
-    <code class='block'>show URL "important-results.txt"</code>
-    Alternatively, you can download it in the <b>Editor</b> tab: either go to the editor tab and type the file name in the bottom right corner, or select with your mouse the file name (anywhere in your browser window) and press the <b>Alt</b> key.
-  </p>
-
-  <h3>Restrictions in place for the Macaulay2Web server</h3>
-  <p>The server is being shared with other users, therefore memory and CPU time
-    are limited (generous, but limited).  Other restrictions include: upload file size, number of processes that
-    can run, and the amount of time that the session is saved on the server.
-  </p>
+      <p>
+	Sometimes the server must be restarted for maintenance or other reasons, and at those times, all \(\mac\) processes
+	are terminated.
+      </p>
 
 
-  <h3>Contributing</h3>
-  <p>
-    This is an open source project, hosted on <a href="http://github.com/pzinn/Macaulay2Web" target="_blank">GitHub</a>.
-  </p>
-  <p>
-    If you have tutorials that you would like to contribute, please contact
-    <a href="mailto:pzinn@unimelb.edu.au">me</a>.
-  </p>
+    </div>
+    <div>
+      <h2>Advanced editing features</h2>
+      <p>In both <b>Terminal</b> and <b>Editor</b> tabs, various advanced features are available:
+	<ul>
+	  <li>You can input greek letters and other unicode symbols with <b>Escape</b>[start of name]<b>Escape</b>
+	    (e.g., try it with <tt>ZZ</tt>, <tt>QQ</tt>).</li>
+	  <li>There is automatic syntax highlighting and delimiter matching.</li>
+	  <li>Clicking on the bar left of a cell allows to copy/paste/shrink/wrap/group/run it;
+	    right-click on the bar to see the list of options and keyboard shortcuts.</li>
+	  <li>Press <b>F1</b> to get help on the selected text.</li>
+	  <li>Press <b>Alt</b> to load the file whose name is the selected text into the <b>Editor</b>
+	    (provided the file has been uploaded, see next section). You can use the syntax
+	    <tt>filename.m2:1:5-5:10</tt> (as in \(\mac\) error messages) to highlight a portion of the text.</li>
+	</ul>
+      </p>
+    </div>
 
-</div>
-</body>
+    <div>
+      <h2>Advanced file handling</h2>
+      <h3>Uploading files</h3>
+      <p>Use the <b>Upload File</b> button to upload files to the \(\mac\) server that can then be loaded into your \(\mac\) session. Suppose that you have uploaded a file named \(\verb|foo.m2|\) which contains \(\mac\) code.
+	You may then load this file into \(\mac\) using either:
+      </p>
+      <p><code class='block'>load "foo.m2"</code></p>
+      <p>
+	or, if you wish to see all of the lines executed one by one:
+      </p>
+      <p><code class='block'>input "foo.m2"</code></p>
+      <p><b>Note</b>: these lines will likely give errors now, as the file
+	\(\verb|foo.m2|\) probably doesn't exist on the server!</p>
+      <p>For your convenience, the content of the <b>Editor</b> tab is automatically uploaded as well. The default name
+	<tt>default.m2</tt> can be changed at the bottom right, and is updated when you load a local file.</p>
+
+      <h3>Running shell commands in your Macaulay2 session</h3>
+      <p>It is possible to run shell commands from within \(\mac\), although many operations are restricted.
+	For example, to see what files you have in your home directory on the server, try:</p>
+      <p><code class='block'>run "ls -a"</code></p>
+      Alternatively, if you want to obtain the output as a string, use
+      <p><code class='block'>get "!ls -a"</code></p>
+
+      <h3>Macaulay2 and temporary files</h3>
+      <p>Sometimes \(\mac\) or one of its packages generate temporary files.
+	For example, the graph function below creates dot and svg files.
+      </p>
+      <p><code class='block'>needsPackage "Graphs"</code></p>
+      <p><code class='block'>A = graph({{a,b},{b,c},{b,d},{d,e}})</code></p>
+
+      <h3>Getting files back to your machine</h3>
+      <p>
+	Sometimes your \(\mac\) code will create a file as output.  How to download
+	this onto your machine?  Here is one way.  This first line creates a file for
+	the purpose of this example.
+	<code class='block'>"important-results.txt" &lt;&lt; "very important results" &lt;&lt; close</code>
+	The next line will open the file in your <b>Browse</b> tab.
+	<code class='block'>show URL "important-results.txt"</code>
+	Alternatively, you can download it in the <b>Editor</b> tab: select with your mouse the file name (anywhere in your browser window) and press the <b>Alt</b> key (you can also go to the editor tab and manually type the file name in the bottom right corner). Try it with <tt>important-results.txt</tt> or the temporary files above!
+      </p>
+
+      <h3>Restrictions in place for the Macaulay2Web server</h3>
+      <p>The server is being shared with other users, therefore memory and CPU time
+	are limited (generous, but limited).  Other restrictions include: upload file size, number of processes that
+	can run, and the amount of time that the session is saved on the server.
+      </p>
+      <p>Your user files are kept on the server even if you reset \(\mac\). There are 2 circumstances in which your files
+	will be erased:
+	<ul>
+	  <li>When there are too many users, the users who have been inactive longest have their sessions terminated.</li>
+	  <li>During server reboot, if the version of Macaulay2 on the server is upgraded, all user files
+	    on the server are erased.</li>
+	</ul>
+      </p>
+    </div>
+    <div>
+      <h2>Miscellaneous</h2>
+      <h3>Other advanced features</h3>
+      <ul>
+	<li>There is a chatroom (click on the <b>Chat</b> tab button. Supports some markdown (` for code, lists, tables, etc), (La)TeX. Default sends to everyone, with private messaging turned on default sends to your user id, or to the specified comma-separated list of recipients, where each recipient is of the form [alias] or [userid]/ or [userid]/[alias]).</li>
+	<li>You can find your user id by clicking on the word cookie in the <b>Home</b> tab (temporary!).
+	  You can change your user id by adding <tt>?user=[new id]</tt> to the URL.</li>
+	<li>You may jump directly to a particular lesson by adding e.g. <a href="#tutorial-4-2" target="_self">#tutorial-4-2</a> to the URL.</li>
+	<li>Also note that a <a href="minimal.html" target="_blank">minimal version</a> of this interface exists. It can be embedded as an iframe into any web page.</li>
+      </ul>
+      <h3>Contributing</h3>
+      <p>
+	This is an open source project, hosted on <a href="http://github.com/pzinn/Macaulay2Web" target="_blank">GitHub</a>.
+      </p>
+      <p>
+	If you have tutorials that you would like to contribute, please contact
+	<a href="mailto:pzinn@unimelb.edu.au">me</a>.
+      </p>
+    </div>
+  </body>
 </html>
