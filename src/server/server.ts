@@ -332,7 +332,13 @@ const fileUpload = function (request, response) {
               sshCredentials,
               function (err) {
                 if (err) errorFlag = true;
-                else str += file.originalname + "<br/>";
+                else {
+                  str += file.originalname + "<br/>";
+                  emitViaClientSockets(client, "filechanged", {
+                    fileName: file.originalname,
+                    hash: request.body.hash,
+                  });
+                }
                 nFiles--;
                 if (nFiles == 0) {
                   if (errorFlag) {
