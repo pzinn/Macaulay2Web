@@ -147,8 +147,12 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   private killOldestContainer = function (next) {
     const self = this;
     self.sortInstancesByAge();
-    if (self.isLegal(self.currentContainers[0])) {
-      self.removeInstance(self.currentContainers[0], next);
+    const instance = self.currentContainers[0];
+    if (self.isLegal(instance)) {
+      self.removeInstance(instance, function () {
+        clients[instance.clientId].instance = null;
+        next();
+      });
     } else {
       throw new Error("Too many active users.");
     }
@@ -167,7 +171,6 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
             error
         );
       }
-      clients[instance.clientId].instance = null;
       self.removeInstanceFromArray(instance);
       if (next) {
         next();
