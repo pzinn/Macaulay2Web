@@ -21,7 +21,19 @@ import {
   syntaxHighlight,
   updateAndHighlightMaybe,
 } from "./editor";
-import { md5 } from "./md5";
+
+const hashCode = function (s: string) {
+  let hash = 0,
+    i,
+    chr;
+  if (s.length === 0) return hash;
+  for (i = 0; i < s.length; i++) {
+    chr = s.charCodeAt(i);
+    hash = (hash << 5) - hash + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+};
 
 const setCookie = function (name: string, value: string): void {
   const expDate = new Date(new Date().getTime() + options.cookieDuration);
@@ -82,7 +94,7 @@ const autoSave = function () {
   const formData = new FormData();
   formData.append("files[]", file);
   formData.append("id", clientId);
-  autoSaveHash = Math.floor(Math.random() * 100000); // TEMP
+  autoSaveHash = hashCode(content);
   formData.append("hash", autoSaveHash);
   /*    const req = new XMLHttpRequest();
       req.open("POST", "/upload");
