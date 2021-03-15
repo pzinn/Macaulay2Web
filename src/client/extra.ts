@@ -137,8 +137,12 @@ const localFileToEditor = function (fileName: string, m?) {
 
 const positioning = function (m) {
   document.location.hash = "editor";
+  const editor = document.getElementById("editorDiv");
   // find location in file
-  if (!m || !m[2]) return;
+  if (!m || !m[2]) {
+    editor.focus({ preventScroll: true });
+    return;
+  }
   let row1 = +m[2];
   if (row1 < 1) row1 = 1;
   let col1 = m[3] ? +m[3] : 1;
@@ -147,7 +151,6 @@ const positioning = function (m) {
   if (row2 < row1) row2 = row1;
   let col2 = m[5] ? +m[5] : m[4] ? +m[4] : col1;
   if (row2 == row1 && col2 < col1) col2 = col1;
-  const editor = document.getElementById("editorDiv");
   const editorText = editor.innerText;
   let j = -1;
   let k = 1;
@@ -168,7 +171,7 @@ const positioning = function (m) {
   setTimeout(function () {
     // in case not in editor tab, need to wait
     document.execCommand("insertHTML", false, "<nav id='scrll'></nav>");
-    document.getElementById("scrll").scrollIntoView();
+    document.getElementById("scrll").scrollIntoView(); // add options?
     document.execCommand("undo", false, null);
   }, 0);
 };
@@ -363,6 +366,8 @@ const toggleWrap = function () {
     "editorFileName"
   ) as HTMLInputElement;
 
+  let preventEnterKeyUp = false; // annoying: Enter key wrongly triggers autoIndent when loading new file into editor
+
   fileNameEl.onfocus = autoSave; // simple way to save, plus avoids issues with autosaving while onchange running
   fileNameEl.onchange = function () {
     const newName = fileNameEl.value.trim();
@@ -370,8 +375,7 @@ const toggleWrap = function () {
   };
   fileNameEl.onkeydown = function (e) {
     if (e.key == "Enter") {
-      editor.focus({ preventScroll: true });
-      e.preventDefault();
+      preventEnterKeyUp = true;
     }
   };
 
@@ -527,8 +531,10 @@ const toggleWrap = function () {
   };
 
   const editorKeyUp = function (e) {
-    if (e.key == "Enter" && !e.shiftKey) autoIndent(editor);
-    else delimiterHandling(e.key, editor);
+    if (e.key == "Enter" && !e.shiftKey) {
+      if (preventEnterKeyUp) preventEnterKeyUp = false;
+      else autoIndent(editor);
+    } else delimiterHandling(e.key, editor);
   };
 
   const queryCookie = function () {
