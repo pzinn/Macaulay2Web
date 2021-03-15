@@ -10,7 +10,6 @@ import {
 import { socketChat, syncChat } from "./chat";
 import tutorials from "./tutorials";
 import { Chat } from "../common/chatClass";
-import defaultEditor from "./default.m2"; // TODO retire
 import {
   escapeKeyHandling,
   autoCompleteHandling,
@@ -171,13 +170,11 @@ const positioning = function (m) {
   setTimeout(function () {
     // in case not in editor tab, need to wait
     document.execCommand("insertHTML", false, "<span id='scrll'></span>");
-    document
-      .getElementById("scrll")
-      .scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "center",
-      });
+    document.getElementById("scrll").scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "center",
+    });
     document.execCommand("undo", false, null);
   }, 0);
 };
@@ -699,9 +696,8 @@ const toggleWrap = function () {
 
   // starting text in editor
   socket.emit("fileexists", fileName, function (response) {
-    if (response) localFileToEditor(response);
-    // have defaultEditor on docker anyway?
-    else updateAndHighlightMaybe(editor, defaultEditor, fileName); // TODO: retire
+    if (!response) response = "default.orig.m2";
+    localFileToEditor(response);
   });
 
   attachMinMaxBtnActions();
