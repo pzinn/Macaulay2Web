@@ -170,8 +170,14 @@ const positioning = function (m) {
   // painful way of getting scrolling to work
   setTimeout(function () {
     // in case not in editor tab, need to wait
-    document.execCommand("insertHTML", false, "<nav id='scrll'></nav>");
-    document.getElementById("scrll").scrollIntoView(); // add options?
+    document.execCommand("insertHTML", false, "<span id='scrll'></span>");
+    document
+      .getElementById("scrll")
+      .scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      });
     document.execCommand("undo", false, null);
   }, 0);
 };
