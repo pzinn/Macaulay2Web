@@ -22,6 +22,19 @@ import {
   updateAndHighlightMaybe,
 } from "./editor";
 
+const hashCode = function (s: string) {
+  let hash = 0,
+    i,
+    chr;
+  if (s.length === 0) return hash;
+  for (i = 0; i < s.length; i++) {
+    chr = s.charCodeAt(i);
+    hash = (hash << 5) - hash + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+};
+
 const setCookie = function (name: string, value: string): void {
   const expDate = new Date(new Date().getTime() + options.cookieDuration);
   document.cookie = Cookie.serialize(name, value, {
@@ -70,6 +83,7 @@ const updateFileName = function (newName: string) {
 };
 
 let autoSaveTimeout = 0;
+let autoSaveHash;
 const autoSave = function () {
   if (autoSaveTimeout) {
     window.clearTimeout(autoSaveTimeout);
@@ -80,6 +94,8 @@ const autoSave = function () {
   const formData = new FormData();
   formData.append("files[]", file);
   formData.append("id", clientId);
+  autoSaveHash = hashCode(content);
+  formData.append("hash", autoSaveHash);
   /*    const req = new XMLHttpRequest();
       req.open("POST", "/upload");
     //req.onloadend = showUploadDialog;
@@ -87,21 +103,46 @@ const autoSave = function () {
   navigator.sendBeacon("/upload", formData);
 };
 
-const localFileToEditor = function (fileName: string, next) {
+const fileChangedCheck = function (data) {
+  if (data.fileName != fileName || data.hash == autoSaveHash) return;
+  const dialog = document.getElementById(
+    "changeEditorFileName"
+  ) as HTMLDialogElement;
+  if (dialog.open)
+    // already open -- we're in trouble
+    return; // ???
+
+  document.getElementById("newEditorFileName").textContent = fileName;
+  document.getElementById("editorVerb").textContent = "has changed";
+  dialog.onclose = function () {
+    if (dialog.returnValue == "overwrite") autoSave();
+    else
+      socket.emit("fileexists", fileName, function (response) {
+        if (response) localFileToEditor(response);
+      });
+  };
+  dialog.showModal();
+};
+
+const localFileToEditor = function (fileName: string, m?) {
   const editor = document.getElementById("editorDiv");
   const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName, true);
   xhr.onload = function () {
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
-    next();
+    if (m) positioning(m);
   };
   xhr.send(null);
 };
 
 const positioning = function (m) {
   document.location.hash = "editor";
+  const editor = document.getElementById("editorDiv");
   // find location in file
-  if (!m || !m[2]) return;
+  if (!m || !m[2]) {
+    editor.focus({ preventScroll: true });
+    return;
+  }
   let row1 = +m[2];
   if (row1 < 1) row1 = 1;
   let col1 = m[3] ? +m[3] : 1;
@@ -110,7 +151,6 @@ const positioning = function (m) {
   if (row2 < row1) row2 = row1;
   let col2 = m[5] ? +m[5] : m[4] ? +m[4] : col1;
   if (row2 == row1 && col2 < col1) col2 = col1;
-  const editor = document.getElementById("editorDiv");
   const editorText = editor.innerText;
   let j = -1;
   let k = 1;
@@ -130,8 +170,8 @@ const positioning = function (m) {
   // painful way of getting scrolling to work
   setTimeout(function () {
     // in case not in editor tab, need to wait
-    document.execCommand("insertHTML", false, "<span id='scrll'></span>");
-    document.getElementById("scrll").scrollIntoView();
+    document.execCommand("insertHTML", false, "<nav id='scrll'></nav>");
+    document.getElementById("scrll").scrollIntoView(); // add options?
     document.execCommand("undo", false, null);
   }, 0);
 };
@@ -159,24 +199,24 @@ const newEditorFileMaybe = function (arg: string, overwrite: boolean) {
     if (!overwrite) {
       autoSave();
       updateFileName(newName);
-      localFileToEditor(response, function () {
-        positioning(m);
-      });
+      localFileToEditor(response, m);
       return;
     }
     const dialog = document.getElementById(
       "changeEditorFileName"
     ) as HTMLDialogElement;
+    if (dialog.open)
+      // already open -- we're in trouble
+      return; // ???
     document.getElementById("newEditorFileName").textContent = newName;
+    document.getElementById("editorVerb").textContent = "exists";
     dialog.onclose = function () {
       updateFileName(newName);
       if (dialog.returnValue == "overwrite") {
         positioning(m);
         autoSave();
       } else {
-        localFileToEditor(response, function () {
-          positioning(m);
-        });
+        localFileToEditor(response, m);
       }
     };
     dialog.showModal();
@@ -326,6 +366,8 @@ const toggleWrap = function () {
     "editorFileName"
   ) as HTMLInputElement;
 
+  let preventEnterKeyUp = false; // annoying: Enter key wrongly triggers autoIndent when loading new file into editor
+
   fileNameEl.onfocus = autoSave; // simple way to save, plus avoids issues with autosaving while onchange running
   fileNameEl.onchange = function () {
     const newName = fileNameEl.value.trim();
@@ -333,8 +375,7 @@ const toggleWrap = function () {
   };
   fileNameEl.onkeydown = function (e) {
     if (e.key == "Enter") {
-      editor.focus({ preventScroll: true });
-      e.preventDefault();
+      preventEnterKeyUp = true;
     }
   };
 
@@ -490,8 +531,10 @@ const toggleWrap = function () {
   };
 
   const editorKeyUp = function (e) {
-    if (e.key == "Enter" && !e.shiftKey) autoIndent(editor);
-    else delimiterHandling(e.key, editor);
+    if (e.key == "Enter" && !e.shiftKey) {
+      if (preventEnterKeyUp) preventEnterKeyUp = false;
+      else autoIndent(editor);
+    } else delimiterHandling(e.key, editor);
   };
 
   const queryCookie = function () {
@@ -650,14 +693,9 @@ const toggleWrap = function () {
 
   // starting text in editor
   socket.emit("fileexists", fileName, function (response) {
-    if (response) {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", response, true);
-      xhr.onload = function () {
-        updateAndHighlightMaybe(editor, xhr.responseText, fileName);
-      }; // have defaultEditor on docker anyway?
-      xhr.send(null);
-    } else updateAndHighlightMaybe(editor, defaultEditor, fileName); // TODO: retire
+    if (response) localFileToEditor(response);
+    // have defaultEditor on docker anyway?
+    else updateAndHighlightMaybe(editor, defaultEditor, fileName); // TODO: retire
   });
 
   attachMinMaxBtnActions();
@@ -679,6 +717,8 @@ const toggleWrap = function () {
 
   const cookieQuery = document.getElementById("cookieQuery");
   if (cookieQuery) cookieQuery.onclick = queryCookie;
+
+  socket.on("filechanged", fileChangedCheck);
 };
 
 export {
