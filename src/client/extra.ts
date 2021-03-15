@@ -102,6 +102,8 @@ const autoSave = function () {
   navigator.sendBeacon("/upload", formData);
 };
 
+let highlightTimeout = 0;
+
 const fileChangedCheck = function (data) {
   if (data.fileName != fileName || data.hash == autoSaveHash) return;
   const dialog = document.getElementById(
@@ -124,11 +126,13 @@ const fileChangedCheck = function (data) {
 };
 
 const localFileToEditor = function (fileName: string, m?) {
+  if (highlightTimeout) window.clearTimeout(highlightTimeout);
   const editor = document.getElementById("editorDiv");
   const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName, true);
   xhr.onload = function () {
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
+    autoSaveHash = hashCode(xhr.responseText);
     if (m) positioning(m);
   };
   xhr.send(null);
@@ -451,10 +455,9 @@ const toggleWrap = function () {
     inputParagraph.click();
   };
 
-  let highlightTimeout = 0;
   const delayedAction = function () {
+    if (highlightTimeout) window.clearTimeout(highlightTimeout);
     if (fileName.endsWith(".m2")) {
-      if (highlightTimeout) window.clearTimeout(highlightTimeout);
       highlightTimeout = window.setTimeout(function () {
         highlightTimeout = 0;
         syntaxHighlight(editor);
