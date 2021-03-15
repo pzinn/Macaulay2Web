@@ -10,7 +10,6 @@ import {
 import { socketChat, syncChat } from "./chat";
 import tutorials from "./tutorials";
 import { Chat } from "../common/chatClass";
-import defaultEditor from "./default.m2"; // TODO retire
 import {
   escapeKeyHandling,
   autoCompleteHandling,
@@ -103,6 +102,8 @@ const autoSave = function () {
   navigator.sendBeacon("/upload", formData);
 };
 
+let highlightTimeout = 0;
+
 const fileChangedCheck = function (data) {
   if (data.fileName != fileName || data.hash == autoSaveHash) return;
   const dialog = document.getElementById(
@@ -125,11 +126,13 @@ const fileChangedCheck = function (data) {
 };
 
 const localFileToEditor = function (fileName: string, m?) {
+  if (highlightTimeout) window.clearTimeout(highlightTimeout);
   const editor = document.getElementById("editorDiv");
   const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName, true);
   xhr.onload = function () {
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
+    autoSaveHash = hashCode(xhr.responseText);
     if (m) positioning(m);
   };
   xhr.send(null);
@@ -170,8 +173,12 @@ const positioning = function (m) {
   // painful way of getting scrolling to work
   setTimeout(function () {
     // in case not in editor tab, need to wait
-    document.execCommand("insertHTML", false, "<nav id='scrll'></nav>");
-    document.getElementById("scrll").scrollIntoView(); // add options?
+    document.execCommand("insertHTML", false, "<span id='scrll'></span>");
+    document.getElementById("scrll").scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "center",
+    });
     document.execCommand("undo", false, null);
   }, 0);
 };
@@ -448,10 +455,9 @@ const toggleWrap = function () {
     inputParagraph.click();
   };
 
-  let highlightTimeout = 0;
   const delayedAction = function () {
+    if (highlightTimeout) window.clearTimeout(highlightTimeout);
     if (fileName.endsWith(".m2")) {
-      if (highlightTimeout) window.clearTimeout(highlightTimeout);
       highlightTimeout = window.setTimeout(function () {
         highlightTimeout = 0;
         syntaxHighlight(editor);
@@ -693,9 +699,8 @@ const toggleWrap = function () {
 
   // starting text in editor
   socket.emit("fileexists", fileName, function (response) {
-    if (response) localFileToEditor(response);
-    // have defaultEditor on docker anyway?
-    else updateAndHighlightMaybe(editor, defaultEditor, fileName); // TODO: retire
+    if (!response) response = "default.orig.m2";
+    localFileToEditor(response);
   });
 
   attachMinMaxBtnActions();
