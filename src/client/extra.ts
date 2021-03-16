@@ -74,7 +74,12 @@ const attachClick = function (id: string, f) {
 
 let fileName;
 const updateFileName = function (newName: string) {
+  const fileNameEl = document.getElementById(
+    "editorFileName"
+  ) as HTMLInputElement;
+  fileNameEl.value = newName;
   // update list of past names
+  if (newName == fileName) return;
   const pastFileNames = document.getElementById(
     "pastFileNames"
   ) as HTMLSelectElement;
@@ -89,10 +94,7 @@ const updateFileName = function (newName: string) {
     document.getElementById("pastFileNames").appendChild(opt);
   }
   // update current name
-  const fileNameEl = document.getElementById(
-    "editorFileName"
-  ) as HTMLInputElement;
-  fileNameEl.value = fileName = newName;
+  fileName = newName;
   setCookie(options.cookieFileName, fileName);
 };
 
@@ -125,17 +127,18 @@ let highlightTimeout = 0;
 const fileChangedCheck = function (data) {
   if (data.fileName != fileName || data.hash == autoSaveHash) return;
   const dialog = document.getElementById(
-    "changeEditorFileName"
+    "editorFileChanged"
   ) as HTMLDialogElement;
   if (dialog.open)
     // already open -- we're in trouble
     return; // ???
 
   document.getElementById("newEditorFileName").textContent = fileName;
-  document.getElementById("editorVerb").textContent = "has changed";
   dialog.onclose = function () {
-    if (dialog.returnValue == "overwrite") autoSave();
-    else
+    if (dialog.returnValue == "overwrite") {
+      autoSaveHash = null; // force save
+      autoSave();
+    } else
       socket.emit("fileexists", fileName, function (response) {
         if (response) localFileToEditor(response);
       });
@@ -201,7 +204,7 @@ const positioning = function (m) {
   }, 0);
 };
 
-const newEditorFileMaybe = function (arg: string, overwrite: boolean) {
+const newEditorFileMaybe = function (arg: string, createNew: boolean) {
   // parse newName for positioning
   // figure out filename
   const m = arg.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
@@ -214,37 +217,17 @@ const newEditorFileMaybe = function (arg: string, overwrite: boolean) {
 
   socket.emit("fileexists", newName, function (response) {
     if (!response) {
-      if (overwrite) {
+      if (createNew) {
         updateFileName(newName);
         positioning(m);
+        autoSaveHash = null; // force save
         autoSave();
       }
-      return;
-    }
-    if (!overwrite) {
+    } else {
       autoSave();
       updateFileName(newName);
       localFileToEditor(response, m);
-      return;
     }
-    const dialog = document.getElementById(
-      "changeEditorFileName"
-    ) as HTMLDialogElement;
-    if (dialog.open)
-      // already open -- we're in trouble
-      return; // ???
-    document.getElementById("newEditorFileName").textContent = newName;
-    document.getElementById("editorVerb").textContent = "exists";
-    dialog.onclose = function () {
-      updateFileName(newName);
-      if (dialog.returnValue == "overwrite") {
-        positioning(m);
-        autoSave();
-      } else {
-        localFileToEditor(response, m);
-      }
-    };
-    dialog.showModal();
   });
 };
 
@@ -458,6 +441,7 @@ const toggleWrap = function () {
       fileReader.onload = function () {
         updateAndHighlightMaybe(editor, fileReader.result as string, fileName);
         //        document.getElementById("editorTitle").click();
+        autoSaveHash = null; // force save
         autoSave();
       };
       fileReader.readAsText(fileToLoad, "UTF-8");
@@ -727,7 +711,10 @@ const toggleWrap = function () {
 
   // starting text in editor
   socket.emit("fileexists", fileName, function (response) {
-    if (!response) response = "default.orig.m2";
+    if (!response) {
+      if (fileName != "default.m2") return;
+      response = "default.orig.m2";
+    }
     localFileToEditor(response);
   });
 
