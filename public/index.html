@@ -126,7 +126,6 @@
                      src="frontPageImage.jpg"/>
 
                 <h1>Welcome to the Macaulay2Web interface</h1>
-
                 <p>Learn and use Macaulay2.
                   Get started by pressing the <b>START</b> button. To use
                   this site effectively,
@@ -202,8 +201,13 @@
                 <div id="editorDiv" wrap='off' autocorrect="off" contenteditable="true"
                      spellcheck="false" autocapitalize="off">
                 </div>
-		<input type="input" id="editorFileName"></input>
-              </div>
+		<div id="editorFileNameDiv">
+		  <select id="pastFileNames">
+		  </select>
+		  <input type="text" name="displayValue" id="editorFileName"
+			 placeholder="Filename">
+		</div>
+	      </div>
               <div class="mdl-tabs__panel" id="chat">
 		<br/>
 		<p>Use this to ask questions, provide feedback, or simply say hi to other users!</p>

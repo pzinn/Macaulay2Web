@@ -93,15 +93,35 @@ body {
     right: 25px;
 }
 
-#editorFileName {
+#editorFileNameDiv {
     position: absolute;
-    z-index: 2;
     bottom: 20px;
-    right: 20px;
-    border:1px solid gray;
-    border-radius:4px;
+    right: 40px;
+    z-index: 1;
 }
 
+#editorFileName {
+    position: relative; /* for the z-index to work */
+    border:1px solid gray;
+    border-radius:4px;
+    width:175px;
+    z-index: 2;
+}
+
+#pastFileNames {
+    position:absolute;
+    z-index: 0;
+    top:0px;
+    left:0px;
+    width:200px;
+    margin:0;
+    padding:0;
+    border:0px;
+}
+#pastFileNames:focus {
+    border:0px;
+    outline: 0px;
+}
 /* Select all buttons within a class="mdl-dialog" element */
 .mdl-dialog > button {
     float: right;
