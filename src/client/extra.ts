@@ -74,6 +74,21 @@ const attachClick = function (id: string, f) {
 
 let fileName;
 const updateFileName = function (newName: string) {
+  // update list of past names
+  const pastFileNames = document.getElementById(
+    "pastFileNames"
+  ) as HTMLSelectElement;
+  let flag = true;
+  Array.from(pastFileNames.options).forEach(function (opt: HTMLOptionElement) {
+    if (opt.textContent == fileName) flag = false;
+    else if (opt.textContent == newName) pastFileNames.removeChild(opt);
+  });
+  if (fileName && flag) {
+    const opt = document.createElement("option");
+    opt.textContent = fileName;
+    document.getElementById("pastFileNames").appendChild(opt);
+  }
+  // update current name
   const fileNameEl = document.getElementById(
     "editorFileName"
   ) as HTMLInputElement;
@@ -89,17 +104,20 @@ const autoSave = function () {
     autoSaveTimeout = 0;
   }
   const content = document.getElementById("editorDiv").innerText as string;
-  const file = new File([content], fileName);
-  const formData = new FormData();
-  formData.append("files[]", file);
-  formData.append("id", clientId);
-  autoSaveHash = hashCode(content);
-  formData.append("hash", autoSaveHash);
-  /*    const req = new XMLHttpRequest();
-      req.open("POST", "/upload");
-    //req.onloadend = showUploadDialog;
-      req.send(formData);*/
-  navigator.sendBeacon("/upload", formData);
+  const newHash = hashCode(content);
+  if (newHash != autoSaveHash) {
+    const file = new File([content], fileName);
+    const formData = new FormData();
+    formData.append("files[]", file);
+    formData.append("id", clientId);
+    autoSaveHash = newHash;
+    formData.append("hash", autoSaveHash);
+    /*    const req = new XMLHttpRequest();
+	      req.open("POST", "/upload");
+	      //req.onloadend = showUploadDialog;
+	      req.send(formData);*/
+    navigator.sendBeacon("/upload", formData);
+  }
 };
 
 let highlightTimeout = 0;
@@ -168,7 +186,7 @@ const positioning = function (m) {
     }
     k++;
   }
-  if (m[4]) setCaret(editor, j1 + col1, j + col2 + 1);
+  if (m[4]) setCaret(editor, j1 + col1, j + col2);
   else setCaret(editor, j1 + col1);
   // painful way of getting scrolling to work
   setTimeout(function () {
@@ -375,7 +393,7 @@ const toggleWrap = function () {
 
   let preventEnterKeyUp = false; // annoying: Enter key wrongly triggers autoIndent when loading new file into editor
 
-  fileNameEl.onfocus = autoSave; // simple way to save, plus avoids issues with autosaving while onchange running
+  //  fileNameEl.onfocus = autoSave; // simple way to save, plus avoids issues with autosaving while onchange running
   fileNameEl.onchange = function () {
     const newName = fileNameEl.value.trim();
     newEditorFileMaybe(newName, true);
@@ -384,6 +402,16 @@ const toggleWrap = function () {
     if (e.key == "Enter") {
       preventEnterKeyUp = true;
     }
+  };
+  const pastFileNames = document.getElementById(
+    "pastFileNames"
+  ) as HTMLSelectElement;
+  pastFileNames.onfocus = function () {
+    pastFileNames.selectedIndex = -1;
+  }; // dirty trick found on the internet...
+  pastFileNames.onchange = function () {
+    const newName = pastFileNames.options[pastFileNames.selectedIndex].text;
+    newEditorFileMaybe(newName, true);
   };
 
   updateFileName(getCookie(options.cookieFileName, "default.m2"));
@@ -711,6 +739,7 @@ const toggleWrap = function () {
     editor.onkeydown = editorKeyDown;
     editor.onkeyup = editorKeyUp;
     editor.oninput = delayedAction;
+    editor.onblur = autoSave;
   }
 
   attachClick("uploadBtn", uploadFile);
