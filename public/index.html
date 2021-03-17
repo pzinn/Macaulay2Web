@@ -34,9 +34,9 @@
       </form>
     </dialog>
 
-    <dialog id="changeEditorFileName" class="mdl-dialog" style="max-height:200px;min-width:300px">
+    <dialog id="editorFileChanged" class="mdl-dialog" style="max-height:200px;min-width:300px">
       <form method="dialog">
-	The file <b id="newEditorFileName"></b> <span id="editorVerb">exists</span> on the server. Do you want to:
+	The file <b id="newEditorFileName"></b> has changed on the server. Do you want to:
 	<menu>
 	  <button id="loadEditorFileName" value="load" class="mdl-button mdl-js-button">load it</button>
 	  <button id="overwriteEditorFileName" value="overwrite" class="mdl-button mdl-js-button">overwrite it</button>
@@ -199,8 +199,7 @@
 		      -->
 		</div>
                 <div id="editorDiv" wrap='off' autocorrect="off" contenteditable="true"
-                     spellcheck="false" autocapitalize="off">
-                </div>
+                     spellcheck="false" autocapitalize="off"></div>
 		<div id="editorFileNameDiv">
 		  <select id="pastFileNames">
 		  </select>
