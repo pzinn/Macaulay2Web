@@ -40,9 +40,9 @@ const getCaret = function (el): number | null {
     if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
       // backtrack
       while (!cur.nextSibling) {
-        if (cur == el) return null;
         if (cur.nodeName == "DIV" || cur.nodeName == "BR") len++; // for Firefox
         cur = cur.parentElement;
+        if (cur == el) return null;
       }
       if (cur.nodeName == "DIV" || cur.nodeName == "BR") len++; // for Firefox
       cur = cur.nextSibling;
@@ -89,9 +89,9 @@ const setCaret = function (el, pos: number, pos2?: number): void {
     if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
       // backtrack
       while (!cur.nextSibling) {
-        if (cur == el) return null;
         if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
         cur = cur.parentElement;
+        if (cur == el) return null;
       }
       if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
       cur = cur.nextSibling;

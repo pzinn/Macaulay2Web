@@ -61,12 +61,12 @@ const socketDisconnect = function (msg) {
 
 const wrapEmitForDisconnect = function (event, msg, callback?) {
   if (serverDisconnect) {
-    const events = ["reset", "input", "chat"]; // !!!
+    const events = ["reset", "input", "chat", "fileexists"]; // !!!
     console.log("We are disconnected.");
     if (events.indexOf(event) >= 0) {
       socket.connect();
       if (!MINIMAL) syncChat();
-      serverDisconnect = false;
+      serverDisconnect = false; // not really... we could still be disconnected, obviously
       socket.oldEmit(event, msg, callback);
     }
   } else {
@@ -184,6 +184,8 @@ const init = function () {
   init2();
 };
 
+let initDone = false;
+
 const init2 = function () {
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
@@ -197,7 +199,10 @@ const init2 = function () {
     }
     if (!MINIMAL) {
       setCookie(options.cookieInstanceName, clientId);
-      extra2();
+      if (!initDone) {
+        extra2();
+        initDone = true;
+      }
     }
   });
   socket.on("reconnect_failed", socketError("reconnect_fail"));
