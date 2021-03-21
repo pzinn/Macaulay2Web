@@ -178,19 +178,25 @@ const positioning = function (m) {
   const editorText = editor.innerText;
   let j = -1;
   let k = 1;
-  let j1;
+  let j1, j2;
   while (true) {
     if (k == row1) j1 = j;
-    if (k == row2) break;
-    j = editorText.indexOf("\n", j + 1);
-    if (j < 0) {
-      setCaret(editor, editorText.length);
-      return;
+    else if (k == row1 + 1 && col1 > j - j1) col1 = j - j1;
+    if (k == row2) j2 = j;
+    else if (k == row2 + 1) {
+      if (col2 > j - j2) col2 = j - j2;
+      break;
     }
+    j = editorText.indexOf("\n", j + 1);
+    if (j < 0) break;
     k++;
   }
-  if (m[4]) setCaret(editor, j1 + col1, j + col2);
-  else setCaret(editor, j1 + col1);
+  j1 = j1 === undefined ? editorText.length : j1 + col1;
+  j2 =
+    j2 === undefined || j2 + col2 > editorText.length
+      ? editorText.length
+      : j2 + col2;
+  setCaret(editor, j1, j2);
   // painful way of getting scrolling to work
   setTimeout(function () {
     // in case not in editor tab, need to wait
