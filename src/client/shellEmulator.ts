@@ -319,7 +319,11 @@ const Shell = function (
       }
       return;
     }
-    if (e.key == "ArrowRight" && document.activeElement == inputSpan) {
+    if (
+      e.key == "ArrowRight" &&
+      !e.shiftKey &&
+      document.activeElement == inputSpan
+    ) {
       const pos = window.getSelection().focusOffset;
       if (
         pos == inputSpan.textContent.length &&
