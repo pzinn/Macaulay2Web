@@ -11,7 +11,10 @@ body {
     position: absolute;
     width: calc(100% - 16px);
     height: calc(100% - 16px);
-
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-start; /* this way the right-half can disappear out of the screen entirely */
 }
 
 #left-half, #right-half {
@@ -19,8 +22,19 @@ body {
     /* grid has margin 8px, which is not subtracted by
     box-sizing, so we subtract it manually */
     height: calc(100% - 16px);
+    width: 0px; /* now processed by flux */
+    min-width: 20%;
 }
 
+#left-half {
+    flex: 0 0 49%;
+}
+
+#right-half {
+    flex: 1 0 auto;
+}
+
+/*
 #right-half {
     margin-left:0px;
 }
@@ -35,7 +49,7 @@ body {
         width: calc(100% - 8px);
     }
 }
-
+*/
 
 #lesson {
     height: 100%;
@@ -286,4 +300,13 @@ input[type=checkbox]:not(:checked) + label {
     animation-duration: 2s;
     animation-delay: 1s;
     animation-iteration-count: infinite;
+}
+
+#resize {
+    flex-grow: 0;
+    flex-shrink: 0;
+    background: rgb(63,81,181);
+    width: 0.2rem;
+    cursor: col-resize;
+    margin: 0 0 0 auto;
 }

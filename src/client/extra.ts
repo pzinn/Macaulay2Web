@@ -746,6 +746,33 @@ const toggleWrap = function () {
   if (cookieQuery) cookieQuery.onclick = queryCookie;
 
   socket.on("filechanged", fileChangedCheck);
+
+  // resize
+  const resize = document.getElementById("resize");
+  let ismdwn = 0;
+  const resizeMouseDown = () => {
+    ismdwn = 1;
+    document.body.addEventListener("mousemove", resizeMouseMove);
+    document.body.addEventListener("mouseup", resizeMouseEnd);
+    document.body.addEventListener("mouseleave", resizeMouseEnd);
+    document.body.style.userSelect = "none";
+  };
+
+  const resizeMouseMove = (event) => {
+    if (ismdwn === 1)
+      (document.getElementById("left-half") as any).style.flexBasis =
+        event.clientX - 24 + "px";
+    // 24 is left-padding+left-margin+right-margin
+    else resizeMouseEnd();
+  };
+  const resizeMouseEnd = () => {
+    ismdwn = 0;
+    document.body.removeEventListener("mousemove", resizeMouseMove);
+    document.body.removeEventListener("mouseup", resizeMouseEnd);
+    document.body.removeEventListener("mouseleave", resizeMouseEnd);
+    document.body.style.userSelect = "";
+  };
+  resize.onmousedown = resizeMouseDown;
 };
 
 export {
