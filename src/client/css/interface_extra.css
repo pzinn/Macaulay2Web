@@ -11,10 +11,6 @@ body {
     position: absolute;
     width: calc(100% - 16px);
     height: calc(100% - 16px);
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: stretch;
-    justify-content: flex-start; /* this way the right-half can disappear out of the screen entirely */
 }
 
 #left-half, #right-half {
@@ -22,18 +18,34 @@ body {
     /* grid has margin 8px, which is not subtracted by
     box-sizing, so we subtract it manually */
     height: calc(100% - 16px);
-    width: 0px; /* now processed by flux */
-    min-width: 20%;
 }
 
-#left-half {
-    flex: 0 0 49%;
-}
+@media (min-width:480px) {
+    .mdl-grid {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	justify-content: flex-start; /* this way the right-half can disappear out of the screen entirely */
+    }
+    #left-half {
+	flex: 0 0 49%;
+	width: 0px; /* now processed by flux */
+    }
 
-#right-half {
-    flex: 1 0 auto;
+    #right-half {
+	flex: 1 0 auto;
+	width: 0px; /* now processed by flux */
+	min-width: 20%; /* otherwise absolutely positioned icons stay when right-half shrunk */
+    }
+    #resize {
+	flex-grow: 0;
+	flex-shrink: 0;
+	background: rgb(63,81,181);
+	width: 0.2rem;
+	cursor: col-resize;
+	margin: 0 0 0 auto;
+    }
 }
-
 /*
 #right-half {
     margin-left:0px;
@@ -302,11 +314,3 @@ input[type=checkbox]:not(:checked) + label {
     animation-iteration-count: infinite;
 }
 
-#resize {
-    flex-grow: 0;
-    flex-shrink: 0;
-    background: rgb(63,81,181);
-    width: 0.2rem;
-    cursor: col-resize;
-    margin: 0 0 0 auto;
-}
