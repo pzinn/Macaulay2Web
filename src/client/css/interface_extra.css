@@ -5,13 +5,13 @@ body {
     background: linear-gradient(to right, var(--left-color), var(--right-color));
 */
     background-color: #d2dce9;
+/*    background-color: whitesmoke; */
 }
 
 .mdl-grid {
     position: absolute;
     width: calc(100% - 16px);
     height: calc(100% - 16px);
-
 }
 
 #left-half, #right-half {
@@ -21,6 +21,33 @@ body {
     height: calc(100% - 16px);
 }
 
+@media (min-width:480px) {
+    .mdl-grid {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	justify-content: flex-start; /* this way the right-half can disappear out of the screen entirely */
+    }
+    #left-half {
+	flex: 0 0 49%;
+	width: 0px; /* now processed by flux */
+    }
+
+    #right-half {
+	flex: 1 0 auto;
+	width: 0px; /* now processed by flux */
+	min-width: 200px; /* otherwise absolutely positioned icons stay when right-half shrunk */
+    }
+    #resize {
+	flex-grow: 0;
+	flex-shrink: 0;
+	background: rgb(63,81,181);
+	width: 0.2rem;
+	cursor: col-resize;
+	margin: 0 0 0 auto;
+    }
+}
+/*
 #right-half {
     margin-left:0px;
 }
@@ -35,7 +62,7 @@ body {
         width: calc(100% - 8px);
     }
 }
-
+*/
 
 #lesson {
     height: 100%;
@@ -138,7 +165,7 @@ body {
     z-index: 2;
     position: absolute;
     top: 5px;
-    right: 64px;
+    right: 30px;
 }
 #maximizeOutput, #downsizeOutput {
     z-index: 2;
@@ -287,3 +314,4 @@ input[type=checkbox]:not(:checked) + label {
     animation-delay: 1s;
     animation-iteration-count: infinite;
 }
+

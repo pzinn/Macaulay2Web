@@ -1,12 +1,7 @@
 import Cookie from "cookie";
 import { options } from "../common/global";
 import { socket, url, myshell, clientId } from "./main";
-import {
-  scrollDown,
-  scrollDownLeft,
-  setCaret,
-  caretIsAtEnd,
-} from "./htmlTools";
+import { scrollDown, setCaret, caretIsAtEnd } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import tutorials from "./tutorials";
 import { Chat } from "../common/chatClass";
@@ -505,37 +500,6 @@ const toggleWrap = function () {
     });
   };
 
-  const attachMinMaxBtnActions = function () {
-    const dialog: any = document.getElementById("fullScreenOutput");
-    if (dialog) {
-      const maximize = document.getElementById("maximizeOutput");
-      const downsize = document.getElementById("downsizeOutput");
-      const zoomBtns = document.getElementById("terminalZoomBtns");
-      const output = document.getElementById("terminal");
-      dialog.onclose = function () {
-        const oldPosition = document.getElementById("right-half");
-        const ctrl = document.getElementById("terminalCtrlBtns");
-        oldPosition.appendChild(output);
-        ctrl.insertBefore(zoomBtns, maximize);
-        scrollDownLeft(output);
-      };
-      attachClick("maximizeOutput", function () {
-        const maxCtrl = document.getElementById("terminalCtrlBtnsMax");
-        /*    if (!dialog.showModal) {
-		  dialogPolyfill.registerDialog(dialog);
-		  }*/
-        dialog.appendChild(output);
-        maxCtrl.insertBefore(zoomBtns, downsize);
-        dialog.showModal();
-        output.focus();
-        scrollDownLeft(output);
-      });
-      attachClick("downsizeOutput", function () {
-        dialog.close();
-      });
-    }
-  };
-
   const editorKeyDown = function (e) {
     //    var prismInvoked=false;
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
@@ -724,7 +688,6 @@ const toggleWrap = function () {
     localFileToEditor(response);
   });
 
-  attachMinMaxBtnActions();
   attachCtrlBtnActions();
   attachCloseDialogBtns();
 
@@ -746,6 +709,33 @@ const toggleWrap = function () {
   if (cookieQuery) cookieQuery.onclick = queryCookie;
 
   socket.on("filechanged", fileChangedCheck);
+
+  // resize
+  const resize = document.getElementById("resize");
+  let ismdwn = 0;
+  const resizeMouseDown = () => {
+    ismdwn = 1;
+    document.body.addEventListener("mousemove", resizeMouseMove);
+    document.body.addEventListener("mouseup", resizeMouseEnd);
+    document.body.addEventListener("mouseleave", resizeMouseEnd);
+    document.body.style.userSelect = "none";
+  };
+
+  const resizeMouseMove = (event) => {
+    if (ismdwn === 1)
+      (document.getElementById("left-half") as any).style.flexBasis =
+        event.clientX - 24 + "px";
+    // 24 is left-padding+left-margin+right-margin
+    else resizeMouseEnd();
+  };
+  const resizeMouseEnd = () => {
+    ismdwn = 0;
+    document.body.removeEventListener("mousemove", resizeMouseMove);
+    document.body.removeEventListener("mouseup", resizeMouseEnd);
+    document.body.removeEventListener("mouseleave", resizeMouseEnd);
+    document.body.style.userSelect = "";
+  };
+  resize.onmousedown = resizeMouseDown;
 };
 
 export {
