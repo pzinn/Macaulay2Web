@@ -15,14 +15,6 @@
 
   </head>
   <body>
-    <dialog id="fullScreenOutput" class="">
-      <div id="terminalCtrlBtnsMax">
-	<button id="downsizeOutput" class="mdl-button mdl-js-button mdl-button--icon">
-          <i class="material-icons">fullscreen_exit</i>
-	</button>
-      </div>
-    </dialog>
-
     <dialog id="changeUserDialog" class="mdl-dialog" style="max-height:200px;min-width:300px">
       <form method="dialog">
 	You have requested the new user id <b id="newUserId"></b>. Is this change:
@@ -183,19 +175,6 @@
 			  class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
                     Save
                   </button>
-		  <!--
-		  <div style="min-height:5pt"></div>
-		  <span id="autoUploadSpan" style="float:right;position:relative;right:24px">
-		    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="autoUpload">
-		      <span class="mdl-switch__label" style="font-size:10px">auto upload</span>
-		      <input type="checkbox" id="autoUpload" checked class="mdl-switch__input">
-		    </label>
-		  </span>
-                      <button type="button" id="hiliteBtn"
-			      class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
-			      style="background-image: url('prisma-small.png'); background-color:white; background-size: 60px 30px; width:64px; height:34px;">
-                      </button>
-		      -->
 		</div>
                 <div id="editorDiv" wrap='off' autocorrect="off" contenteditable="true"
                      spellcheck="false" autocapitalize="off"></div>
@@ -235,13 +214,7 @@
           </div>
 	  <div id="resize"></div>
           <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone" id="right-half">
-            <div id="terminalCtrlBtns">
               <div id="terminalZoomBtns">
-		<!--
-                    <button id="wrapBtn" class="mdl-button mdl-js-button mdl-button--icon">
-                      <i class="material-icons" id="wrapBtnIcon">arrow_right</i>
-		    </button>
-		    -->
                     <button id="terminalZoomIn" class="mdl-button mdl-js-button mdl-button--icon">
                       <i class="material-icons">zoom_in</i>
 		    </button>
@@ -255,16 +228,12 @@
 		      <i class="material-icons">delete</i>
 		    </button>
 		    <div style="min-height:5pt"></div>
-		    <span style="float:right"><label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="editorToggle">
+		    <span style="float:right;position:relative;right:24px"><label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="editorToggle">
 			<span class="mdl-switch__label" style="font-size:10px">copy to editor</span>
 			<input type="checkbox" id="editorToggle" class="mdl-switch__input">
 		      </label>
 		    </span>
               </div>
-              <button id="maximizeOutput" class="mdl-button mdl-js-button mdl-button--icon">
-                <i class="material-icons">fullscreen</i>
-	      </button>
-            </div>
             <div id="terminal" tabindex="0" class="M2Text"></div>
           </div>
 

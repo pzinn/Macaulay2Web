@@ -5,6 +5,7 @@ body {
     background: linear-gradient(to right, var(--left-color), var(--right-color));
 */
     background-color: #d2dce9;
+/*    background-color: whitesmoke; */
 }
 
 .mdl-grid {
@@ -35,7 +36,7 @@ body {
     #right-half {
 	flex: 1 0 auto;
 	width: 0px; /* now processed by flux */
-	min-width: 20%; /* otherwise absolutely positioned icons stay when right-half shrunk */
+	min-width: 200px; /* otherwise absolutely positioned icons stay when right-half shrunk */
     }
     #resize {
 	flex-grow: 0;
@@ -164,7 +165,7 @@ body {
     z-index: 2;
     position: absolute;
     top: 5px;
-    right: 64px;
+    right: 30px;
 }
 #maximizeOutput, #downsizeOutput {
     z-index: 2;
