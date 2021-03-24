@@ -86,13 +86,20 @@ body {
     line-height: 1.2;
 }
 
+/*
 .M2Html ul {
     line-height: 1.2;
     font-size: inherit;
 }
+*/
 
 .M2Html pre {
     margin: 0px;
+}
+
+ul, ol, p { /* slowly destroying all of mdl's css... */
+    font-size: inherit;
+    line-height: 1.2;
 }
 
 table {
