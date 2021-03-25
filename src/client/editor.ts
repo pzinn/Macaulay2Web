@@ -234,7 +234,12 @@ const removeDelimiterHighlight = function (el) {
 const openingDelimiters = "([{";
 const closingDelimiters = ")]}";
 
-const delimiterHandling = function (key, el) {
+const delimiterHandling = function (el) {
+  const sel = window.getSelection();
+  if (!sel.isCollapsed) return;
+  const pos = sel.anchorOffset;
+  if (pos == 0) return;
+  const key = sel.anchorNode.textContent[pos - 1];
   if (key == '"') {
     quoteHandling(key, el);
     return;

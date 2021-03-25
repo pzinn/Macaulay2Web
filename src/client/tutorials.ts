@@ -31,11 +31,14 @@ const sliceTutorial = function (theHtml) {
     } else if (
       children[i].tagName == "DIV" &&
       children[i].childElementCount > 0
-    )
+    ) {
+      const lessonTitle = children[i].firstElementChild;
+      autoRender(lessonTitle);
       result.lessons.push({
-        title: children[i].firstElementChild,
+        title: lessonTitle,
         html: children[i],
       });
+    }
   }
   return result;
 };
@@ -158,7 +161,7 @@ const uploadTutorial = function () {
       (tute) => tute.title.textContent == title.textContent
     );
     if (i >= 0) {
-      tutorials[i] = newTutorial; // replace existing tutorial with same name (really, should modify the accordion too, but who cares)
+      tutorials[i] = newTutorial; // replace existing tutorial with same name (really, should redo the accordion too -- TODO)
       if (tutorialNr == i) lessonNr = -1; // force reload
     } else {
       tutorials.push(newTutorial);

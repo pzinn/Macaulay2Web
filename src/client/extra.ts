@@ -495,7 +495,8 @@ const toggleWrap = function () {
     inputParagraph.click();
   };
 
-  const delayedAction = function () {
+  const editorInput = function () {
+    delimiterHandling(editor);
     if (highlightTimeout) window.clearTimeout(highlightTimeout);
     if (fileName.endsWith(".m2")) {
       highlightTimeout = window.setTimeout(function () {
@@ -549,7 +550,7 @@ const toggleWrap = function () {
     if (e.key == "Enter" && !e.shiftKey) {
       if (preventEnterKeyUp) preventEnterKeyUp = false;
       else autoIndent(editor);
-    } else delimiterHandling(e.key, editor);
+    } // else delimiterHandling(e.key, editor);
   };
 
   const queryCookie = function () {
@@ -721,7 +722,7 @@ const toggleWrap = function () {
   if (editor) {
     editor.onkeydown = editorKeyDown;
     editor.onkeyup = editorKeyUp;
-    editor.oninput = delayedAction;
+    editor.oninput = editorInput;
     editor.onblur = autoSave;
   }
 

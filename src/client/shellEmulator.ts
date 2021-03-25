@@ -360,13 +360,13 @@ const Shell = function (
   };
 */
 
-  shell.onkeyup = function (e) {
+  shell.oninput = function () {
     if (!inputSpan) return;
     if (
       inputSpan.parentElement == htmlSec &&
       htmlSec.classList.contains("M2Input")
     )
-      delimiterHandling(e.key, htmlSec);
+      delimiterHandling(htmlSec);
     // the negation of the first only happens in transitional state; of the second if we turned off webapp mode
     // in both cases it's simpler to deactivate highlighting
 
