@@ -311,6 +311,33 @@ const extra1 = function () {
   }
 
   if (iFrame) iFrame.onload = openBrowseTab;
+
+  // resize
+  const resize = document.getElementById("resize");
+  let ismdwn = 0;
+  const resizeMouseDown = () => {
+    ismdwn = 1;
+    document.body.addEventListener("mousemove", resizeMouseMove);
+    document.body.addEventListener("mouseup", resizeMouseEnd);
+    document.body.addEventListener("mouseleave", resizeMouseEnd);
+    document.body.style.userSelect = "none";
+  };
+
+  const resizeMouseMove = (event) => {
+    if (ismdwn === 1)
+      (document.getElementById("left-half") as any).style.flexBasis =
+        event.clientX - 24 + "px";
+    // 24 is left-padding+left-margin+right-margin
+    else resizeMouseEnd();
+  };
+  const resizeMouseEnd = () => {
+    ismdwn = 0;
+    document.body.removeEventListener("mousemove", resizeMouseMove);
+    document.body.removeEventListener("mouseup", resizeMouseEnd);
+    document.body.removeEventListener("mouseleave", resizeMouseEnd);
+    document.body.style.userSelect = "";
+  };
+  resize.onmousedown = resizeMouseDown;
 };
 
 const extra2 = function () {
@@ -468,7 +495,8 @@ const toggleWrap = function () {
     inputParagraph.click();
   };
 
-  const delayedAction = function () {
+  const editorInput = function () {
+    delimiterHandling(editor);
     if (highlightTimeout) window.clearTimeout(highlightTimeout);
     if (fileName.endsWith(".m2")) {
       highlightTimeout = window.setTimeout(function () {
@@ -495,9 +523,9 @@ const toggleWrap = function () {
     attachClick("uploadSuccessDialogClose", function () {
       (document.getElementById("uploadSuccessDialog") as any).close();
     });
-    attachClick("showFileDialogClose", function () {
+    /*    attachClick("showFileDialogClose", function () {
       (document.getElementById("showFileDialog") as any).close();
-    });
+    });*/
   };
 
   const editorKeyDown = function (e) {
@@ -522,7 +550,7 @@ const toggleWrap = function () {
     if (e.key == "Enter" && !e.shiftKey) {
       if (preventEnterKeyUp) preventEnterKeyUp = false;
       else autoIndent(editor);
-    } else delimiterHandling(e.key, editor);
+    } // else delimiterHandling(e.key, editor);
   };
 
   const queryCookie = function () {
@@ -694,7 +722,7 @@ const toggleWrap = function () {
   if (editor) {
     editor.onkeydown = editorKeyDown;
     editor.onkeyup = editorKeyUp;
-    editor.oninput = delayedAction;
+    editor.oninput = editorInput;
     editor.onblur = autoSave;
   }
 
@@ -709,33 +737,6 @@ const toggleWrap = function () {
   if (cookieQuery) cookieQuery.onclick = queryCookie;
 
   socket.on("filechanged", fileChangedCheck);
-
-  // resize
-  const resize = document.getElementById("resize");
-  let ismdwn = 0;
-  const resizeMouseDown = () => {
-    ismdwn = 1;
-    document.body.addEventListener("mousemove", resizeMouseMove);
-    document.body.addEventListener("mouseup", resizeMouseEnd);
-    document.body.addEventListener("mouseleave", resizeMouseEnd);
-    document.body.style.userSelect = "none";
-  };
-
-  const resizeMouseMove = (event) => {
-    if (ismdwn === 1)
-      (document.getElementById("left-half") as any).style.flexBasis =
-        event.clientX - 24 + "px";
-    // 24 is left-padding+left-margin+right-margin
-    else resizeMouseEnd();
-  };
-  const resizeMouseEnd = () => {
-    ismdwn = 0;
-    document.body.removeEventListener("mousemove", resizeMouseMove);
-    document.body.removeEventListener("mouseup", resizeMouseEnd);
-    document.body.removeEventListener("mouseleave", resizeMouseEnd);
-    document.body.style.userSelect = "";
-  };
-  resize.onmousedown = resizeMouseDown;
 };
 
 export {

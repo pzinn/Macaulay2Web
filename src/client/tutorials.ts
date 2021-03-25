@@ -31,11 +31,14 @@ const sliceTutorial = function (theHtml) {
     } else if (
       children[i].tagName == "DIV" &&
       children[i].childElementCount > 0
-    )
+    ) {
+      const lessonTitle = children[i].firstElementChild;
+      autoRender(lessonTitle);
       result.lessons.push({
-        title: children[i].firstElementChild,
+        title: lessonTitle,
         html: children[i],
       });
+    }
   }
   return result;
 };
@@ -152,11 +155,20 @@ const uploadTutorial = function () {
     let txt = event.target.result as string;
     if (file.name.substr(-3) == ".md") txt = markdownToHtml(txt); // by default, assume html
     const newTutorial = sliceTutorial(txt);
-    tutorials.push(newTutorial);
-    const lastIndex = tutorials.length - 1;
     const title = newTutorial.title; // this is a <title>
-    const lessons = newTutorial.lessons;
-    appendTutorialToAccordion(title, "", lessons, lastIndex, true); // last arg = delete button
+    if (!title) return; // ... or null, in which case cancel
+    const i = tutorials.findIndex(
+      (tute) => tute.title.textContent == title.textContent
+    );
+    if (i >= 0) {
+      tutorials[i] = newTutorial; // replace existing tutorial with same name (really, should redo the accordion too -- TODO)
+      if (tutorialNr == i) lessonNr = -1; // force reload
+    } else {
+      tutorials.push(newTutorial);
+      const lastIndex = tutorials.length - 1;
+      const lessons = newTutorial.lessons;
+      appendTutorialToAccordion(title, "", lessons, lastIndex, true); // last arg = delete button
+    }
   };
   return false;
 };
