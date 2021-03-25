@@ -99,7 +99,7 @@ body {
 
 ul, ol, p { /* slowly destroying all of mdl's css... */
     font-size: inherit;
-    line-height: 1.2;
+    line-height: 1.4;
 }
 
 table {
