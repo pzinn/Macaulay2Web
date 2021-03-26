@@ -47,7 +47,9 @@ const keydownAction = function (e) {
     // one of the few keys that doesn't kill selection outside contentEditable
     e.preventDefault();
     e.stopPropagation();
-    const sel = e.currentTarget.ownerDocument.getSelection().toString().trim(); // works in iframe too
+    let sel = e.currentTarget.ownerDocument.getSelection().toString().trim(); // works in iframe too
+    const ind = sel.indexOf("\n");
+    if (ind >= 0) sel = sel.substring(0, ind); // just cleaning up a bit more
     if (sel == "") return;
     newEditorFileMaybe(sel, false);
   } else if (e.target.classList.contains("M2CellBar"))
