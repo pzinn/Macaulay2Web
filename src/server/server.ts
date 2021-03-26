@@ -466,10 +466,9 @@ const checkClientSane = function (client: Client) {
 const socketInputAction = function (socket: SocketIO.Socket, client: Client) {
   return function (msg: string) {
     logClient(client, "Receiving input: " + short(msg));
-    if (checkClientSane(client)) {
-      //      updateLastActiveTime(client); // only output now triggers that
-      checkAndWrite(client, msg);
-    }
+    //      updateLastActiveTime(client); // only output now triggers that
+    if (client.saneState) checkAndWrite(client, msg);
+    else logClient(client, "Input failed, client being sanitized");
   };
 };
 
@@ -477,10 +476,10 @@ const socketResetAction = function (client: Client) {
   return function () {
     logClient(client, "Received reset.");
     systemChat(client, "Resetting M2.");
-    if (checkClientSane(client)) {
+    if (client.saneState) {
       if (client.channel) killMathProgram(client);
       sanitizeClient(client, true);
-    }
+    } else logClient(client, "Reset failed, client being sanitized");
   };
 };
 
