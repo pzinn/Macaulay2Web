@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<h1 style="font-size:1em;text-decoration:underline">Puzzle rules in cotangent Schubert calculus</h1>
+<div style="font-size:2.2em; text-align:center">
+  <h2>Puzzle rules in cotangent Schubert calculus</h2>
+  <h4>ICERM Workshop &ldquo;Geometry and Combinatorics from Root Systems&rdquo;</h3>
+  <h3>P. Zinn-Justin</h3>
+  <h6>School of Mathematics and Statistics, the University of Melbourne</h6>
+  <div style="min-height:2em"></div>
+  <p style="text-align:left">
+    Based on
+    <table id="publi"><tbody>
+	<tr><td>A.&nbsp;Knutson, P.&nbsp;Zinn-Justin</td><td><a href="http://arxiv.org/abs/1706.10019">Schubert puzzles and integrability I: invariant trilinear forms</a></td><td>(2017) </td></tr>
+	<tr><td>A.&nbsp;Knutson, P.&nbsp;Zinn-Justin</td><td><a href="http://arxiv.org/abs/2102.00563">Schubert puzzles and integrability II:  multiplying motivic Segre classes</a></td><td>(2021) </td></tr>
+	<tr><td>A.&nbsp;Knutson, P.&nbsp;Zinn-Justin</td><td><a>Schubert puzzles and integrability III: separated descents</a></td><td>(in preparation) </td></tr>
+    </tbody></table>
+  </p>
+</div>
+<div style="font-size:1.8em">
+  <h2>Introduction</h2>
+  <p>
+    <ul>
+      <li>Pick a finite-dimensional algebra $\mathcal A$ (e.g., some cohomology ring)</li>
+      <li>Pick a (geometrically motivated) basis $S^\lambda$</li>
+      <li>Expand
+	\[ S^\lambda S^\mu = \sum_\nu c^{\lambda\,\mu}_\nu S^\nu \]
+      </li>
+      <li>Express $c^{\lambda,\mu}_{\nu}$ in terms of certain combinatorial gadgets &mdash; <b>puzzles</b>.</li>
+    </ul>
+  </p>
+  <div style="min-height:2em"></div>
+  <p>
+    <table><tr><td>
+    <i>Example:</i>
+    <ul>
+      <li>$\mathcal A = H^*(Gr(k,n))$ (over $\ZZ$ or $\QQ$)</li>
+      <li>$S^\lambda=$ <b>Schubert classes</b></li>
+      <li>$c^{\lambda,\mu}_\nu=$  <b>Littlewood&mdash;Richardson</b> coefficients.</li>
+      <li>Puzzles = classic puzzles of <a href="https://arxiv.org/abs/math/0107011">[Knutson, Tao]</a>:
+	\[ c^{\lambda,\mu}_\nu = \# \{ \text{puzzles with sides }\lambda,\mu,\nu\} \]
+      </li>
+    </ul>
+      </td>
+      <td>
+	<svg class="M2Svg M2SvgClickable" viewBox="-127.388 -129.596 227.133 256.452" onmousedown="gfxMouseDown.call(this,event)" style="width:10em;height:11.2906em;vertical-align:middle;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><g style="stroke:red;"><line y2="-93.3333" y1="66.3636" x2="-71.1111" x1="-70.9091" data-point2="vector([-64,84,100,1])" data-point1="vector([-78,-73,-100,1])"/><line y2="100.806" y1="-102.041" x2="9.07258" x1="-30.6122" data-point2="vector([9,-100,8,1])" data-point1="vector([-30,100,20,1])"/>      <title>b</title></g><g><line y2="105.485" y1="44.5455" x2="48.5232" x1="-87.2727" data-point2="vector([46,-100,52,1])" data-point1="vector([-96,-49,-100,1])"/><line y2="-108.225" y1="39.9619" x2="63.8528" x1="-95.1475" data-point2="vector([59,100,76,1])" data-point1="vector([-100,-42,-51,1])"/><line y2="97.371" y1="-69.7674" x2="80.8179" x1="-105.708" data-point2="vector([83,-100,-27,1])" data-point1="vector([-100,66,54,1])"/><line y2="-100.402" y1="-16.269" x2="-9.03614" x1="-108.46" data-point2="vector([-9,100,4,1])" data-point1="vector([-100,15,78,1])"/>      <title>a</title></g></g></svg>
+  </td></tr></table>
+  </p>
+</div>
+<div style="font-size:1.8em">
+  <h2>General framework</h2>
+  <p>
+    In <a href="http://arxiv.org/abs/2102.00563">[II]</a>, we proposed the more general setup:
+    <ul>
+      <li>$\mathcal A = K_T^{\text{loc}}(T^*(P\backslash G))$ as a module over $\mathbb F := \text{frac}(K_T(pt))$
+      <br/>($G=GL_n$, $T=\CC^\times \times \text{Cartan}$)</li>
+      <li>$S^\lambda=$ <b>motivic Segre classes</b> <span style="color:red">$\leftarrow$ define!</span></li>
+      <li>Puzzles = &ldquo;generic&rdquo; puzzles <span style="color:red">$\leftarrow$ define!</span>
+	\[ c^{\lambda,\mu}_\nu = \sum_{\text{puzzles }\pi} \text{fug}(\pi) \]
+	where $\text{fug}(\pi)\in \mathbb F$ is the fugacity of $\pi$ <span style="color:red">$\leftarrow$ define!</span>
+      </li>
+    </ul>
+  </p>
+  <div style="min-height:2em"></div>
+  <p>
+    In these slides, we focus on the computational aspect of the definitions.
+  </p>  
+</div>
+<div style="font-size:1.8em">
+  <h2>Tensor calculus and representation theory</h2>
+  <p>
+    All these definitions will use the diagrammatic tensor calculus that's prevalent in mathematical physics.
+  </p>
+  <!-- k=5; a=arrow(); gList splice {Polygon {{(0,1),(k+1,1),(k+1,3),(0,3)},"fill"=>"lightgray"},apply(1..k,i->Line {(i,1),(i,0),"marker-end"=>a}),apply(2..k-1,i->Line{(i,3),(i,4)})} -->
+<svg class="M2Svg" viewBox="-.6 -4.4 7.2 4.8" style="width:12em;height:8em;vertical-align:middle;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="0 -1 6 -1 6 -3 0 -3" style="fill:lightgray;"/><line y2="0" y1="-1" x2="1" x1="1" style="marker-end:url(#Graphics_1616713613_3);"/><line y2="0" y1="-1" x2="2" x1="2" style="marker-end:url(#Graphics_1616713613_3);"/><line y2="0" y1="-1" x2="3" x1="3" style="marker-end:url(#Graphics_1616713613_3);"/><line y2="0" y1="-1" x2="4" x1="4" style="marker-end:url(#Graphics_1616713613_3);"/><line y2="0" y1="-1" x2="5" x1="5" style="marker-end:url(#Graphics_1616713613_3);"/><line y2="-4" y1="-3" x2="2" x1="2"/><line y2="-4" y1="-3" x2="3" x1="3"/><line y2="-4" y1="-3" x2="4" x1="4"/></g><defs><marker orient="auto" markerWidth="3" refY="2" refX="0" id="Graphics_1616713613_3" markerHeight="4"><polygon points="0 0 0 4 3 2" style="fill:black;stroke:none;"/></marker></defs></svg>   $\begin{matrix} V_1\otimes\cdots\otimes V_m\\ \Bigg\downarrow\\ W_1\otimes\cdots\otimes W_n\end{matrix}$
+  <p>
+    Here all our vector spaces are modules for a Hopf algebra $\mathcal U$, in such a way that the tensors
+    we compute are intertwiners for the action of $\mathcal U$.
+  </p>
+  <p>
+    For $K_T$, $\mathcal U$ is typically a quantized loop algebra $\mathcal U_q(\mathfrak g[z,z^{-1}])$, and
+    the most important intertwiner is the <b>$\textit{\textbf R}$-matrix</b>
+    <div style="margin:2em">
+      $
+      \check R =
+      $
+      <!-- a=arrow();gList(Line {(-.5,1),(.5,-1),"marker-end"=>a},Line {(.5,1),(-.5,-1),"marker-end"=>a},"stroke-width"=>".04") -->
+      <svg class="M2Svg" viewBox="-.6 -1.2 1.2 2.4" style="width:3.5em;height:7em;vertical-align:middle;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g style="stroke-width:.04;"><line y2="1" y1="-1" x2=".5" x1="-.5" style="marker-end:url(#Graphics_1616713713_4);"/><line y2="1" y1="-1" x2="-.5" x1=".5" style="marker-end:url(#Graphics_1616713713_4);"/></g><defs><marker orient="auto" markerWidth="3" refY="2" refX="0" id="Graphics_1616713713_4" markerHeight="4"><polygon points="0 0 0 4 3 2" style="fill:black;stroke:none;"/></marker></defs></svg> 
+      $\begin{matrix}V_1(z_1)\otimes V_2(z_2)\\ \Bigg\downarrow\\ V_2(z_2)\otimes V_1(z_1)\end{matrix}$
+      </div>
+  </p>
+</div>
+<div style="font-size:1.8em">  
+  <h2>Classes v1: Borel presentation</h2>
+  <p>
+    Let $W=\mathcal S_n$ be the Weyl group of $G$.
+    If $P\backslash G$ is a $d$-step flag variety,
+    $W_P = W \cap P = \mathcal S_{n_0} \times \cdots \times \mathcal S_{n_d}$;<br/>
+    our labelling of classes is strings $\lambda$ in $\{0,\ldots,d\}$
+    of length $n$ and fixed content $0^{n_0}\ldots d^{n_d}$;<br/>
+    their set $I$ is acted on by $W$, and $I\cong W_P\backslash W$.
+  </p>
+  <p>
+    In the Borel presentation,
+    \[
+    \mathcal A \cong \mathbb F [y_1^\pm,\ldots,y_n^\pm]^{W_P} / \mathcal I\qquad \mathbb F = \text{frac}(\mathbb Z[q^\pm,z_1^\pm,\ldots,z_n^\pm])
+    \]
+    where $\mathcal I$ is a certain ideals of relations which we don't need to write explicitly.
+  </p>
+  <p>The classes $S^\lambda$ are given by: (&ldquo;pipe dreams&rdquo;)
+    <div style="margin:2em">
+      $
+      S^\lambda =\quad \omega 
+      $
+      <span style="display:inline-block;vertical-align:middle;text-align:center">
+	<span style="position:relative;bottom:-25px;left:-15px">$\lambda$</span><br/>
+      <!-- n=4; a=arrow(); gList splice {SizeX=>15,"stroke-width"=>.06,apply(1..n,i->GraphicsText{(i-.1,-.2),"0","stroke"=>"none","fill"=>"black",FontSize=>0.4}),apply(1..n,i->GraphicsText{(n+.7,i-.2),"0","stroke"=>"none","fill"=>"black",FontSize=>0.4}),apply(1..n,i->Line{(n+.5,i),(.5,i),"marker-end"=>a}),apply(1..n,i->Line{(i,n+.5),(i,.5),"marker-end"=>a})} -->
+<svg class="M2Svg" viewBox=".056 -4.97 5.328 5.64" style="width:15em;height:15.8784em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g style="stroke-width:.06;"><text y=".2" x=".9" style="fill:black;stroke:none;font-size:.4px;">0</text><text y=".2" x="1.9" style="fill:black;stroke:none;font-size:.4px;">0</text><text y=".2" x="2.9" style="fill:black;stroke:none;font-size:.4px;">0</text><text y=".2" x="3.9" style="fill:black;stroke:none;font-size:.4px;">0</text><text y="-.8" x="4.7" style="fill:black;stroke:none;font-size:.4px;">0</text><text y="-1.8" x="4.7" style="fill:black;stroke:none;font-size:.4px;">0</text><text y="-2.8" x="4.7" style="fill:black;stroke:none;font-size:.4px;">0</text><text y="-3.8" x="4.7" style="fill:black;stroke:none;font-size:.4px;">0</text><line y2="-1" y1="-1" x2=".5" x1="4.5" style="marker-end:url(#Graphics_1616711768_2);"/><line y2="-2" y1="-2" x2=".5" x1="4.5" style="marker-end:url(#Graphics_1616711768_2);"/><line y2="-3" y1="-3" x2=".5" x1="4.5" style="marker-end:url(#Graphics_1616711768_2);"/><line y2="-4" y1="-4" x2=".5" x1="4.5" style="marker-end:url(#Graphics_1616711768_2);"/><line y2="-.5" y1="-4.5" x2="1" x1="1" style="marker-end:url(#Graphics_1616711768_2);"/><line y2="-.5" y1="-4.5" x2="2" x1="2" style="marker-end:url(#Graphics_1616711768_2);"/><line y2="-.5" y1="-4.5" x2="3" x1="3" style="marker-end:url(#Graphics_1616711768_2);"/><line y2="-.5" y1="-4.5" x2="4" x1="4" style="marker-end:url(#Graphics_1616711768_2);"/></g><defs><marker orient="auto" markerWidth="3" refY="2" refX="0" id="Graphics_1616711768_2" markerHeight="4"><polygon points="0 0 0 4 3 2" style="fill:black;stroke:none;"/></marker></defs></svg> 
+      </span>
+    </div>
+    where $\omega=\text{sort}(\lambda)$, all spaces are $d+1$-dimensional modules $V(\cdot)$ of $\mathcal U = \mathcal U_q(\mathfrak a_d[z,z^{-1}])$ with basis $0,\ldots,d$.
+    The vertical spaces are $V(z_1)\otimes\cdots\otimes V(z_n)$, horizontal ones are $V(y_1)\otimes\cdots\otimes V(y_n)$.
+  </p>
+  <div style="min-height:2em"></div>
+  <p style="border-left: solid 5px blue; padding-left:15px;">
+    Let's work out the example of $T^*\mathbb P^1$.<br/>
+    <code>needsPackage "CotangentSchubert";</code><br/>
+    Let's define the algebra $\mathcal A$ and the labeling set of fixed points $I\cong W_P\backslash W$:<br/>
+    <code>(AA,BB,I) = setupKTBorel(1,2)</code><br/>
+    This is what $\mathcal A$ looks like in terms of Chern classes:<br/>
+    <code>describe AA</code><br/>
+    Sure enough, it's two-dimensional:<br/>
+    <code>basis AA</code><br/>
+    Equivalently, in terms of Chern roots:<br/>
+    <code>describe BB</code><br/>
+    One can then compute the motivic Segre classes according to the above:<br/>
+    <code>segreClassesBorel()</code>
+  </p>
+  <p>
+    Unfortunately, the Borel presentation turns out to be quite inefficient computationally. Let's move on...
+  </p>
+</div>
+<div style="font-size:1.8em">
+  <h2>Classes v2: Fixed point basis</h2>
+  <p>
+    Equivariant localization:
+    \[
+    \mathcal A \cong K^{\text{loc}}_T(T^* (P\backslash G)^T) = \mathbb F^r
+    \]
+    where $T^* (P\backslash G)^T \cong W_P \backslash W$ is the set of $T$-fixed points, and $r$ its cardinality.<br/>
+    Product is entrywise in $\mathbb F^r$.
+  </p>
+  <p>The restriction of $S^\lambda$ to a fixed point $w\in W_P\backslash W$ is easy to compute:
+    <div style="margin:2em">
+      $
+      S^\lambda|_w = 
+      $
+      <span style="text-align:center;display:inline-block;vertical-align:middle">
+	$\lambda$
+	<br/>
+	<!-- load "permut.m2"; permut {3,1,0,2} -->
+	<svg class="M2Svg" viewBox="-.3 -1.1 3.6 1.2" style="width:16em;height:5.33333em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="0" y1="-1" x2="3" x1="0" style="marker-end:url(#Graphics_1616714034_1);"/><line y2="0" y1="-1" x2="1" x1="1" style="marker-end:url(#Graphics_1616714034_1);"/><line y2="0" y1="-1" x2="0" x1="2" style="marker-end:url(#Graphics_1616714034_1);"/><line y2="0" y1="-1" x2="2" x1="3" style="marker-end:url(#Graphics_1616714034_1);"/></g><defs><marker orient="auto" markerWidth="3" refY="2" refX="0" id="Graphics_1616714034_1" markerHeight="4"><polygon points="0 0 0 4 3 2" style="fill:black;stroke:none;"/></marker></defs></svg> 
+	<br/>
+	$\omega$
+      </span>
+    </div>
+    where one can use any wiring diagram of any representative of $w$, and the spaces are (at the top) $V(z_1)\otimes\cdots\otimes V(z_n)$.
+    (Effectively, this is a recurrence formula on $w$ for the $S^\lambda|_w$.)</p>
+  <div style="min-height:2em"></div>
+  <p style="border-left: solid 5px blue; padding-left:15px;">
+    Let's work out the example of $T^*\mathbb P^1$.<br/>
+    <code>needsPackage "CotangentSchubert";</code><br/>
+    Let's define the base field $\mathbb F$ and the labeling set of fixed points $I\cong W_P\backslash W$:<br/>
+    <code>(FF,I) = setupKT(1,2)</code><br/>
+    We can get the whole matrix of motivic Segre classes at once:<br/>
+    <code>segreCls = segreClasses()</code><br/>
+    or individual classes using <tt>segreClass</tt>; entrywise product is <tt>@</tt>:<br/>
+    <code>segreClass(0,1) @ segreClass(1,0)</code><br/>
+    This allows to write the whole table of products:</br>
+    <code>Table table(I,I,(i,j)->segreCls^(-1)*(segreClass i @ segreClass j))</code>
+  </p>
+</div>
+<div style="font-size:1.8em">
+  <h2>Puzzles and fugacities</h2>
+  <p>
+    Similarly,    
+    <div style="margin:2em">
+      $\displaystyle\sum_{\substack{\text{puzzles }\pi\\\text{with sides}\\\lambda,\mu,\nu}} \text{fug}(\pi) =$
+      <span style="text-align:center;display:inline-block;vertical-align:middle">
+	<span style="position: relative;left:30px">$\lambda$</span>
+	<svg class="M2Svg" viewBox="-2.7 -0 5.4 5.19615" style="width:10.3923em;height:10em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><line y2="4.33013" y1=".433013" x2="2" x1="-.25" style="stroke:#008000;"/><line y2="4.33013" y1="1.29904" x2="1" x1="-.75" style="stroke:#008000;"/><line y2="4.33013" y1="2.16506" x2="0" x1="-1.25" style="stroke:#008000;"/><line y2="4.33013" y1="3.03109" x2="-1" x1="-1.75" style="stroke:#008000;"/><line y2="4.33013" y1="3.89711" x2="-2" x1="-2.25" style="stroke:#008000;"/><line y2="4.33013" y1=".433013" x2="-2" x1=".25" style="stroke:#800000;"/><line y2="4.33013" y1="1.29904" x2="-1" x1=".75" style="stroke:#800000;"/><line y2="4.33013" y1="2.16506" x2="0" x1="1.25" style="stroke:#800000;"/><line y2="4.33013" y1="3.03109" x2="1" x1="1.75" style="stroke:#800000;"/><line y2="4.33013" y1="3.89711" x2="2" x1="2.25" style="stroke:#800000;"/><line y2="4.76314" y1="4.33013" x2="2" x1="2" style="stroke:#000080;marker-end:url(#Graphics_1616717299_2);"/><line y2="4.76314" y1="4.33013" x2="1" x1="1" style="stroke:#000080;marker-end:url(#Graphics_1616717299_2);"/><line y2="4.76314" y1="4.33013" x2="0" x1="0" style="stroke:#000080;marker-end:url(#Graphics_1616717299_2);"/><line y2="4.76314" y1="4.33013" x2="-1" x1="-1" style="stroke:#000080;marker-end:url(#Graphics_1616717299_2);"/><line y2="4.76314" y1="4.33013" x2="-2" x1="-2" style="stroke:#000080;marker-end:url(#Graphics_1616717299_2);"/></g><defs><marker orient="auto" markerWidth="3" refY="2" refX="0" id="Graphics_1616717299_2" markerHeight="4"><polygon points="0 0 0 4 3 2" style="fill:black;stroke:none;"/></marker></defs></svg>
+	<span style="position: relative;right:30px">$\mu$</span>
+	<br/>
+	$\nu$
+      </span>
+    </div>
+    where this time we use for $d=1,2,3,4$ intertwiners of $\mathcal U_q(\mathfrak x_{2d}[z^\pm])$, $\mathfrak x_{2d}=\mathfrak a_2, \mathfrak d_4, \mathfrak e_6, \mathfrak e_8$.
+    The spaces are $V_1(\kappa^{-1}z_1)\otimes \cdots \otimes V_1(\kappa^{-1}z_n)\otimes V_2(\kappa\,z_1)\otimes\cdots\otimes V_2(\kappa\,z_n)$ at the top,
+    $V_3(z_1)\otimes\cdots\otimes V_3(z_n)$ at the bottom.
+  </p>
+  <p>
+    Traditionally, puzzles are drawn using the dual graph.
+  </p>
+</div>
+<div style="font-size:1.8em">
+  <h2>Case $d=1$</h2>
+  <p>
+    For $d=1$ (Grassmannians), the nonzero entries of $\check R$ can be written explicitly:<br/>
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text></g></svg>$1$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text></g></svg>$1$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text></g></svg>$1$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text></g></svg>$1$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text></g></svg>$1$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text></g></svg>$1$<br/>
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text></g></svg>$\frac{z\,\left(q-1\right)\left(q+1\right)}{q^{2}z-1}$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text></g></svg>$\frac{-z\,\left(q-1\right)\left(q+1\right)}{q\,\left(q^{2}z-1\right)}$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text></g></svg>$\frac{z\,\left(q-1\right)\left(q+1\right)}{q^{2}z-1}$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text></g></svg>$\frac{\left(q-1\right)\left(q+1\right)}{q^{2}z-1}$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text></g></svg>$\frac{\left(q-1\right)\left(q+1\right)}{q^{2}z-1}$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text></g></svg>$\frac{-q\,\left(q-1\right)\left(q+1\right)}{q^{2}z-1}$&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text></g></svg>$\frac{\left(z-1\right)q}{q^{2}z-1}$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">10</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text></g></svg>$\frac{\left(z-1\right)q}{q^{2}z-1}$&nbsp;&nbsp;&nbsp;&nbsp;
+    <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:3em;height:5.19615em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">1</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">0</text></g></svg>$\frac{\left(z-1\right)q}{q^{2}z-1}$&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+    where $z$ is the ratio of equivariant parameters $z_j/z_i$ for a rhombus at location $(i,j)$.
+  </p>
+  <p style="border-left: solid 5px blue; padding-left:15px;">
+    <i>Example:</i> puzzles for $T^*\PP^1$.<br/>
+    Let's do $S^{01}\times S^{01}$:<br/>
+    <code>P=puzzle("01","01",Generic=>true,Equivariant=>true)</code><br/>
+    The fugacities match our product table:</br>
+    <code>fugacityVector P</code>
+  </p>
+</div>
+<div style="font-size:1.8em">
+  <h2>From $K_T$ to $H_T$</h2>
+  <p>
+    Going from $K_T$ to $H_T$ $\sim$ expanding at first order
+    \[
+    q=e^{-\hbar/2}
+    \qquad
+    z_i=e^{x_i}
+    \]
+  </p>
+  <p>
+    On the RT side, $\mathcal U$ is a Yangian
+    \[
+      \mathcal U = \mathcal Y(\mathfrak g) = \mathcal U_\hbar(\mathfrak g[x])
+    \]
+    Things are a bit simpler because $\mathfrak g \subset \mathcal Y(\mathfrak g)$.
+  </p>
+  <p>
+    In particular for minuscule representations (i.e. $d\le 3$), one can normalize weight vectors in such
+    a way that the entries of the $R$-matrix only depend on scalar products of weights:
+    <div style="margin:2em">
+$\text{fug}$      <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:4.6188em;height:8em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">w</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">x</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">u</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">v</text></g></svg> 
+$=f(s,t)\qquad s=\left< wt(\textsf{u}),wt(\textsf{x})\right>,\ t=\left< wt(\textsf{u}),wt(\textsf{v})\right>,
+	  \qquad wt(\textsf{u})+wt(\textsf{v})=wt(\textsf{x})+wt(\textsf{w})$
+    </div>
+  </p>
+</div>
+<div style="font-size:1.8em">
+  <h2>Case $d=3$</h2>
+  <p>
+    The table of fugacities is:
+    \[
+    \begin{array}{c|ccc}
+    s\backslash t & -1 & 1/2 & 2
+    \\
+    \hline
+    -1 & 1 &  \\
+    1/2 & \frac{\hbar}{\hbar-x}& \frac{x}{\hbar-x}\\
+    2 & \frac{4\hbar^2}{(\hbar-x)(4\hbar-x)} & \frac{\hbar x}{(\hbar-x)(4\hbar-x)} & \frac{-x(3\hbar-x)}{(\hbar-x)(4\hbar-x)}\\
+    \end{array}
+    \]
+    where $x$ is the difference of equivariant parameters $x_j-x_i$ for a rhombus at location $(i,j)$.
+  </p>
+  <p style="border-left: solid 5px blue; padding-left:15px;">
+    <i>Example:</i> puzzles in the cotangent bundle of the full flag variety of $\CC^4$.<br/>
+    Let us setup equivariant cohomology:</br>
+    <code>(FF,I)=setupHT(1,2,3,4)</code><br/>
+    and compute all Segre&mdash;Schwartz&mdash;MacPherson classes:<br/>
+    <code>segreCls=segreClasses();</code><br/>
+    Let's do a single example:<br>
+    <code>λ="3021"; μ="2130";</code><br/>
+    Their product $S^\lambda S^\mu$ can be computed directly as:<br/>
+    <code>lhs = segreClass λ @ segreClass μ</code><br/>
+    On the other hand, we can ask for puzzles with sides $\lambda$, $\mu$:<br/>
+    <code>P=puzzle(λ,μ,Generic=>true,Equivariant=>true)</code><br/>
+    and compute $\sum_\nu c^{\lambda,\mu}_\nu S^\nu$:<br/>
+    <code>rhs = segreCls*(fugacityVector P)</code><br/>
+    and...</br>
+    <code>lhs == rhs -- should be true!</code><br/>
+    For a more complicated example, try<br/>
+    <code>λ="0213"; μ="0321";</code><br/>
+    but you probably don't want to print the 152 puzzles to the screen:<br/>
+    <code>P=puzzle(λ,μ,Generic=>true,Equivariant=>true); #P</code>
+  </p>
+</div>
+<div style="font-size:1.8em">
+  <h2>Separated descents</h2>
+  <p>
+    Consider two strings $\lambda$ and $\mu$ of same length $n$ in the alphabets $\_,k,\ldots,n-1$ and $0,\ldots,k-1,\_$ respectively. It is convenient
+    (but not necessary) to assume that every letter $0,\ldots,n-1$ occurs exactly once in $\lambda \cup \mu$.
+  </p>
+  <p>
+    <i>Example:</i>
+    \[
+    \lambda = 3\,\_\,2\,\_ \qquad \mu = \_\,1\,\_\,0\qquad k=2
+    \]
+  </p>
+  <p>
+    Geometrically, we can think of them as strings for $Fl(k,k+1,\ldots,n)$
+    and $Fl(1,2,\ldots,k,n)$ respectively (with nonstandard alphabets).
+  </p>
+  <p>
+    There is a natural map $Fl(1,2,\ldots,n) \overset{p}{\to} Fl(k,k+1,\ldots,n)\times Fl(1,2,\ldots,k,n)$, so we can expand
+    \[
+    p^*(S^\lambda \otimes S^\mu)=\sum_\nu c^{\lambda,\mu}_\nu S^\nu
+    \]
+  </p>
+  <p>
+    The corresponding puzzles are almost disappointingly simple: they're $\mathcal Y(\mathfrak a_n)$-intertwiners.
+  </p>
+  <p style="border-left: solid 5px blue; padding-left:15px;">
+    <i>Example:</i> pulling back to the cotangent bundle of the full flag variety of $\CC^4$.<br/>
+    Let us setup equivariant cohomology:</br>
+    <code>(FF,I)=setupHT(1,2,3,4)</code><br/>
+    and compute all Segre&mdash;Schwartz&mdash;MacPherson classes:<br/>
+    <code>segreCls=segreClasses();</code><br/>
+    Our strings-with-blanks are:<br>
+    <code>λ="3 2 "; μ=" 1 0";</code><br/>
+    Here are the corresponding puzzles:
+    <code>Q=puzzle(λ,μ,Generic=>true,Equivariant=>true,Separated=>true)</code><br/>
+    And we can compute $\sum_\nu c^{\lambda,\mu}_\nu S^\nu$:<br/>
+    <code>rhs = segreCls*(fugacityVector Q)</code>
+  </p>
+  <p>
+    But what is the left hand side? $p^*(S^\lambda\otimes S^\mu)=p_1^*(S^\lambda)p_2^*(S^\mu)$
+    where $p=(p_1,p_2)\circ \Delta$. And
+    \[
+    p^*_i(S^\lambda)=\sum_{\text{fillings }\lambda'\text { of }\lambda} (-1)^{inv(\text{filling})} S^{\lambda'}
+    \]
+  </p>
+  <p style="border-left: solid 5px blue; padding-left:15px;">
+    In our example, we should have:<br/>
+    <code>lhs = (segreClass "3021" - segreClass "3120")@(segreClass "2130" - segreClass "3120")</code><br/>
+    and...<br/>
+    <code>lhs == rhs</code>
+  </p>
+    
+</div>
+<div style="font-size:1.8em">
+  <h2>Back to ordinary Schubert calculus</h2>
+  <p>
+    In the limit $\hbar\to\infty$,
+    \[
+    S^\lambda \sim \hbar^{-inv(\lambda)} \mathit{Schub}^\lambda
+    \]
+  </p>
+  <p>
+    The $d=1,2$ and separated descent puzzle rules become rules for $H^*_T$ Schubert classes, recovering
+    in particular <a href="https://arxiv.org/abs/1401.1725">[Buch Kresch Purbhoo Tamvakis ’16]</a>.
+  </p>
+  <p>
+    The situation is more subtle at $d=3,4$...
+  </p>
+  <p style="border-left: solid 5px blue; padding-left:15px;">
+    <i>Example:</i> full flag variety of $\CC^4$.<br/>
+    <code style="white-space:pre">λ="2103"; μ="0321"; ν="2301";
+P=puzzle(λ,μ,ν,Generic=>true,Equivariant=>true)
+fug=apply(P,fugacity)</code><br/>
+    Note that some fugacities $\sim \hbar^{-1}$. But the sum should be of order $\hbar^{-2}$ according to inversion numbers:<br/>
+    <code>sum fug</code>
+  </p>
+</div>
