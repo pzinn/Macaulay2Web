@@ -1,7 +1,7 @@
 // contains functions used by both terminal and editor
 import { setupMenu } from "./menu";
 import M2symbols from "./prism-M2";
-import { getCaret, setCaret } from "./htmlTools";
+import { getCaret, getCaret2, setCaret } from "./htmlTools";
 import Prism from "prismjs";
 
 // partial support for unicode symbols
@@ -376,10 +376,8 @@ const openingDelimiterHandling = function (index, el) {
 const M2indent = 4;
 const spacing = { " ": 1, "\t": 8 };
 
-const autoIndent = function (el) {
-  let pos = getCaret(el) - 1;
-  if (el.innerText[pos] != "\n") return; // e.g. when pressing enter in autocomplete menu
-  const input = el.innerText;
+const autoIndentLine = function (input, pos) {
+  if (input[pos] != "\n") return; // e.g. when pressing enter in autocomplete menu
   let pos1 = pos - 1;
   let level = 0;
   while (pos1 >= 0 && input[pos1] != "\n") {
@@ -389,14 +387,70 @@ const autoIndent = function (el) {
   }
   let indent = input.substring(pos1 + 1, pos).match(/^[ \t]*/)[0];
   let extraIndent = level * M2indent;
-  pos = indent.length;
-  while (extraIndent < 0 && pos > 0) {
-    extraIndent += spacing[indent[pos - 1]];
-    pos--;
+  let i = indent.length;
+  while (extraIndent < 0 && i > 0) {
+    extraIndent += spacing[indent[i - 1]];
+    i--;
   }
-  indent = indent.substring(0, pos);
+  indent = indent.substring(0, i);
   if (extraIndent > 0) indent += " ".repeat(extraIndent);
-  document.execCommand("insertText", false, indent);
+  // at this stage indent is the correct indentation for next line
+  // compare with existing space
+  pos1 = pos + 1;
+  i = indent.length;
+  while (pos1 < input.length && i > 0 && input[pos1] == indent[i - 1]) {
+    pos1++;
+    i--;
+  }
+  if (i > 0) {
+    indent = indent.substring(0, i);
+    document.execCommand("insertText", false, indent);
+    input =
+      input.substring(0, pos + 1) +
+      indent +
+      input.substring(pos + 1, input.length);
+    pos1 += i;
+    pos += i; // caret at pos+1
+  }
+  const pos0 = pos1;
+  // finally, remove preexisting space
+  let flag = false;
+  while (pos1 < input.length && (input[pos1] == " " || input[pos1] == "\t")) {
+    if (!flag) {
+      flag = true;
+      //  before we erase, move pointer to pos1 (currently at pos+1)
+      const sel = window.getSelection() as any;
+      while (pos + 1 < pos0) {
+        pos++;
+        sel.modify("move", "forward", "character");
+      }
+    }
+    document.execCommand("forwardDelete", false);
+    pos1++;
+  }
+  if (flag)
+    input = input.substring(0, pos0) + input.substring(pos1, input.length);
+  return input;
+};
+
+const autoIndent = function (el) {
+  let input = el.innerText;
+  let pos = getCaret2(el); // start and end
+  if (pos === null) return;
+  if (pos[0] == pos[1]) {
+    // single line auto-indent
+    autoIndentLine(input, pos[0] - 1);
+  } else {
+    if (pos[0] > pos[1]) pos = [pos[1], pos[0]];
+    let index = input.lastIndexOf("\n", pos[0]);
+    if (index < 0) index = input.indexOf("\n", pos[0]);
+    const len = input.length;
+    while (index >= 0 && index <= pos[1] + input.length - len) {
+      setCaret(el, index + 1);
+      input = autoIndentLine(input, index); // indent and update input
+      index = input.indexOf("\n", index + 1);
+    }
+  }
 };
 
 const syntaxHighlight = function (el: HTMLElement) {

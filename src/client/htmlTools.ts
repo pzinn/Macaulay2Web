@@ -50,6 +50,42 @@ const getCaret = function (el): number | null {
   }
 };
 
+const getCaret2 = function (el) {
+  // gives both start and end of selection -- may be in wrong order!
+  const sel = window.getSelection();
+  let anchorPos, focusPos;
+  if (el === sel.anchorNode) anchorPos = sel.anchorOffset;
+  if (el === sel.focusNode) focusPos = sel.focusOffset;
+  if (anchorPos !== undefined && focusPos !== undefined)
+    return [anchorPos, focusPos];
+  let cur = el.firstChild;
+  if (!cur) return null;
+  let len = 0;
+  while (true) {
+    if (cur == sel.anchorNode) {
+      anchorPos = len + sel.anchorOffset;
+      if (focusPos !== undefined) return [anchorPos, focusPos];
+    }
+    if (cur == sel.focusNode) {
+      focusPos = len + sel.focusOffset;
+      if (anchorPos !== undefined) return [anchorPos, focusPos];
+    }
+    if (cur.nodeType === 3)
+      // Text node
+      len += cur.textContent.length;
+    if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
+      // backtrack
+      while (!cur.nextSibling) {
+        if (cur.nodeName == "DIV" || cur.nodeName == "BR") len++; // for Firefox
+        cur = cur.parentElement;
+        if (cur == el) return null;
+      }
+      if (cur.nodeName == "DIV" || cur.nodeName == "BR") len++; // for Firefox
+      cur = cur.nextSibling;
+    } else cur = cur.firstChild; // forward
+  }
+};
+
 // some of these edge cases need to be clarified (empty HTMLElements; etc)
 const setCaret = function (el, pos: number, pos2?: number): void {
   let len;
@@ -148,6 +184,7 @@ export {
   stripElement,
   caretIsAtEnd,
   getCaret,
+  getCaret2,
   setCaret,
   setCaretAtEndMaybe,
 };
