@@ -47,7 +47,9 @@ const keydownAction = function (e) {
     // one of the few keys that doesn't kill selection outside contentEditable
     e.preventDefault();
     e.stopPropagation();
-    const sel = e.currentTarget.ownerDocument.getSelection().toString().trim(); // works in iframe too
+    let sel = e.currentTarget.ownerDocument.getSelection().toString().trim(); // works in iframe too
+    const ind = sel.indexOf("\n");
+    if (ind >= 0) sel = sel.substring(0, ind); // just cleaning up a bit more
     if (sel == "") return;
     newEditorFileMaybe(sel, false);
   } else if (e.target.classList.contains("M2CellBar"))
@@ -169,6 +171,7 @@ const init = function () {
     if (clientId) setCookieId();
     // reset the cookie clock
     else {
+      // set up start button
       const resetBtn = document.getElementById("resetBtn");
       resetBtn.firstElementChild.textContent = "Start";
       resetBtn.firstElementChild.classList.add("startButton");
@@ -176,6 +179,7 @@ const init = function () {
         e.stopPropagation();
         resetBtn.firstElementChild.textContent = "Reset";
         resetBtn.firstElementChild.classList.remove("startButton");
+        clientId = getCookieId(); // in the unlikely event that it got changed while we were waiting
         init2();
       };
       return;

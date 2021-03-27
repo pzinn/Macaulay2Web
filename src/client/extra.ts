@@ -539,7 +539,11 @@ const toggleWrap = function () {
     } else if (e.key == "Escape") escapeKeyHandling();
     else if (e.key == "Tab") {
       // try to avoid disrupting the normal tab use as much as possible
-      if (!e.shiftKey && autoCompleteHandling(editor)) {
+      if (!window.getSelection().isCollapsed) {
+        autoIndent(editor);
+        e.preventDefault();
+        return;
+      } else if (!e.shiftKey && autoCompleteHandling(editor)) {
         e.preventDefault();
         return;
       }
