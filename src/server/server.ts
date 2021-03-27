@@ -136,54 +136,49 @@ const killNotify = function (client: Client) {
 
 const spawnMathProgram = function (client: Client, next) {
   logClient(client, "Spawning new MathProgram process...");
-  getInstance(client, function () {
-    const connection: ssh2.Client = new ssh2.Client();
-    connection.on("error", function (err) {
-      logClient(
-        client,
-        "Error when connecting. " + err + "; Retrying with new instance."
-      );
-      next(false);
-      // Make sure the sanitizer runs.
-      try {
-        delete client.instance;
-        client.saneState = true; // in principle, not needed -- next() should've covered that
-        sanitizeClient(client, false);
-      } catch (instanceDeleteError) {
-        logClient(
-          client,
-          "Error when deleting instance: " + instanceDeleteError
-        );
-        deleteClientData(client);
-      }
-    });
-    connection
-      .on("ready", function () {
-        connection.exec(
-          serverConfig.MATH_PROGRAM_COMMAND,
-          { pty: true },
-          function (err, channel: ssh2.ClientChannel) {
-            if (err) {
-              throw err;
-            }
-            channel.on("close", function () {
-              connection.end();
-            });
-            channel.on("end", function () {
-              channel.close();
-              logClient(
-                client,
-                "Channel to Math program ended, closing connection."
-              );
-              connection.end();
-            });
-            attachChannelToClient(client, channel);
-            next(true);
-          }
-        );
-      })
-      .connect(sshCredentials(client.instance));
+  const connection: ssh2.Client = new ssh2.Client();
+  connection.on("error", function (err) {
+    logClient(
+      client,
+      "Error when connecting. " + err + "; Retrying with new instance."
+    );
+    next(false);
+    // Make sure the sanitizer runs.
+    try {
+      delete client.instance;
+      client.saneState = true; // in principle, not needed -- next() should've covered that
+      sanitizeClient(client, false);
+    } catch (instanceDeleteError) {
+      logClient(client, "Error when deleting instance: " + instanceDeleteError);
+      deleteClientData(client);
+    }
   });
+  connection
+    .on("ready", function () {
+      connection.exec(
+        serverConfig.MATH_PROGRAM_COMMAND,
+        { pty: true },
+        function (err, channel: ssh2.ClientChannel) {
+          if (err) {
+            throw err;
+          }
+          channel.on("close", function () {
+            connection.end();
+          });
+          channel.on("end", function () {
+            channel.close();
+            logClient(
+              client,
+              "Channel to Math program ended, closing connection."
+            );
+            connection.end();
+          });
+          attachChannelToClient(client, channel);
+          next(true);
+        }
+      );
+    })
+    .connect(sshCredentials(client.instance));
 };
 
 const addNewSocket = function (client: Client, socket: SocketIO.Socket) {
@@ -411,24 +406,26 @@ const sanitizeClient = function (client: Client, force: boolean, next?) {
   }
   logClient(client, "Sanitizing");
   client.saneState = false;
-
-  if (
-    force ||
-    !client.channel ||
-    !client.channel.writable ||
-    !client.instance
-  ) {
-    spawnMathProgram(client, function () {
-      client.savedOutput = "";
-      client.outputStat = 0;
+  // Avoid stuck sanitizer. shouldn't happen in theory...
+  setTimeout(function () {
+    client.saneState = true;
+  }, 30000); // 30 secs
+  // first check for instance (i.e. docker)
+  getInstance(client, function () {
+    // then for channel to M2
+    if (force || !client.channel || !client.channel.writable) {
+      spawnMathProgram(client, function () {
+        client.savedOutput = "";
+        client.outputStat = 0;
+        client.saneState = true;
+        if (next) next(true);
+      });
+    } else {
+      logClient(client, "Has mathProgram instance.");
       client.saneState = true;
       if (next) next(true);
-    });
-  } else {
-    logClient(client, "Has mathProgram instance.");
-    client.saneState = true;
-    if (next) next(true);
-  }
+    }
+  });
 };
 
 const writeMsgOnStream = function (client: Client, msg: string) {
