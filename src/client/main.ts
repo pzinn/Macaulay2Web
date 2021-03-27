@@ -171,6 +171,7 @@ const init = function () {
     if (clientId) setCookieId();
     // reset the cookie clock
     else {
+      // set up start button
       const resetBtn = document.getElementById("resetBtn");
       resetBtn.firstElementChild.textContent = "Start";
       resetBtn.firstElementChild.classList.add("startButton");
@@ -178,6 +179,7 @@ const init = function () {
         e.stopPropagation();
         resetBtn.firstElementChild.textContent = "Reset";
         resetBtn.firstElementChild.classList.remove("startButton");
+        clientId = getCookieId(); // in the unlikely event that it got changed while we were waiting
         init2();
       };
       return;
