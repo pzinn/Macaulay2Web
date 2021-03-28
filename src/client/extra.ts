@@ -3,7 +3,11 @@ import { options } from "../common/global";
 import { socket, url, myshell, clientId } from "./main";
 import { scrollDown, setCaret, caretIsAtEnd } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
-import tutorials from "./tutorials";
+import {
+  initTutorials,
+  uploadTutorial,
+  loadLessonIfChanged,
+} from "./tutorials";
 import { Chat } from "../common/chatClass";
 import {
   escapeKeyHandling,
@@ -245,10 +249,10 @@ const extra1 = function () {
     tute = +m[1] || 0;
     page = +m[2] || 1;
   }
-  const tutorialManager = tutorials(tute, page - 1);
+  initTutorials(tute, page - 1);
   const upTutorial = document.getElementById("uptutorial");
   if (upTutorial) {
-    upTutorial.onchange = tutorialManager.uploadTutorial;
+    upTutorial.onchange = uploadTutorial;
   }
 
   // supersedes mdl's internal tab handling
@@ -258,8 +262,7 @@ const extra1 = function () {
     const m = /^tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(loc);
     if (m) {
       loc = "tutorial";
-      if (m[1] || m[2])
-        tutorialManager.loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
+      if (m[1] || m[2]) loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
     }
     const panel = document.getElementById(loc);
     if (panel) {

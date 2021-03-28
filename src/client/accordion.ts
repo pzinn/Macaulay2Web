@@ -1,4 +1,5 @@
 import uploadTutorialHelp from "./tutorials/uploadTutorialHelp.txt";
+import { removeTutorial } from "./tutorials.ts";
 
 const cssClasses = {
   titleSymbolClass: "material-icons titleSymbol",
@@ -13,11 +14,6 @@ const cssClasses = {
   content: "mdl-list__item-text-body mdl-list__item",
   innerList: "unstyled",
   titleHref: "menuTitle mdl-button mdl-js-button mdl-button-raised",
-};
-
-const removeTutorial = function (e) {
-  e.stopPropagation();
-  e.currentTarget.parentElement.parentElement.remove();
 };
 
 const doUptutorialClick = function (e) {
@@ -77,9 +73,9 @@ const appendTutorialToAccordion = function (
 
   if (deleteButton) {
     const deleteButton = document.createElement("i");
-    deleteButton.className = "material-icons saveDialogClose";
+    deleteButton.className = "material-icons";
     deleteButton.textContent = "close";
-    deleteButton.onclick = removeTutorial;
+    deleteButton.onclick = removeTutorial(index);
     titlespan.appendChild(deleteButton);
   }
 
