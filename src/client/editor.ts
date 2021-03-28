@@ -376,80 +376,64 @@ const openingDelimiterHandling = function (index, el) {
 const M2indent = 4;
 const spacing = { " ": 1, "\t": 8 };
 
-const autoIndentLine = function (input, pos) {
-  if (input[pos] != "\n") return; // e.g. when pressing enter in autocomplete menu
-  let pos1 = pos - 1;
+const delimLevel = function (s, start, end) {
   let level = 0;
-  while (pos1 >= 0 && input[pos1] != "\n") {
-    if (openingDelimiters.indexOf(input[pos1]) >= 0) level++;
-    else if (closingDelimiters.indexOf(input[pos1]) >= 0) level--;
-    pos1--;
+  for (let k = start; k < end; k++) {
+    if (openingDelimiters.indexOf(s[k]) >= 0) level++;
+    else if (closingDelimiters.indexOf(s[k]) >= 0) level--;
   }
-  let indent = input.substring(pos1 + 1, pos).match(/^[ \t]*/)[0];
-  let extraIndent = level * M2indent;
-  let i = indent.length;
-  while (extraIndent < 0 && i > 0) {
-    extraIndent += spacing[indent[i - 1]];
-    i--;
-  }
-  indent = indent.substring(0, i);
-  if (extraIndent > 0) indent += " ".repeat(extraIndent);
-  // at this stage indent is the correct indentation for next line
-  // compare with existing space
-  pos1 = pos + 1;
-  i = indent.length;
-  while (pos1 < input.length && i > 0 && input[pos1] == indent[i - 1]) {
-    pos1++;
-    i--;
-  }
-  if (i > 0) {
-    indent = indent.substring(0, i);
-    document.execCommand("insertText", false, indent);
-    input =
-      input.substring(0, pos + 1) +
-      indent +
-      input.substring(pos + 1, input.length);
-    pos1 += i;
-    pos += i; // caret at pos+1
-  }
-  const pos0 = pos1;
-  // finally, remove preexisting space
-  let flag = false;
-  while (pos1 < input.length && (input[pos1] == " " || input[pos1] == "\t")) {
-    if (!flag) {
-      flag = true;
-      //  before we erase, move pointer to pos1 (currently at pos+1)
-      const sel = window.getSelection() as any;
-      while (pos + 1 < pos0) {
-        pos++;
-        sel.modify("move", "forward", "character");
-      }
-    }
-    document.execCommand("forwardDelete", false);
-    pos1++;
-  }
-  if (flag)
-    input = input.substring(0, pos0) + input.substring(pos1, input.length);
-  return input;
+  return level;
 };
 
 const autoIndent = function (el) {
-  let input = el.innerText;
+  const input = el.innerText;
+  const sel = window.getSelection() as any;
   let pos = getCaret2(el); // start and end
   if (pos === null) return;
-  if (pos[0] == pos[1]) {
-    // single line auto-indent
-    autoIndentLine(input, pos[0] - 1);
-  } else {
-    if (pos[0] > pos[1]) pos = [pos[1], pos[0]];
-    let index = input.lastIndexOf("\n", pos[0]);
-    if (index < 0) index = input.indexOf("\n", pos[0]);
-    const len = input.length;
-    while (index >= 0 && index <= pos[1] + input.length - len) {
-      setCaret(el, index + 1);
-      input = autoIndentLine(input, index); // indent and update input
-      index = input.indexOf("\n", index + 1);
+  if (pos[0] == pos[1] && (pos[0] == 0 || input[pos[0] - 1] != "\n")) return; // possibly TEMP: happens e.g. when pressing enter in autocomplete menu
+  if (pos[0] > pos[1]) pos = [pos[1], pos[0]];
+  const lineStart = input.lastIndexOf("\n", pos[0] - 1) + 1; // points to first character of first selected line in input
+  let lineEnd = input.indexOf("\n", pos[1]); // points to \n at the end of last line
+  if (lineEnd < 0) lineEnd = input.length; // or length if no \n
+  // we need the previous line
+  let pos0 = input.lastIndexOf("\n", lineStart - 2) + 1;
+  // ... and count its indentation
+  let indent = 0;
+  while (pos0 < lineStart - 1 && (input[pos0] == " " || input[pos0] == "\t")) {
+    indent += spacing[input[pos0]];
+    pos0++;
+  }
+  indent += delimLevel(input, pos0, lineStart - 1) * M2indent;
+  let pos1 = lineStart; // keep track of current position in input
+  let shift = 0; // shift between input and actual content of editor due to inserts/deletes
+  sel.collapseToStart(); // just in case
+  while (true) {
+    let pos2 = pos1;
+    while (pos2 < lineEnd && pos2 - pos1 < indent && input[pos2] == " ") pos2++; // keep spaces that are already there
+    if (
+      (pos2 < lineEnd && (input[pos2] == " " || input[pos2] == "\t")) ||
+      pos2 - pos1 < indent
+    ) {
+      if (pos[0] != pos2 + shift) {
+        pos[0] = pos2 + shift;
+        setCaret(el, pos[0]);
+      }
+      let pos3 = pos2; // remove spaces that shouldn't be there
+      while (pos3 < lineEnd && (input[pos3] == " " || input[pos3] == "\t")) {
+        document.execCommand("forwardDelete", false);
+        pos3++;
+        shift--;
+      }
+      const indentLeft = indent - pos2 + pos1; // add extra if necessary
+      if (indentLeft > 0) {
+        document.execCommand("insertText", false, " ".repeat(indentLeft));
+        shift += indentLeft;
+      }
     }
+    let pos4 = input.indexOf("\n", pos1);
+    if (pos4 < 0 || pos4 >= lineEnd) break;
+    indent += delimLevel(input, pos2, pos4) * M2indent;
+    pos1 = pos4 + 1; // start of next line
   }
 };
 
