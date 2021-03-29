@@ -1,7 +1,7 @@
 // contains functions used by both terminal and editor
 import { setupMenu } from "./menu";
 import M2symbols from "./prism-M2";
-import { getCaret, getCaret2, setCaret } from "./htmlTools";
+import { getCaret, getCaret2, setCaret, forwardCaret } from "./htmlTools";
 import Prism from "prismjs";
 
 // partial support for unicode symbols
@@ -374,83 +374,90 @@ const openingDelimiterHandling = function (index, el) {
 };
 
 const M2indent = 4;
-const spacing = { " ": 1, "\t": 8 };
 
-const autoIndentLine = function (input, pos) {
-  if (input[pos] != "\n") return; // e.g. when pressing enter in autocomplete menu
-  let pos1 = pos - 1;
+const delimLevel = function (s, start, end) {
   let level = 0;
-  while (pos1 >= 0 && input[pos1] != "\n") {
-    if (openingDelimiters.indexOf(input[pos1]) >= 0) level++;
-    else if (closingDelimiters.indexOf(input[pos1]) >= 0) level--;
-    pos1--;
+  for (let k = start; k < end; k++) {
+    if (openingDelimiters.indexOf(s[k]) >= 0) level++;
+    else if (closingDelimiters.indexOf(s[k]) >= 0) level--;
   }
-  let indent = input.substring(pos1 + 1, pos).match(/^[ \t]*/)[0];
-  let extraIndent = level * M2indent;
-  let i = indent.length;
-  while (extraIndent < 0 && i > 0) {
-    extraIndent += spacing[indent[i - 1]];
-    i--;
-  }
-  indent = indent.substring(0, i);
-  if (extraIndent > 0) indent += " ".repeat(extraIndent);
-  // at this stage indent is the correct indentation for next line
-  // compare with existing space
-  pos1 = pos + 1;
-  i = indent.length;
-  while (pos1 < input.length && i > 0 && input[pos1] == indent[i - 1]) {
-    pos1++;
-    i--;
-  }
-  if (i > 0) {
-    indent = indent.substring(0, i);
-    document.execCommand("insertText", false, indent);
-    input =
-      input.substring(0, pos + 1) +
-      indent +
-      input.substring(pos + 1, input.length);
-    pos1 += i;
-    pos += i; // caret at pos+1
-  }
-  const pos0 = pos1;
-  // finally, remove preexisting space
-  let flag = false;
-  while (pos1 < input.length && (input[pos1] == " " || input[pos1] == "\t")) {
-    if (!flag) {
-      flag = true;
-      //  before we erase, move pointer to pos1 (currently at pos+1)
-      const sel = window.getSelection() as any;
-      while (pos + 1 < pos0) {
-        pos++;
-        sel.modify("move", "forward", "character");
-      }
-    }
-    document.execCommand("forwardDelete", false);
-    pos1++;
-  }
-  if (flag)
-    input = input.substring(0, pos0) + input.substring(pos1, input.length);
-  return input;
+  return level;
 };
 
 const autoIndent = function (el) {
-  let input = el.innerText;
+  const oldOnInput = el.oninput;
+  el.oninput = null; // turn off delimiter handling or whatever else is oninput
+  //  const t = Date.now();
+  const input = el.innerText;
+  const sel = window.getSelection() as any;
   let pos = getCaret2(el); // start and end
   if (pos === null) return;
-  if (pos[0] == pos[1]) {
-    // single line auto-indent
-    autoIndentLine(input, pos[0] - 1);
-  } else {
-    if (pos[0] > pos[1]) pos = [pos[1], pos[0]];
-    let index = input.lastIndexOf("\n", pos[0]);
-    if (index < 0) index = input.indexOf("\n", pos[0]);
-    const len = input.length;
-    while (index >= 0 && index <= pos[1] + input.length - len) {
-      setCaret(el, index + 1);
-      input = autoIndentLine(input, index); // indent and update input
-      index = input.indexOf("\n", index + 1);
-    }
+  if (pos[0] == pos[1] && (pos[0] == 0 || input[pos[0] - 1] != "\n")) return; // possibly TEMP: happens e.g. when pressing enter in autocomplete menu
+  if (pos[0] > pos[1]) pos = [pos[1], pos[0]];
+  const indStart = input.lastIndexOf("\n", pos[0] - 1) + 1; // points to first character of first selected line in input
+  const indEnd = pos[1];
+  // we need the previous line
+  let pos0 = input.lastIndexOf("\n", indStart - 2) + 1;
+  // ... and count its indentation
+  let indent = 0;
+  while (pos0 < indStart - 1) {
+    if (input[pos0] == " ") indent++;
+    else if (input[pos0] == "\t") indent = (Math.floor(indent / 8) + 1) * 8;
+    else break; // other exotic spaces?
+    pos0++;
   }
+  indent += delimLevel(input, pos0, indStart - 1) * M2indent; // if (indent<0) indent=0;
+  let pos1 = indStart; // keep track of current position in input
+  sel.collapseToStart();
+  let caretPos = pos[0]; // keep track of caret position
+  let shift = 0; // shift between input and actual content of editor due to inserts/deletes
+  while (true) {
+    let pos3 = input.indexOf("\n", pos1);
+    if (pos3 < 0 || pos3 > indEnd) pos3 = indEnd;
+    let pos2 =
+      pos1 +
+      input.substring(pos1, Math.min(pos1 + indent, pos3)).match("^ *")[0]
+        .length; // keep spaces that are already there
+    let badSpaces = input.substring(pos2, pos3).match("^\\s*")[0].length;
+    const indentLeft = indent - pos2 + pos1;
+    if (badSpaces > 0 || indentLeft > 0) {
+      if (caretPos < pos2 + shift) {
+        forwardCaret(el, pos2 + shift - caretPos);
+        caretPos = pos2 + shift;
+      }
+      // remove spaces that shouldn't be there
+      shift -= badSpaces;
+      pos2 += badSpaces;
+      while (badSpaces > 0) {
+        document.execCommand("forwardDelete", false);
+        badSpaces--;
+      }
+      // add extra if necessary
+      if (indentLeft > 0) {
+        document.execCommand("insertText", false, " ".repeat(indentLeft));
+        shift += indentLeft;
+        caretPos += indentLeft;
+      }
+    }
+    badSpaces = input.substring(pos2, pos3).match("\\s*$")[0].length;
+    if (badSpaces > 0) {
+      // because.
+      if (caretPos < pos3 - badSpaces + shift) {
+        forwardCaret(el, pos3 - badSpaces + shift - caretPos);
+        caretPos = pos3 - badSpaces + shift;
+      }
+      shift -= badSpaces;
+      while (badSpaces > 0) {
+        document.execCommand("forwardDelete", false);
+        badSpaces--;
+      }
+    }
+    if (pos3 + 1 >= indEnd) break;
+    indent += delimLevel(input, pos2, pos3) * M2indent; // if (indent<0) indent=0;
+    pos1 = pos3 + 1; // start of next line
+  }
+  //  console.log(Date.now() - t);
+  el.oninput = oldOnInput; // turn off delimiter handling or whatever else is oninput
 };
 
 const syntaxHighlight = function (el: HTMLElement) {

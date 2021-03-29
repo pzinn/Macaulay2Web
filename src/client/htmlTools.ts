@@ -86,24 +86,9 @@ const getCaret2 = function (el) {
   }
 };
 
-// some of these edge cases need to be clarified (empty HTMLElements; etc)
-const setCaret = function (el, pos: number, pos2?: number): void {
-  let len;
-  if (!pos2) len = 0;
-  else if (pos2 < pos) {
-    len = pos - pos2;
-    pos = pos2;
-  } else len = pos2 - pos;
-  el.focus({ preventScroll: true });
-  const sel = window.getSelection();
-  if (pos === 0 && len === 0) {
-    sel.collapse(el, pos);
-    return;
-  }
-  let cur = el.firstChild;
+const setCaretInternal = function (el, cur, sel, pos: number, len: number) {
   let first = null;
   let firstpos;
-  if (!cur) return;
   while (true) {
     if (cur.nodeType === 3) {
       if (pos <= cur.textContent.length) {
@@ -133,6 +118,30 @@ const setCaret = function (el, pos: number, pos2?: number): void {
       cur = cur.nextSibling;
     } else cur = cur.firstChild; // forward
   }
+};
+
+// some of these edge cases need to be clarified (empty HTMLElements; etc)
+const setCaret = function (el, pos: number, pos2?: number): void {
+  let len;
+  if (!pos2) len = 0;
+  else if (pos2 < pos) {
+    len = pos - pos2;
+    pos = pos2;
+  } else len = pos2 - pos;
+  el.focus({ preventScroll: true });
+  const sel = window.getSelection();
+  if (pos === 0 && len === 0) {
+    sel.collapse(el, pos);
+    return;
+  }
+  const cur = el.firstChild;
+  if (!cur) return;
+  setCaretInternal(el, cur, sel, pos, len);
+};
+
+const forwardCaret = function (el, incr: number): void {
+  const sel = window.getSelection();
+  setCaretInternal(el, sel.focusNode, sel, incr + sel.focusOffset, 0);
 };
 
 const setCaretAtEndMaybe = function (el, flag?) {
@@ -187,4 +196,5 @@ export {
   getCaret2,
   setCaret,
   setCaretAtEndMaybe,
+  forwardCaret,
 };

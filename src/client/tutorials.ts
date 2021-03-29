@@ -158,7 +158,8 @@ const uploadTutorial = function () {
     const title = newTutorial.title; // this is a <title>
     if (!title) return; // ... or null, in which case cancel
     const i = tutorials.findIndex(
-      (tute) => tute.title.textContent == title.textContent
+      (tute) =>
+        tute && tute.title && tute.title.textContent == title.textContent
     );
     if (i >= 0) {
       tutorials[i] = newTutorial; // replace existing tutorial with same name (really, should redo the accordion too -- TODO)
@@ -173,16 +174,20 @@ const uploadTutorial = function () {
   return false;
 };
 
-export default function (initialTutorialNr, initialLessonNr) {
+const initTutorials = function (initialTutorialNr, initialLessonNr) {
   if (initialTutorialNr) tutorialNr = initialTutorialNr;
   if (initialLessonNr) lessonNr = initialLessonNr;
 
   makeAccordion(tutorials);
   loadLesson(tutorialNr, lessonNr);
+};
 
-  // TODO: restructure this mess
-  return {
-    uploadTutorial,
-    loadLessonIfChanged,
+const removeTutorial = function (index) {
+  return function (e) {
+    e.stopPropagation();
+    e.currentTarget.parentElement.parentElement.remove();
+    tutorials[index] = null; // can't renumber :/
   };
-}
+};
+
+export { initTutorials, uploadTutorial, loadLessonIfChanged, removeTutorial };
