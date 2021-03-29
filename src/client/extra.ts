@@ -405,17 +405,10 @@ const toggleWrap = function () {
     "editorFileName"
   ) as HTMLInputElement;
 
-  let preventEnterKeyUp = false; // annoying: Enter key wrongly triggers autoIndent when loading new file into editor
-
   //  fileNameEl.onfocus = autoSave; // simple way to save, plus avoids issues with autosaving while onchange running
   fileNameEl.onchange = function () {
     const newName = fileNameEl.value.trim();
     newEditorFileMaybe(newName, true);
-  };
-  fileNameEl.onkeydown = function (e) {
-    if (e.key == "Enter") {
-      preventEnterKeyUp = true;
-    }
   };
   const pastFileNames = document.getElementById(
     "pastFileNames"
@@ -554,10 +547,7 @@ const toggleWrap = function () {
   };
 
   const editorKeyUp = function (e) {
-    if (e.key == "Enter" && !e.shiftKey) {
-      if (preventEnterKeyUp) preventEnterKeyUp = false;
-      else autoIndent(editor);
-    } // else delimiterHandling(e.key, editor);
+    if (e.key == "Enter" && !e.shiftKey) autoIndent(editor);
   };
 
   const queryCookie = function () {
