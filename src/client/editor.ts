@@ -1,7 +1,7 @@
 // contains functions used by both terminal and editor
 import { setupMenu } from "./menu";
 import M2symbols from "./prism-M2";
-import { getCaret, getCaret2, setCaret } from "./htmlTools";
+import { getCaret, getCaret2, setCaret, forwardCaret } from "./htmlTools";
 import Prism from "prismjs";
 
 // partial support for unicode symbols
@@ -374,7 +374,6 @@ const openingDelimiterHandling = function (index, el) {
 };
 
 const M2indent = 4;
-const spacing = { " ": 1, "\t": 8 };
 
 const delimLevel = function (s, start, end) {
   let level = 0;
@@ -386,55 +385,79 @@ const delimLevel = function (s, start, end) {
 };
 
 const autoIndent = function (el) {
+  const oldOnInput = el.oninput;
+  el.oninput = null; // turn off delimiter handling or whatever else is oninput
+  //  const t = Date.now();
   const input = el.innerText;
   const sel = window.getSelection() as any;
   let pos = getCaret2(el); // start and end
   if (pos === null) return;
   if (pos[0] == pos[1] && (pos[0] == 0 || input[pos[0] - 1] != "\n")) return; // possibly TEMP: happens e.g. when pressing enter in autocomplete menu
   if (pos[0] > pos[1]) pos = [pos[1], pos[0]];
-  const lineStart = input.lastIndexOf("\n", pos[0] - 1) + 1; // points to first character of first selected line in input
-  let lineEnd = input.indexOf("\n", pos[1]); // points to \n at the end of last line
-  if (lineEnd < 0) lineEnd = input.length; // or length if no \n
+  const indStart = input.lastIndexOf("\n", pos[0] - 1) + 1; // points to first character of first selected line in input
+  const indEnd = pos[1];
   // we need the previous line
-  let pos0 = input.lastIndexOf("\n", lineStart - 2) + 1;
+  let pos0 = input.lastIndexOf("\n", indStart - 2) + 1;
   // ... and count its indentation
   let indent = 0;
-  while (pos0 < lineStart - 1 && (input[pos0] == " " || input[pos0] == "\t")) {
-    indent += spacing[input[pos0]];
+  while (pos0 < indStart - 1) {
+    if (input[pos0] == " ") indent++;
+    else if (input[pos0] == "\t") indent = (Math.floor(indent / 8) + 1) * 8;
+    else break; // other exotic spaces?
     pos0++;
   }
-  indent += delimLevel(input, pos0, lineStart - 1) * M2indent;
-  let pos1 = lineStart; // keep track of current position in input
+  indent += delimLevel(input, pos0, indStart - 1) * M2indent; // if (indent<0) indent=0;
+  let pos1 = indStart; // keep track of current position in input
+  sel.collapseToStart();
+  let caretPos = pos[0]; // keep track of caret position
   let shift = 0; // shift between input and actual content of editor due to inserts/deletes
-  sel.collapseToStart(); // just in case
   while (true) {
-    let pos2 = pos1;
-    while (pos2 < lineEnd && pos2 - pos1 < indent && input[pos2] == " ") pos2++; // keep spaces that are already there
-    if (
-      (pos2 < lineEnd && (input[pos2] == " " || input[pos2] == "\t")) ||
-      pos2 - pos1 < indent
-    ) {
-      if (pos[0] != pos2 + shift) {
-        pos[0] = pos2 + shift;
-        setCaret(el, pos[0]);
+    let pos3 = input.indexOf("\n", pos1);
+    if (pos3 < 0 || pos3 > indEnd) pos3 = indEnd;
+    let pos2 =
+      pos1 +
+      input.substring(pos1, Math.min(pos1 + indent, pos3)).match("^ *")[0]
+        .length; // keep spaces that are already there
+    let badSpaces = input.substring(pos2, pos3).match("^\\s*")[0].length;
+    const indentLeft = indent - pos2 + pos1;
+    if (badSpaces > 0 || indentLeft > 0) {
+      if (caretPos < pos2 + shift) {
+        forwardCaret(el, pos2 + shift - caretPos);
+        caretPos = pos2 + shift;
       }
-      let pos3 = pos2; // remove spaces that shouldn't be there
-      while (pos3 < lineEnd && (input[pos3] == " " || input[pos3] == "\t")) {
+      // remove spaces that shouldn't be there
+      shift -= badSpaces;
+      pos2 += badSpaces;
+      while (badSpaces > 0) {
         document.execCommand("forwardDelete", false);
-        pos3++;
-        shift--;
+        badSpaces--;
       }
-      const indentLeft = indent - pos2 + pos1; // add extra if necessary
+      // add extra if necessary
       if (indentLeft > 0) {
         document.execCommand("insertText", false, " ".repeat(indentLeft));
         shift += indentLeft;
+        caretPos += indentLeft;
       }
     }
-    let pos4 = input.indexOf("\n", pos1);
-    if (pos4 < 0 || pos4 >= lineEnd) break;
-    indent += delimLevel(input, pos2, pos4) * M2indent;
-    pos1 = pos4 + 1; // start of next line
+    badSpaces = input.substring(pos2, pos3).match("\\s*$")[0].length;
+    if (badSpaces > 0) {
+      // because.
+      if (caretPos < pos3 - badSpaces + shift) {
+        forwardCaret(el, pos3 - badSpaces + shift - caretPos);
+        caretPos = pos3 - badSpaces + shift;
+      }
+      shift -= badSpaces;
+      while (badSpaces > 0) {
+        document.execCommand("forwardDelete", false);
+        badSpaces--;
+      }
+    }
+    if (pos3 + 1 >= indEnd) break;
+    indent += delimLevel(input, pos2, pos3) * M2indent; // if (indent<0) indent=0;
+    pos1 = pos3 + 1; // start of next line
   }
+  //  console.log(Date.now() - t);
+  el.oninput = oldOnInput; // turn off delimiter handling or whatever else is oninput
 };
 
 const syntaxHighlight = function (el: HTMLElement) {
