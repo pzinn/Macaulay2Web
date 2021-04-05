@@ -222,7 +222,7 @@ const sendDataToClient = function (client: Client) {
     }
     client.savedOutput += data;
     // extra logging for *users* only
-    if (client.id.substring(0, 4) === "user") {
+    if (client.id !== "public") {
       while (
         client.savedOutput.length > options.perContainerResources.maxSavedOutput
       ) {
@@ -501,6 +501,9 @@ const initializeClientId = function (): string {
 const validateId = function (s): string {
   if (s === undefined) return undefined;
   s = s.replace(/[^a-zA-Z_0-9]/g, "");
+  // TEMPORARY: remove the "user"
+  if (s.substring(0, 4) === "user") s = s.substring(4);
+  // END TEMPORARY
   if (s == "") return undefined;
   else return s;
 };
@@ -560,15 +563,12 @@ const getClientIdAuth = function (authOption: boolean) {
       if (socket.handshake.query.id)
         logger.warn("Ignoring userId command line");
       try {
-        return (
-          "user" +
-          Buffer.from(
-            socket.request.headers.authorization.split(" ").pop(),
-            "base64"
-          )
-            .toString()
-            .split(":")[0]
-        );
+        return Buffer.from(
+          socket.request.headers.authorization.split(" ").pop(),
+          "base64"
+        )
+          .toString()
+          .split(":")[0];
       } catch (error) {
         return "failed";
       }

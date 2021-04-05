@@ -51,7 +51,10 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
       })
     ); // provide past chat
     if (chat0.index < 0)
-      systemChat(client, "Welcome " + chat0.alias + " (" + client.id + ") !"); // welcome only if first time
+      systemChat(
+        client,
+        "Welcome " + chat0.alias + " (id " + client.id + ") !"
+      ); // welcome only if first time
   };
   const chatMessage = function (chat: Chat) {
     logClient(client, chat.alias + " said: " + short(chat.message));
@@ -162,7 +165,7 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
     safeEmit(socket, "chat", chat);
   };
 
-  return client.id != "user" + options.adminName
+  return client.id != options.adminName
     ? function (chat: Chat) {
         // normal user
         logClient(client, "Chat of type " + chat.type);

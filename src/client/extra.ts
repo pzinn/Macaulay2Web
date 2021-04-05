@@ -47,7 +47,15 @@ const getCookie = function (name, deflt?) {
 };
 
 const getCookieId = function () {
-  return getCookie(options.cookieName);
+  //  return getCookie(options.cookieName);
+  let id = getCookie(options.cookieName);
+  // TEMPORARY: remove the "user"
+  if (id && id.substring(0, 4) === "user") {
+    id = id.substring(4);
+    setCookie(options.cookieName, id);
+  }
+  // END TEMPORARY
+  return id;
 };
 
 const setCookieId = function (): void {
@@ -553,10 +561,9 @@ const toggleWrap = function () {
   const queryCookie = function () {
     const id = getCookieId();
     let msg: string = id
-      ? "The user id stored in your cookie is: " + id.substring(4)
+      ? "The user id stored in your cookie is: " + id
       : "You don't have a cookie.";
-    if (clientId != id)
-      msg += "\nYour temporary id is: " + clientId.substring(4);
+    if (clientId != id) msg += "\nYour temporary id is: " + clientId;
     alert(msg);
   };
 
@@ -666,7 +673,7 @@ const toggleWrap = function () {
               .split(",")
               .forEach(function (rec: string) {
                 const i = rec.indexOf("/");
-                const id = i < 0 ? "" : "user" + rec.substring(0, i);
+                const id = i < 0 ? "" : rec.substring(0, i);
                 const alias = i < 0 ? rec : rec.substring(i + 1);
                 if ((id != "" || alias != "") && msg.recipients[id] !== null) {
                   // null means everyone

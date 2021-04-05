@@ -14,7 +14,7 @@ const loggerSettings = {
 const logger = winston.createLogger(loggerSettings);
 
 const logClient = function (client: Client, str: string) {
-  logger.info(client.id + ": " + str);
+  logger.info("id " + client.id + ": " + str);
 };
 
 export { logger, logClient };
