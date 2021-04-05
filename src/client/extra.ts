@@ -112,6 +112,7 @@ const autoSave = function () {
     window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = 0;
   }
+  if (!fileName) return;
   const content = document.getElementById("editorDiv").innerText as string;
   const newHash = hashCode(content);
   if (newHash != autoSaveHash) {
@@ -222,7 +223,7 @@ const newEditorFileMaybe = function (arg: string, createNew: boolean) {
   // figure out filename
   const m = arg.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
   const newName = m ? m[1] : arg;
-  if (fileName == newName) {
+  if (fileName == newName || !newName) {
     updateFileName(newName); // in case of positioning data
     positioning(m);
     return;
@@ -430,6 +431,14 @@ const toggleWrap = function () {
   };
 
   updateFileName(getCookie(options.cookieFileName, "default.m2"));
+
+  const clearEditorBtn = document.getElementById("clearEditorBtn");
+  clearEditorBtn.onclick = function () {
+    autoSave();
+    editor.innerHTML = "";
+    updateFileName("");
+    fileNameEl.focus();
+  };
 
   const showUploadDialog = function (event) {
     console.log("file upload returned status code " + event.target.status);
@@ -723,12 +732,10 @@ const toggleWrap = function () {
   attachCtrlBtnActions();
   attachCloseDialogBtns();
 
-  if (editor) {
-    editor.onkeydown = editorKeyDown;
-    editor.onkeyup = editorKeyUp;
-    editor.oninput = editorInput;
-    editor.onblur = autoSave;
-  }
+  editor.onkeydown = editorKeyDown;
+  editor.onkeyup = editorKeyUp;
+  editor.oninput = editorInput;
+  editor.onblur = autoSave;
 
   attachClick("uploadBtn", uploadFile);
 

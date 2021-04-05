@@ -5,12 +5,14 @@
 -- Evaluate a line or selection by typing Shift+Enter 
 -- or by clicking on Evaluate.
 
--- What follows are some examples.
--- you can erase it all with e.g. Ctrl-A + Delete
+-- What follows is a set of examples.
+
+-- You can erase it all by e.g. pressing the trash button at the bottom right
+-- (if you do so, provide another file name in the bottom right box 
+-- so your editor content is autosaved on the server)
 
 -- To open the Macaulay2 documentation for a 
 -- topic in the "Browse" tab:
-
 viewHelp "determinant"
 
 -- Here are some sample commands:

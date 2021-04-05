@@ -179,10 +179,15 @@
                 <div id="editorDiv" wrap='off' autocorrect="off" contenteditable="true"
                      spellcheck="false" autocapitalize="off"></div>
 		<div id="editorFileNameDiv">
-		  <select id="pastFileNames">
-		  </select>
-		  <input type="text" name="displayValue" id="editorFileName"
-			 placeholder="Filename">
+		  <button id="clearEditorBtn" class="mdl-button mdl-js-button mdl-button--icon">
+		    <i class="material-icons">delete</i>
+		  </button>
+                  <span style="position:relative">
+		    <select id="pastFileNames">
+		    </select>
+		    <input type="text" id="editorFileName"
+			   placeholder="Filename">
+		  </span>
 		</div>
 	      </div>
               <div class="mdl-tabs__panel" id="chat">
