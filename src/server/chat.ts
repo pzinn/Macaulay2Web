@@ -51,7 +51,7 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
       })
     ); // provide past chat
     if (chat0.index < 0)
-      systemChat(client, chat0.alias + " has arrived. Welcome!"); // welcome only if first time
+      systemChat(client, "Welcome " + chat0.alias + " (" + client.id + ") !"); // welcome only if first time
   };
   const chatMessage = function (chat: Chat) {
     logClient(client, chat.alias + " said: " + short(chat.message));
