@@ -247,11 +247,10 @@ const newEditorFileMaybe = function (arg: string, createNew: boolean) {
 
 const extra1 = function () {
   const tabs = document.getElementById("tabs") as any;
-  const iFrame = document.getElementById("browseFrame");
-  let tab = url.hash;
+  const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
 
-  //  const loadtute = url.searchParams.get("loadtutorial");
-  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab);
+  let tab = url.hash;
+  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab); // maybe the former "loadtute" could be absorbed in the syntax e.g. tutorial:name.html-5
   let tute = 0,
     page = 1;
   if (m) {
@@ -272,6 +271,13 @@ const extra1 = function () {
     if (m) {
       loc = "tutorial";
       if (m[1] || m[2]) loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
+    }
+    // editor stuff
+    const e = /^editor:(.+)$/.exec(loc);
+    if (e) {
+      loc = "editor";
+      // do something *if* session started
+      if (socket && socket.connected) newEditorFileMaybe(e[1], true);
     }
     const panel = document.getElementById(loc);
     if (panel) {
@@ -300,7 +306,6 @@ const extra1 = function () {
       else el.click();
     }
     // try to enable actions
-    const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
     if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
       const bdy = iFrame.contentDocument.body;
       bdy.onclick = document.body.onclick;
@@ -312,17 +317,12 @@ const extra1 = function () {
     event.preventDefault();
   };
 
-  if (tabs) {
-    document.location.hash = "";
-    window.addEventListener("hashchange", openTab);
-    if (tab === "")
-      //      if (loadtute) tab = "#tutorial";
-      //	else
-      tab = "#home";
-    document.location.hash = tab;
-  }
+  document.location.hash = "";
+  window.addEventListener("hashchange", openTab);
+  if (tab === "") tab = "#home";
+  document.location.hash = tab;
 
-  if (iFrame) iFrame.onload = openBrowseTab;
+  iFrame.onload = openBrowseTab;
 
   // resize
   const resize = document.getElementById("resize");
@@ -352,6 +352,7 @@ const extra1 = function () {
   resize.onmousedown = resizeMouseDown;
 };
 
+// 2nd part: once session active
 const extra2 = function () {
   const terminal = document.getElementById("terminal");
   const editor = document.getElementById("editorDiv");
@@ -429,8 +430,6 @@ const toggleWrap = function () {
     const newName = pastFileNames.options[pastFileNames.selectedIndex].text;
     newEditorFileMaybe(newName, true);
   };
-
-  updateFileName(getCookie(options.cookieFileName, "default.m2"));
 
   const clearEditorBtn = document.getElementById("clearEditorBtn");
   clearEditorBtn.onclick = function () {
@@ -521,25 +520,18 @@ const toggleWrap = function () {
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
 
-  const attachCtrlBtnActions = function () {
-    attachClick("sendBtn", editorEvaluate);
-    attachClick("resetBtn", emitReset);
-    attachClick("interruptBtn", myshell.interrupt);
-    attachClick("saveBtn", saveFile);
-    attachClick("loadBtn", loadFile);
-    //    attachClick("highlightBtn", highlight);
-    attachClick("clearBtn", clearOut);
-    //  attachClick("wrapBtn", toggleWrap);
-  };
+  // starting text in editor
+  updateFileName(getCookie(options.cookieFileName, "default.m2"));
+  const e = /^#editor:(.+)$/.exec(url.hash);
+  if (e) updateFileName(e[1]);
 
-  const attachCloseDialogBtns = function () {
-    attachClick("uploadSuccessDialogClose", function () {
-      (document.getElementById("uploadSuccessDialog") as any).close();
-    });
-    /*    attachClick("showFileDialogClose", function () {
-      (document.getElementById("showFileDialog") as any).close();
-    });*/
-  };
+  socket.emit("fileexists", fileName, function (response) {
+    if (!response) {
+      if (fileName != "default.m2") return;
+      response = "default.orig.m2"; // get the default file from the server
+    }
+    localFileToEditor(response);
+  });
 
   const editorKeyDown = function (e) {
     //    var prismInvoked=false;
@@ -565,6 +557,31 @@ const toggleWrap = function () {
 
   const editorKeyUp = function (e) {
     if (e.key == "Enter" && !e.shiftKey) autoIndent(editor);
+  };
+
+  editor.onkeydown = editorKeyDown;
+  editor.onkeyup = editorKeyUp;
+  editor.oninput = editorInput;
+  editor.onblur = autoSave;
+
+  const attachCtrlBtnActions = function () {
+    attachClick("sendBtn", editorEvaluate);
+    attachClick("resetBtn", emitReset);
+    attachClick("interruptBtn", myshell.interrupt);
+    attachClick("saveBtn", saveFile);
+    attachClick("loadBtn", loadFile);
+    //    attachClick("highlightBtn", highlight);
+    attachClick("clearBtn", clearOut);
+    //  attachClick("wrapBtn", toggleWrap);
+  };
+
+  const attachCloseDialogBtns = function () {
+    attachClick("uploadSuccessDialogClose", function () {
+      (document.getElementById("uploadSuccessDialog") as any).close();
+    });
+    /*    attachClick("showFileDialogClose", function () {
+      (document.getElementById("showFileDialog") as any).close();
+    });*/
   };
 
   const queryCookie = function () {
@@ -720,22 +737,8 @@ const toggleWrap = function () {
       .checked;
   });
 
-  // starting text in editor
-  socket.emit("fileexists", fileName, function (response) {
-    if (!response) {
-      if (fileName != "default.m2") return;
-      response = "default.orig.m2";
-    }
-    localFileToEditor(response);
-  });
-
   attachCtrlBtnActions();
   attachCloseDialogBtns();
-
-  editor.onkeydown = editorKeyDown;
-  editor.onkeyup = editorKeyUp;
-  editor.oninput = editorInput;
-  editor.onblur = autoSave;
 
   attachClick("uploadBtn", uploadFile);
 
