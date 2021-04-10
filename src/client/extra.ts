@@ -168,7 +168,6 @@ const localFileToEditor = function (fileName: string, m?) {
 };
 
 const positioning = function (m) {
-  document.location.hash = "editor";
   const editor = document.getElementById("editorDiv");
   // find location in file
   if (!m || !m[2]) {
@@ -218,30 +217,34 @@ const positioning = function (m) {
   }, 0);
 };
 
-const newEditorFileMaybe = function (arg: string, createNew: boolean) {
+const newEditorFileMaybe = function (arg: string, missing: any) {
+  // missing = what to do if file missing : false = nothing, true = create new, string = load this instead
   // parse newName for positioning
   // figure out filename
   const m = arg.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
-  const newName = m ? m[1] : arg;
+  let newName = m ? m[1] : arg;
   if (fileName == newName || !newName) {
     updateFileName(newName); // in case of positioning data
+    if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
     positioning(m);
     return;
   }
 
   socket.emit("fileexists", newName, function (response) {
     if (!response) {
-      if (createNew) {
+      if (missing === true) {
         updateFileName(newName);
         positioning(m);
         autoSaveHash = null; // force save
         autoSave();
-      }
-    } else {
-      autoSave();
-      updateFileName(newName);
-      localFileToEditor(response, m);
+        return;
+      } else if (missing === false) return;
+      newName = missing;
     }
+    if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
+    autoSave();
+    updateFileName(newName);
+    localFileToEditor(response, m);
   });
 };
 
@@ -275,9 +278,10 @@ const extra1 = function () {
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);
     if (e) {
-      loc = "editor";
       // do something *if* session started
       if (socket && socket.connected) newEditorFileMaybe(e[1], true);
+      document.location.hash = "#editor"; // this will start over openTab
+      return;
     }
     const panel = document.getElementById(loc);
     if (panel) {
@@ -317,10 +321,10 @@ const extra1 = function () {
     event.preventDefault();
   };
 
-  document.location.hash = "";
   window.addEventListener("hashchange", openTab);
-  if (tab === "") tab = "#home";
-  document.location.hash = tab;
+  if (tab === document.location.hash) openTab();
+  // force open tab anyway
+  else document.location.hash = tab;
 
   iFrame.onload = openBrowseTab;
 
@@ -521,17 +525,12 @@ const toggleWrap = function () {
   };
 
   // starting text in editor
-  updateFileName(getCookie(options.cookieFileName, "default.m2"));
   const e = /^#editor:(.+)$/.exec(url.hash);
-  if (e) updateFileName(e[1]);
-
-  socket.emit("fileexists", fileName, function (response) {
-    if (!response) {
-      if (fileName != "default.m2") return;
-      response = "default.orig.m2"; // get the default file from the server
-    }
-    localFileToEditor(response);
-  });
+  const newName = e ? e[1] : getCookie(options.cookieFileName, "default.m2");
+  newEditorFileMaybe(
+    newName,
+    newName == "default.m2" ? "default.orig.m2" : true
+  ); // possibly get the default file from the server
 
   const editorKeyDown = function (e) {
     //    var prismInvoked=false;

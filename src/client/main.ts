@@ -44,7 +44,7 @@ const keydownAction = function (e) {
     if (sel == "") return;
     socket.emit("input", 'viewHelp "' + sel + '"\n');
   } else if (!MINIMAL && e.key == "Alt") {
-    // one of the few keys that doesn't kill selection outside contentEditable
+    // one of the few keys that don't kill selection outside contentEditable
     e.preventDefault();
     e.stopPropagation();
     let sel = e.currentTarget.ownerDocument.getSelection().toString().trim(); // works in iframe too
