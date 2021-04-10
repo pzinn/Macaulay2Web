@@ -192,10 +192,7 @@ const autoCompleteHandling = function (el, dictionary?) {
             e.stopPropagation();
             return;
           }
-          if (
-            e.key.length == 1 &&
-            ((e.key >= "a" && e.key <= "z") || (e.key >= "A" && e.key <= "Z"))
-          ) {
+          if (e.key.length == 1 && e.key >= " " && e.key <= "~") {
             let lostSelection = false;
             Array.from(tabMenu.children).forEach((el) => {
               if (
