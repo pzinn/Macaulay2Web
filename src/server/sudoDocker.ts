@@ -47,8 +47,12 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
           const dockerInspectCmd = "sudo docker inspect " + lst[i];
           exec(dockerInspectCmd, function (error, stdout, stderr) {
             const res = JSON.parse(stdout);
-            const clientId = res[0].Config.Labels.clientId;
+            let clientId = res[0].Config.Labels.clientId;
             if (clientId) {
+              // TEMPORARY: remove the "user"
+              if (clientId.substring(0, 4) === "user")
+                clientId = clientId.substring(4);
+              // END TEMPORARY
               logger.info(
                 "Scanning " + lst[i] + " found " + clientId + res[0].Name
               );
