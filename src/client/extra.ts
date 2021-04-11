@@ -47,15 +47,7 @@ const getCookie = function (name, deflt?) {
 };
 
 const getCookieId = function () {
-  //  return getCookie(options.cookieName);
-  let id = getCookie(options.cookieName);
-  // TEMPORARY: remove the "user"
-  if (id && id.substring(0, 4) === "user") {
-    id = id.substring(4);
-    setCookie(options.cookieName, id);
-  }
-  // END TEMPORARY
-  return id;
+  return getCookie(options.cookieName);
 };
 
 const setCookieId = function (): void {
