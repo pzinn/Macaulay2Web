@@ -144,6 +144,32 @@ const forwardCaret = function (el, incr: number): void {
   setCaretInternal(el, sel.focusNode, sel, incr + sel.focusOffset, 0);
 };
 
+const nextChar = function () {
+  const sel = window.getSelection();
+  let cur = sel.focusNode;
+  let pos = sel.focusOffset;
+  while (pos >= cur.textContent.length) {
+    pos -= cur.textContent.length;
+
+    while (!cur.nextSibling) {
+      if (cur.nodeName == "DIV" || cur.nodeName == "BR") {
+        // for Firefox
+        if (pos == 0) return "\n";
+        pos--;
+      }
+      cur = cur.parentElement;
+      if (cur == null) return "";
+    }
+    if (cur.nodeName == "DIV" || cur.nodeName == "BR") {
+      // for Firefox
+      if (pos == 0) return "\n";
+      pos--;
+    }
+    cur = cur.nextSibling;
+  }
+  return cur.textContent[pos];
+};
+
 const setCaretAtEndMaybe = function (el, flag?) {
   // flag means only do it if not already in el
   if (!flag || document.activeElement != el) {
@@ -197,4 +223,5 @@ export {
   setCaret,
   setCaretAtEndMaybe,
   forwardCaret,
+  nextChar,
 };

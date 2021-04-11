@@ -1,7 +1,7 @@
 import Cookie from "cookie";
 import { options } from "../common/global";
 import { socket, url, myshell, clientId } from "./main";
-import { scrollDown, setCaret, caretIsAtEnd } from "./htmlTools";
+import { scrollDown, setCaret, caretIsAtEnd, nextChar } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import {
   initTutorials,
@@ -556,11 +556,22 @@ const toggleWrap = function () {
     enterPressed = false;
   };
 
+  const editorPaste = function (e) {
+    // prevent annoying extra \n of chrome when pasting stuff with HTML tags
+    const returnNext = nextChar() == "\n";
+    e.preventDefault();
+    const c = e.clipboardData.getData("text/html");
+    document.execCommand("insertHTML", false, c);
+    if (!returnNext && nextChar() == "\n")
+      document.execCommand("forwardDelete");
+  };
+
   editor.onkeydown = editorKeyDown;
   editor.onkeyup = editorKeyUp;
   editor.oninput = editorInput;
   editor.onblur = autoSave;
   editor.onfocus = editorFocus;
+  editor.onpaste = editorPaste;
 
   const attachCtrlBtnActions = function () {
     attachClick("sendBtn", editorEvaluate);
