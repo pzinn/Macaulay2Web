@@ -49,7 +49,7 @@ const setupMenu = function (menuElement, menuFunction, keyFunction?) {
       e.stopPropagation();
       return;
     }
-    if (e.key == "Escape") {
+    if (e.key == "Escape" || e.key == "Tab") {
       menuSelection.classList.remove("selected");
       wrapMenuFunction(false, true);
       e.preventDefault();

@@ -382,14 +382,13 @@ const delimLevel = function (s, start, end) {
 };
 
 const autoIndent = function (el) {
-  const oldOnInput = el.oninput;
-  el.oninput = null; // turn off delimiter handling or whatever else is oninput
   //  const t = Date.now();
   const input = el.innerText;
   const sel = window.getSelection() as any;
   let pos = getCaret2(el); // start and end
   if (pos === null) return;
-  if (pos[0] == pos[1] && (pos[0] == 0 || input[pos[0] - 1] != "\n")) return; // possibly TEMP: happens e.g. when pressing enter in autocomplete menu
+  const oldOnInput = el.oninput;
+  el.oninput = null; // turn off delimiter handling or whatever else is oninput
   if (pos[0] > pos[1]) pos = [pos[1], pos[0]];
   const indStart = input.lastIndexOf("\n", pos[0] - 1) + 1; // points to first character of first selected line in input
   let indEnd = input.indexOf("\n", Math.max(pos[0], pos[1] - 1)); // points to \n at the end of last line
@@ -419,8 +418,9 @@ const autoIndent = function (el) {
     let badSpaces = input.substring(pos2, pos3).match("^\\s*")[0].length;
     const indentLeft = indent - pos2 + pos1;
     if (badSpaces > 0 || indentLeft > 0) {
-      if (caretPos < pos2 + shift) {
-        forwardCaret(el, pos2 + shift - caretPos);
+      if (caretPos != pos2 + shift) {
+        if (pos2 + shift > caretPos) forwardCaret(el, pos2 + shift - caretPos);
+        else setCaret(el, pos2 + shift);
         caretPos = pos2 + shift;
       }
       // remove spaces that shouldn't be there
@@ -441,8 +441,10 @@ const autoIndent = function (el) {
     const pos4 = pos3 - badSpaces;
     if (badSpaces > 0) {
       // because.
-      if (caretPos < pos3 - badSpaces + shift) {
-        forwardCaret(el, pos3 - badSpaces + shift - caretPos);
+      if (caretPos != pos3 - badSpaces + shift) {
+        if (pos3 - badSpaces + shift > caretPos)
+          forwardCaret(el, pos3 - badSpaces + shift - caretPos);
+        else setCaret(el, pos3 - badSpaces + shift);
         caretPos = pos3 - badSpaces + shift;
       }
       shift -= badSpaces;
@@ -456,7 +458,7 @@ const autoIndent = function (el) {
     pos1 = pos3 + 1; // start of next line
   }
   //  console.log(Date.now() - t);
-  el.oninput = oldOnInput; // turn off delimiter handling or whatever else is oninput
+  el.oninput = oldOnInput;
 };
 
 const syntaxHighlight = function (el: HTMLElement) {

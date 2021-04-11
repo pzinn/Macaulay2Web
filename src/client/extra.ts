@@ -222,7 +222,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
   // parse newName for positioning
   // figure out filename
   const m = arg.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
-  let newName = m ? m[1] : arg;
+  const newName = m ? m[1] : arg;
   if (fileName == newName || !newName) {
     updateFileName(newName); // in case of positioning data
     if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
@@ -239,7 +239,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
         autoSave();
         return;
       } else if (missing === false) return;
-      newName = missing;
+      response = missing;
     }
     if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
     autoSave();
@@ -321,6 +321,7 @@ const extra1 = function () {
     event.preventDefault();
   };
 
+  if (tab === "") tab = "#home";
   window.addEventListener("hashchange", openTab);
   if (tab === document.location.hash) openTab();
   // force open tab anyway
@@ -419,7 +420,6 @@ const toggleWrap = function () {
     "editorFileName"
   ) as HTMLInputElement;
 
-  //  fileNameEl.onfocus = autoSave; // simple way to save, plus avoids issues with autosaving while onchange running
   fileNameEl.onchange = function () {
     const newName = fileNameEl.value.trim();
     newEditorFileMaybe(newName, true);
@@ -532,8 +532,10 @@ const toggleWrap = function () {
     newName == "default.m2" ? "default.orig.m2" : true
   ); // possibly get the default file from the server
 
+  let tabPressed = false,
+    enterPressed = false;
   const editorKeyDown = function (e) {
-    //    var prismInvoked=false;
+    enterPressed = e.key == "Enter" && !e.shiftKey; // for editorKeyUp
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
     removeDelimiterHighlight(editor);
     if (e.key == "Enter" && e.shiftKey) {
@@ -541,27 +543,32 @@ const toggleWrap = function () {
       const msg = getSelected();
       myshell.postMessage(msg, false, false);
     } else if (e.key == "Escape") escapeKeyHandling();
-    else if (e.key == "Tab") {
+    else if (e.key == "Tab" && !e.shiftKey && !tabPressed) {
       // try to avoid disrupting the normal tab use as much as possible
-      if (!window.getSelection().isCollapsed) {
+      tabPressed = true;
+      if (!window.getSelection().isCollapsed || !autoCompleteHandling(editor))
         autoIndent(editor);
-        e.preventDefault();
-        return;
-      } else if (!e.shiftKey && autoCompleteHandling(editor)) {
-        e.preventDefault();
-        return;
-      }
+      e.preventDefault();
+      return;
     }
+    tabPressed = false;
   };
 
   const editorKeyUp = function (e) {
-    if (e.key == "Enter" && !e.shiftKey) autoIndent(editor);
+    if (e.key == "Enter" && !e.shiftKey && enterPressed) autoIndent(editor);
+    enterPressed = false;
+  };
+
+  const editorFocus = function () {
+    tabPressed = false;
+    enterPressed = false;
   };
 
   editor.onkeydown = editorKeyDown;
   editor.onkeyup = editorKeyUp;
   editor.oninput = editorInput;
   editor.onblur = autoSave;
+  editor.onfocus = editorFocus;
 
   const attachCtrlBtnActions = function () {
     attachClick("sendBtn", editorEvaluate);
