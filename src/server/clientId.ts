@@ -13,7 +13,7 @@ export default function clientIdHelper(clients: IClients, logFunction) {
     getNewId() {
       let clientId: string;
       do {
-        clientId = "user" + Math.floor(Math.random() * 1000000);
+        clientId = <string>(<any>Math.floor(Math.random() * 1000000));
       } while (exists(clientId, clients, logFunction));
       logFunction("New Client ID " + clientId);
       return clientId;

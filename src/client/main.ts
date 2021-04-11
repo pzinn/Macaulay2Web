@@ -44,7 +44,7 @@ const keydownAction = function (e) {
     if (sel == "") return;
     socket.emit("input", 'viewHelp "' + sel + '"\n');
   } else if (!MINIMAL && e.key == "Alt") {
-    // one of the few keys that doesn't kill selection outside contentEditable
+    // one of the few keys that don't kill selection outside contentEditable
     e.preventDefault();
     e.stopPropagation();
     let sel = e.currentTarget.ownerDocument.getSelection().toString().trim(); // works in iframe too
@@ -146,7 +146,7 @@ const init = function () {
   if (!MINIMAL) extra1();
 
   const userId: any = url.searchParams.get("user");
-  const newId = userId ? "user" + userId : "";
+  const newId = userId ? userId : "";
   if (userId && clientId !== newId) {
     if (MINIMAL) clientId = newId;
     else {
@@ -156,7 +156,7 @@ const init = function () {
       document.getElementById("newUserId").textContent = userId;
       document.getElementById("oldUserIdReminder").innerHTML = clientId
         ? "Choosing `permanent' will overwrite the current id <b>" +
-          clientId.substring(4) +
+          clientId +
           "</b> in your cookie."
         : "";
       dialog.onclose = function () {

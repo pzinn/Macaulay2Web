@@ -1,28 +1,30 @@
 -- Welcome to Macaulay2 !
--- In this window you may type in Macaulay2 commands 
+-- In this window you may type in Macaulay2 commands
 -- and have them evaluated by the server.
 
--- Evaluate a line or selection by typing Shift+Enter 
+-- Evaluate a line or selection by typing Shift+Enter
 -- or by clicking on Evaluate.
 
--- What follows are some examples.
--- you can erase it all with e.g. Ctrl-A + Delete
+-- What follows is a set of examples.
 
--- To open the Macaulay2 documentation for a 
+-- You can erase it all by e.g. pressing the trash button at the bottom right
+-- (if you do so, provide another file name in the bottom right box
+-- so your editor content is autosaved on the server)
+
+-- To open the Macaulay2 documentation for a
 -- topic in the "Browse" tab:
-
 viewHelp "determinant"
 
 -- Here are some sample commands:
-  R = ZZ/101[a,b,c,d]
-  I = ideal(a^2-b*c, a^3-b^3, a^4-b*d^3, a^5-c^2*d^3)
-  J = ideal groebnerBasis I;
-  VerticalList J_* -- for emulation of ascii style, try netList J_* instead
+R = ZZ/101[a,b,c,d]
+I = ideal(a^2-b*c, a^3-b^3, a^4-b*d^3, a^5-c^2*d^3)
+J = ideal groebnerBasis I;
+VerticalList J_* -- for emulation of ascii style, try netList J_* instead
 
-  -- Some examples of rings
-  A = ZZ/32003[a..g]
-  B = QQ[x_1..x_6]
-  C = ZZ/101[vars(0..12)]
+-- Some examples of rings
+A = ZZ/32003[a..g]
+B = QQ[x_1..x_6]
+C = ZZ/101[vars(0..12)]
 
 -- something fun
 needsPackage "VectorGraphics"
@@ -31,8 +33,8 @@ F={{14,9,8,13,0},{1,5,11,10,4},{4,10,6,2,18},{10,11,7,15,6},{11,5,19,3,7},{5,1,1
 C=apply(F,f->1/5*sum(f,i->V#i));
 steps=30;
 dodecasplit=apply(F,C,(f,c)->Polygon{apply(f,j->V#j),
-	AnimMatrix=>apply(steps,j->rotation(2*pi/5/steps*4*min(j/steps,1-j/steps),c,c)*translation(0.075*sin(2*pi*j/steps)*c)),
-	"fill"=>concatenate("rgb(",toString(134+round(1.2*c_0)),",",toString(134+round(1.2*c_1)),",",toString(134+round(1.2*c_2)),")")});
+        AnimMatrix=>apply(steps,j->rotation(2*pi/5/steps*4*min(j/steps,1-j/steps),c,c)*translation(0.075*sin(2*pi*j/steps)*c)),
+        "fill"=>concatenate("rgb(",toString(134+round(1.2*c_0)),",",toString(134+round(1.2*c_1)),",",toString(134+round(1.2*c_2)),")")});
 d=gList(dodecasplit,"fill-opacity"=>0.7,AnimMatrix=>rotation(0.02,(1,2,3)));
 d1=d ++ {TransformMatrix=>translation(200,0,0)}; -- using alternate syntax of Sequence instead of Vector
 d2=d ++ {TransformMatrix=>translation(-200,0,0)};

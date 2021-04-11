@@ -47,7 +47,15 @@ const getCookie = function (name, deflt?) {
 };
 
 const getCookieId = function () {
-  return getCookie(options.cookieName);
+  //  return getCookie(options.cookieName);
+  let id = getCookie(options.cookieName);
+  // TEMPORARY: remove the "user"
+  if (id && id.substring(0, 4) === "user") {
+    id = id.substring(4);
+    setCookie(options.cookieName, id);
+  }
+  // END TEMPORARY
+  return id;
 };
 
 const setCookieId = function (): void {
@@ -104,6 +112,7 @@ const autoSave = function () {
     window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = 0;
   }
+  if (!fileName) return;
   const content = document.getElementById("editorDiv").innerText as string;
   const newHash = hashCode(content);
   if (newHash != autoSaveHash) {
@@ -159,7 +168,6 @@ const localFileToEditor = function (fileName: string, m?) {
 };
 
 const positioning = function (m) {
-  document.location.hash = "editor";
   const editor = document.getElementById("editorDiv");
   // find location in file
   if (!m || !m[2]) {
@@ -209,40 +217,43 @@ const positioning = function (m) {
   }, 0);
 };
 
-const newEditorFileMaybe = function (arg: string, createNew: boolean) {
+const newEditorFileMaybe = function (arg: string, missing: any) {
+  // missing = what to do if file missing : false = nothing, true = create new, string = load this instead
   // parse newName for positioning
   // figure out filename
   const m = arg.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
   const newName = m ? m[1] : arg;
-  if (fileName == newName) {
+  if (fileName == newName || !newName) {
     updateFileName(newName); // in case of positioning data
+    if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
     positioning(m);
     return;
   }
 
   socket.emit("fileexists", newName, function (response) {
     if (!response) {
-      if (createNew) {
+      if (missing === true) {
         updateFileName(newName);
         positioning(m);
         autoSaveHash = null; // force save
         autoSave();
-      }
-    } else {
-      autoSave();
-      updateFileName(newName);
-      localFileToEditor(response, m);
+        return;
+      } else if (missing === false) return;
+      response = missing;
     }
+    if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
+    autoSave();
+    updateFileName(newName);
+    localFileToEditor(response, m);
   });
 };
 
 const extra1 = function () {
   const tabs = document.getElementById("tabs") as any;
-  const iFrame = document.getElementById("browseFrame");
-  let tab = url.hash;
+  const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
 
-  //  const loadtute = url.searchParams.get("loadtutorial");
-  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab);
+  let tab = url.hash;
+  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab); // maybe the former "loadtute" could be absorbed in the syntax e.g. tutorial:name.html-5
   let tute = 0,
     page = 1;
   if (m) {
@@ -263,6 +274,14 @@ const extra1 = function () {
     if (m) {
       loc = "tutorial";
       if (m[1] || m[2]) loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
+    }
+    // editor stuff
+    const e = /^editor:(.+)$/.exec(loc);
+    if (e) {
+      // do something *if* session started
+      if (socket && socket.connected) newEditorFileMaybe(e[1], true);
+      document.location.hash = "#editor"; // this will start over openTab
+      return;
     }
     const panel = document.getElementById(loc);
     if (panel) {
@@ -291,7 +310,6 @@ const extra1 = function () {
       else el.click();
     }
     // try to enable actions
-    const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
     if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
       const bdy = iFrame.contentDocument.body;
       bdy.onclick = document.body.onclick;
@@ -303,17 +321,13 @@ const extra1 = function () {
     event.preventDefault();
   };
 
-  if (tabs) {
-    document.location.hash = "";
-    window.addEventListener("hashchange", openTab);
-    if (tab === "")
-      //      if (loadtute) tab = "#tutorial";
-      //	else
-      tab = "#home";
-    document.location.hash = tab;
-  }
+  if (tab === "") tab = "#home";
+  window.addEventListener("hashchange", openTab);
+  if (tab === document.location.hash) openTab();
+  // force open tab anyway
+  else document.location.hash = tab;
 
-  if (iFrame) iFrame.onload = openBrowseTab;
+  iFrame.onload = openBrowseTab;
 
   // resize
   const resize = document.getElementById("resize");
@@ -343,6 +357,7 @@ const extra1 = function () {
   resize.onmousedown = resizeMouseDown;
 };
 
+// 2nd part: once session active
 const extra2 = function () {
   const terminal = document.getElementById("terminal");
   const editor = document.getElementById("editorDiv");
@@ -405,7 +420,6 @@ const toggleWrap = function () {
     "editorFileName"
   ) as HTMLInputElement;
 
-  //  fileNameEl.onfocus = autoSave; // simple way to save, plus avoids issues with autosaving while onchange running
   fileNameEl.onchange = function () {
     const newName = fileNameEl.value.trim();
     newEditorFileMaybe(newName, true);
@@ -421,7 +435,13 @@ const toggleWrap = function () {
     newEditorFileMaybe(newName, true);
   };
 
-  updateFileName(getCookie(options.cookieFileName, "default.m2"));
+  const clearEditorBtn = document.getElementById("clearEditorBtn");
+  clearEditorBtn.onclick = function () {
+    autoSave();
+    editor.innerHTML = "";
+    updateFileName("");
+    fileNameEl.focus();
+  };
 
   const showUploadDialog = function (event) {
     console.log("file upload returned status code " + event.target.status);
@@ -504,6 +524,52 @@ const toggleWrap = function () {
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
 
+  // starting text in editor
+  const e = /^#editor:(.+)$/.exec(url.hash);
+  const newName = e ? e[1] : getCookie(options.cookieFileName, "default.m2");
+  newEditorFileMaybe(
+    newName,
+    newName == "default.m2" ? "default.orig.m2" : true
+  ); // possibly get the default file from the server
+
+  let tabPressed = false,
+    enterPressed = false;
+  const editorKeyDown = function (e) {
+    enterPressed = e.key == "Enter" && !e.shiftKey; // for editorKeyUp
+    removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
+    removeDelimiterHighlight(editor);
+    if (e.key == "Enter" && e.shiftKey) {
+      if (!caretIsAtEnd()) e.preventDefault();
+      const msg = getSelected();
+      myshell.postMessage(msg, false, false);
+    } else if (e.key == "Escape") escapeKeyHandling();
+    else if (e.key == "Tab" && !e.shiftKey && !tabPressed) {
+      // try to avoid disrupting the normal tab use as much as possible
+      tabPressed = true;
+      if (!window.getSelection().isCollapsed || !autoCompleteHandling(editor))
+        autoIndent(editor);
+      e.preventDefault();
+      return;
+    }
+    tabPressed = false;
+  };
+
+  const editorKeyUp = function (e) {
+    if (e.key == "Enter" && !e.shiftKey && enterPressed) autoIndent(editor);
+    enterPressed = false;
+  };
+
+  const editorFocus = function () {
+    tabPressed = false;
+    enterPressed = false;
+  };
+
+  editor.onkeydown = editorKeyDown;
+  editor.onkeyup = editorKeyUp;
+  editor.oninput = editorInput;
+  editor.onblur = autoSave;
+  editor.onfocus = editorFocus;
+
   const attachCtrlBtnActions = function () {
     attachClick("sendBtn", editorEvaluate);
     attachClick("resetBtn", emitReset);
@@ -524,39 +590,12 @@ const toggleWrap = function () {
     });*/
   };
 
-  const editorKeyDown = function (e) {
-    //    var prismInvoked=false;
-    removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
-    removeDelimiterHighlight(editor);
-    if (e.key == "Enter" && e.shiftKey) {
-      if (!caretIsAtEnd()) e.preventDefault();
-      const msg = getSelected();
-      myshell.postMessage(msg, false, false);
-    } else if (e.key == "Escape") escapeKeyHandling();
-    else if (e.key == "Tab") {
-      // try to avoid disrupting the normal tab use as much as possible
-      if (!window.getSelection().isCollapsed) {
-        autoIndent(editor);
-        e.preventDefault();
-        return;
-      } else if (!e.shiftKey && autoCompleteHandling(editor)) {
-        e.preventDefault();
-        return;
-      }
-    }
-  };
-
-  const editorKeyUp = function (e) {
-    if (e.key == "Enter" && !e.shiftKey) autoIndent(editor);
-  };
-
   const queryCookie = function () {
     const id = getCookieId();
     let msg: string = id
-      ? "The user id stored in your cookie is: " + id.substring(4)
+      ? "The user id stored in your cookie is: " + id
       : "You don't have a cookie.";
-    if (clientId != id)
-      msg += "\nYour temporary id is: " + clientId.substring(4);
+    if (clientId != id) msg += "\nYour temporary id is: " + clientId;
     alert(msg);
   };
 
@@ -666,7 +705,7 @@ const toggleWrap = function () {
               .split(",")
               .forEach(function (rec: string) {
                 const i = rec.indexOf("/");
-                const id = i < 0 ? "" : "user" + rec.substring(0, i);
+                const id = i < 0 ? "" : rec.substring(0, i);
                 const alias = i < 0 ? rec : rec.substring(i + 1);
                 if ((id != "" || alias != "") && msg.recipients[id] !== null) {
                   // null means everyone
@@ -704,24 +743,8 @@ const toggleWrap = function () {
       .checked;
   });
 
-  // starting text in editor
-  socket.emit("fileexists", fileName, function (response) {
-    if (!response) {
-      if (fileName != "default.m2") return;
-      response = "default.orig.m2";
-    }
-    localFileToEditor(response);
-  });
-
   attachCtrlBtnActions();
   attachCloseDialogBtns();
-
-  if (editor) {
-    editor.onkeydown = editorKeyDown;
-    editor.onkeyup = editorKeyUp;
-    editor.oninput = editorInput;
-    editor.onblur = autoSave;
-  }
 
   attachClick("uploadBtn", uploadFile);
 
