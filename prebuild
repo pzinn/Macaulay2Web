@@ -3,7 +3,7 @@ cd src/client
 rm -f tutorialsList.ts
 echo "export default [" > tutorialsList.ts
 #ls tutorials/*.html -Q -m >> tutorialsList.ts
-for i in tutorials/*.html
+for i in tutorials/*.html tutorials/extra/*.html
 do
 	echo 'require("./'$i'").default,' >> tutorialsList.ts
 done

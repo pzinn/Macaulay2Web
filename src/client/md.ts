@@ -39,7 +39,7 @@ const mdReplace = function (str: string) {
       /*      .replace(/!\[([^\]]*)]\(([^(]+)\)/g, '<img alt="$1" src="$2">') */
       .replace(/\[([^\]]+)]\(([^(]+?)\)/g, "<a href='$2'>$1</a>")
       // [a link](https://github.com)
-      .replace(/`([^`]*)`/g, "<code>$1</code>") // `R=QQ[x]`
+      .replace(/`([^`]*)`/g, "<code class='inline'>$1</code>") // `R=QQ[x]`
       .replace(
         /(?<!\S)\*\*(?=\S)([^\r]*?\S)(?<!\\)\*\*/g,
         "<strong>$1</strong>"
@@ -83,7 +83,7 @@ const patterns = [
   },
   {
     pattern: /(?<![^\s>]+\s*)```/,
-    tag: "code class='block'",
+    tag: "code",
     linetag: null,
     proc: (s, x) => (x === null ? s + "\n" : ""),
   },
@@ -105,7 +105,7 @@ const mdToHTML = function (src, sep, doublesep) {
       x = s.match(p.pattern);
       return x !== null;
     });
-    if (oldi >= 0 && patterns[oldi].tag == "code class='block'") {
+    if (oldi >= 0 && patterns[oldi].tag == "code") {
       // special
       if (i == oldi) {
         i = -1;

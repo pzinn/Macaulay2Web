@@ -19,9 +19,9 @@
       <p>
 	For example, click on this yellow code to compute the factors of the
 	given polynomial.
-	<code class='block'>R = QQ[x,y,z]</code>
-	<code class='block'>F = (x-1)^3 - (y-1)^3</code>
-	<code class='block'>factor F</code>
+	<code>R = QQ[x,y,z]</code>
+	<code>F = (x-1)^3 - (y-1)^3</code>
+	<code>factor F</code>
       </p>
 
       <p>
@@ -42,14 +42,14 @@
 
       <p>There are two main ways of getting help on a topic in \(\mac\).  The first method gives you
 	text help in the \(\mac\) output window.  For example,</p>
-      <p><code class='block'>help determinant</code></p>
+      <p><code>help determinant</code></p>
       <p>This displays in the \(\mac\) output window how to use the function "determinant".
 	<b>Note!</b> In many browsers, you will have scroll bars to go back, but in some, notably most versions
 	of Safari, the scrollbars are there but hidden!
       </p>
 
       <p>Alternatively, and more usefully, you may obtain the web version by using:</p>
-      <p><code class='block'>viewHelp determinant</code></p>
+      <p><code>viewHelp determinant</code></p>
 
       <p>This opens the documentation page in the <b>Browse</b> tab.  You can surf through the links
 	there to see other \(\mac\) documentation. When you are ready to come back to the tutorial, click or tap on the
@@ -157,11 +157,11 @@
       <p>Use the <b>Upload File</b> button to upload files to the \(\mac\) server that can then be loaded into your \(\mac\) session. Suppose that you have uploaded a file named \(\verb|foo.m2|\) which contains \(\mac\) code.
 	You may then load this file into \(\mac\) using either:
       </p>
-      <p><code class='block'>load "foo.m2"</code></p>
+      <p><code>load "foo.m2"</code></p>
       <p>
 	or, if you wish to see all of the lines executed one by one:
       </p>
-      <p><code class='block'>input "foo.m2"</code></p>
+      <p><code>input "foo.m2"</code></p>
       <p><b>Note</b>: these lines will likely give errors now, as the file
 	\(\verb|foo.m2|\) probably doesn't exist on the server!</p>
       <p>For your convenience, the content of the <b>Editor</b> tab is automatically uploaded as well. The default name
@@ -170,25 +170,25 @@
       <h3>Running shell commands in your Macaulay2 session</h3>
       <p>It is possible to run shell commands from within \(\mac\), although many operations are restricted.
 	For example, to see what files you have in your home directory on the server, try:</p>
-      <p><code class='block'>run "ls -a"</code></p>
+      <p><code>run "ls -a"</code></p>
       Alternatively, if you want to obtain the output as a string, use
-      <p><code class='block'>get "!ls -a"</code></p>
+      <p><code>get "!ls -a"</code></p>
 
       <h3>Macaulay2 and temporary files</h3>
       <p>Sometimes \(\mac\) or one of its packages generate temporary files.
 	For example, the graph function below creates dot and svg files.
       </p>
-      <p><code class='block'>needsPackage "Graphs"</code></p>
-      <p><code class='block'>A = graph({{a,b},{b,c},{b,d},{d,e}})</code></p>
+      <p><code>needsPackage "Graphs"</code></p>
+      <p><code>A = graph({{a,b},{b,c},{b,d},{d,e}})</code></p>
 
       <h3>Getting files back to your machine</h3>
       <p>
 	Sometimes your \(\mac\) code will create a file as output.  How to download
 	this onto your machine?  Here is one way.  This first line creates a file for
 	the purpose of this example.
-	<code class='block'>"important-results.txt" &lt;&lt; "very important results" &lt;&lt; close</code>
+	<code>"important-results.txt" &lt;&lt; "very important results" &lt;&lt; close</code>
 	The next line will open the file in your <b>Browse</b> tab.
-	<code class='block'>show URL "important-results.txt"</code>
+	<code>show URL "important-results.txt"</code>
 	Alternatively, you can download it in the <b>Editor</b> tab: select with your mouse the file name (anywhere in your browser window) and press the <b>Alt</b> key (you can also go to the editor tab and manually type the file name in the bottom right corner). Try it with <tt>important-results.txt</tt> or the temporary files above!
       </p>
 

@@ -8,32 +8,32 @@
       <p>If you've used previously the ``habanero'' server, you should recognize much of the interface. If not, the welcome tutorial can help.
       </p>
       <p>
-	There are various new features of this interface. Here we focus on the underlying \(\mac\) code: in order to work and produce LaTeX/HTML output, this web interface uses <code>topLevelMode=WebApp</code>, a special output mode of \(\mac\).
-	(If you're nostalgic, you can always revert to <code>topLevelMode=Standard</code> for your usual terminal/ascii output.)
+	There are various new features of this interface. Here we focus on the underlying \(\mac\) code: in order to work and produce LaTeX/HTML output, this web interface uses <code class='inline'>topLevelMode=WebApp</code>, a special output mode of \(\mac\).
+	(If you're nostalgic, you can always revert to <code class='inline'>topLevelMode=Standard</code> for your usual terminal/ascii output.)
       </p>
       <p>The next few pages are meant for package developers or advanced users who wish to understand how to make the output of their programs look nice in WebApp mode.</p>
     </div>
     <div>
       <h2>KaTeX</h2>
       <p>By default, all mathematical output is processed by the \(\mac\) command <tt>texMath</tt> and then rendered to the browser using <a href="https://katex.org/">KaTeX</a>:
-	<code class='block'>matrix table(5,5,(i,j)->i*j)</code>
+	<code>matrix table(5,5,(i,j)->i*j)</code>
       </p>
       <p>All built-in mathematical types have a method <tt>texMath</tt> (or at least they should!). If you define your own type, say,
-	<code class='block'>MyType = new Type of BasicList</code>
+	<code>MyType = new Type of BasicList</code>
 	then it is a good idea to define your own method <tt>texMath</tt>. One way to do that is to write
-	<code class='block'>texMath MyType := x -> texMath expression x;</code>
+	<code>texMath MyType := x -> texMath expression x;</code>
 	and then for example
-	<code class='block'>expression MyType := x -> (
+	<code>expression MyType := x -> (
 	  if #x===0 then return expression 0;
 	  if #x===1 then return expression x#0;
 	  expression x#0 + 1 / expression drop(x,1)
 	  );</code>
 	The advantage is that several forms of output can then be written at once; e.g., you can also have
-	<code class='block'>net MyType := x -> net expression x; toString MyType := x -> toString expression x;</code>
+	<code>net MyType := x -> net expression x; toString MyType := x -> toString expression x;</code>
 	Let us try:
-	<code class='block'>A = new MyType from a_0..a_5</code>
-	<code class='block'>net A</code>
-	<code class='block'>toString A</code>
+	<code>A = new MyType from a_0..a_5</code>
+	<code>net A</code>
+	<code>toString A</code>
       </p>
       <!--      <p><small><i>Remark:</i> In future versions of \(\mac\), it may not even be needed to write <tt>texMath MyType := x -> texMath expression x</tt>
 		and similarly for other outputs. Stay tuned!</small></p> -->
@@ -47,57 +47,57 @@
       </p>
       <p>
 	One can also produce arbitrary HTML output using the package <tt>Text</tt>:<br/>
-	<code class='block'>needsPackage "Text"</code>
+	<code>needsPackage "Text"</code>
       </p>
       <p>
 	Here is how one can create HTML classes in \(\mac\); they are <tt>MarkUpType</tt>s with common ancestor the type <tt>Hypertext</tt>.
 	<tt>MarkUpType</tt>s are self-initializing:
-	<code class='block'> DIV { BOLD { "hello" }, HR {}, OL {"stuff", "more stuff", LI {"and more"} },
+	<code> DIV { BOLD { "hello" }, HR {}, OL {"stuff", "more stuff", LI {"and more"} },
 	  ANCHOR { "href" => "http://macaulay2.com", "A link" } }</code>
 	Note how <tt>LI</tt> is optional inside <tt>OL</tt> or <tt>UL</tt>.
       </p>
       <p>
 	All HTML items can take options:
-	<code class='block'>IMG { "src"=>"http://www.lpthe.jussieu.fr/~pzinn/M2.jpg", "alt"=>"Melbourne likes M2", "width"=>"200" }</code>
+	<code>IMG { "src"=>"http://www.lpthe.jussieu.fr/~pzinn/M2.jpg", "alt"=>"Melbourne likes M2", "width"=>"200" }</code>
 	A particularly important one is <tt>style</tt>:
-	<code class='block'>mychord = UL { LI {"C","style"=>"color:red"}, "E", "G", "style"=>"color:green" }</code>
+	<code>mychord = UL { LI {"C","style"=>"color:red"}, "E", "G", "style"=>"color:green" }</code>
 	which is why it has its own function:
-	<code class='block'>style(mychord, "background" => "yellow", "font-size"=>"2em")</code>
+	<code>style(mychord, "background" => "yellow", "font-size"=>"2em")</code>
       </p>
       <p>
 	Style is ignored in <tt>Standard</tt> mode (<tt>net</tt> output):
-	<code class='block'>net mychord</code>
+	<code>net mychord</code>
       </p>
       <p>
 	Using <tt>style</tt> is often preferrable to styling directly with HTML attributes; e.g., in the examples above, substitute
-	<code class='block'>style( SPAN { "hello" }, "font-weight" => "bold" )</code>
-	<code class='block'>style( IMG { "src"=>"http://www.lpthe.jussieu.fr/~pzinn/M2.jpg" }, "width" => "10em" )</code>
+	<code>style( SPAN { "hello" }, "font-weight" => "bold" )</code>
+	<code>style( IMG { "src"=>"http://www.lpthe.jussieu.fr/~pzinn/M2.jpg" }, "width" => "10em" )</code>
       </p>
     </div>
     <div>
       <h2>VectorGraphics</h2>
       <p>
 	Another type of HTML item is available: <tt>SVG</tt> (scalable vector graphics). It can be accessed via the package <tt>VectorGraphics</tt>.
-	<code class='block'>needsPackage "VectorGraphics"</code>
+	<code>needsPackage "VectorGraphics"</code>
       </p>
       <p>
 	Some examples:
-	<code class='block'>uglyLogo=gList(Ellipse{(0,0),90,30,"stroke"=>"none",Blur=>0.3,
+	<code>uglyLogo=gList(Ellipse{(0,0),90,30,"stroke"=>"none",Blur=>0.3,
 	  "fill"=>linearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")}},
 	  GraphicsText{(-65,-7),"Macaulay2",
 	  FontSize=>25,"stroke"=>"black","stroke-width"=>"0.5%","fill"=>"white"},
 	  AnimMatrix=>translation(0,0,10),SizeY=>12)</code>
 	The next one mixes KaTeX and HTML output:
-	<code class='block'>rgb={"red","green","blue"}; scan(rgb, x -> globalAssign(value x,
+	<code>rgb={"red","green","blue"}; scan(rgb, x -> globalAssign(value x,
 	  Circle{"fill"=>x,"stroke"=>"black",SizeX=>0.8,SizeY=>0.8,Margin=>0}));
 	  R=QQ[x_red,x_green,x_blue]; print describe R; res cokernel vars R</code>
       </p>
       <p>To access the underlying SVG object, just write
-	<code class='block'>SVG uglyLogo</code>
-	<code class='block'>style(oo,"background"=>"black")</code>
+	<code>SVG uglyLogo</code>
+	<code>style(oo,"background"=>"black")</code>
       </p>
       <p>For more information, consult the help:
-	<code class='block'>viewHelp VectorGraphics</code>
+	<code>viewHelp VectorGraphics</code>
       </p>
     </div>
     <div>
@@ -108,18 +108,18 @@
 	these methods will be inherited from ancestor types, which may or may not be to your liking.)
       </p>
       <p>Say your type is
-	<code class='block'>MyType = new Type of BasicList</code>
+	<code>MyType = new Type of BasicList</code>
 	For types corresponding to mathematical objects, you should define as explained before a <tt>texMath</tt> method.
 	Let us try instead the <tt>html</tt> method for our type: (we could define it via <tt>expression</tt> as we did earlier for other modes of output, but for simplicity we define it directly here)
-	<code class='block'>needsPackage "Text"; html MyType := x -> html ( UL toList x )</code>
+	<code>needsPackage "Text"; html MyType := x -> html ( UL toList x )</code>
 	Let us test it:
-	<code class='block'>new MyType from {"ha","hi",1-ii,QQ[x]}</code>
+	<code>new MyType from {"ha","hi",1-ii,QQ[x]}</code>
       </p>
       <p>
 	Here we show how an existing package which already has support for HTML output can be easily converted to the new interface:
-	<code class='block'>needsPackage "Graphs"</code>
+	<code>needsPackage "Graphs"</code>
 	Now check out:
-	<code class='block'>help graph</code>
+	<code>help graph</code>
       </p>
     </div>
   </body>
