@@ -121,18 +121,21 @@
   </p>
   <div style="min-height:2em"></div>
   <p style="border-left: solid 5px blue; padding-left:15px;">
-    Let's work out the example of $T^*\mathbb P^1$.<br/>
-    <code>needsPackage "CotangentSchubert";</code><br/>
+    Let's work out the example of $T^*\mathbb P^2$.<br/>
+    <code>needsPackage "CotangentSchubert";</code>
     Let's define the algebra $\mathcal A$ and the labeling set of fixed points $I\cong W_P\backslash W$:<br/>
-    <code>(AA,BB,I) = setupKTBorel(1,2)</code><br/>
+    <code>(AA,BB,f,I) = setupKTBorel(1,3)</code>
     This is what $\mathcal A$ looks like in terms of Chern classes:<br/>
-    <code>describe AA</code><br/>
-    Sure enough, it's two-dimensional:<br/>
-    <code>basis AA</code><br/>
-    Equivalently, in terms of Chern roots:<br/>
-    <code>describe BB</code><br/>
+    <code>describe AA</code>
+    Sure enough, it's three-dimensional:<br/>
+    <code>basis AA</code>
+    In terms of Chern roots, it's a subring of the $K$-theory $\mathcal B$ of the full flag variety:<br/>
+    <code>promote(c_(1,1),BB)</code>
+    <code>describe BB</code>
     One can then compute the motivic Segre classes according to the above:<br/>
-    <code>segreClassesBorel()</code>
+    <code>segreCls = segreClassesBorel()</code>
+    By default, they live in $\mathcal B$; to get them in $\mathcal A$, write<br/>
+    <code>f\segreCls</code>
   </p>
   <p>
     Unfortunately, the Borel presentation turns out to be quite inefficient computationally. Let's move on...
@@ -167,13 +170,13 @@
   <div style="min-height:2em"></div>
   <p style="border-left: solid 5px blue; padding-left:15px;">
     Let's work out the example of $T^*\mathbb P^1$.<br/>
-    <code>needsPackage "CotangentSchubert";</code><br/>
+    <code>needsPackage "CotangentSchubert";</code>
     Let's define the base field $\mathbb F$ and the labeling set of fixed points $I\cong W_P\backslash W$:<br/>
-    <code>(FF,I) = setupKT(1,2)</code><br/>
+    <code>(FF,I) = setupKT(1,2)</code>
     We can get the whole matrix of motivic Segre classes at once:<br/>
-    <code>segreCls = segreClasses()</code><br/>
+    <code>segreCls = segreClasses()</code>
     or individual classes using <tt>segreClass</tt>; entrywise product is <tt>@</tt>:<br/>
-    <code>segreClass(0,1) @ segreClass(1,0)</code><br/>
+    <code>segreClass(0,1) @ segreClass(1,0)</code>
     This allows to write the whole table of products:</br>
     <code>Table table(I,I,(i,j)->segreCls^(-1)*(segreClass i @ segreClass j))</code>
   </p>
@@ -224,7 +227,7 @@
   <p style="border-left: solid 5px blue; padding-left:15px;">
     <i>Example:</i> puzzles for $T^*\PP^1$.<br/>
     Let's do $S^{01}\times S^{01}$:<br/>
-    <code>P=puzzle("01","01",Generic=>true,Equivariant=>true)</code><br/>
+    <code>P=puzzle("01","01",Generic=>true,Equivariant=>true)</code>
     The fugacities match our product table:</br>
     <code>fugacityVector P</code>
   </p>
@@ -247,7 +250,7 @@
     Things are a bit simpler because $\mathfrak g \subset \mathcal Y(\mathfrak g)$.
   </p>
   <p>
-    In particular for minuscule representations (i.e. $d\le 3$), one can normalize weight vectors in such
+    In particular for minuscule representations (i.e., $d\le 3$), one can normalize weight vectors in such
     a way that the entries of the $R$-matrix only depend on scalar products of weights:
     <div style="margin:2em">
 $\text{fug}$      <svg class="M2Svg" viewBox="-.6 -.173205 1.2 2.07846" style="width:4.6188em;height:8em;stroke-linejoin:round;stroke:black;stroke-opacity:1;fill:none;fill-opacity:1;vertical-align:middle;stroke-width:1%;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g data-matrix="matrix([[-.5,.5,0,0],[-.866025,-.866025,0,0],[0,0,1,0],[0,0,0,1]])"><polygon points="0 0 .5 .866025 0 1.73205 -.5 .866025" style="fill:white;"/><text y=".433013" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">w</text><text y=".433013" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">x</text><text y="1.29904" x="-.25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">u</text><text y="1.29904" x=".25" style="font-family:helvetica;fill:black;dominant-baseline:middle;text-anchor:middle;stroke:none;font-size:.34px;">v</text></g></svg> 
@@ -275,21 +278,21 @@ $=f(s,t)\qquad s=\left< wt(\textsf{u}),wt(\textsf{x})\right>,\ t=\left< wt(\text
   <p style="border-left: solid 5px blue; padding-left:15px;">
     <i>Example:</i> puzzles in the cotangent bundle of the full flag variety of $\CC^4$.<br/>
     Let us setup equivariant cohomology:</br>
-    <code>(FF,I)=setupHT(1,2,3,4)</code><br/>
+    <code>(FF,I)=setupHT(1,2,3,4)</code>
     and compute all Segre&mdash;Schwartz&mdash;MacPherson classes:<br/>
-    <code>segreCls=segreClasses();</code><br/>
+    <code>segreCls=segreClasses();</code>
     Let's do a single example:<br>
-    <code>λ="3021"; μ="2130";</code><br/>
+    <code>λ="3021"; μ="2130";</code>
     Their product $S^\lambda S^\mu$ can be computed directly as:<br/>
-    <code>lhs = segreClass λ @ segreClass μ</code><br/>
+    <code>lhs = segreClass λ @ segreClass μ</code>
     On the other hand, we can ask for puzzles with sides $\lambda$, $\mu$:<br/>
-    <code>P=puzzle(λ,μ,Generic=>true,Equivariant=>true)</code><br/>
+    <code>P=puzzle(λ,μ,Generic=>true,Equivariant=>true)</code>
     and compute $\sum_\nu c^{\lambda,\mu}_\nu S^\nu$:<br/>
-    <code>rhs = segreCls*(fugacityVector P)</code><br/>
+    <code>rhs = segreCls*(fugacityVector P)</code>
     and...</br>
-    <code>lhs == rhs -- should be true!</code><br/>
+    <code>lhs == rhs -- should be true!</code>
     For a more complicated example, try<br/>
-    <code>λ="0213"; μ="0321";</code><br/>
+    <code>λ="0213"; μ="0321";</code>
     but you probably don't want to print the 152 puzzles to the screen:<br/>
     <code>P=puzzle(λ,μ,Generic=>true,Equivariant=>true); #P</code>
   </p>
@@ -322,13 +325,13 @@ $=f(s,t)\qquad s=\left< wt(\textsf{u}),wt(\textsf{x})\right>,\ t=\left< wt(\text
   <p style="border-left: solid 5px blue; padding-left:15px;">
     <i>Example:</i> pulling back to the cotangent bundle of the full flag variety of $\CC^4$.<br/>
     Let us setup equivariant cohomology:</br>
-    <code>(FF,I)=setupHT(1,2,3,4)</code><br/>
+    <code>(FF,I)=setupHT(1,2,3,4)</code>
     and compute all Segre&mdash;Schwartz&mdash;MacPherson classes:<br/>
-    <code>segreCls=segreClasses();</code><br/>
+    <code>segreCls=segreClasses();</code>
     Our strings-with-blanks are:<br>
-    <code>λ="3 2 "; μ=" 1 0";</code><br/>
+    <code>λ="3 2 "; μ=" 1 0";</code>
     Here are the corresponding puzzles:<br/>
-    <code>Q=puzzle(λ,μ,Generic=>true,Equivariant=>true,Separated=>true)</code><br/>
+    <code>Q=puzzle(λ,μ,Generic=>true,Equivariant=>true,Separated=>true)</code>
     And we can compute $\sum_\nu c^{\lambda,\mu}_\nu S^\nu$:<br/>
     <code>rhs = segreCls*(fugacityVector Q)</code>
   </p>
@@ -341,7 +344,7 @@ $=f(s,t)\qquad s=\left< wt(\textsf{u}),wt(\textsf{x})\right>,\ t=\left< wt(\text
   </p>
   <p style="border-left: solid 5px blue; padding-left:15px;">
     In our example, we should have:<br/>
-    <code>lhs = (segreClass "3021" - segreClass "3120")@(segreClass "2130" - segreClass "3120")</code><br/>
+    <code>lhs = (segreClass "3021" - segreClass "3120")@(segreClass "2130" - segreClass "3120")</code>
     and...<br/>
     <code>lhs == rhs</code>
   </p>
@@ -364,9 +367,9 @@ $=f(s,t)\qquad s=\left< wt(\textsf{u}),wt(\textsf{x})\right>,\ t=\left< wt(\text
   </p>
   <p style="border-left: solid 5px blue; padding-left:15px;">
     <i>Example:</i> full flag variety of $\CC^4$.<br/>
-    <code style="white-space:pre">λ="2103"; μ="0321"; ν="2301";
+    <code>λ="2103"; μ="0321"; ν="2301";
 P=puzzle(λ,μ,ν,Generic=>true,Equivariant=>true)
-fug=apply(P,fugacity)</code><br/>
+fug=apply(P,fugacity)</code>
     Note that some fugacities $\sim \hbar^{-1}$. But the sum should be of order $\hbar^{-2}$ according to inversion numbers:<br/>
     <code>sum fug</code>
   </p>

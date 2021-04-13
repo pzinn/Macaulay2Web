@@ -289,6 +289,20 @@ code {
     box-shadow: 1px 1px 2px 0px black;
     padding: 2px 4px;
     border-radius: 7px;
+    /* below used to be "block" */
+    display: table;
+    margin-top: 5px;
+    margin-bottom: 16px;
+    margin-left: 20px;
+/*
+    padding: 3px 6px;
+    border-radius: 10px;
+*/
+}
+
+code.inline {
+    margin: 0;
+    display: inline;
 }
 
 .M2PastInput {
@@ -302,17 +316,6 @@ code {
     cursor: pointer;
 }
 
-code.block {
-    display: table;
-    margin-top: 5px;
-    margin-bottom: 16px;
-    margin-left: 20px;
-/*
-    padding: 3px 6px;
-    border-radius: 10px;
-*/
-}
- 
 /*code:active, .M2PastInput:active {*/
 .codetrigger { /* modified so can be actived or not programmatically */
     transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */
