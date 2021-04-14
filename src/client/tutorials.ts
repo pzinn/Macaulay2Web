@@ -40,40 +40,23 @@ const sliceTutorial = function (tutorial: Tutorial, theHtml: string) {
   return tutorial;
 };
 
-const h1 = function (s: string) {
-  const el = document.createElement("h1");
+const createEl = function (tag: string, s: string) {
+  const el = document.createElement(tag);
   el.innerHTML = s;
   return el;
 };
 
-// for now, hardcoded
-const tutorials = {
-  "0": {
-    title: h1("Welcome tutorial"),
-    lessons: [],
-    loaded: false,
-  },
-  "1": {
-    title: h1("Basic introduction to Macaulay2"),
-    lessons: [],
-    loaded: false,
-  },
-  "2": {
-    title: h1("Elementary uses of Groebner bases"),
-    lessons: [],
-    loaded: false,
-  },
-  "3": {
-    title: h1("Mathematicians' introduction to Macaulay2"),
-    lessons: [],
-    loaded: false,
-  },
-  "4": {
-    title: h1("More on the interface: the WebApp mode"),
-    lessons: [],
-    loaded: false,
-  },
-};
+// for now, hardcoded TODO better
+// prettier-ignore
+const tutorials ={"0":{"title":"Welcome tutorial","lessons":[{"title":"Getting started"},{"title":"Getting Macaulay2 help on a topic"},{"title":"Using the Terminal"},{"title":"Using the Editor"},{"title":"Macaulay2 sessions and the Reset button"},{"title":"Advanced editing features"},{"title":"Advanced file handling"},{"title":"Miscellaneous"}],"loaded":false},"1":{"title":"Basic Introduction to Macaulay2","lessons":[{"title":"Basic usage"},{"title":"Lists and functions"},{"title":"Rings, matrices, and ideals"}],"loaded":false},"2":{"title":"Elementary uses of Groebner bases","lessons":[{"title":"Contents"},{"title":"A. First Steps; example with a monomial curve"},{"title":"B. Random regular sequences"},{"title":"C. Division With Remainder"},{"title":"D. Elimination Theory"},{"title":"E. Quotients and saturation"}],"loaded":false},"3":{"title":"Mathematicians' Introduction to  Macaulay2","lessons":[{"title":"Arithmetic with integers, rings and ideals"},{"title":"Properties of ideals and modules"},{"title":"Division With Remainder"},{"title":"Elimination Theory"},{"title":"Defining functions and loading packages"},{"title":"Ext, Tor, and cohomology"}],"loaded":false},"4":{"title":"More on the interface: the WebApp mode","lessons":[{"title":"Introduction"},{"title":"KaTeX"},{"title":"HTML and Hypertext"},{"title":"VectorGraphics"},{"title":"Other packages"}],"loaded":false}};
+for (const t in tutorials) {
+  tutorials[t].title = createEl("h1", tutorials[t].title);
+  for (let i = 0; i < tutorials[t].lessons.length; i++)
+    tutorials[t].lessons[i].title = createEl(
+      "h2",
+      tutorials[t].lessons[i].title
+    );
+}
 
 let lessonNr: number;
 let tutorialNr: string | null;
@@ -117,7 +100,7 @@ const loadLesson = function (newTutorialNr, newLessonNr: number) {
       sliceTutorial(tutorials[tutorialNr], xhr.responseText);
       tutorials[tutorialNr].loaded = true;
       if (tutorialNr.length > 1)
-        // lame criterion to exclude default tutes
+        // lame criterion to exclude default tutes TODO have a flag
         appendTutorialToAccordion(
           tutorials[tutorialNr].title,
           "",
@@ -221,4 +204,11 @@ const removeTutorial = function (index) {
   };
 };
 
-export { initTutorials, uploadTutorial, loadLessonIfChanged, removeTutorial };
+export {
+  initTutorials,
+  uploadTutorial,
+  loadLessonIfChanged,
+  removeTutorial,
+  sliceTutorial,
+  Tutorial,
+};
