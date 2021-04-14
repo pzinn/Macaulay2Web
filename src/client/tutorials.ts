@@ -1,6 +1,6 @@
 import { appendTutorialToAccordion, makeAccordion } from "./accordion";
 import { autoRender } from "./autoRender";
-import { mdToHTML } from "./md";
+import { mdToHTML, escapeHTML } from "./md";
 
 interface Lesson {
   title: HTMLElement; // <h1> element
@@ -76,7 +76,7 @@ const tutorials = {
 };
 
 let lessonNr: number;
-let tutorialNr: string;
+let tutorialNr: string | null;
 
 const updateTutorialNav = function () {
   const prevBtn = document.getElementById("prevBtn") as HTMLButtonElement;
@@ -156,7 +156,7 @@ const loadLessonIfChanged = function (
 };
 
 const markdownToHtml = function (markdownText) {
-  const txt = mdToHTML(markdownText, null, "p");
+  const txt = mdToHTML(escapeHTML(markdownText), null, "p");
   return txt.replace("</h1>", "</h1><div>").replace(/<h2>/g, "</div><div><h2>");
 };
 
@@ -193,6 +193,7 @@ const uploadTutorial = function () {
     sliceTutorial(newTutorial, txt);
     if (!newTutorial.title) return; // if no title, cancel
     tutorials[fileName] = newTutorial;
+    if (tutorialNr == fileName) tutorialNr = null; // force reload
     appendTutorialToAccordion(
       newTutorial.title,
       "",
