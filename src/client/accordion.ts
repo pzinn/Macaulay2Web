@@ -1,4 +1,4 @@
-import uploadTutorialHelp from "./tutorials/uploadTutorialHelp.txt";
+import uploadTutorialHelp from "./uploadTutorialHelp.txt"; // TODO rethink
 import { removeTutorial } from "./tutorials.ts";
 
 const cssClasses = {
@@ -46,10 +46,17 @@ const appendTutorialToAccordion = function (
   lessons,
   index,
   deleteButton,
-  clickAction = function (e) {
-    e.stopPropagation();
-  }
+  clickAction?
 ) {
+  const id = "accordion-" + index;
+  const olddiv = document.getElementById(id);
+  const div = olddiv ? olddiv : document.createElement("div");
+  div.innerHTML = "";
+  div.id = id;
+  div.style.overflow = "hidden";
+  div.style.transition = "height 0.5s";
+  div.style.paddingBottom = "5px";
+
   const titlespan = document.createElement("span"); //title.cloneNode(false);
   titlespan.className = cssClasses.title;
   const icon = document.createElement("i");
@@ -57,19 +64,19 @@ const appendTutorialToAccordion = function (
   icon.className = cssClasses.titleSymbolClass;
   const titlea = document.createElement("a");
   titlea.className = cssClasses.titleHref;
-  if (index >= 0) {
+  if (!clickAction) {
     titlea.href = "#tutorial-" + index;
     titlea.target = "_self";
-  } else titlea.tabIndex = 0; // still want focus
-  titlea.onclick = clickAction;
+    titlea.onclick = function (e) {
+      e.stopPropagation();
+    };
+  } else {
+    titlea.tabIndex = 0; // still want focus
+    titlea.onclick = clickAction;
+  }
   titlea.innerHTML = title.innerHTML;
   titlespan.append(icon, titlea);
   titlespan.style.cursor = "pointer";
-
-  const div = document.createElement("div");
-  div.style.overflow = "hidden";
-  div.style.transition = "height 0.5s";
-  div.style.paddingBottom = "5px";
 
   if (deleteButton) {
     const deleteButton = document.createElement("i");
@@ -115,10 +122,13 @@ const appendTutorialToAccordion = function (
   }
   ul.style.display = "none";
   div.appendChild(ul);
-  const el = document.getElementById("accordion");
-  const lastel = document.getElementById("loadTutorialMenu");
-  el.insertBefore(div, lastel);
-  return div;
+
+  if (!olddiv) {
+    const el = document.getElementById("accordion");
+    let el2 = el.firstElementChild;
+    while (el2 && el2.id < id) el2 = el2.nextElementSibling;
+    el.insertBefore(div, el2);
+  }
 };
 
 const appendLoadTutorialMenuToAccordion = function () {
@@ -128,22 +138,10 @@ const appendLoadTutorialMenuToAccordion = function () {
     title,
     uploadTutorialHelp,
     [],
-    -1,
+    "{loadTutorial}",
     false,
     doUptutorialClick
-  ).id = "loadTutorialMenu";
+  );
 };
 
-const makeAccordion = function (tutorials) {
-  for (let i = 0; i < tutorials.length; i++)
-    appendTutorialToAccordion(
-      tutorials[i].title,
-      "",
-      tutorials[i].lessons,
-      i,
-      false
-    );
-  appendLoadTutorialMenuToAccordion();
-};
-
-export { appendTutorialToAccordion, makeAccordion };
+export { appendTutorialToAccordion, appendLoadTutorialMenuToAccordion };

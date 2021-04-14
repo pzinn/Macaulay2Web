@@ -308,58 +308,78 @@ const unlink = function (completePath: string) {
 };
 
 const fileUpload = function (request, response) {
+  const fileList = request.files;
+  if (!fileList) return;
+  if (request.body.tutorial) {
+    if (fileList.length == 0) return;
+    const file = fileList[0];
+    logger.info("Tutorial upload " + file.originalname);
+    // move to tutorial directory
+    fs.copyFile(
+      file.path,
+      staticFolder + "tutorials/" + file.originalname,
+      (err) => {
+        if (err) {
+          response.writeHead(500);
+          response.write("File upload failed. Please try again later.");
+        } else {
+          response.writeHead(200);
+        }
+        unlink(file.path);
+      }
+    );
+    return;
+  }
+
   const id = request.body.id;
   const client = id && clients[id] && clients[id].instance ? clients[id] : null;
   if (client) logger.info("File upload from " + id);
-  const fileList = request.files;
 
-  if (fileList) {
-    let str = "";
-    let errorFlag = false;
-    let nFiles = fileList.length;
-    nFiles = fileList.length;
-    fileList.forEach(
-      client
-        ? (file) => {
-            uploadToDocker(
-              client,
-              file.path,
-              file.originalname,
-              sshCredentials,
-              function (err) {
-                if (err) errorFlag = true;
-                else {
-                  str += file.originalname + "<br/>";
-                  emitViaClientSockets(client, "filechanged", {
-                    fileName: file.originalname,
-                    hash: request.body.hash,
-                  });
-                }
-                nFiles--;
-                if (nFiles == 0) {
-                  if (errorFlag) {
-                    response.writeHead(500);
-                    response.write(
-                      "File upload failed. Please try again later.<br/><b>" +
-                        str +
-                        "</b>"
-                    );
-                  } else {
-                    response.writeHead(200);
-                    response.write(
-                      "The following files have been uploaded and can be used in your session:<br/><b>" +
-                        str +
-                        "</b>"
-                    );
-                  }
-                  response.end();
-                }
+  let str = "";
+  let errorFlag = false;
+  let nFiles = fileList.length;
+  nFiles = fileList.length;
+  fileList.forEach(
+    client
+      ? (file) => {
+          uploadToDocker(
+            client,
+            file.path,
+            file.originalname,
+            sshCredentials,
+            function (err) {
+              if (err) errorFlag = true;
+              else {
+                str += file.originalname + "<br/>";
+                emitViaClientSockets(client, "filechanged", {
+                  fileName: file.originalname,
+                  hash: request.body.hash,
+                });
               }
-            );
-          }
-        : (file) => unlink(file.path)
-    );
-  }
+              nFiles--;
+              if (nFiles == 0) {
+                if (errorFlag) {
+                  response.writeHead(500);
+                  response.write(
+                    "File upload failed. Please try again later.<br/><b>" +
+                      str +
+                      "</b>"
+                  );
+                } else {
+                  response.writeHead(200);
+                  response.write(
+                    "The following files have been uploaded and can be used in your session:<br/><b>" +
+                      str +
+                      "</b>"
+                  );
+                }
+                response.end();
+              }
+            }
+          );
+        }
+      : (file) => unlink(file.path)
+  );
   if (!client) {
     response.writeHead(400);
     response.end();
