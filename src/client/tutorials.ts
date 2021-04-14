@@ -75,8 +75,8 @@ const tutorials = {
   },
 };
 
-let lessonNr = 0;
-let tutorialNr = 0;
+let lessonNr: number;
+let tutorialNr: string;
 
 const updateTutorialNav = function () {
   const prevBtn = document.getElementById("prevBtn") as HTMLButtonElement;
@@ -104,7 +104,7 @@ const updateTutorialNav = function () {
 };
 
 const loadLesson = function (newTutorialNr, newLessonNr: number) {
-  tutorialNr = newTutorialNr;
+  tutorialNr = String(newTutorialNr);
   lessonNr = newLessonNr;
   if (!tutorials[tutorialNr])
     tutorials[tutorialNr] = { title: null, lessons: [], loaded: false };
@@ -113,9 +113,18 @@ const loadLesson = function (newTutorialNr, newLessonNr: number) {
     const xhr = new XMLHttpRequest();
     xhr.open("GET", "tutorials/" + tutorialNr + ".html", true);
     xhr.onload = function () {
+      console.log("tutorial " + tutorialNr + " loaded");
       sliceTutorial(tutorials[tutorialNr], xhr.responseText);
       tutorials[tutorialNr].loaded = true;
-      // TODO: accordion
+      if (tutorialNr.length > 1)
+        // lame criterion to exclude default tutes
+        appendTutorialToAccordion(
+          tutorials[tutorialNr].title,
+          "",
+          tutorials[tutorialNr].lessons,
+          tutorialNr,
+          true
+        ); // last arg = delete button
       displayLesson();
     };
     xhr.send(null);
@@ -154,7 +163,7 @@ const markdownToHtml = function (markdownText) {
 const uploadTutorial = function () {
   if (this.files.length == 0) return;
   const file = this.files[0];
-  console.log("file name: " + file.name);
+  console.log("tutorial " + file.name + " uploaded");
   const reader = new FileReader();
   reader.readAsText(file);
   reader.onload = function (event) {
@@ -166,11 +175,13 @@ const uploadTutorial = function () {
     } else if (fileName.substr(-5) == ".html")
       fileName = fileName.substring(0, fileName.length - 5);
     fileName = fileName.replace(/\W/g, "");
-    // upload: should probably upload html instead TODO
+    if (fileName.length <= 1) fileName = "tu" + fileName; // kinda random. prevents overwrite default ones
+    // upload to server
     const req = new XMLHttpRequest();
     const formData = new FormData();
-    formData.append("files[]", file);
-    formData.append("tutorial", "true"); // or whatever
+    const file1 = new File([txt], fileName + ".html");
+    formData.append("files[]", file1);
+    formData.append("tutorial", "true");
     req.open("POST", "/upload");
     req.send(formData);
 
@@ -180,12 +191,15 @@ const uploadTutorial = function () {
       title: null,
     };
     sliceTutorial(newTutorial, txt);
-    const title = newTutorial.title; // this is a <title>
-    if (!title) return; // ... or null, in which case cancel
-    // TODO: if tutorial already exists, remove it first from accordion
+    if (!newTutorial.title) return; // if no title, cancel
     tutorials[fileName] = newTutorial;
-    const lessons = newTutorial.lessons;
-    appendTutorialToAccordion(title, "", lessons, fileName, true); // last arg = delete button
+    appendTutorialToAccordion(
+      newTutorial.title,
+      "",
+      newTutorial.lessons,
+      fileName,
+      true
+    ); // last arg = delete button
   };
   return false;
 };
@@ -202,7 +216,7 @@ const removeTutorial = function (index) {
   return function (e) {
     e.stopPropagation();
     e.currentTarget.parentElement.parentElement.remove();
-    tutorials[index] = null; // can't renumber :/
+    delete tutorials[index];
   };
 };
 

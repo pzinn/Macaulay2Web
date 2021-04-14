@@ -50,6 +50,15 @@ const appendTutorialToAccordion = function (
     e.stopPropagation();
   }
 ) {
+  const id = "accordion-" + index;
+  const olddiv = document.getElementById(id);
+  const div = olddiv ? olddiv : document.createElement("div");
+  div.innerHTML = "";
+  div.id = id;
+  div.style.overflow = "hidden";
+  div.style.transition = "height 0.5s";
+  div.style.paddingBottom = "5px";
+
   const titlespan = document.createElement("span"); //title.cloneNode(false);
   titlespan.className = cssClasses.title;
   const icon = document.createElement("i");
@@ -57,7 +66,7 @@ const appendTutorialToAccordion = function (
   icon.className = cssClasses.titleSymbolClass;
   const titlea = document.createElement("a");
   titlea.className = cssClasses.titleHref;
-  if (index !== null) {
+  if (index !== "loadTutorial") {
     titlea.href = "#tutorial-" + index;
     titlea.target = "_self";
   } else titlea.tabIndex = 0; // still want focus
@@ -65,11 +74,6 @@ const appendTutorialToAccordion = function (
   titlea.innerHTML = title.innerHTML;
   titlespan.append(icon, titlea);
   titlespan.style.cursor = "pointer";
-
-  const div = document.createElement("div");
-  div.style.overflow = "hidden";
-  div.style.transition = "height 0.5s";
-  div.style.paddingBottom = "5px";
 
   if (deleteButton) {
     const deleteButton = document.createElement("i");
@@ -115,10 +119,12 @@ const appendTutorialToAccordion = function (
   }
   ul.style.display = "none";
   div.appendChild(ul);
-  const el = document.getElementById("accordion");
-  const lastel = document.getElementById("loadTutorialMenu");
-  el.insertBefore(div, lastel);
-  return div;
+
+  if (!olddiv) {
+    const el = document.getElementById("accordion");
+    const lastel = document.getElementById("accordion-loadTutorial");
+    el.insertBefore(div, lastel);
+  }
 };
 
 const appendLoadTutorialMenuToAccordion = function () {
@@ -128,10 +134,10 @@ const appendLoadTutorialMenuToAccordion = function () {
     title,
     uploadTutorialHelp,
     [],
-    null,
+    "loadTutorial",
     false,
     doUptutorialClick
-  ).id = "loadTutorialMenu";
+  );
 };
 
 const makeAccordion = function (tutorials) {
