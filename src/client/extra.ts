@@ -245,14 +245,10 @@ const extra1 = function () {
   const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
 
   let tab = url.hash;
-  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab); // maybe the former "loadtute" could be absorbed in the syntax e.g. tutorial:name.html-5
+  const m = /^#tutorial-(\w+)(?:-(\d+))?$/.exec(tab);
   // TODO: if tute doesn't exist in accordion try to load it
-  let tute = -1,
-    page = 1;
-  if (m) {
-    tute = +m[1] || -1;
-    page = +m[2] || 1;
-  }
+  let tute = m ? m[1] : null,
+    page = m && m[2] ? +m[2] : 1;
   initTutorials(tute, page - 1);
   const upTutorial = document.getElementById("uptutorial");
   if (upTutorial) {
@@ -263,10 +259,10 @@ const extra1 = function () {
   const openTab = function () {
     let loc = document.location.hash.substring(1);
     // new syntax for navigating tutorial
-    const m = /^tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(loc);
+    const m = /^tutorial-(\w+)(?:-(\d+))?$/.exec(loc);
     if (m) {
       loc = "tutorial";
-      loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
+      loadLessonIfChanged(m[1], (+m[2] || 1) - 1);
     }
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);

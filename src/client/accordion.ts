@@ -135,7 +135,7 @@ const appendLoadTutorialMenuToAccordion = function () {
 };
 
 const makeAccordion = function (tutorials) {
-  for (let i = 0; i < tutorials.length; i++)
+  for (const i in tutorials)
     appendTutorialToAccordion(
       tutorials[i].title,
       "",

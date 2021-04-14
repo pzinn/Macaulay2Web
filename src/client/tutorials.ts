@@ -8,7 +8,6 @@ interface Lesson {
 }
 
 interface Tutorial {
-  fileName: string;
   title: HTMLElement; // <h2> html element
   lessons: Lesson[];
   loaded: boolean;
@@ -48,38 +47,33 @@ const h1 = function (s: string) {
 };
 
 // for now, hardcoded
-const tutorials: Tutorial[] = [
-  {
-    fileName: "0-welcome",
+const tutorials = {
+  "0": {
     title: h1("Welcome tutorial"),
     lessons: [],
     loaded: false,
   },
-  {
-    fileName: "1-gettingStarted",
+  "1": {
     title: h1("Basic introduction to Macaulay2"),
     lessons: [],
     loaded: false,
   },
-  {
-    fileName: "2-elementary-groebner",
+  "2": {
     title: h1("Elementary uses of Groebner bases"),
     lessons: [],
     loaded: false,
   },
-  {
-    fileName: "3-beginningM2",
+  "3": {
     title: h1("Mathematicians' introduction to Macaulay2"),
     lessons: [],
     loaded: false,
   },
-  {
-    fileName: "4-interface",
+  "4": {
     title: h1("More on the interface: the WebApp mode"),
     lessons: [],
     loaded: false,
   },
-];
+};
 
 let lessonNr = 0;
 let tutorialNr = 0;
@@ -109,17 +103,13 @@ const updateTutorialNav = function () {
     " " + (lessonNr + 1) + "/" + tutorials[tutorialNr].lessons.length;
 };
 
-const loadLesson = function (newTutorialNr: number, newLessonNr: number) {
+const loadLesson = function (newTutorialNr, newLessonNr: number) {
   tutorialNr = newTutorialNr;
   lessonNr = newLessonNr;
   if (!tutorials[tutorialNr].loaded) {
     // now actually loads from file
     const xhr = new XMLHttpRequest();
-    xhr.open(
-      "GET",
-      "tutorials/" + tutorials[tutorialNr].fileName + ".html",
-      true
-    );
+    xhr.open("GET", "tutorials/" + tutorialNr + ".html", true);
     xhr.onload = function () {
       sliceTutorial(tutorials[tutorialNr], xhr.responseText);
       tutorials[tutorialNr].loaded = true;
@@ -130,8 +120,8 @@ const loadLesson = function (newTutorialNr: number, newLessonNr: number) {
 };
 
 const displayLesson = function () {
+  if (!tutorials[tutorialNr]) tutorialNr = 0;
   if (tutorials[tutorialNr].lessons.length == 0) return; // not quite
-  if (tutorialNr < 0 || tutorialNr >= tutorials.length) tutorialNr = 0;
   if (lessonNr < 0 || lessonNr >= tutorials[tutorialNr].lessons.length)
     lessonNr = 0;
   const lessonContent = tutorials[tutorialNr].lessons[lessonNr].html;
@@ -147,53 +137,12 @@ const displayLesson = function () {
 };
 
 const loadLessonIfChanged = function (
-  tutorialid: number,
-  lessonid: number
+  newTutorialNr,
+  newLessonNr: number
 ): void {
-  if (tutorialNr !== tutorialid || lessonNr !== lessonid)
-    loadLesson(tutorialid, lessonid);
+  if (tutorialNr !== newTutorialNr || lessonNr !== newLessonNr)
+    loadLesson(newTutorialNr, newLessonNr);
 };
-
-/*
-const getTutorial = function (url) {
-  return fetch(url, {
-    credentials: "same-origin",
-  })
-    .then(
-      function (response) {
-        if (response.status !== 200) {
-          throw new Error("Fetching tutorial failed: " + url);
-        }
-        return response.text();
-      },
-      function (error) {
-        console.log("Error in fetch: " + error);
-        throw error;
-      }
-    )
-    .then(function (txt) {
-      if (url.substr(-3) == ".md") txt = markdownToHtml(txt); // by default, assume html
-      return txt;
-    });
-};
-*/
-
-/*
-const makeTutorialsList = function (tutorialNames) {
-  return Promise.all(tutorialNames.map(getTutorial))
-    .then(function (rawTutorials) {
-      return rawTutorials.map(sliceTutorial);
-    })
-    .then(function (data) {
-      accordion.makeAccordion(data);
-      tutorials = data;
-      loadLesson(tutorialNr, lessonNr);
-    })
-    .catch(function (error) {
-      console.log("Error in makeTutorialList: " + error);
-    });
-};
-*/
 
 const markdownToHtml = function (markdownText) {
   const txt = mdToHTML(markdownText, null, "p");
@@ -225,26 +174,16 @@ const uploadTutorial = function () {
 
     const newTutorial: Tutorial = {
       lessons: [],
-      fileName: fileName,
       loaded: true,
       title: null,
     };
     sliceTutorial(newTutorial, txt);
     const title = newTutorial.title; // this is a <title>
     if (!title) return; // ... or null, in which case cancel
-    const i = tutorials.findIndex(
-      (tute) =>
-        tute && tute.title && tute.title.textContent == title.textContent
-    );
-    if (i >= 0) {
-      tutorials[i] = newTutorial; // replace existing tutorial with same name (really, should redo the accordion too -- TODO)
-      if (tutorialNr == i) lessonNr = -1; // force reload
-    } else {
-      tutorials.push(newTutorial);
-      const lastIndex = tutorials.length - 1;
-      const lessons = newTutorial.lessons;
-      appendTutorialToAccordion(title, "", lessons, fileName, true); // last arg = delete button
-    }
+    // TODO: if tutorial already exists, remove it first from accordion
+    tutorials[fileName] = newTutorial;
+    const lessons = newTutorial.lessons;
+    appendTutorialToAccordion(title, "", lessons, fileName, true); // last arg = delete button
   };
   return false;
 };
@@ -254,8 +193,7 @@ const initTutorials = function (initialTutorialNr, initialLessonNr) {
   if (initialLessonNr) lessonNr = initialLessonNr;
 
   makeAccordion(tutorials);
-  if (tutorialNr >= 0 && tutorialNr < tutorials.length)
-    loadLesson(tutorialNr, lessonNr);
+  if (tutorials[tutorialNr]) loadLesson(tutorialNr, lessonNr);
 };
 
 const removeTutorial = function (index) {
