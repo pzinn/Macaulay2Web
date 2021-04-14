@@ -246,7 +246,6 @@ const extra1 = function () {
 
   let tab = url.hash;
   const m = /^#tutorial-(\w+)(?:-(\d+))?$/.exec(tab);
-  // TODO: if tute doesn't exist in accordion try to load it
   let tute = m ? m[1] : null,
     page = m && m[2] ? +m[2] : 1;
   initTutorials(tute, page - 1);
@@ -259,10 +258,10 @@ const extra1 = function () {
   const openTab = function () {
     let loc = document.location.hash.substring(1);
     // new syntax for navigating tutorial
-    const m = /^tutorial-(\w+)(?:-(\d+))?$/.exec(loc);
+    const m = /^tutorial(?:-(\w+))?(?:-(\d+))?$/.exec(loc);
     if (m) {
       loc = "tutorial";
-      loadLessonIfChanged(m[1], (+m[2] || 1) - 1);
+      loadLessonIfChanged(m[1] || 0, (+m[2] || 1) - 1);
     }
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);

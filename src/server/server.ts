@@ -314,10 +314,10 @@ const fileUpload = function (request, response) {
     if (fileList.length == 0) return;
     const file = fileList[0];
     logger.info("Tutorial upload " + file.originalname);
-    // move to tutorial extra directory
+    // move to tutorial directory
     fs.copyFile(
       file.path,
-      staticFolder + "tutorials/extra/" + file.originalname,
+      staticFolder + "tutorials/" + file.originalname,
       (err) => {
         if (err) {
           response.writeHead(500);

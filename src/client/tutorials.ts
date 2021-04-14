@@ -106,6 +106,8 @@ const updateTutorialNav = function () {
 const loadLesson = function (newTutorialNr, newLessonNr: number) {
   tutorialNr = newTutorialNr;
   lessonNr = newLessonNr;
+  if (!tutorials[tutorialNr])
+    tutorials[tutorialNr] = { title: null, lessons: [], loaded: false };
   if (!tutorials[tutorialNr].loaded) {
     // now actually loads from file
     const xhr = new XMLHttpRequest();
@@ -113,6 +115,7 @@ const loadLesson = function (newTutorialNr, newLessonNr: number) {
     xhr.onload = function () {
       sliceTutorial(tutorials[tutorialNr], xhr.responseText);
       tutorials[tutorialNr].loaded = true;
+      // TODO: accordion
       displayLesson();
     };
     xhr.send(null);
@@ -120,7 +123,6 @@ const loadLesson = function (newTutorialNr, newLessonNr: number) {
 };
 
 const displayLesson = function () {
-  if (!tutorials[tutorialNr]) tutorialNr = 0;
   if (tutorials[tutorialNr].lessons.length == 0) return; // not quite
   if (lessonNr < 0 || lessonNr >= tutorials[tutorialNr].lessons.length)
     lessonNr = 0;
@@ -189,11 +191,11 @@ const uploadTutorial = function () {
 };
 
 const initTutorials = function (initialTutorialNr, initialLessonNr) {
-  if (initialTutorialNr) tutorialNr = initialTutorialNr;
-  if (initialLessonNr) lessonNr = initialLessonNr;
+  tutorialNr = initialTutorialNr;
+  lessonNr = initialLessonNr;
 
   makeAccordion(tutorials);
-  if (tutorials[tutorialNr]) loadLesson(tutorialNr, lessonNr);
+  if (tutorialNr) loadLesson(tutorialNr, lessonNr);
 };
 
 const removeTutorial = function (index) {
