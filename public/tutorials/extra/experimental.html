@@ -1,0 +1,93 @@
+<html>
+  <head>
+    <title>Experimental changes
+    </title>
+  </head>
+<body>
+  <div>
+    <h4>Degrees rings</h4>
+
+    <p>Monoids/polynomial rings have a new option \(\verb|DegreesRing|\) which allows to specify the ring of degrees:
+    <code>R=QQ[x,y,DegreesRing=>ZZ[t,u,v,Inverses=>true]]</code></p>
+    <p>The degrees ring must have \(\verb|Inverses=>true|\) and base ring \(\verb|ZZ|\). One can then use monomials in the degrees ring to define degrees:<br/>
+    <code>W=ZZ[H,A_0..A_9,Inverses=>true];</code><br/>
+      <code>R=QQ[w_0..w_9,DegreesRing=>W,Degrees=>apply(10,i->H*A_i)]</code><br/>
+      <code>poincare ideal(w_3,w_5)</code>
+    </p>
+    <p>Another degrees ring can be defined with the option \(\verb|AddDegreesRing|\); it must have base ring \(\verb|ZZ|\). Similarly, degrees can then be defined using degree 1 polynomials in it:<br/>
+    <code>W=ZZ[h,a_0..a_9];</code><br/>
+      <code>R=QQ[w_0..w_9,AddDegreesRing=>W,Degrees=>apply(10,i->h+a_i)]</code><br/>
+      <code>multidegree ideal(w_3,w_5)</code>
+    </p>
+    <p>Degrees rings can also be used to specify module degree shifts:<br/>
+      <code>R^{a_2+a_3,-a_4}</code>
+      </p>
+  </div>
+  <div>
+    <h4>Factorized polynomial rings</h4>
+
+    <p>The keyword \(\verb|fact|\) produces a new polynomial ring from an old one, which only differs in that the polynomials are internally stored and displayed in a factorized form:<br/>
+      <code>R=fact(QQ[x,y,z]); x^2-y^2</code>      
+    </p>
+    <p>In the case of Laurent polynomials, the leading monomial is factored out:<br/>
+      <code>R=fact(QQ[x,y,z,Inverses=>true]); z^2-y^2</code>
+    </p>
+    <p>It works with fraction fields too:<br/>
+      <code>R=frac(fact(QQ[x,y,z])); (x^2-y^2)/(y^3-z^3)</code><br/>
+      (the order of fact and frac is irrelevant, though this is the advised one).
+    </p>
+    <p>It can handle large factorized polynomials:<br/>
+      <code>R=fact(QQ[U_1..U_10,V_1..V_10]); p=product(1..10,i->product(1..10,j->1+U_i-V_j))</code><br/>
+      but don't try to add 1 to it! Inverting it will work:<br/>
+      <code> 1/p</code><br/></p>
+    <p>Factorized polynomial rings can be used as degree rings, and in fact, the default ones are factorized:<br/>
+      <code>R=QQ[X_0..X_99,DegreeRank=>100]; describe degreesRing R</code><br/>
+      which means one can compute things like<br/>
+      <code>poincare ideal vars R</code>
+    </p>
+    <p>Use \(\verb|fact|\) rather than \(\verb|factor|\) for ring elements:<br/>
+      <code>R=ZZ[a,b,c]; fact(a^3-b^3)</code>
+      </p>
+  </div>
+  <div>
+    <h4>Fraction fields of rings with inverses</h4>
+    <p>
+    This is allowed:<br/>
+    <code>R=QQ[x,y,z,Inverses=>true]; p=x^(-1)+3+3*x+x^2; q=x^(-2)+x; (p,q)</code><br/>
+    <code>F=frac R; (promote(p,F), promote(q,F), p/q) </code><br/>
+    </p>
+    <p>
+      Of course this can be combined with factorization!<br/>
+    <code> R=fact(QQ[x,y,z,Inverses=>true]); p=x^(-1)+3+3*x+x^2; q=x^(-2)+x; (p,q)</code><br/>
+    <code> F=frac R; (promote(p,F), promote(q,F), p/q) </code><br/>
+    </p>
+    </div>
+  <div>
+    <h4>Using names with indices</h4>
+    <p>
+      One can use indexed variables for rings or other named objects:<br/>
+      <code>R=symbol R; scan(0..5,i->R_i=QQ[(vars i)_1..(vars i)_10]); b_5</code>
+    </p>
+    <p>Cool application: alternate name for fraction fields:<br/>
+      <codeblock>altfrac = R -> ( if class F =!= IndexedVariableTable then F = new IndexedVariableTable; F_R = frac R);
+altfrac R_3</codeblock>
+    </p>
+  </div>
+  <div>
+    <h4>Building a matrix out of indexed variables</h4>
+    <p>
+      If a ring with a set of 2-index variables has been defined, one can invoke \(\verb|genericMatrix|\) directly:<br/>
+      <code>R=ZZ[x_(1,1)..x_(2,3)]; genericMatrix x</code><br/>
+      Note that the matrix has rows/columns indexed in the usual way, contrary to the typical behavior \(\verb|genericMatrix(R,3,2)|\).
+    </p>
+    <p>
+      Missing variables are set to zero:<br/>
+      <code>R=QQ[apply(1..5,i->y_(i,i))]; genericMatrix y</code><br/>
+    </p>
+    <p>Similar commands \(\verb|genericSkewMatrix|\), \(\verb|genericSymmetricMatrix|\), \(\verb|genericUpperMatrix|\), \(\verb|genericLowerMatrix|\), \(\verb|genericVector|\) exist:<br/>
+      <code>R=QQ[z_(1,1)..z_(3,3)]; genericLowerMatrix z</code><br/>
+      <code>R=QQ[v_1..v_5]; genericVector v</code><br/>
+    </p>    
+  </div>
+</body>
+  

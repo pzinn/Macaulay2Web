@@ -245,11 +245,12 @@ const extra1 = function () {
   const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
 
   let tab = url.hash;
-  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab); // maybe the former "loadtute" could be absorbed in the syntax e.g. tutorial:name.html-5
-  let tute = 0,
+    const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab); // maybe the former "loadtute" could be absorbed in the syntax e.g. tutorial:name.html-5
+    // TODO: if tute doesn't exist in accordion try to load it
+  let tute = -1,
     page = 1;
   if (m) {
-    tute = +m[1] || 0;
+    tute = +m[1] || -1;
     page = +m[2] || 1;
   }
   initTutorials(tute, page - 1);
@@ -265,7 +266,7 @@ const extra1 = function () {
     const m = /^tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(loc);
     if (m) {
       loc = "tutorial";
-      if (m[1] || m[2]) loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
+      loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
     }
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);

@@ -8,43 +8,52 @@ interface Lesson {
 }
 
 interface Tutorial {
+  fileName: string;
   title: HTMLElement; // <h2> html element
-  current: number;
-  lessons: Lesson[];
+    lessons: Lesson[];
+    loaded: boolean;
 }
 
-const sliceTutorial = function (theHtml) {
-  const result = {
-    lessons: [],
-    current: 0,
-    title: null,
-  };
-  const tutorial = document.createElement("div");
-  tutorial.innerHTML = theHtml;
-  const children = tutorial.children;
+const sliceTutorial = function (tutorial: Tutorial, theHtml: string) {
+  const el = document.createElement("div");
+  el.innerHTML = theHtml;
+    const children = el.children;
+    tutorial.lessons=[];
   for (let i = 0; i < children.length; i++) {
-    if (children[i].tagName == "TITLE") {
-      result.title = document.createElement("h1");
-      result.title.innerHTML = children[i].innerHTML;
-    } else if (!result.title && children[i].tagName == "H1") {
-      result.title = children[i];
+    if (children[i].tagName == "TITLE") { // rethink TODO
+      tutorial.title = document.createElement("h1");
+      tutorial.title.innerHTML = children[i].innerHTML;
+    } else if (!tutorial.title && children[i].tagName == "H1") {
+      tutorial.title = children[i] as HTMLElement;
     } else if (
       children[i].tagName == "DIV" &&
       children[i].childElementCount > 0
     ) {
-      const lessonTitle = children[i].firstElementChild;
+      const lessonTitle = children[i].firstElementChild; // rethink TODO
       autoRender(lessonTitle);
-      result.lessons.push({
-        title: lessonTitle,
-        html: children[i],
+      tutorial.lessons.push({
+        title: lessonTitle as HTMLElement,
+        html: children[i] as HTMLElement
       });
     }
   }
-  return result;
+  return tutorial;
 };
 
-import tutorialsList from "./tutorialsList";
-const tutorials = tutorialsList.map(sliceTutorial);
+const h1 = function(s: string) {
+    const el = document.createElement("h1");
+    el.innerHTML=s;
+    return el;
+}
+
+// for now, hardcoded
+const tutorials: Tutorial[] = [
+    { fileName: "0-welcome", title: h1("Welcome tutorial"), lessons: [], loaded: false },
+    { fileName: "1-gettingStarted", title: h1("Basic introduction to Macaulay2"), lessons: [], loaded: false },
+    { fileName: "2-elementary-groebner", title: h1("Elementary uses of Groebner bases"), lessons: [], loaded: false },
+    { fileName: "3-beginningM2", title: h1("Mathematicians' introduction to Macaulay2"), lessons: [], loaded: false },
+    { fileName: "4-interface", title: h1("More on the interface: the WebApp mode"), lessons: [], loaded: false }
+];
 
 let lessonNr = 0;
 let tutorialNr = 0;
@@ -74,9 +83,24 @@ const updateTutorialNav = function () {
     " " + (lessonNr + 1) + "/" + tutorials[tutorialNr].lessons.length;
 };
 
-const loadLesson = function (tutorialid: number, lessonid: number) {
-  tutorialNr = tutorialid;
-  lessonNr = lessonid;
+const loadLesson = function (newTutorialNr: number, newLessonNr: number) {
+  tutorialNr = newTutorialNr;
+  lessonNr = newLessonNr;
+    if (!tutorials[tutorialNr].loaded) {
+	// now actually loads from file
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", "tutorials/"+tutorials[tutorialNr].fileName+".html", true);
+	xhr.onload = function() {
+	    sliceTutorial(tutorials[tutorialNr],xhr.responseText);
+	    tutorials[tutorialNr].loaded=true;
+	    displayLesson();
+	}
+	xhr.send(null);
+    } else displayLesson();
+};
+
+const displayLesson = function() {
+    if (tutorials[tutorialNr].lessons.length==0) return; // not quite
   if (tutorialNr < 0 || tutorialNr >= tutorials.length) tutorialNr = 0;
   if (lessonNr < 0 || lessonNr >= tutorials[tutorialNr].lessons.length)
     lessonNr = 0;
@@ -90,7 +114,7 @@ const loadLesson = function (tutorialid: number, lessonid: number) {
 
   autoRender(lesson);
   updateTutorialNav();
-};
+}
 
 const loadLessonIfChanged = function (
   tutorialid: number,
@@ -147,14 +171,35 @@ const markdownToHtml = function (markdownText) {
 };
 
 const uploadTutorial = function () {
+    if this.files.length == 0 return;
   const file = this.files[0];
   console.log("file name: " + file.name);
   const reader = new FileReader();
   reader.readAsText(file);
   reader.onload = function (event) {
-    let txt = event.target.result as string;
-    if (file.name.substr(-3) == ".md") txt = markdownToHtml(txt); // by default, assume html
-    const newTutorial = sliceTutorial(txt);
+      let txt = event.target.result as string;
+      let fileName = file.name;
+      if (fileName.substr(-3) == ".md") {
+	  txt = markdownToHtml(txt); // by default, assume html
+	  fileName=fileName.substring(0,fileName.length-3);
+      } else if (fileName.substr(-5) == ".html") fileName=fileName.substring(0,fileName.length-5);
+      fileName=fileName.replace(/\W/g,"");
+      // upload
+      const req = new XMLHttpRequest();
+      const formData = new FormData();
+      formData.append("files[]", files[0]);
+      formData.append("id", clientId); // needed?
+      formData.append("tutorial","true"); // or whatever
+      req.onloadend = showUploadDialog;
+      req.open("POST", "/upload");
+      req.send(formData);
+
+      const newTutorial: Tutorial = {
+	  lessons: [],
+	  fileName: fileName,
+	  loaded: true,
+	  title: null};
+      sliceTutorial(newTutorial,txt);
     const title = newTutorial.title; // this is a <title>
     if (!title) return; // ... or null, in which case cancel
     const i = tutorials.findIndex(
@@ -168,7 +213,7 @@ const uploadTutorial = function () {
       tutorials.push(newTutorial);
       const lastIndex = tutorials.length - 1;
       const lessons = newTutorial.lessons;
-      appendTutorialToAccordion(title, "", lessons, lastIndex, true); // last arg = delete button
+      appendTutorialToAccordion(title, "", lessons, fileName, true); // last arg = delete button
     }
   };
   return false;
@@ -179,7 +224,7 @@ const initTutorials = function (initialTutorialNr, initialLessonNr) {
   if (initialLessonNr) lessonNr = initialLessonNr;
 
   makeAccordion(tutorials);
-  loadLesson(tutorialNr, lessonNr);
+    if (tutorialNr>=0 && tutorialNr<tutorials.length) loadLesson(tutorialNr, lessonNr);
 };
 
 const removeTutorial = function (index) {

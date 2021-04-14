@@ -1,4 +1,4 @@
-import uploadTutorialHelp from "./tutorials/uploadTutorialHelp.txt";
+import uploadTutorialHelp from "./uploadTutorialHelp.txt"; // TODO rethink
 import { removeTutorial } from "./tutorials.ts";
 
 const cssClasses = {
@@ -57,7 +57,7 @@ const appendTutorialToAccordion = function (
   icon.className = cssClasses.titleSymbolClass;
   const titlea = document.createElement("a");
   titlea.className = cssClasses.titleHref;
-  if (index >= 0) {
+  if (index !== null) {
     titlea.href = "#tutorial-" + index;
     titlea.target = "_self";
   } else titlea.tabIndex = 0; // still want focus
@@ -128,7 +128,7 @@ const appendLoadTutorialMenuToAccordion = function () {
     title,
     uploadTutorialHelp,
     [],
-    -1,
+    null,
     false,
     doUptutorialClick
   ).id = "loadTutorialMenu";
