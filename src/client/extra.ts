@@ -245,8 +245,8 @@ const extra1 = function () {
   const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
 
   let tab = url.hash;
-    const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab); // maybe the former "loadtute" could be absorbed in the syntax e.g. tutorial:name.html-5
-    // TODO: if tute doesn't exist in accordion try to load it
+  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab); // maybe the former "loadtute" could be absorbed in the syntax e.g. tutorial:name.html-5
+  // TODO: if tute doesn't exist in accordion try to load it
   let tute = -1,
     page = 1;
   if (m) {
