@@ -77,6 +77,7 @@ const updateFileName = function (newName: string) {
     "editorFileName"
   ) as HTMLInputElement;
   fileNameEl.value = newName;
+  fileNameEl.scrollLeft = fileNameEl.scrollWidth;
   // update list of past names
   if (newName == fileName) return;
   const pastFileNames = document.getElementById(
@@ -408,6 +409,12 @@ const toggleWrap = function () {
     "editorFileName"
   ) as HTMLInputElement;
 
+  fileNameEl.onblur = function () {
+    // prevents annoying default behavior on scrolling back to start
+    setTimeout(function () {
+      fileNameEl.scrollLeft = fileNameEl.scrollWidth;
+    }, 0);
+  };
   fileNameEl.onchange = function () {
     const newName = fileNameEl.value.trim();
     newEditorFileMaybe(newName, true);
