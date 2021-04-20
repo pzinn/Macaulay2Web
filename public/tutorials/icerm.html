@@ -124,7 +124,7 @@
     Let's work out the example of $T^*\mathbb P^2$.<br/>
     <code>needsPackage "CotangentSchubert";</code>
     Let's define the algebra $\mathcal A$ and the labeling set of fixed points $I\cong W_P\backslash W$:<br/>
-    <code>(AA,BB,f,I) = setupKTBorel(1,3)</code>
+    <code>(AA,BB,f,I) = setupCotangent(1,3,Presentation=>Borel,Kth=>true)</code>
     This is what $\mathcal A$ looks like in terms of Chern classes:<br/>
     <code>describe AA</code>
     Sure enough, it's three-dimensional:<br/>
@@ -133,9 +133,9 @@
     <code>promote(c_(1,1),BB)</code>
     <code>describe BB</code>
     One can then compute the motivic Segre classes according to the above:<br/>
-    <code>segreCls = segreClassesBorel()</code>
+    <code>segreCls = segreClasses()</code>
     By default, they live in $\mathcal B$; to get them in $\mathcal A$, write<br/>
-    <code>f\segreCls</code>
+    <code>matrix {apply(first entries segreCls,f)}</code>
   </p>
   <p>
     Unfortunately, the Borel presentation turns out to be quite inefficient computationally. Let's move on...
@@ -172,7 +172,7 @@
     Let's work out the example of $T^*\mathbb P^1$.<br/>
     <code>needsPackage "CotangentSchubert";</code>
     Let's define the base field $\mathbb F$ and the labeling set of fixed points $I\cong W_P\backslash W$:<br/>
-    <code>(FF,I) = setupKT(1,2)</code>
+    <code>(FF,I) = setupCotangent(1,2,Kth=>true)</code>
     We can get the whole matrix of motivic Segre classes at once:<br/>
     <code>segreCls = segreClasses()</code>
     or individual classes using <tt>segreClass</tt>; entrywise product is <tt>@</tt>:<br/>
@@ -227,7 +227,7 @@
   <p style="border-left: solid 5px blue; padding-left:15px;">
     <i>Example:</i> puzzles for $T^*\PP^1$.<br/>
     Let's do $S^{01}\times S^{01}$:<br/>
-    <code>P=puzzle("01","01",Generic=>true,Equivariant=>true)</code>
+    <code>P=puzzle("01","01")</code>
     The fugacities match our product table:</br>
     <code>fugacityVector P</code>
   </p>
@@ -278,7 +278,7 @@ $=f(s,t)\qquad s=\left< wt(\textsf{u}),wt(\textsf{x})\right>,\ t=\left< wt(\text
   <p style="border-left: solid 5px blue; padding-left:15px;">
     <i>Example:</i> puzzles in the cotangent bundle of the full flag variety of $\CC^4$.<br/>
     Let us setup equivariant cohomology:</br>
-    <code>(FF,I)=setupHT(1,2,3,4)</code>
+    <code>(FF,I)=setupCotangent(1,2,3,4)</code>
     and compute all Segre&mdash;Schwartz&mdash;MacPherson classes:<br/>
     <code>segreCls=segreClasses();</code>
     Let's do a single example:<br>
@@ -286,7 +286,7 @@ $=f(s,t)\qquad s=\left< wt(\textsf{u}),wt(\textsf{x})\right>,\ t=\left< wt(\text
     Their product $S^\lambda S^\mu$ can be computed directly as:<br/>
     <code>lhs = segreClass λ @ segreClass μ</code>
     On the other hand, we can ask for puzzles with sides $\lambda$, $\mu$:<br/>
-    <code>P=puzzle(λ,μ,Generic=>true,Equivariant=>true)</code>
+    <code>P=puzzle(λ,μ)</code>
     and compute $\sum_\nu c^{\lambda,\mu}_\nu S^\nu$:<br/>
     <code>rhs = segreCls*(fugacityVector P)</code>
     and...</br>
@@ -294,7 +294,7 @@ $=f(s,t)\qquad s=\left< wt(\textsf{u}),wt(\textsf{x})\right>,\ t=\left< wt(\text
     For a more complicated example, try<br/>
     <code>λ="0213"; μ="0321";</code>
     but you probably don't want to print the 152 puzzles to the screen:<br/>
-    <code>P=puzzle(λ,μ,Generic=>true,Equivariant=>true); #P</code>
+    <code>P=puzzle(λ,μ); #P</code>
   </p>
 </div>
 <div style="font-size:1.8em">
@@ -325,13 +325,13 @@ $=f(s,t)\qquad s=\left< wt(\textsf{u}),wt(\textsf{x})\right>,\ t=\left< wt(\text
   <p style="border-left: solid 5px blue; padding-left:15px;">
     <i>Example:</i> pulling back to the cotangent bundle of the full flag variety of $\CC^4$.<br/>
     Let us setup equivariant cohomology:</br>
-    <code>(FF,I)=setupHT(1,2,3,4)</code>
+    <code>(FF,I)=setupCotangent(1,2,3,4)</code>
     and compute all Segre&mdash;Schwartz&mdash;MacPherson classes:<br/>
     <code>segreCls=segreClasses();</code>
     Our strings-with-blanks are:<br>
     <code>λ="3 2 "; μ=" 1 0";</code>
     Here are the corresponding puzzles:<br/>
-    <code>Q=puzzle(λ,μ,Generic=>true,Equivariant=>true,Separated=>true)</code>
+    <code>Q=puzzle(λ,μ,Separated=>true)</code>
     And we can compute $\sum_\nu c^{\lambda,\mu}_\nu S^\nu$:<br/>
     <code>rhs = segreCls*(fugacityVector Q)</code>
   </p>
@@ -368,7 +368,7 @@ $=f(s,t)\qquad s=\left< wt(\textsf{u}),wt(\textsf{x})\right>,\ t=\left< wt(\text
   <p style="border-left: solid 5px blue; padding-left:15px;">
     <i>Example:</i> full flag variety of $\CC^4$.<br/>
     <code>λ="2103"; μ="0321"; ν="2301";
-P=puzzle(λ,μ,ν,Generic=>true,Equivariant=>true)
+P=puzzle(λ,μ,ν)
 fug=apply(P,fugacity)</code>
     Note that some fugacities $\sim \hbar^{-1}$. But the sum should be of order $\hbar^{-2}$ according to inversion numbers:<br/>
     <code>sum fug</code>
