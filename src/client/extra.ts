@@ -545,6 +545,13 @@ const toggleWrap = function () {
         autoIndent(editor);
       e.preventDefault();
       return;
+    } else if (e.key == "k" && e.ctrlKey) {
+      // emacs binding
+      const sel = window.getSelection() as any;
+      sel.collapse(sel.focusNode, sel.focusOffset); // there has to be a simpler way...
+      sel.modify("extend", "forward", "lineboundary");
+      document.execCommand("cut", false);
+      e.preventDefault();
     }
     tabPressed = false;
   };
@@ -563,7 +570,9 @@ const toggleWrap = function () {
     // prevent annoying extra \n of chrome when pasting stuff with HTML tags
     const returnNext = nextChar() == "\n";
     e.preventDefault();
-    const c = e.clipboardData.getData("text/html");
+    const c =
+      e.clipboardData.getData("text/html") ||
+      e.clipboardData.getData("text/plain");
     document.execCommand("insertHTML", false, c);
     if (!returnNext && nextChar() == "\n")
       document.execCommand("forwardDelete");
