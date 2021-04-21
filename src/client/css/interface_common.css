@@ -125,7 +125,7 @@ table.examples {
     border-spacing: 0px;
     line-height: 110%;
 }
-table.examples td {
+table.examples > tbody > tr > td { /* to avoid inheriting too far */
     border-style: solid;
     border-width: 1px;
     padding-right: 0.75em;

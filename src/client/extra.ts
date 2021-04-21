@@ -1,7 +1,13 @@
 import Cookie from "cookie";
 import { options } from "../common/global";
 import { socket, url, myshell, clientId } from "./main";
-import { scrollDown, setCaret, caretIsAtEnd, nextChar } from "./htmlTools";
+import {
+  scrollDown,
+  setCaret,
+  getCaret2,
+  caretIsAtEnd,
+  nextChar,
+} from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import {
   initTutorials,
@@ -204,18 +210,7 @@ const positioning = function (m) {
     j2 === undefined || j2 + col2 > editorText.length
       ? editorText.length
       : j2 + col2;
-  setCaret(editor, j1, j2);
-  // painful way of getting scrolling to work
-  setTimeout(function () {
-    // in case not in editor tab, need to wait
-    document.execCommand("insertHTML", false, "<span id='scrll'></span>");
-    document.getElementById("scrll").scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-      inline: "center",
-    });
-    document.execCommand("undo", false, null);
-  }, 0);
+  setCaret(editor, j1, j2, true); // true = scroll to caret
 };
 
 const newEditorFileMaybe = function (arg: string, missing: any) {
@@ -540,11 +535,25 @@ const toggleWrap = function () {
   ); // possibly get the default file from the server
 
   let tabPressed = false,
-    enterPressed = false;
+    enterPressed = false,
+    searchMode = false;
+  let searchString = "",
+    prevSearchString = "";
+
   const editorKeyDown = function (e) {
-    enterPressed = e.key == "Enter" && !e.shiftKey; // for editorKeyUp
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
     removeDelimiterHighlight(editor);
+    if (searchMode) {
+      if (editorKeyDownSearch(e)) {
+        e.preventDefault();
+        return;
+      }
+      searchMode = false;
+      document.getElementById("searchSpan").style.display = "none";
+      const sel = window.getSelection() as any;
+      sel.collapseToEnd();
+    }
+    enterPressed = e.key == "Enter" && !e.shiftKey; // for editorKeyUp
     if (e.key == "Enter" && e.shiftKey) {
       if (!caretIsAtEnd()) e.preventDefault();
       const msg = getSelected();
@@ -557,8 +566,64 @@ const toggleWrap = function () {
         autoIndent(editor);
       e.preventDefault();
       return;
+    } else if (e.key == "k" && e.ctrlKey) {
+      // emacs binding
+      const sel = window.getSelection() as any;
+      sel.collapse(sel.focusNode, sel.focusOffset); // there has to be a simpler way...
+      sel.modify("extend", "forward", "lineboundary");
+      document.execCommand("cut", false);
+      e.preventDefault();
+    } else if (e.key == "s" && e.ctrlKey) {
+      // emacs binding
+      if (!searchMode) {
+        searchMode = true;
+        prevSearchString = searchString;
+        document.getElementById("searchString").textContent = searchString = "";
+        document.getElementById("searchSpan").style.display = "";
+      }
+      e.preventDefault();
     }
     tabPressed = false;
+  };
+
+  let searchSuccess = 0; // how many characters of the searchString we managed to find
+  const editorKeyDownSearch = function (e) {
+    //    console.log("search: " + searchString + " + " + e.key);
+    let pos = getCaret2(editor)[0];
+    if (e.key == "s" && e.ctrlKey) {
+      if (searchString == "") searchString = prevSearchString;
+      else if (searchSuccess == 0) pos = 0;
+      else pos += searchString.length;
+    } else if (e.key == "Backspace") {
+      if (searchString.length == 0) {
+        e.preventDefault();
+        return false;
+      }
+      searchString = searchString.substring(0, searchString.length - 1);
+      if (searchSuccess > searchString.length)
+        searchSuccess = searchString.length;
+    } else if (e.key.length != "1" || e.ctrlKey || e.altKey) {
+      return e.key == "Control" || e.key == "Shift"; // TODO: better
+    } else {
+      searchString = searchString + e.key;
+    }
+    const searchStringEl = document.getElementById("searchString");
+    // display string
+    const txt = editor.innerText;
+    const i = txt.indexOf(searchString, pos);
+    if (i >= 0) {
+      searchSuccess = searchString.length;
+      setCaret(editor, i, i + searchString.length, true);
+      searchStringEl.textContent = searchString;
+    } else {
+      if (searchSuccess == searchString.length) searchSuccess = 0;
+      searchStringEl.innerHTML =
+        searchString.substring(0, searchSuccess) +
+        "<span style='text-decoration:underline red'>" +
+        searchString.substring(searchSuccess, searchString.length) +
+        "</span>"; // eww
+    }
+    return true;
   };
 
   const editorKeyUp = function (e) {
@@ -575,7 +640,9 @@ const toggleWrap = function () {
     // prevent annoying extra \n of chrome when pasting stuff with HTML tags
     const returnNext = nextChar() == "\n";
     e.preventDefault();
-    const c = e.clipboardData.getData("text/html");
+    const c =
+      e.clipboardData.getData("text/html") ||
+      e.clipboardData.getData("text/plain");
     document.execCommand("insertHTML", false, c);
     if (!returnNext && nextChar() == "\n")
       document.execCommand("forwardDelete");
