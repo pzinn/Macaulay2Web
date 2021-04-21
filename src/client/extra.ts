@@ -574,7 +574,9 @@ const toggleWrap = function () {
     // prevent annoying extra \n of chrome when pasting stuff with HTML tags
     const returnNext = nextChar() == "\n";
     e.preventDefault();
-    const c = e.clipboardData.getData("text/html");
+    const c =
+      e.clipboardData.getData("text/html") ||
+      e.clipboardData.getData("text/plain");
     document.execCommand("insertHTML", false, c);
     if (!returnNext && nextChar() == "\n")
       document.execCommand("forwardDelete");
