@@ -86,7 +86,28 @@ const getCaret2 = function (el) {
   }
 };
 
-const setCaretInternal = function (el, cur, sel, pos: number, len: number) {
+const scrollToCaret = function () {
+  // painful way of getting scrolling to work
+  setTimeout(function () {
+    // in case not in editor tab, need to wait
+    document.execCommand("insertHTML", false, "<span id='scrll'></span>");
+    document.getElementById("scrll").scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "center",
+    });
+    document.execCommand("undo", false, null);
+  }, 0);
+};
+
+const setCaretInternal = function (
+  el,
+  cur,
+  sel,
+  pos: number,
+  len: number,
+  scroll?: boolean
+) {
   let first = null;
   let firstpos;
   while (true) {
@@ -95,9 +116,11 @@ const setCaretInternal = function (el, cur, sel, pos: number, len: number) {
         // bingo
         if (first) {
           sel.setBaseAndExtent(first, firstpos, cur, pos);
+          if (scroll) scrollToCaret();
           return;
         } else if (pos + len <= cur.textContent.length) {
           sel.setBaseAndExtent(cur, pos, cur, pos + len);
+          if (scroll) scrollToCaret();
           return;
         } else {
           first = cur;
@@ -121,7 +144,12 @@ const setCaretInternal = function (el, cur, sel, pos: number, len: number) {
 };
 
 // some of these edge cases need to be clarified (empty HTMLElements; etc)
-const setCaret = function (el, pos: number, pos2?: number): void {
+const setCaret = function (
+  el,
+  pos: number,
+  pos2?: number,
+  scroll?: boolean
+): void {
   let len;
   if (!pos2) len = 0;
   else if (pos2 < pos) {
@@ -136,7 +164,7 @@ const setCaret = function (el, pos: number, pos2?: number): void {
   }
   const cur = el.firstChild;
   if (!cur) return;
-  setCaretInternal(el, cur, sel, pos, len);
+  setCaretInternal(el, cur, sel, pos, len, scroll);
 };
 
 const forwardCaret = function (el, incr: number): void {
