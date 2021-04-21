@@ -549,6 +549,13 @@ const toggleWrap = function () {
         autoIndent(editor);
       e.preventDefault();
       return;
+    } else if (e.key == "k" && e.ctrlKey) {
+      // emacs binding
+      const sel = window.getSelection() as any;
+      sel.collapse(sel.focusNode, sel.focusOffset); // there has to be a simpler way...
+      sel.modify("extend", "forward", "lineboundary");
+      document.execCommand("cut", false);
+      e.preventDefault();
     }
     tabPressed = false;
   };
