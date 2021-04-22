@@ -95,17 +95,12 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
         self.constructDockerRunCommand(self.resources, newInstance),
         function (error) {
           if (error) {
-            const containerAlreadyStarted =
-              error.message.match(/Conflict. The name/) ||
-              error.message.match(/Conflict. The container name/); // weak TODO
-            if (containerAlreadyStarted) {
+            logger.error(
+              "Error starting the docker container: " + error.message
+            );
+            setTimeout(function () {
               self.getNewInstance(clientId, next);
-            } else {
-              logger.error(
-                "Error starting the docker container: " + error.message
-              );
-              throw error;
-            }
+            }, 3000);
           } else {
             logger.info(
               "Docker container " +
