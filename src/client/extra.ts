@@ -111,7 +111,11 @@ const autoSave = function () {
     window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = 0;
   }
-  if (!fileName) return;
+  if (
+    !fileName ||
+    document.getElementById("editorDiv").contentEditable != "true"
+  )
+    return;
   const content = document.getElementById("editorDiv").innerText as string;
   const newHash = hashCode(content);
   if (newHash != autoSaveHash) {
@@ -159,9 +163,39 @@ const localFileToEditor = function (fileName: string, m?) {
   const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName, true);
   xhr.onload = function () {
+    editor.contentEditable = "true";
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
     autoSaveHash = hashCode(xhr.responseText);
     if (m) positioning(m);
+  };
+  xhr.send(null);
+};
+
+const listDirToEditor = function (dirName: string, fileName: string) {
+  if (!dirName.endsWith("/")) dirName += "/";
+  if (highlightTimeout) window.clearTimeout(highlightTimeout);
+  const editor = document.getElementById("editorDiv");
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", fileName, true);
+  xhr.onload = function () {
+    editor.contentEditable = "false";
+    const lst = xhr.responseText
+      .split("\n")
+      .sort()
+      .map((s) => [dirName + s, s]);
+    const i = dirName.lastIndexOf("/", dirName.length - 2);
+    if (i >= 0)
+      lst.unshift([
+        dirName.substring(0, i + 1),
+        "<i class='material-icons'>subdirectory_arrow_left</i>",
+      ]);
+
+    editor.innerHTML =
+      "<ul style='list-style:none'>" +
+      lst
+        .map((a) => "<li><a href='#editor:" + a[0] + "'>" + a[1] + "</a></li>")
+        .join("") +
+      "</ul>";
   };
   xhr.send(null);
 };
@@ -232,7 +266,9 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
     if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
     autoSave();
     updateFileName(newName);
-    localFileToEditor(response, m);
+    if (response.search("directory@") >= 0) listDirToEditor(newName, response);
+    // eww
+    else localFileToEditor(response, m);
   });
 };
 

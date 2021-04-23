@@ -395,7 +395,7 @@ const unhandled = function (request, response) {
 
 const initializeServer = function () {
   const favicon = require("serve-favicon");
-  const serveStatic = require("serve-static");
+  const serveStatic = require("serve-static"); // or could use the equivalent express.static
   const serveIndex = require("serve-index");
   const expressWinston = require("express-winston");
   serveStatic.mime.define({ "text/plain": ["m2"] }); // declare m2 files as plain text for browsing purposes
@@ -403,8 +403,7 @@ const initializeServer = function () {
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
   app.post("/upload/", upload.array("files[]"), fileUpload);
-  app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
-  app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
+  app.use("/usr/share/", serveStatic("/usr/share"), serveIndex("/usr/share")); // optionally, serve documentation locally and allow browsing
   app.use(serveStatic(staticFolder));
   app.use(fileDownload);
   app.use(unhandled);

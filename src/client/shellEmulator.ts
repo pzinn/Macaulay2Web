@@ -133,8 +133,7 @@ const Shell = function (
 
   obj.codeInputAction = function (t) {
     t.classList.add("codetrigger");
-    if (t.tagName.substring(0, 4) == "CODE")
-      obj.postMessage(t.innerText, false, false);
+    if (t.tagName == "CODE") obj.postMessage(t.innerText, false, false);
     else {
       // past input: almost the same but not quite: code not sent, just replaces input
       let str = t.textContent;
