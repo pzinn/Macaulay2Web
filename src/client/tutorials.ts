@@ -16,7 +16,7 @@ interface Tutorial {
 }
 
 const sliceTutorial = function (theHtml: string) {
-  let tutorial: Tutorial = { lessons: [] };
+  const tutorial: Tutorial = { lessons: [] };
   const el = document.createElement("div");
   el.innerHTML = theHtml;
   const children = el.children;
@@ -40,12 +40,6 @@ const sliceTutorial = function (theHtml: string) {
     }
   }
   return tutorial;
-};
-
-const createEl = function (tag: string, s: string) {
-  const el = document.createElement(tag);
-  el.innerHTML = s;
-  return el;
 };
 
 const tutorials = {};
@@ -119,7 +113,7 @@ const displayLesson = function () {
   updateTutorialNav();
 };
 
-const loadLessonIfChanged = function (
+const displayLessonIfChanged = function (
   newTutorialNr,
   newLessonNr: number
 ): void {
@@ -195,8 +189,6 @@ const removeTutorial = function (index) {
 export {
   initTutorials,
   uploadTutorial,
-  loadLessonIfChanged,
+  displayLessonIfChanged,
   removeTutorial,
-  sliceTutorial,
-  Tutorial,
 };

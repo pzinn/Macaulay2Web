@@ -12,7 +12,7 @@ import { socketChat, syncChat } from "./chat";
 import {
   initTutorials,
   uploadTutorial,
-  loadLessonIfChanged,
+  displayLessonIfChanged,
 } from "./tutorials";
 import { Chat } from "../common/chatClass";
 import {
@@ -278,7 +278,7 @@ const extra1 = function () {
 
   let tab = url.hash;
   const m = /^#tutorial-(\w+)(?:-(\d+))?$/.exec(tab);
-  let tute = m ? m[1] : null,
+  const tute = m ? m[1] : null,
     page = m && m[2] ? +m[2] : 1;
   initTutorials(tute, page - 1);
   const upTutorial = document.getElementById("uptutorial");
@@ -293,7 +293,7 @@ const extra1 = function () {
     const m = /^tutorial(?:-(\w+))?(?:-(\d+))?$/.exec(loc);
     if (m) {
       loc = "tutorial";
-      loadLessonIfChanged(m[1] || 0, (+m[2] || 1) - 1);
+      displayLessonIfChanged(m[1] || 0, (+m[2] || 1) - 1);
     }
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);

@@ -1,4 +1,4 @@
-import { Socket, clientId } from "./main";
+import { Socket } from "./main";
 
 import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "../common/tags";
