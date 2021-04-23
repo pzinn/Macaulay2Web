@@ -1,3 +1,7 @@
+3.7.0 04/2021
+    * tutorial system revamped
+    * docker creation fixes
+
 3.6.0 02/2021
     * cookie / id system revamped, and assorted server improvements
     * editor revamped
