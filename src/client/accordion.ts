@@ -140,16 +140,4 @@ const appendLoadTutorialMenuToAccordion = function () {
   );
 };
 
-const makeAccordion = function (tutorials) {
-  for (const i in tutorials)
-    appendTutorialToAccordion(
-      tutorials[i].title,
-      "",
-      tutorials[i].lessons,
-      i,
-      false
-    );
-  appendLoadTutorialMenuToAccordion();
-};
-
-export { appendTutorialToAccordion, makeAccordion };
+export { appendTutorialToAccordion, appendLoadTutorialMenuToAccordion };

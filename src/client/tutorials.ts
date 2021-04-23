@@ -1,4 +1,7 @@
-import { appendTutorialToAccordion, makeAccordion } from "./accordion";
+import {
+  appendTutorialToAccordion,
+  appendLoadTutorialMenuToAccordion,
+} from "./accordion";
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 
@@ -8,16 +11,15 @@ interface Lesson {
 }
 
 interface Tutorial {
-  title: HTMLElement; // <h2> html element
+  title?: HTMLElement; // <h2> html element
   lessons: Lesson[];
-  loaded: boolean;
 }
 
-const sliceTutorial = function (tutorial: Tutorial, theHtml: string) {
+const sliceTutorial = function (theHtml: string) {
+  let tutorial: Tutorial = { lessons: [] };
   const el = document.createElement("div");
   el.innerHTML = theHtml;
   const children = el.children;
-  tutorial.lessons = [];
   for (let i = 0; i < children.length; i++) {
     if (children[i].tagName == "TITLE") {
       // rethink TODO
@@ -46,17 +48,8 @@ const createEl = function (tag: string, s: string) {
   return el;
 };
 
-// for now, hardcoded TODO better
-// prettier-ignore
-const tutorials ={"0":{"title":"Welcome tutorial","lessons":[{"title":"Getting started"},{"title":"Getting Macaulay2 help on a topic"},{"title":"Using the Terminal"},{"title":"Using the Editor"},{"title":"Macaulay2 sessions and the Reset button"},{"title":"Advanced editing features"},{"title":"Advanced file handling"},{"title":"Miscellaneous"}],"loaded":false},"1":{"title":"Basic Introduction to Macaulay2","lessons":[{"title":"Basic usage"},{"title":"Lists and functions"},{"title":"Rings, matrices, and ideals"}],"loaded":false},"2":{"title":"Elementary uses of Groebner bases","lessons":[{"title":"Contents"},{"title":"A. First Steps; example with a monomial curve"},{"title":"B. Random regular sequences"},{"title":"C. Division With Remainder"},{"title":"D. Elimination Theory"},{"title":"E. Quotients and saturation"}],"loaded":false},"3":{"title":"Mathematicians' Introduction to  Macaulay2","lessons":[{"title":"Arithmetic with integers, rings and ideals"},{"title":"Properties of ideals and modules"},{"title":"Division With Remainder"},{"title":"Elimination Theory"},{"title":"Defining functions and loading packages"},{"title":"Ext, Tor, and cohomology"}],"loaded":false},"4":{"title":"More on the interface: the WebApp mode","lessons":[{"title":"Introduction"},{"title":"KaTeX"},{"title":"HTML and Hypertext"},{"title":"VectorGraphics"},{"title":"Other packages"}],"loaded":false}};
-for (const t in tutorials) {
-  tutorials[t].title = createEl("h1", tutorials[t].title);
-  for (let i = 0; i < tutorials[t].lessons.length; i++)
-    tutorials[t].lessons[i].title = createEl(
-      "h2",
-      tutorials[t].lessons[i].title
-    );
-}
+const tutorials = {};
+const ntutorials = 5; // weird hard-coding of initial tutorials TODO better
 
 let lessonNr: number;
 let tutorialNr: string | null;
@@ -86,36 +79,32 @@ const updateTutorialNav = function () {
     " " + (lessonNr + 1) + "/" + tutorials[tutorialNr].lessons.length;
 };
 
-const loadLesson = function (newTutorialNr, newLessonNr: number) {
-  tutorialNr = String(newTutorialNr);
-  lessonNr = newLessonNr;
-  if (!tutorials[tutorialNr])
-    tutorials[tutorialNr] = { title: null, lessons: [], loaded: false };
-  if (!tutorials[tutorialNr].loaded) {
-    // now actually loads from file
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", "tutorials/" + tutorialNr + ".html", true);
-    xhr.onload = function () {
-      console.log("tutorial " + tutorialNr + " loaded");
-      sliceTutorial(tutorials[tutorialNr], xhr.responseText);
-      tutorials[tutorialNr].loaded = true;
-      if (tutorialNr.length > 1)
-        // lame criterion to exclude default tutes TODO have a flag
-        appendTutorialToAccordion(
-          tutorials[tutorialNr].title,
-          "",
-          tutorials[tutorialNr].lessons,
-          tutorialNr,
-          true
-        ); // last arg = delete button
-      displayLesson();
-    };
-    xhr.send(null);
-  } else displayLesson();
+const loadLesson = function (newTutorialNr, deleteButton) {
+  if (tutorials[newTutorialNr] !== undefined) return;
+  tutorials[newTutorialNr] = null; // to prevent multiple loads
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", "tutorials/" + newTutorialNr + ".html", true);
+  xhr.onload = function () {
+    console.log("tutorial " + newTutorialNr + " loaded");
+    tutorials[newTutorialNr] = sliceTutorial(xhr.responseText);
+    appendTutorialToAccordion(
+      tutorials[newTutorialNr].title,
+      "",
+      tutorials[newTutorialNr].lessons,
+      newTutorialNr,
+      deleteButton
+    );
+    if (tutorialNr == newTutorialNr) displayLesson();
+  };
+  xhr.send(null);
 };
 
 const displayLesson = function () {
-  if (tutorials[tutorialNr].lessons.length == 0) return; // not quite
+  if (!tutorials[tutorialNr]) {
+    loadLesson(tutorialNr, true);
+    return;
+  }
+  if (tutorials[tutorialNr].lessons.length == 0) return;
   if (lessonNr < 0 || lessonNr >= tutorials[tutorialNr].lessons.length)
     lessonNr = 0;
   const lessonContent = tutorials[tutorialNr].lessons[lessonNr].html;
@@ -134,8 +123,11 @@ const loadLessonIfChanged = function (
   newTutorialNr,
   newLessonNr: number
 ): void {
-  if (tutorialNr !== newTutorialNr || lessonNr !== newLessonNr)
-    loadLesson(newTutorialNr, newLessonNr);
+  if (tutorialNr !== newTutorialNr || lessonNr !== newLessonNr) {
+    tutorialNr = String(newTutorialNr);
+    lessonNr = newLessonNr;
+    displayLesson();
+  }
 };
 
 const markdownToHtml = function (markdownText) {
@@ -168,12 +160,7 @@ const uploadTutorial = function () {
     req.open("POST", "/upload");
     req.send(formData);
 
-    const newTutorial: Tutorial = {
-      lessons: [],
-      loaded: true,
-      title: null,
-    };
-    sliceTutorial(newTutorial, txt);
+    const newTutorial = sliceTutorial(txt);
     if (!newTutorial.title) return; // if no title, cancel
     tutorials[fileName] = newTutorial;
     if (tutorialNr == fileName) tutorialNr = null; // force reload
@@ -192,8 +179,9 @@ const initTutorials = function (initialTutorialNr, initialLessonNr) {
   tutorialNr = initialTutorialNr;
   lessonNr = initialLessonNr;
 
-  makeAccordion(tutorials);
-  if (tutorialNr) loadLesson(tutorialNr, lessonNr);
+  for (let i = 0; i < ntutorials; i++) loadLesson(i, false);
+  loadLesson(tutorialNr, true); // in case it's another tutorial
+  appendLoadTutorialMenuToAccordion();
 };
 
 const removeTutorial = function (index) {
