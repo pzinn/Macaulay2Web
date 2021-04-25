@@ -465,6 +465,7 @@ const toggleWrap = function () {
   clearEditorBtn.onclick = function () {
     autoSave();
     editor.innerHTML = "";
+    editor.contentEditable = "true";
     updateFileName("");
     fileNameEl.focus();
   };
