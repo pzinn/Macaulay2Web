@@ -93,7 +93,12 @@ const loadLesson = function (newTutorialNr, deleteButton) {
   xhr.send(null);
 };
 
-const displayLesson = function () {
+const displayLesson = function (newTutorialNr?, newLessonNr?): void {
+  if (newTutorialNr !== undefined) {
+    tutorialNr = newTutorialNr;
+    lessonNr = 0;
+  }
+  if (newLessonNr !== undefined) lessonNr = newLessonNr - 1; // annoying shift by 1
   if (!tutorials[tutorialNr]) {
     loadLesson(tutorialNr, true);
     return;
@@ -111,17 +116,6 @@ const displayLesson = function () {
 
   autoRender(lesson);
   updateTutorialNav();
-};
-
-const displayLessonIfChanged = function (
-  newTutorialNr,
-  newLessonNr: number
-): void {
-  if (tutorialNr !== newTutorialNr || lessonNr !== newLessonNr) {
-    tutorialNr = String(newTutorialNr);
-    lessonNr = newLessonNr;
-    displayLesson();
-  }
 };
 
 const markdownToHtml = function (markdownText) {
@@ -171,7 +165,7 @@ const uploadTutorial = function () {
 
 const initTutorials = function (initialTutorialNr, initialLessonNr) {
   tutorialNr = initialTutorialNr;
-  lessonNr = initialLessonNr;
+  lessonNr = initialLessonNr - 1; // annoying shift by 1
 
   for (let i = 0; i < ntutorials; i++) loadLesson(i, false);
   if (tutorialNr) loadLesson(tutorialNr, true); // in case it's another tutorial
@@ -186,9 +180,4 @@ const removeTutorial = function (index) {
   };
 };
 
-export {
-  initTutorials,
-  uploadTutorial,
-  displayLessonIfChanged,
-  removeTutorial,
-};
+export { initTutorials, uploadTutorial, displayLesson, removeTutorial };
