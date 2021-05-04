@@ -54,9 +54,7 @@ Other recognized markdown includes:
 | 1 | 2 | 3 |
 | 4 | 5 | 6 |
 
-Caveat: markdown conversion can interfere with (Ka)TeX code. Since most markdown is based on the start of each line, make sure
-there is no markup symbols there (|,#,*,`,_) in your TeX code, or add a tab at the start (anything after a tab is not markdown encoded).
-
+Caveat: markdown conversion can interfere with (Ka)TeX code.
 
 ## HTML lessons
 You can also upload html lessons, using <title> (or <h1>) for the title. Each page should be one <div>.

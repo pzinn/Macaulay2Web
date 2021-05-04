@@ -311,58 +311,78 @@ const unlink = function (completePath: string) {
 };
 
 const fileUpload = function (request, response) {
+  const fileList = request.files;
+  if (!fileList) return;
+  if (request.body.tutorial) {
+    if (fileList.length == 0) return;
+    const file = fileList[0];
+    logger.info("Tutorial upload " + file.originalname);
+    // move to tutorial directory
+    fs.copyFile(
+      file.path,
+      staticFolder + "tutorials/" + file.originalname,
+      (err) => {
+        if (err) {
+          response.writeHead(500);
+          response.write("File upload failed. Please try again later.");
+        } else {
+          response.writeHead(200);
+        }
+        unlink(file.path);
+      }
+    );
+    return;
+  }
+
   const id = request.body.id;
   const client = id && clients[id] && clients[id].instance ? clients[id] : null;
   if (client) logger.info("File upload from " + id);
-  const fileList = request.files;
 
-  if (fileList) {
-    let str = "";
-    let errorFlag = false;
-    let nFiles = fileList.length;
-    nFiles = fileList.length;
-    fileList.forEach(
-      client
-        ? (file) => {
-            uploadToDocker(
-              client,
-              file.path,
-              file.originalname,
-              sshCredentials,
-              function (err) {
-                if (err) errorFlag = true;
-                else {
-                  str += file.originalname + "<br/>";
-                  emitViaClientSockets(client, "filechanged", {
-                    fileName: file.originalname,
-                    hash: request.body.hash,
-                  });
-                }
-                nFiles--;
-                if (nFiles == 0) {
-                  if (errorFlag) {
-                    response.writeHead(500);
-                    response.write(
-                      "File upload failed. Please try again later.<br/><b>" +
-                        str +
-                        "</b>"
-                    );
-                  } else {
-                    response.writeHead(200);
-                    response.write(
-                      "The following files have been uploaded and can be used in your session:<br/><b>" +
-                        str +
-                        "</b>"
-                    );
-                  }
-                  response.end();
-                }
+  let str = "";
+  let errorFlag = false;
+  let nFiles = fileList.length;
+  nFiles = fileList.length;
+  fileList.forEach(
+    client
+      ? (file) => {
+          uploadToDocker(
+            client,
+            file.path,
+            file.originalname,
+            sshCredentials,
+            function (err) {
+              if (err) errorFlag = true;
+              else {
+                str += file.originalname + "<br/>";
+                emitViaClientSockets(client, "filechanged", {
+                  fileName: file.originalname,
+                  hash: request.body.hash,
+                });
               }
-            );
-          }
-        : (file) => unlink(file.path)
-    );
-  }
+              nFiles--;
+              if (nFiles == 0) {
+                if (errorFlag) {
+                  response.writeHead(500);
+                  response.write(
+                    "File upload failed. Please try again later.<br/><b>" +
+                      str +
+                      "</b>"
+                  );
+                } else {
+                  response.writeHead(200);
+                  response.write(
+                    "The following files have been uploaded and can be used in your session:<br/><b>" +
+                      str +
+                      "</b>"
+                  );
+                }
+                response.end();
+              }
+            }
+          );
+        }
+      : (file) => unlink(file.path)
+  );
   if (!client) {
     response.writeHead(400);
     response.end();
@@ -378,7 +398,7 @@ const unhandled = function (request, response) {
 
 const initializeServer = function () {
   const favicon = require("serve-favicon");
-  const serveStatic = require("serve-static");
+  const serveStatic = require("serve-static"); // or could use the equivalent express.static
   const serveIndex = require("serve-index");
   const expressWinston = require("express-winston");
   serveStatic.mime.define({ "text/plain": ["m2"] }); // declare m2 files as plain text for browsing purposes
@@ -386,8 +406,7 @@ const initializeServer = function () {
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
   app.post("/upload/", upload.array("files[]"), fileUpload);
-  app.use("/usr/share/", serveStatic("/usr/share")); // optionally, serve documentation locally
-  app.use("/usr/share/", serveIndex("/usr/share")); // allow browsing
+  app.use("/usr/share/", serveStatic("/usr/share"), serveIndex("/usr/share")); // optionally, serve documentation locally and allow browsing
   app.use(serveStatic(staticFolder));
   app.use(fileDownload);
   app.use(unhandled);
@@ -451,9 +470,10 @@ const short = function (msg: string) {
 };
 
 const checkAndWrite = function (client: Client, msg: string) {
-  if (!client.channel || !client.channel.writable) {
+  if (!client.instance || !client.channel || !client.channel.writable) {
     sanitizeClient(client, false);
   } else {
+    client.instance.numInputs++;
     writeMsgOnStream(client, msg);
   }
 };

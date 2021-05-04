@@ -1,6 +1,9 @@
-import { appendTutorialToAccordion, makeAccordion } from "./accordion";
+import {
+  appendTutorialToAccordion,
+  appendLoadTutorialMenuToAccordion,
+} from "./accordion";
 import { autoRender } from "./autoRender";
-import { mdToHTML } from "./md";
+import { mdToHTML, escapeHTML } from "./md";
 
 interface Lesson {
   title: HTMLElement; // <h1> element
@@ -8,46 +11,42 @@ interface Lesson {
 }
 
 interface Tutorial {
-  title: HTMLElement; // <h2> html element
-  current: number;
+  title?: HTMLElement; // <h2> html element
   lessons: Lesson[];
 }
 
-const sliceTutorial = function (theHtml) {
-  const result = {
-    lessons: [],
-    current: 0,
-    title: null,
-  };
-  const tutorial = document.createElement("div");
-  tutorial.innerHTML = theHtml;
-  const children = tutorial.children;
+const sliceTutorial = function (theHtml: string) {
+  const tutorial: Tutorial = { lessons: [] };
+  const el = document.createElement("div");
+  el.innerHTML = theHtml;
+  const children = el.children;
   for (let i = 0; i < children.length; i++) {
     if (children[i].tagName == "TITLE") {
-      result.title = document.createElement("h1");
-      result.title.innerHTML = children[i].innerHTML;
-    } else if (!result.title && children[i].tagName == "H1") {
-      result.title = children[i];
+      // rethink TODO
+      tutorial.title = document.createElement("h1");
+      tutorial.title.innerHTML = children[i].innerHTML;
+    } else if (!tutorial.title && children[i].tagName == "H1") {
+      tutorial.title = children[i] as HTMLElement;
     } else if (
       children[i].tagName == "DIV" &&
       children[i].childElementCount > 0
     ) {
-      const lessonTitle = children[i].firstElementChild;
+      const lessonTitle = children[i].firstElementChild; // rethink TODO
       autoRender(lessonTitle);
-      result.lessons.push({
-        title: lessonTitle,
-        html: children[i],
+      tutorial.lessons.push({
+        title: lessonTitle as HTMLElement,
+        html: children[i] as HTMLElement,
       });
     }
   }
-  return result;
+  return tutorial;
 };
 
-import tutorialsList from "./tutorialsList";
-const tutorials = tutorialsList.map(sliceTutorial);
+const tutorials = {};
+const ntutorials = 5; // weird hard-coding of initial tutorials TODO better
 
-let lessonNr = 0;
-let tutorialNr = 0;
+let lessonNr: number;
+let tutorialNr: string | null;
 
 const updateTutorialNav = function () {
   const prevBtn = document.getElementById("prevBtn") as HTMLButtonElement;
@@ -74,10 +73,32 @@ const updateTutorialNav = function () {
     " " + (lessonNr + 1) + "/" + tutorials[tutorialNr].lessons.length;
 };
 
-const loadLesson = function (tutorialid: number, lessonid: number) {
-  tutorialNr = tutorialid;
-  lessonNr = lessonid;
-  if (tutorialNr < 0 || tutorialNr >= tutorials.length) tutorialNr = 0;
+const loadLesson = function (newTutorialNr, deleteButton) {
+  if (tutorials[newTutorialNr] !== undefined) return;
+  tutorials[newTutorialNr] = null; // to prevent multiple loads
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", "tutorials/" + newTutorialNr + ".html", true);
+  xhr.onload = function () {
+    console.log("tutorial " + newTutorialNr + " loaded");
+    tutorials[newTutorialNr] = sliceTutorial(xhr.responseText);
+    appendTutorialToAccordion(
+      tutorials[newTutorialNr].title,
+      "",
+      tutorials[newTutorialNr].lessons,
+      newTutorialNr,
+      deleteButton
+    );
+    if (tutorialNr == newTutorialNr) displayLesson();
+  };
+  xhr.send(null);
+};
+
+const displayLesson = function () {
+  if (!tutorials[tutorialNr]) {
+    loadLesson(tutorialNr, true);
+    return;
+  }
+  if (tutorials[tutorialNr].lessons.length == 0) return;
   if (lessonNr < 0 || lessonNr >= tutorials[tutorialNr].lessons.length)
     lessonNr = 0;
   const lessonContent = tutorials[tutorialNr].lessons[lessonNr].html;
@@ -92,102 +113,82 @@ const loadLesson = function (tutorialid: number, lessonid: number) {
   updateTutorialNav();
 };
 
-const loadLessonIfChanged = function (
-  tutorialid: number,
-  lessonid: number
+const displayLessonIfChanged = function (
+  newTutorialNr,
+  newLessonNr: number
 ): void {
-  if (tutorialNr !== tutorialid || lessonNr !== lessonid)
-    loadLesson(tutorialid, lessonid);
+  if (tutorialNr !== newTutorialNr || lessonNr !== newLessonNr) {
+    tutorialNr = String(newTutorialNr);
+    lessonNr = newLessonNr;
+    displayLesson();
+  }
 };
-
-/*
-const getTutorial = function (url) {
-  return fetch(url, {
-    credentials: "same-origin",
-  })
-    .then(
-      function (response) {
-        if (response.status !== 200) {
-          throw new Error("Fetching tutorial failed: " + url);
-        }
-        return response.text();
-      },
-      function (error) {
-        console.log("Error in fetch: " + error);
-        throw error;
-      }
-    )
-    .then(function (txt) {
-      if (url.substr(-3) == ".md") txt = markdownToHtml(txt); // by default, assume html
-      return txt;
-    });
-};
-*/
-
-/*
-const makeTutorialsList = function (tutorialNames) {
-  return Promise.all(tutorialNames.map(getTutorial))
-    .then(function (rawTutorials) {
-      return rawTutorials.map(sliceTutorial);
-    })
-    .then(function (data) {
-      accordion.makeAccordion(data);
-      tutorials = data;
-      loadLesson(tutorialNr, lessonNr);
-    })
-    .catch(function (error) {
-      console.log("Error in makeTutorialList: " + error);
-    });
-};
-*/
 
 const markdownToHtml = function (markdownText) {
-  const txt = mdToHTML(markdownText, null, "p");
+  const txt = mdToHTML(escapeHTML(markdownText), null, "p");
   return txt.replace("</h1>", "</h1><div>").replace(/<h2>/g, "</div><div><h2>");
 };
 
 const uploadTutorial = function () {
+  if (this.files.length == 0) return;
   const file = this.files[0];
-  console.log("file name: " + file.name);
+  console.log("tutorial " + file.name + " uploaded");
   const reader = new FileReader();
   reader.readAsText(file);
   reader.onload = function (event) {
     let txt = event.target.result as string;
-    if (file.name.substr(-3) == ".md") txt = markdownToHtml(txt); // by default, assume html
+    let fileName = file.name;
+    if (fileName.substr(-3) == ".md") {
+      txt = markdownToHtml(txt); // by default, assume html
+      fileName = fileName.substring(0, fileName.length - 3);
+    } else if (fileName.substr(-5) == ".html")
+      fileName = fileName.substring(0, fileName.length - 5);
+    fileName = fileName.replace(/\W/g, "");
+    if (fileName.length <= 1) fileName = "tu" + fileName; // kinda random. prevents overwrite default ones
+    // upload to server
+    const req = new XMLHttpRequest();
+    const formData = new FormData();
+    const file1 = new File([txt], fileName + ".html");
+    formData.append("files[]", file1);
+    formData.append("tutorial", "true");
+    req.open("POST", "/upload");
+    req.send(formData);
+
     const newTutorial = sliceTutorial(txt);
-    const title = newTutorial.title; // this is a <title>
-    if (!title) return; // ... or null, in which case cancel
-    const i = tutorials.findIndex(
-      (tute) =>
-        tute && tute.title && tute.title.textContent == title.textContent
-    );
-    if (i >= 0) {
-      tutorials[i] = newTutorial; // replace existing tutorial with same name (really, should redo the accordion too -- TODO)
-      if (tutorialNr == i) lessonNr = -1; // force reload
-    } else {
-      tutorials.push(newTutorial);
-      const lastIndex = tutorials.length - 1;
-      const lessons = newTutorial.lessons;
-      appendTutorialToAccordion(title, "", lessons, lastIndex, true); // last arg = delete button
-    }
+    if (!newTutorial.title) return; // if no title, cancel
+    tutorials[fileName] = newTutorial;
+    if (tutorialNr == fileName) tutorialNr = null; // force reload
+    appendTutorialToAccordion(
+      newTutorial.title,
+      "",
+      newTutorial.lessons,
+      fileName,
+      true
+    ); // last arg = delete button
   };
   return false;
 };
 
 const initTutorials = function (initialTutorialNr, initialLessonNr) {
-  if (initialTutorialNr) tutorialNr = initialTutorialNr;
-  if (initialLessonNr) lessonNr = initialLessonNr;
+  tutorialNr = initialTutorialNr;
+  lessonNr = initialLessonNr;
 
-  makeAccordion(tutorials);
-  loadLesson(tutorialNr, lessonNr);
+  for (let i = 0; i < ntutorials; i++) loadLesson(i, false);
+  if (tutorialNr) loadLesson(tutorialNr, true); // in case it's another tutorial
+  appendLoadTutorialMenuToAccordion();
 };
 
 const removeTutorial = function (index) {
   return function (e) {
     e.stopPropagation();
     e.currentTarget.parentElement.parentElement.remove();
-    tutorials[index] = null; // can't renumber :/
+    delete tutorials[index];
   };
 };
 
-export { initTutorials, uploadTutorial, loadLessonIfChanged, removeTutorial };
+export {
+  initTutorials,
+  uploadTutorial,
+  displayLessonIfChanged,
+  removeTutorial,
+};

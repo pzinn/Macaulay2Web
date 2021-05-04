@@ -12,7 +12,7 @@ import { socketChat, syncChat } from "./chat";
 import {
   initTutorials,
   uploadTutorial,
-  loadLessonIfChanged,
+  displayLessonIfChanged,
 } from "./tutorials";
 import { Chat } from "../common/chatClass";
 import {
@@ -119,7 +119,11 @@ const autoSave = function () {
     window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = 0;
   }
-  if (!fileName) return;
+  if (
+    !fileName ||
+    document.getElementById("editorDiv").contentEditable != "true"
+  )
+    return;
   const content = document.getElementById("editorDiv").innerText as string;
   const newHash = hashCode(content);
   if (newHash != autoSaveHash) {
@@ -167,9 +171,39 @@ const localFileToEditor = function (fileName: string, m?) {
   const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName, true);
   xhr.onload = function () {
+    editor.contentEditable = "true";
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
     autoSaveHash = hashCode(xhr.responseText);
     if (m) positioning(m);
+  };
+  xhr.send(null);
+};
+
+const listDirToEditor = function (dirName: string, fileName: string) {
+  if (!dirName.endsWith("/")) dirName += "/";
+  if (highlightTimeout) window.clearTimeout(highlightTimeout);
+  const editor = document.getElementById("editorDiv");
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", fileName, true);
+  xhr.onload = function () {
+    editor.contentEditable = "false";
+    const lst = xhr.responseText
+      .split("\n")
+      .sort()
+      .map((s) => [dirName + s, s]);
+    const i = dirName.lastIndexOf("/", dirName.length - 2);
+    if (i >= 0)
+      lst.unshift([
+        dirName.substring(0, i + 1),
+        "<i class='material-icons'>subdirectory_arrow_left</i>",
+      ]);
+
+    editor.innerHTML =
+      "<ul style='list-style:none'>" +
+      lst
+        .map((a) => "<li><a href='#editor:" + a[0] + "'>" + a[1] + "</a></li>")
+        .join("") +
+      "</ul>";
   };
   xhr.send(null);
 };
@@ -240,7 +274,9 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
     if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
     autoSave();
     updateFileName(newName);
-    localFileToEditor(response, m);
+    if (response.search("directory@") >= 0) listDirToEditor(newName, response);
+    // eww
+    else localFileToEditor(response, m);
   });
 };
 
@@ -249,13 +285,9 @@ const extra1 = function () {
   const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
 
   let tab = url.hash;
-  const m = /^#tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(tab); // maybe the former "loadtute" could be absorbed in the syntax e.g. tutorial:name.html-5
-  let tute = 0,
-    page = 1;
-  if (m) {
-    tute = +m[1] || 0;
-    page = +m[2] || 1;
-  }
+  const m = /^#tutorial-(\w+)(?:-(\d+))?$/.exec(tab);
+  const tute = m ? m[1] : null,
+    page = m && m[2] ? +m[2] : 1;
   initTutorials(tute, page - 1);
   const upTutorial = document.getElementById("uptutorial");
   if (upTutorial) {
@@ -266,10 +298,10 @@ const extra1 = function () {
   const openTab = function () {
     let loc = document.location.hash.substring(1);
     // new syntax for navigating tutorial
-    const m = /^tutorial(?:-(\d*))?(?:-(\d*))?$/.exec(loc);
+    const m = /^tutorial(?:-(\w+))?(?:-(\d+))?$/.exec(loc);
     if (m) {
       loc = "tutorial";
-      if (m[1] || m[2]) loadLessonIfChanged(+m[1] || 0, (+m[2] || 1) - 1);
+      displayLessonIfChanged(m[1] || 0, (+m[2] || 1) - 1);
     }
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);
@@ -441,6 +473,7 @@ const toggleWrap = function () {
   clearEditorBtn.onclick = function () {
     autoSave();
     editor.innerHTML = "";
+    editor.contentEditable = "true";
     updateFileName("");
     fileNameEl.focus();
   };

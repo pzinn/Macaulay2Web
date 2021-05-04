@@ -1,5 +1,5 @@
 // md to html conversion
-/*const escapeHTML = (str) =>
+const escapeHTML = (str) =>
   str.replace(
     /[&<>'"]/g,
     (tag) =>
@@ -10,7 +10,7 @@
         "'": "&#39;",
         '"': "&quot;",
       }[tag])
-      );*/
+  );
 const forbiddenTags = [
   "script",
   "base",
@@ -150,4 +150,4 @@ const mdToHTML = function (src, sep, doublesep) {
   return res;
 };
 
-export { mdToHTML };
+export { mdToHTML, escapeHTML };
