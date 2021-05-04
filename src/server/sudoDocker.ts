@@ -63,6 +63,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                 self.currentInstance.port = port;
               newInstance.clientId = clientId;
               newInstance.lastActiveTime = Date.now();
+              newInstance.numInputs = 0;
               newInstance.containerName = "m2Port" + newInstance.port;
               if (clients[clientId]) {
                 if (clients[clientId].instance)
@@ -91,6 +92,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       newInstance.containerName = "m2Port" + newInstance.port;
       newInstance.clientId = clientId;
       newInstance.lastActiveTime = Date.now();
+      newInstance.numInputs = 0;
       exec(
         self.constructDockerRunCommand(self.resources, newInstance),
         function (error) {
@@ -115,9 +117,11 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       );
     }
   }
+  /*
   public updateLastActiveTime(instance: Instance) {
     instance.lastActiveTime = Date.now();
   }
+*/
 
   private removeInstanceFromArray = function (instance: Instance) {
     const position = this.currentContainers.indexOf(instance);
@@ -134,9 +138,13 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   };
 
   private sortInstancesByAge = function () {
-    this.currentContainers.sort(function (a, b) {
-      return a.lastActiveTime - b.lastActiveTime;
-    });
+    this.currentContainers.sort((a, b) =>
+      a.numInputs == 0 && b.numInputs > 0
+        ? -1
+        : b.numInputs == 0 && a.numInputs > 0
+        ? 1
+        : a.lastActiveTime - b.lastActiveTime
+    );
   };
 
   private killOldestContainer = function (next) {

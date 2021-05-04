@@ -127,7 +127,7 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
         return timea - timeb;
       });
       chat.message +=
-        "\n | id | sockets | output | last | docker | active time " +
+        "\n | id | sockets | output | last | docker | inputs | active time " +
         clientsList
           .map(
             (client) =>
@@ -147,16 +147,14 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
                 .replace(/[^ -z{}]/g, " ") +
               "\t|" +
               (client.instance
-                ? (client.instance.containerName
-                    ? client.instance.containerName
-                    : "") +
-                  (client.instance.lastActiveTime
-                    ? "|" +
-                      new Date(client.instance.lastActiveTime)
-                        .toISOString()
-                        .replace("T", " ")
-                        .substr(0, 19)
-                    : "")
+                ? client.instance.containerName +
+                  "|" +
+                  client.instance.numInputs +
+                  "|" +
+                  new Date(client.instance.lastActiveTime)
+                    .toISOString()
+                    .replace("T", " ")
+                    .substr(0, 19)
                 : "")
           )
           .join("");

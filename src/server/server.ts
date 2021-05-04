@@ -467,9 +467,10 @@ const short = function (msg: string) {
 };
 
 const checkAndWrite = function (client: Client, msg: string) {
-  if (!client.channel || !client.channel.writable) {
+  if (!client.instance || !client.channel || !client.channel.writable) {
     sanitizeClient(client, false);
   } else {
+    client.instance.numInputs++;
     writeMsgOnStream(client, msg);
   }
 };

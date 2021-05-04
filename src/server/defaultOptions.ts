@@ -23,6 +23,7 @@ const options = {
     sshKey: process.env.HOME + "/Macaulay2Web/id_rsa",
     containerName: "",
     lastActiveTime: 0,
+    numInputs: 0,
   },
   hostConfig: {
     minContainerAge: 10,

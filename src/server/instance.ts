@@ -5,6 +5,7 @@ export interface Instance {
   sshKey: string;
   containerName?: string;
   lastActiveTime: number;
+  numInputs: number;
   containerId?: string;
   killNotify?: () => void;
   clientId: string;
