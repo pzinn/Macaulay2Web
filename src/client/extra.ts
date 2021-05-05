@@ -9,7 +9,7 @@ import {
   nextChar,
 } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
-import { initTutorials, uploadTutorial, displayLesson } from "./tutorials";
+import { initTutorials, uploadTutorial, renderLessonMaybe } from "./tutorials";
 import { Chat } from "../common/chatClass";
 import {
   escapeKeyHandling,
@@ -273,10 +273,7 @@ const extra1 = function () {
   const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
 
   let tab = url.hash;
-  const m = /^#tutorial-(\w+)(?:-(\d+))?$/.exec(tab);
-  const tute = m ? m[1] : "0",
-    page = m && m[2] ? +m[2] : 1;
-  initTutorials(tute, page);
+  initTutorials();
   const upTutorial = document.getElementById("uptutorial");
   if (upTutorial) {
     upTutorial.onchange = uploadTutorial;
@@ -289,7 +286,7 @@ const extra1 = function () {
     const m = /^tutorial(?:-(\w+))?(?:-(\d+))?$/.exec(loc);
     if (m) {
       loc = "tutorial";
-      displayLesson(m[1], m[2]);
+      renderLessonMaybe(m[1], m[2]);
     }
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);
