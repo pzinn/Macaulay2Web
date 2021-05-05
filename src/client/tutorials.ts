@@ -43,7 +43,6 @@ const sliceTutorial = function (theHtml: string) {
 };
 
 const tutorials = {};
-const ntutorials = 5; // weird hard-coding of initial tutorials TODO better
 
 let lessonNr: number;
 let tutorialNr: string | null;
@@ -51,35 +50,34 @@ let tutorialNr: string | null;
 const updateTutorialNav = function () {
   const prevBtn = document.getElementById("prevBtn") as HTMLButtonElement;
   const nextBtn = document.getElementById("nextBtn") as HTMLButtonElement;
-  if (lessonNr > 0) {
+  if (lessonNr > 1) {
     prevBtn.disabled = false;
     prevBtn.onclick = function () {
-      document.location.hash = "tutorial-" + tutorialNr + "-" + lessonNr;
+      document.location.hash = "tutorial-" + tutorialNr + "-" + (lessonNr - 1);
     };
   } else {
     prevBtn.disabled = true;
     prevBtn.onclick = null;
   }
-  if (lessonNr < tutorials[tutorialNr].lessons.length - 1) {
+  if (lessonNr < tutorials[tutorialNr].lessons.length) {
     nextBtn.disabled = false;
     nextBtn.onclick = function () {
-      document.location.hash = "tutorial-" + tutorialNr + "-" + (lessonNr + 2);
+      document.location.hash = "tutorial-" + tutorialNr + "-" + (lessonNr + 1);
     };
   } else {
     nextBtn.disabled = true;
     nextBtn.onclick = null;
   }
   document.getElementById("lessonNr").innerHTML =
-    " " + (lessonNr + 1) + "/" + tutorials[tutorialNr].lessons.length;
+    " " + lessonNr + "/" + tutorials[tutorialNr].lessons.length;
 };
 
 const loadLesson = function (newTutorialNr, deleteButton) {
-  if (tutorials[newTutorialNr] !== undefined) return;
-  tutorials[newTutorialNr] = null; // to prevent multiple loads
   const xhr = new XMLHttpRequest();
   xhr.open("GET", "tutorials/" + newTutorialNr + ".html", true);
   xhr.onload = function () {
     console.log("tutorial " + newTutorialNr + " loaded");
+    const render = tutorials[newTutorialNr].render;
     tutorials[newTutorialNr] = sliceTutorial(xhr.responseText);
     appendTutorialToAccordion(
       tutorials[newTutorialNr].title,
@@ -88,25 +86,37 @@ const loadLesson = function (newTutorialNr, deleteButton) {
       newTutorialNr,
       deleteButton
     );
-    if (tutorialNr == newTutorialNr) displayLesson();
+    if (render) renderLesson();
   };
   xhr.send(null);
 };
 
-const displayLesson = function (newTutorialNr?, newLessonNr?): void {
-  if (newTutorialNr !== undefined) {
-    tutorialNr = newTutorialNr;
-    lessonNr = 0;
-  }
-  if (newLessonNr !== undefined) lessonNr = newLessonNr - 1; // annoying shift by 1
+const renderLessonMaybe = function (newTutorialNr?, newLessonNr?): void {
+  if (newTutorialNr === undefined)
+    newTutorialNr = tutorialNr ? tutorialNr : "0";
+  newLessonNr =
+    newLessonNr === undefined
+      ? newTutorialNr === tutorialNr
+        ? lessonNr
+        : 1
+      : +newLessonNr;
+  if (tutorialNr === newTutorialNr && lessonNr === newLessonNr) return;
+  tutorialNr = newTutorialNr;
+  lessonNr = newLessonNr;
   if (!tutorials[tutorialNr]) {
+    tutorials[tutorialNr] = { render: true };
     loadLesson(tutorialNr, true);
-    return;
-  }
+  } else if (!tutorials[tutorialNr].lessons)
+    tutorials[tutorialNr].render = true;
+  // being loaded
+  else renderLesson();
+};
+
+const renderLesson = function (): void {
   if (tutorials[tutorialNr].lessons.length == 0) return;
-  if (lessonNr < 0 || lessonNr >= tutorials[tutorialNr].lessons.length)
-    lessonNr = 0;
-  const lessonContent = tutorials[tutorialNr].lessons[lessonNr].html;
+  if (lessonNr < 1 || lessonNr > tutorials[tutorialNr].lessons.length)
+    lessonNr = 1;
+  const lessonContent = tutorials[tutorialNr].lessons[lessonNr - 1].html;
   const title = tutorials[tutorialNr].title;
   const lesson = document.getElementById("lesson");
   lesson.innerHTML = "";
@@ -163,12 +173,16 @@ const uploadTutorial = function () {
   return false;
 };
 
-const initTutorials = function (initialTutorialNr, initialLessonNr) {
-  tutorialNr = initialTutorialNr;
-  lessonNr = initialLessonNr - 1; // annoying shift by 1
+const ntutorials = 5; // weird hard-coding of initial tutorials TODO better
 
-  for (let i = 0; i < ntutorials; i++) loadLesson(i, false);
-  if (tutorialNr) loadLesson(tutorialNr, true); // in case it's another tutorial
+const initTutorials = function () {
+  tutorialNr = null;
+  lessonNr = 1;
+
+  for (let i = 0; i < ntutorials; i++) {
+    tutorials[i] = { render: false };
+    loadLesson(i, false);
+  }
   appendLoadTutorialMenuToAccordion();
 };
 
@@ -180,4 +194,4 @@ const removeTutorial = function (index) {
   };
 };
 
-export { initTutorials, uploadTutorial, displayLesson, removeTutorial };
+export { initTutorials, uploadTutorial, renderLessonMaybe, removeTutorial };
