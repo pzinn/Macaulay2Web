@@ -200,9 +200,8 @@ const autoCompleteHandling = function (el, dictionary?) {
                 el.lastChild.textContent[0] == e.key
               ) {
                 el.firstChild.textContent += e.key;
-                el.lastChild.textContent = el.lastChild.textContent.substring(
-                  1
-                );
+                el.lastChild.textContent =
+                  el.lastChild.textContent.substring(1);
               } else {
                 if (el.classList.contains("selected")) lostSelection = true;
                 el.remove();
