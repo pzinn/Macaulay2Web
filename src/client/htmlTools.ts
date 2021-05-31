@@ -230,8 +230,9 @@ const caretIsAtEnd = function () {
   const sel = window.getSelection() as any;
   if (!sel.isCollapsed) return false;
   const offset = sel.focusOffset;
+  const node = sel.focusNode;
   sel.modify("move", "forward", "character");
-  if (offset == sel.focusOffset) return true;
+  if (offset == sel.focusOffset && node == sel.focusNode) return true;
   else {
     sel.modify("move", "backward", "character");
     return false;

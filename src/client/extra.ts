@@ -384,44 +384,41 @@ const extra2 = function () {
   const editor = document.getElementById("editorDiv");
   const chatForm = document.getElementById("chatForm");
 
-  const getSelected = function () {
+  const editorEvaluate = function () {
     // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
     const sel = window.getSelection() as any; // modify is still "experimental"
     if (editor.contains(sel.focusNode)) {
       // only if we're inside the editor
+      let s;
       if (sel.isCollapsed) {
         sel.modify("move", "backward", "lineboundary");
         sel.modify("extend", "forward", "lineboundary");
-        const s = sel.toString();
+        s = sel.toString();
         // sel.modify("move", "forward", "line"); // doesn't work in firefox
         sel.collapseToEnd();
         sel.modify("move", "forward", "character");
-        return s;
-      } else return sel.toString(); // fragInnerText(sel.getRangeAt(0).cloneContents()); // toString used to fail because ignored BR / DIV which firefox creates
-    } else return "";
+      } else s = sel.toString(); // fragInnerText(sel.getRangeAt(0).cloneContents()); // toString used to fail because ignored BR / DIV which firefox creates
+      myshell.postMessage(s, false, false); // important not to move the pointer so can move to next line
+      editor.focus(); // in chrome, this.blur() would be enough, but not in firefox
+    }
   };
 
+  /*
   const editorEvaluate = function () {
-    const msg = getSelected();
-    myshell.postMessage(msg, false, false); // important not to move the pointer so can move to next line
-    editor.focus(); // in chrome, this.blur() would be enough, but not in firefox
-    /*
     const input = msg.split("\n");
     for (var line=0; line<input.length; line++) {
     if ((line<input.length-1)||(msg[msg.length-1]=="\n"))
     myshell.postMessage(input[line], false, false);
     }
-    */
     // doesn't work -- feeding line by line is a bad idea, M2 then spits out input twice
-    /*
     var dataTrans = new DataTransfer();
     dataTrans.setData("text/plain",msg);
     var event = new ClipboardEvent('paste',{clipboardData: dataTrans});
     document.getElementById("terminal").dispatchEvent(event);
-    */
     // sadly, doesn't work either -- cf https://www.w3.org/TR/clipboard-apis/
     // "A synthetic paste event can be manually constructed and dispatched, but it will not affect the contents of the document."
   };
+*/
 
   const clearOut = function () {
     while (terminal.childElementCount > 1)
@@ -582,8 +579,7 @@ const toggleWrap = function () {
     enterPressed = e.key == "Enter" && !e.shiftKey; // for editorKeyUp
     if (e.key == "Enter" && e.shiftKey) {
       if (!caretIsAtEnd()) e.preventDefault();
-      const msg = getSelected();
-      myshell.postMessage(msg, false, false);
+      editorEvaluate();
     } else if (e.key == "Escape") escapeKeyHandling();
     else if (e.key == "Tab" && !e.shiftKey && !tabPressed) {
       // try to avoid disrupting the normal tab use as much as possible
@@ -850,8 +846,8 @@ const toggleWrap = function () {
 
   // chat pm
   attachClick("pmtoggle", function () {
-    (document.getElementById("pmto") as HTMLInputElement).disabled = !this
-      .checked;
+    (document.getElementById("pmto") as HTMLInputElement).disabled =
+      !this.checked;
   });
 
   attachCtrlBtnActions();
