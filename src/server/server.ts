@@ -197,6 +197,13 @@ const socketDisconnectAction = function (
   };
 };
 
+const socketErrorAction = function (client: Client) {
+  return function (error) {
+    logger.error("Socket error (client " + client.id + "): " + error);
+    // then what???
+  };
+};
+
 const sendDataToClient = function (client: Client) {
   return function (dataObject) {
     if (client.outputStat < 0) return; // output rate exceeded
@@ -559,6 +566,7 @@ const listen = function () {
     socket.on("chat", socketChatAction(socket, client));
     socket.on("restore", socketRestoreAction(socket, client));
     socket.on("disconnect", socketDisconnectAction(socket, client));
+    socket.on("error", socketErrorAction(client));
     socket.on("fileexists", socketFileExists(socket, client));
   });
 
