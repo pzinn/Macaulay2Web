@@ -306,7 +306,7 @@ input[type=checkbox]:not(:checked) + label {
 }
 
 @keyframes startButton-anim {
-    50% {background-color:#FF9040;}
+    50% {transform: scale(1.3);}
 }
 .startButton {
     animation-name: startButton-anim;
