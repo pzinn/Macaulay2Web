@@ -174,11 +174,15 @@ const init = function () {
       // set up start button
       const resetBtn = document.getElementById("resetBtn");
       resetBtn.firstElementChild.textContent = "Start";
-      resetBtn.firstElementChild.classList.add("startButton");
+      resetBtn.lastElementChild.innerHTML =
+        "<i class='material-icons'>not_started</i>";
+      resetBtn.classList.add("startButton");
       resetBtn.onclick = function (e) {
         e.stopPropagation();
         resetBtn.firstElementChild.textContent = "Reset";
-        resetBtn.firstElementChild.classList.remove("startButton");
+        resetBtn.lastElementChild.innerHTML =
+          "<i class='material-icons'>replay</i>";
+        resetBtn.classList.remove("startButton");
         clientId = getCookieId(); // in the unlikely event that it got changed while we were waiting
         init2();
       };
