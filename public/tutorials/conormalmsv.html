@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<h1 style="font-size:1em;text-decoration:underline">GPDs, conormal MSVs and the commuting variety<style>#lesson code{font-size:initial;} #lesson > div{font-size:1.8em;}</style>
+</h1>
+<div style="font-size:2.2em; text-align:center">
+  <h2>Generic pipe dreams, conormal matrix Schubert varieties and the commuting variety</h2>
+  <h4>SMRI, June 9th 2021</h3>
+  <h3>P. Zinn-Justin</h3>
+  <h6>School of Mathematics and Statistics, the University of Melbourne</h6>
+  <div style="min-height:2em"></div>
+<p style="text-align:left">
+  Work in collaboration with A. Knutson
+  </p>
+</div>
+<div>
+  <h2>Matrix Schubert Varieties and pipe dreams</h2>
+  <p><i>Matrix Schubert varieties</i> are closures in $\text{Mat}(n,\CC)$ of preimages of type $A$ Schubert varieties
+    under $G=GL(n,\CC) \to G/B_+$. (more motivation later)
+  </p>
+<p>Given a permutation $w\in\mathcal{S}_n$, define the affine variety
+$$
+\bar X_w
+=\overline{B_- w B_+} \subset \text{Mat}(n,\mathbb{C})
+$$
+where $B_\pm$ are the Borel subgroups of invertible upper/lower triangular matrices, 
+and we identify $w$ with (the transpose of) the corresponding permutation matrix.
+</p>
+<p>In equations,
+$$\bar X_w=
+\left\{
+M\in\text{Mat}(n,\mathbb{C})\,:\,
+\text{rank}\ M_{\text{NW of }(i,j)} \le \text{rank}\ w_{\text{NW of }(i,j)}\ i,j=1,\ldots,n
+\right\}
+$$
+i.e. $\bar X_w=\text{Spec}(R/I_w)$ where their defining ideals $I_w$ are <i>determinantal</i>.
+In practice, only a subset of rank conditions is needed (essential conditions).
+</p>
+<p>We can encode these equations as follows:
+</p>
+<p><code style="font-size:initial">msv = w -&gt; (
+    if n =!= #w then (
+        n = #w;
+        R = QQ[m_(1,1)..m_(n,n),MonomialOrder=&gt;{Weights=&gt;flatten table(n,n,(i,j)-&gt;(n-1)^2-i*j)}];
+    );
+    w = w - toList(n:1); w':=inversePermutation w;
+    M = matrix table(n,n,(i,j)-&gt;m_(i+1,j+1));
+    trim sum flatten table(n,n,(i,j)-&gt;
+	if w_i&lt;=j or w'_j&lt;=i or (i&lt;n-1 and w_(i+1)&gt;j and w'_j&gt;i+1) or (j&lt;n-1 and w_i&gt;j+1 and w'_(j+1)&gt;i) 
+	then ideal(0_R) -- inessential conditions; ignore
+	else minors(1+#select(i+1,x-&gt;w_x&lt;=j),M^{0..i}_{0..j}) -- essential rank conditions
+	)
+    );</code></p>
+<p>For instance, for $w=(1423)
+=
+\begin{pmatrix}
+1&-&-&-\\
+|&&\bullet&1\\
+|&1&-&+\\
+|&|&1&+\end{pmatrix}$,
+</p>
+<p><code>ex = msv {1,4,2,3}</code></p>
+<p>is given by imposing rank 1 for the $2\times 3$ NW submatrix of $M$.
+</p>
+<p> It is easy to show that $\text{codim}\, \bar X_w=|w|$.</p>
+<p>We are interested in $\text{init}(I_w)$ for the monomial ordering above. Each determinant (minor) turns into its 
+<i>antidiagonal</i> term.
+[Knutson Miller '05] have shown that the rank conditions above (minors) form a <b>Gröbner basis</b>, 
+and that the corresponding degeneration of $\bar X_w$ is a <b>Stanley&ndash;Reisner scheme</b>, i.e., a reduced union of coordinate subspaces.
+</p>
+<p>We can encode this as
+</p>
+<p><code>degen = I -&gt; ideal leadTerm(1,I);</code></p>
+<p>e.g.
+</p>
+<p><code>comps = decompose degen ex</code></p>
+  <p>There&apos;s a convenient way to visualize each piece (coordinate subspace): so-called <b>pipe dreams</b>. [Fomin Kirillov '96,
+    Bergeron Billey '93]
+    Draw the matrix $M$ where each entry is replaced with one of two pictures:
+          <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="font-size:0.5em;width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	      </polygon><path d="M -.5 0 L .5 0 M 0 .5 L 0 -.5" style="stroke-width:.1;stroke:black;"/><path d="M -.5 0 L .5 0 M 0 .5 L 0 -.5" style="stroke-width:.08;stroke:red;"/></g></svg>
+	  (&ldquo;crossing&rdquo;) or
+      <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="font-size:0.5em;width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	  </polygon><path d="M .5 0 Q 0 0 0 .5 M -.5 0 Q 0 0 0 -.5" style="stroke-width:.1;stroke:black;"/><path d="M .5 0 Q 0 0 0 .5 M -.5 0 Q 0 0 0 -.5" style="stroke-width:.08;stroke:red;"/></g></svg>
+      (&ldquo;elbows&rdquo;) depending on whether it belongs to the ideal or not.
+Let us program this:
+</p>
+  <p>
+    <code style="display:inline-block;max-height:5.8em;overflow:hidden">-- pipe dreams
+PipeDream = new Type of BasicList;
+pipeDream = I -&gt; new PipeDream from table(n,n,(i,j) -&gt; if M_(i,j)%I == 0 then crossing else elbows);
+-- [lots more hidden code]
+-- pipe dreams
+expression PipeDream := hold; -- this is default on normal M2 but not on some of my branches
+
+-- ascii pictures
+tile = new HashTable from {
+    crossing => "__|_" || "  | ", 
+    elbows   => "_/ _" || "  / ",
+    elbowj   => "_/  " || "    ",
+    elbowr   => "   _" || "  / ",
+    horiz    => "____" || "    ", 
+    vertic   => "  | " || "  | ",
+    unknown  => "  ? " || "    ",
+    empty    => "    " || "    ",
+    elbowb   => "_ \\_" || " \\  ",
+    elbowi   => "_ \\_" || "    ",
+    elbowk   => "    " || " \\  "
+    };
+net PipeDream := p -> stack apply(p,r->horizontalJoin apply(r, x -> tile#x));
+
+-- svg pictures
+needsPackage "VectorGraphics"
+bbox=Polygon{{(-0.5,-0.5),(-0.5,0.5),(0.5,0.5),(0.5,-0.5)},"fill"=>"white","stroke"=>"black","stroke-width"=>0.01};
+elbowsTile=Path{{"M", (0.5, 0), "Q", (0, 0), (0, -0.5), "M", (-0.5, 0), "Q", (0, 0), (0, 0.5)}};
+crossingTile=Path{{"M", (-0.5, 0), "L", (0.5, 0), "M", (0,-0.5), "L", (0, 0.5)}};
+qm=GraphicsText{(0,-0.35),"?", FontSize => 1, "text-anchor" => "middle", "stroke"=>"black", "fill" => "red","stroke-width"=>0.02};
+elbowjTile=Path{{"M", (-0.5, 0), "Q", (0, 0), (0, 0.5)}};
+elbowrTile=Path{{"M", (0.5, 0), "Q", (0, 0), (0, -0.5)}};
+horizTile=Line{(-0.5,0),(0.5,0)};
+verticTile=Line{(0,-0.5),(0,0.5)};
+blackStroke={"stroke"=>"black","stroke-width"=>0.1}; redStroke={"stroke"=>"red","stroke-width"=>0.08};
+svgtile = hashTable {
+    crossing => gList(bbox,crossingTile++blackStroke,crossingTile++redStroke), 
+    elbows => gList(bbox,elbowsTile++blackStroke,elbowsTile++redStroke),
+    elbowj => gList(bbox,elbowjTile++blackStroke,elbowjTile++redStroke),
+    elbowr => gList(bbox,elbowrTile++blackStroke,elbowrTile++redStroke),
+    horiz => gList(bbox,horizTile++blackStroke,horizTile++redStroke),
+    vertic => gList(bbox,verticTile++blackStroke,verticTile++redStroke),
+    unknown => gList(bbox,qm),
+    empty => bbox,
+    elbowb => gList(bbox,elbowsTile++blackStroke,elbowsTile++redStroke,TransformMatrix=>rotation(pi/2)),
+    elbowk => gList(bbox,elbowjTile++blackStroke,elbowjTile++redStroke,TransformMatrix=>rotation(pi/2)),
+    elbowi => gList(bbox,elbowrTile++blackStroke,elbowrTile++redStroke,TransformMatrix=>rotation(pi/2))
+    };
+vg = p -> (
+    k:=#p;
+    if k==0 then return;
+    n:=max apply(toList p,x->#x);
+    gList append(flatten apply(k,i->apply(#(p#i),j->svgtile#(p#i#j)++{TransformMatrix=>translation(j+0.5,-i-0.5)})),SizeX=>2*max(k,n))
+    );
+html PipeDream := p -> html vg p;
+</code>      
+see in particular <code class="inline">{svgtile#crossing,svgtile#elbows}</code>. The result:
+</p>
+<p><code>apply(comps,pipeDream)</code></p>
+  <p>The remarkable fact is that the NW pipes in each pipe dream reproduce the permutation we started from!    
+</p>
+<p>In fact, we obtain this way every <i>reduced</i> pipe dream with connectivity $w$, where reduced means that no two pipes cross twice.
+</p>
+<p>In particular the <i>degree</i> of $\bar X_w$ is the number of reduced pipe dreams with connectivity $w$:
+</p>
+  <p><code>degree ex</code></p>
+  <p>More generally, one gets a formula for the class of $\bar X_w$ in $H^*_{B_-\times B_+}(\text{Mat}(n,\CC))\cong \ZZ[x_1,\ldots,x_n,y_1,\ldots,y_n]$:
+    $$
+    \text{mdeg}\,\bar X_w = \sum_{\substack{\text{reduced pipe dreams}\\\text{with connectivity }w}}\ \prod_{(i,j):\text{ crossing}} (x_i-y_j)
+    $$
+    which is nothing but the <b>double Schubert polynomial</b> indexed by $w$.
+  </p>
+</div>
+<div>
+  <h2>Matrix Schubert Varieties 2: an extension and relation to AJS-Billey </h2>
+  <p>One can motivate MSVs in a slightly circular logic by noting that one can find a slice of the $B_+$-orbits corresponding
+    to a Schubert cell $X_\circ^v=B_+vB_+\subset G/B_+$: [Woo Yong]
+    $$
+    X_\circ^v \cong \CC^{|v|} \cong T^v := \text{Spots left after zeroing out below and right of $1$s in $v$}
+    $$
+    e.g.
+    $$
+    X_\circ^{21534} \cong \CC^3 \cong \begin{pmatrix}
+    \star&1&-&-&-\\
+    1&+&-&-&-\\
+    |&|&\star&\star&1\\
+    |&|&1&-&+\\
+    |&|&|&1&+\\
+    \end{pmatrix}
+    $$
+  </p>
+  <p>In Macaulay2:
+<code>slice = w -&gt; (
+    if n =!= #w then (
+        n = #w;
+        R = QQ[m_(1,1)..m_(n,n),MonomialOrder=&gt;{Weights=&gt;flatten table(n,n,(i,j)-&gt;(n-1)^2-i*j)}];
+    );
+    w = w - toList(n:1); w':=inversePermutation w;
+    M = matrix table(n,n,(i,j)-&gt;m_(i+1,j+1));
+    trim ideal flatten table(n,n,(i,j)-&gt;
+	if w_i == j then M_(i,j)-1 else if w_i&lt;j or w'_j&lt;i then M_(i,j) else 0_R
+        )
+    )</code>
+and sure enough
+<code>v = {4,2,5,1,3}; T = slice v; M%T</code>
+  </p>
+  <p>
+    In particular the &ldquo;Kazhdan&mdash;Lusztig variety&rdquo; $X_w \cap X_\circ^v$
+    (where $X_w=\overline{X_w^\circ}=\overline{B_-wB_+}$)can be expressed as
+    $$
+     X_w \cap X_\circ^v \cong \bar X_w \cap T^v
+    $$
+  </p>
+  <p>The same type of degeneration leads to pipe dreams where the only active part is inside a wiring diagram of $v$: [Knutson]
+    <code style="display:block;max-height:3em;max-width:20em;overflow:hidden">-- wiring pipe dreams
+-- [hidden code]
+svgtile=hashTable splice apply(pairs svgtile, (key,obj) -&gt; (key=&gt;obj,value(toString key | "'")=&gt;if obj.?Contents then last obj.Contents else gList{}));
+pipeDreamWire = (v,I) -&gt; (
+    v = v - toList(n:1);
+    v' = inversePermutation v;
+    new PipeDream from table(n,n,(i,j) -&gt;
+    if v_i==j then elbowj' else if v_i&lt;j and v'_j&lt;i then empty' else if v_i&lt;j then vertic' else if v'_j&lt;i then horiz' else if M_(i,j)%I == 0 then crossing else elbows)
+      );
+    Matrix - List := (M,l) -> M-matrix table(#l,#l,(i,j)->if j==l#i then 1 else 0); -- TODO: better
+    </code>
+    the two extreme cases being the whole of $T^v$ <code class='inline'>pipeDreamWire(v,T)</code> and the point $\{v\}$ <code class='inline'>pipeDreamWire(v,ideal (M-v))</code>. After deforming a bit, a typical pipe dream would look like<br/>
+<svg class="M2Svg" viewBox="-1.35321 -1.81055 4.23851 3.62109" style="width:12em;height:10.252em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><g style="fill:white;stroke:black;"><polygon points="0 0 1 0 .5 -.866 -.5 -.866"/><polygon points="0 0 1 0 .5 .866 -.5 .866"/><polygon points="0 0 -.5 -.866 -1 0 -.5 .866"/><polygon points="1 0 .5 -.866 1.26604 -1.50879 1.76604 -.642762"/><polygon points="1 0 .5 .866 1.26604 1.50879 1.76604 .642762"/><polygon points="1 0 1.76604 -.642762 2.53209 .0000254038 1.76604 .642762"/></g><g style="stroke-width:.1;stroke:black;"><path d="M -.75 .433 L -.25 -.433 L .75 -.433 Q 1.13302 -.754387 .883022 -1.18739"/><path d="M 0 .866 Q .25 .433 -.25 .433 L -.75 -.433"/><path d="M .883022 1.18739 L 1.38302 .321381 L 2.14907 -.321368"/><path d="M 1.51604 1.07577 L .75 .433 Q .25 .433 .5 0 L 0 -.866"/><path d="M 2.14907 .321394 L 1.38302 -.321381 Q 1.13302 -.754387 1.51604 -1.07577"/></g><g style="stroke-width:.08;stroke:red;"><path d="M -.75 .433 L -.25 -.433 L .75 -.433 Q 1.13302 -.754387 .883022 -1.18739"/><path d="M 0 .866 Q .25 .433 -.25 .433 L -.75 -.433"/><path d="M .883022 1.18739 L 1.38302 .321381 L 2.14907 -.321368"/><path d="M 1.51604 1.07577 L .75 .433 Q .25 .433 .5 0 L 0 -.866"/><path d="M 2.14907 .321394 L 1.38302 -.321381 Q 1.13302 -.754387 1.51604 -1.07577"/></g></g></svg> 
+  </p>
+  <p>The corresponding equivariant cohomology formula is nothing but the AJS&mdash;Billey formula for the restriction of
+    a Schubert class to a fixed point:
+    $$
+    \text{mdeg}(\bar X_w\cap T^v) = [X_w]|_v = \sum_{\substack{\text{reduced pipe dreams}\\\text{on wiring diagram of $v$}\\{\text{with connectivity }w}}}
+\prod_{(i,j):\text{ crossing}} (y_i-y_j)
+    $$
+    <p>Applying this construction to $v=n+1\ldots 2n\,1\ldots n$ we recover MSVs and the pipe dreams we started from... (in fact, more general ones where west and south connect to north and east sides in arbitrary ways)</p>
+</div>
+<div>
+  <h2>The necessary generalization</h2>
+  <ul>
+    <li>None of these constructions explain how the geometry knows about the connectivity of the pipe dreams.</li>
+    <li>Pipe dreams are secretly an exactly solvable model, a.k.a. a <i>quantum integrable system</i>.
+      This is implicit in the work of [Fomin, Kirillov '96] and developed in [Z-J '09].</li>
+    <li>The corresponding integrable system (based on the nilHecke algebra) is degenerate. [Maulik Okounkov '12] emphasize the importance
+      of <i>symplectic</i> varieties being the right set up for QIS, leading to nondegenerate models.</li>
+    <li> [Knutson Z-J] and [Maulik Okounkov] noticed that there are natural deformations of these varieties which avoid certain
+      technicalities (cf the <i>stable envelope</i> construction). We're therefore looking for deformations of conormal (Matrix) Schubert varieties.</li>
+</ul>
+</div>
+<div>
+  <h2>The lower-upper scheme</h2>
+  <p>
+  Introduce after [Knutson '05] the lower-upper scheme to be the affine scheme:
+  $$
+   E := \left\{ (M,C) \in \text{Mat}(n,\CC)^2:\  M C\text{ lower triangular, } C M\text{ upper triangular}\right\}
+  $$
+  $E$ is a complete intersection of dimension $n(n+1)$.
+  </p>
+  <p>Note that the diagonals of $MC$ and $CM$ must be permutations of each other. In fact, it's not hard to show that the irreducible
+    components $E_w$ of $E$ are indexed by permutations $w\in \mathcal{S}_n$:
+    $$
+E_w = \overline{\left\{ (M,C)\in E:\ (MC)_{i,i}=(CM)_{w(i),w(i)}\text{ and all $(MC)_{i,i}$ distinct}\right\}}
+    $$
+  </p>
+  <p>
+    [Knutson '05] conjectures the following equations:
+    $$
+  E_w = \left\{ (M,C)\in E:\ (MC)_{i,i}=(CM)_{w(i),w(i)},\ \text{rank}\ M_{NW} \le \text{rank}\ w_{NW},\ \text{rank}\ C^T_{SE} \le \text{rank}\ w_{SE}\right\}
+    $$
+    where the last two conditions can be rewritten $M\in \bar X_w$, $C \in w_0 \bar X_{w^{-1}} w_0$.
+  </p>
+  <p>
+    We now encode this as follows:
+<code>-- lower-upper scheme
+k=n=3;
+wt = (i,j)-&gt;(i+j-n-1)^2; maxwt = max flatten table(k,n,(i,j)-&gt;wt(i+1,j+1));
+R = QQ[m_(1,1)..m_(k,n), c_(1,1)..c_(k,n),
+       MonomialOrder=&gt;{Weights=&gt;flatten table(k,n,(i,j)-&gt;maxwt-wt(i+1,j+1))|flatten table(k,n,(i,j)-&gt;wt(i+1,j+1))}];
+M = matrix table(k,n,(i,j)-&gt; m_(i+1,j+1));
+C = matrix table(n,k,(j,i)-&gt; c_(i+1,j+1));
+lowerPart = A -&gt;  matrix table(#entries A,#entries A,(i,j) -&gt; if i&gt;j then A_(i,j) else 0);
+upperPart = A -&gt;  matrix table(#entries A,#entries A,(i,j) -&gt; if i&lt;j then A_(i,j) else 0);
+I=trim ideal(upperPart (M*C),lowerPart (C*M)); -- lower upper scheme: MC lower tri, CM upper tri
+comps=decompose I; #comps
+</code>
+  </p>
+  <p>NB: the $(MC)_{i,i}$ play the role of deformation parameters. As these tend to zero, components recombine à la
+    Kazhdan&mdash;Lusztig.</p>
+</div>
+<div>
+  <h2>Generic pipe dreams</h2>
+  <p>
+    A <b>generic pipe dream</b> is a filling of a $n\times n$ square with
+    <span style="font-size:0.5em">
+      <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	  </polygon><path d="M -.5 0 L .5 0 M 0 .5 L 0 -.5" style="stroke-width:.1;stroke:black;"/><path d="M -.5 0 L .5 0 M 0 .5 L 0 -.5" style="stroke-width:.08;stroke:red;"/></g></svg>
+      <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	  </polygon><path d="M .5 0 Q 0 0 0 .5 M -.5 0 Q 0 0 0 -.5" style="stroke-width:.1;stroke:black;"/><path d="M .5 0 Q 0 0 0 .5 M -.5 0 Q 0 0 0 -.5" style="stroke-width:.08;stroke:red;"/></g></svg>
+      <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	  </polygon><path d="M -.5 0 Q 0 0 0 -.5" style="stroke-width:.1;stroke:black;"/><path d="M -.5 0 Q 0 0 0 -.5" style="stroke-width:.08;stroke:red;"/></g></svg>
+      <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	  </polygon><path d="M .5 0 Q 0 0 0 .5" style="stroke-width:.1;stroke:black;"/><path d="M .5 0 Q 0 0 0 .5" style="stroke-width:.08;stroke:red;"/></g></svg>
+      <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	  </polygon><line y2="0" y1="0" x2=".5" x1="-.5" style="stroke-width:.1;stroke:black;"/><line y2="0" y1="0" x2=".5" x1="-.5" style="stroke-width:.08;stroke:red;"/></g></svg>
+      <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	  </polygon><line y2="-.5" y1=".5" x2="0" x1="0" style="stroke-width:.1;stroke:black;"/><line y2="-.5" y1=".5" x2="0" x1="0" style="stroke-width:.08;stroke:red;"/></g></svg>
+      <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="width:10em;height:10em;stroke-linejoin:round;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">    <title>bbox</title>
+      </polygon></svg>
+    </span>
+    with no restrictions other than pipes being uninterrupted; pipes start on the west side and end on the north side, e.g.
+    <svg class="M2Svg" viewBox="-.4 -.4 4.8 4.8" style="width:8em;height:8em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><g data-matrix="matrix([[1,0,0,.5],[0,1,0,-.5],[0,0,1,0],[0,0,0,1]])"><polygon points="0 1 0 0 1 0 1 1" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 1 .5 Q .5 .5 .5 1 M 0 .5 Q .5 .5 .5 0" style="stroke-width:.1;stroke:black;"/><path d="M 1 .5 Q .5 .5 .5 1 M 0 .5 Q .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,1.5],[0,1,0,-.5],[0,0,1,0],[0,0,0,1]])"><polygon points="1 1 1 0 2 0 2 1" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 1 .5 L 2 .5 M 1.5 1 L 1.5 0" style="stroke-width:.1;stroke:black;"/><path d="M 1 .5 L 2 .5 M 1.5 1 L 1.5 0" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,2.5],[0,1,0,-.5],[0,0,1,0],[0,0,0,1]])"><polygon points="2 1 2 0 3 0 3 1" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 2 .5 Q 2.5 .5 2.5 0" style="stroke-width:.1;stroke:black;"/><path d="M 2 .5 Q 2.5 .5 2.5 0" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,3.5],[0,1,0,-.5],[0,0,1,0],[0,0,0,1]])"><polygon points="3 1 3 0 4 0 4 1" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><line y2="0" y1="1" x2="3.5" x1="3.5" style="stroke-width:.1;stroke:black;"/><line y2="0" y1="1" x2="3.5" x1="3.5" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,.5],[0,1,0,-1.5],[0,0,1,0],[0,0,0,1]])"><polygon points="0 2 0 1 1 1 1 2" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 0 1.5 L 1 1.5 M .5 2 L .5 1" style="stroke-width:.1;stroke:black;"/><path d="M 0 1.5 L 1 1.5 M .5 2 L .5 1" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,1.5],[0,1,0,-1.5],[0,0,1,0],[0,0,0,1]])"><polygon points="1 2 1 1 2 1 2 2" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 1 1.5 L 2 1.5 M 1.5 2 L 1.5 1" style="stroke-width:.1;stroke:black;"/><path d="M 1 1.5 L 2 1.5 M 1.5 2 L 1.5 1" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,2.5],[0,1,0,-1.5],[0,0,1,0],[0,0,0,1]])"><polygon points="2 2 2 1 3 1 3 2" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><line y2="1.5" y1="1.5" x2="3" x1="2" style="stroke-width:.1;stroke:black;"/><line y2="1.5" y1="1.5" x2="3" x1="2" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,3.5],[0,1,0,-1.5],[0,0,1,0],[0,0,0,1]])"><polygon points="3 2 3 1 4 1 4 2" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 3 1.5 Q 3.5 1.5 3.5 1" style="stroke-width:.1;stroke:black;"/><path d="M 3 1.5 Q 3.5 1.5 3.5 1" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,.5],[0,1,0,-2.5],[0,0,1,0],[0,0,0,1]])"><polygon points="0 3 0 2 1 2 1 3" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 0 2.5 L 1 2.5 M .5 3 L .5 2" style="stroke-width:.1;stroke:black;"/><path d="M 0 2.5 L 1 2.5 M .5 3 L .5 2" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,1.5],[0,1,0,-2.5],[0,0,1,0],[0,0,0,1]])"><polygon points="1 3 1 2 2 2 2 3" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 1 2.5 Q 1.5 2.5 1.5 2" style="stroke-width:.1;stroke:black;"/><path d="M 1 2.5 Q 1.5 2.5 1.5 2" style="stroke-width:.08;stroke:red;"/></g><polygon points="2 3 2 2 3 2 3 3" data-matrix="matrix([[1,0,0,2.5],[0,1,0,-2.5],[0,0,1,0],[0,0,0,1]])" style="stroke-width:.01;fill:white;stroke:black;"/><polygon points="3 3 3 2 4 2 4 3" data-matrix="matrix([[1,0,0,3.5],[0,1,0,-2.5],[0,0,1,0],[0,0,0,1]])" style="stroke-width:.01;fill:white;stroke:black;"/><g data-matrix="matrix([[1,0,0,.5],[0,1,0,-3.5],[0,0,1,0],[0,0,0,1]])"><polygon points="0 4 0 3 1 3 1 4" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 0 3.5 Q .5 3.5 .5 3" style="stroke-width:.1;stroke:black;"/><path d="M 0 3.5 Q .5 3.5 .5 3" style="stroke-width:.08;stroke:red;"/></g><polygon points="1 4 1 3 2 3 2 4" data-matrix="matrix([[1,0,0,1.5],[0,1,0,-3.5],[0,0,1,0],[0,0,0,1]])" style="stroke-width:.01;fill:white;stroke:black;"/><polygon points="2 4 2 3 3 3 3 4" data-matrix="matrix([[1,0,0,2.5],[0,1,0,-3.5],[0,0,1,0],[0,0,0,1]])" style="stroke-width:.01;fill:white;stroke:black;"/><polygon points="3 4 3 3 4 3 4 4" data-matrix="matrix([[1,0,0,3.5],[0,1,0,-3.5],[0,0,1,0],[0,0,0,1]])" style="stroke-width:.01;fill:white;stroke:black;"/></g></svg>.
+  </p>
+  <p>The connectivity of a pipe dream is defined as usual, e.g., $w=1423$ above.</p>
+  <div style="border:1px solid; padding: 10px; margin: 10px 30px 30px 10px; box-shadow: 5px 10px gray;">
+    <b>Theorem</b>.
+    There exists a Gröbner degeneration of $E$ such that each $E_w$ degenerates into a union
+    \[
+    E_w \leadsto \bigcup_{P:\ \text{connectivity}(P)=w} F_P
+    \]
+    (up to lower-dimensional embedded junk which conjecturally isn't there)
+    where each irreducible component $F_P$ is indexed with a generic pipe dream with connectivity $w$, and
+    is a complete intersection.
+  </div>
+  <p>
+    Let us check with \(\mac\). We degenerate the components and then decompose them:
+    <code>degencomps = apply(comps,decompose @@ degen); length \ degencomps</code>
+    Then there's some black magic explained on the next slide to associate to each piece a pipe dream:
+<code>vflux = (i,j) -> sum(i+1..k,r->m_(r,j)*c_(r,j));
+hflux = (i,j) -> sum(j+1..n,r->m_(i,r)*c_(i,r));
+pipeDream=I->new PipeDream from table(k,n,(i,j)->(
+  N := vflux(i,j+1) % I;
+  S := vflux(i+1,j+1) % I;
+  W := hflux(i+1,j) % I;
+  E := hflux(i+1,j+1) % I;
+  if S!=0 and S==N and W!=0 and W==E then crossing
+  else if S!=0 and S==E and W!=0 and W==N then elbows
+  else if S==0 and E==0 and W!=0 and W==N then elbowj
+  else if S!=0 and S==E and W==0 and N==0 then elbowr
+  else if S==0 and N==0 and W!=0 and W==E then horiz
+  else if S!=0 and N==S and W==0 and E==0 then vertic
+  else if S==0 and N==0 and W==0 and E==0 then empty
+  else unknown
+  ))
+</code>
+... and the result is:
+<code>Table applyTable(degencomps, pipeDream)</code>
+</div>
+<div>
+  <h2>Fluxes in pipe dreams</h2>
+  <p>
+    Define the <b>flux</b> through an edge of the square lattice to be 
+    <div style="margin:2em">
+   $
+    \Phi_e = \sum_{\substack{\text{tiles }(i,j)
+    \\
+    \text{right of }e\text{ if }e\text{ vertical}\\
+   \text{below }e\text{ if }e\text{ horizontal}}} M_{ij} C_{ji}
+   \qquad\qquad$ so, a sub-sum of $(MC)_{ii}$ or $(CM)_{jj}$
+   <svg class="M2Svg" viewBox="-.7 -7.7 8.4 8.4" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="0 -7 7 -7 7 0 0 0" style="fill:white;">      <title>g</title>
+</polygon><polygon points="2 -5 3 -5 3 0 2 0" style="fill:pink;stroke:none;">      <title>g1</title>
+</polygon><polygon points="4 -5 4 -6 7 -6 7 -5" style="fill:pink;stroke:none;">      <title>g2</title>
+</polygon><line y2="0" y1="0" x2="7" x1="0"/><line y2="-1" y1="-1" x2="7" x1="0"/><line y2="-2" y1="-2" x2="7" x1="0"/><line y2="-3" y1="-3" x2="7" x1="0"/><line y2="-4" y1="-4" x2="7" x1="0"/><line y2="-5" y1="-5" x2="7" x1="0"/><line y2="-6" y1="-6" x2="7" x1="0"/><line y2="-7" y1="-7" x2="7" x1="0"/><line y2="-7" y1="0" x2="0" x1="0"/><line y2="-7" y1="0" x2="1" x1="1"/><line y2="-7" y1="0" x2="2" x1="2"/><line y2="-7" y1="0" x2="3" x1="3"/><line y2="-7" y1="0" x2="4" x1="4"/><line y2="-7" y1="0" x2="5" x1="5"/><line y2="-7" y1="0" x2="6" x1="6"/><line y2="-7" y1="0" x2="7" x1="7"/><polygon points="2.2 -4.8 2.8 -4.8 2.5 -5.5" style="fill:blue;">      <title>t1</title>
+</polygon><polygon points="3.8 -5.2 3.8 -5.8 4.5 -5.5" style="fill:blue;">      <title>t2</title>
+</polygon></g></svg>
+    </div>
+    Fluxes propagate north-east; note the conservation equation:
+    <div style="margin:2em">
+    <svg class="M2Svg" viewBox="-.47 -2.77 3.24 3.24" style="width:6em;height:6em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="0 0 2 0 2 -2 0 -2" style="fill:white;">      <title>b</title>
+</polygon><polygon points=".7 .2 1.3 .2 1 -.5" style="fill:blue;">      <title>tv</title>
+</polygon><polygon points=".7 -1.8 1.3 -1.8 1 -2.5" style="fill:blue;">      <title>tv2</title>
+</polygon><polygon points="-.2 -.7 -.2 -1.3 .5 -1" style="fill:blue;">      <title>th1</title>
+</polygon><polygon points="1.8 -.7 1.8 -1.3 2.5 -1" style="fill:blue;">      <title>th</title>
+</polygon></g></svg>
+    $
+    \Phi_W + \Phi_S = \Phi_E + \Phi_N
+    $
+    </div>
+    This is how the geometry knows about connectivity! Note in particular that in $E_w$, the fluxes exiting at the top are
+    the $w$-permuted fluxes entering from the left.
+  </p>
+  <p>
+    We can now define the $F_P$:
+    <div style="margin:2em">
+    $
+    F_P = \left\{\vphantom{\raisebox{2cm}{}} (M,C)\in\text{Mat}(n,\CC)^2:\right.
+    $
+    <table style="display:inline-table; vertical-align:middle;">
+      <tr><td>$M_{ij}=0$</td><td>if $P_{ij}=$
+	  <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	      </polygon><path d="M -.5 0 L .5 0 M 0 .5 L 0 -.5" style="stroke-width:.1;stroke:black;"/><path d="M -.5 0 L .5 0 M 0 .5 L 0 -.5" style="stroke-width:.08;stroke:red;"/></g></svg>
+	  <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	      </polygon><line y2="0" y1="0" x2=".5" x1="-.5" style="stroke-width:.1;stroke:black;"/><line y2="0" y1="0" x2=".5" x1="-.5" style="stroke-width:.08;stroke:red;"/></g></svg>
+	  <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	      </polygon><line y2="-.5" y1=".5" x2="0" x1="0" style="stroke-width:.1;stroke:black;"/><line y2="-.5" y1=".5" x2="0" x1="0" style="stroke-width:.08;stroke:red;"/></g></svg>
+      </td></tr>
+      <tr><td>$C_{ji}=0$</td><td>if $P_{ij}=$
+	  <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">    <title>bbox</title>
+	  </polygon></svg>
+      </td></tr>
+      <tr><td>$\Phi_e=\Phi_{e'}$</td><td>if $e$ and $e'$ cross the same pipe</td></tr>
+      <tr><td>$\Phi_e=0$</td><td>if $e$ is a blank edge</td></tr>
+    </table>
+    $\left. \vphantom{\raisebox{2cm}{}} \right\} $
+    </div>
+  </p>
+  <p>
+    One can think of the Gröbner degeneration as a box-by-box process:
+    for example, one can revlex $M_{ij}$, lex $C_{ji}$ keeping $M_{ij}C_{ji}$ fixed,
+    starting from the north west and going towards the south east. The degeneration is symplectic;
+    in particular fluxes are not affected by it!
+    As the degeneration progresses, the pipes progressively coalesce from their state of quantum superposition to actual paths on the lattice.
+  </p>
+</div>
+<div>
+  <h2>Applications</h2>
+  <ul>
+    <li>The $F_P$ being complete intersections, we obtain this way a formula for $\text{mdeg}\,E_w$:
+      $$ 
+      \text{mdeg}\,E_w = \hbar^{-n}\sum_{\substack{\text{generic pipe dreams}\\\text{with connectivity }w}}\ \prod_{i,j=1}^n
+      \begin{cases}
+      x_i-y_j&\text{crossing etc}\\
+      \hbar-x_i+y_j&\text{blank}\\
+      \hbar&\text{else}\\
+      \end{cases}
+      $$
+    </li>
+    <li> We can then project either $(M,C)\mapsto M$ or $(M,C)\mapsto C$; this corresponds to taking the limit $\hbar\to\infty$ in two
+      different ways. We recover this way <b>reduced pipe dream</b> and <b>bumpless pipe dream</b>
+      [Lascoux '06?, Lam Lee Shimozono '18, Weigandt '18] formulae for $\text{mdeg}\, \bar X_w$.
+    </li>
+    <li>There exists a Gröbner degeneration from the commuting variety $\mathcal C$ to the component $E_{Id}$.
+      <br/>
+      As a special case of the formula above we can therefore write
+      $$
+      \deg \mathcal C = \sum_{\substack{\text{generic pipe dreams}\\\text{with connectivity }Id}}
+      2^{\#\{(i,j):\text{ bends}\}-n}
+      $$
+      which is probably the fastest known algorithm for it, see also <a href="https://oeis.org/A029729">OEIS A029729</a>.
+    </li>
+  </ul>
+</div>
+<div>
+  <h2>Extension to arbitrary domains</h2>
+  <p>One can try the same trick of intersecting $E$ with $T^v$:
+    $$
+    E^v = E \cap \{ (M,C): M\in T^v\}
+    $$
+  </p>
+  <p>One can then use the same Gröbner degeneration.
+    Interestingly, one does <i>not</i> obtain this way all generic pipe dreams because all sites are occupied!</p>
+<svg class="M2Svg" viewBox="-.3 -.3 3.6 3.6" style="width:6em;height:6em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><g data-matrix="matrix([[1,0,0,.5],[0,1,0,-.5],[0,0,1,0],[0,0,0,1]])"><polygon points="0 1 0 0 1 0 1 1" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 0 .5 L 1 .5 M .5 1 L .5 0" style="stroke-width:.1;stroke:black;"/><path d="M 0 .5 L 1 .5 M .5 1 L .5 0" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,1.5],[0,1,0,-.5],[0,0,1,0],[0,0,0,1]])"><polygon points="1 1 1 0 2 0 2 1" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 1 .5 L 2 .5 M 1.5 1 L 1.5 0" style="stroke-width:.1;stroke:black;"/><path d="M 1 .5 L 2 .5 M 1.5 1 L 1.5 0" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,2.5],[0,1,0,-.5],[0,0,1,0],[0,0,0,1]])"><polygon points="2 1 2 0 3 0 3 1" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 3 .5 Q 2.5 .5 2.5 1 M 2 .5 Q 2.5 .5 2.5 0" style="stroke-width:.1;stroke:black;"/><path d="M 3 .5 Q 2.5 .5 2.5 1 M 2 .5 Q 2.5 .5 2.5 0" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,.5],[0,1,0,-1.5],[0,0,1,0],[0,0,0,1]])"><polygon points="0 2 0 1 1 1 1 2" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 1 1.5 Q .5 1.5 .5 2 M 0 1.5 Q .5 1.5 .5 1" style="stroke-width:.1;stroke:black;"/><path d="M 1 1.5 Q .5 1.5 .5 2 M 0 1.5 Q .5 1.5 .5 1" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,1.5],[0,1,0,-1.5],[0,0,1,0],[0,0,0,1]])"><polygon points="1 2 1 1 2 1 2 2" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 1 1.5 L 2 1.5 M 1.5 2 L 1.5 1" style="stroke-width:.1;stroke:black;"/><path d="M 1 1.5 L 2 1.5 M 1.5 2 L 1.5 1" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,2.5],[0,1,0,-1.5],[0,0,1,0],[0,0,0,1]])"><polygon points="2 2 2 1 3 1 3 2" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 3 1.5 Q 2.5 1.5 2.5 2 M 2 1.5 Q 2.5 1.5 2.5 1" style="stroke-width:.1;stroke:black;"/><path d="M 3 1.5 Q 2.5 1.5 2.5 2 M 2 1.5 Q 2.5 1.5 2.5 1" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,.5],[0,1,0,-2.5],[0,0,1,0],[0,0,0,1]])"><polygon points="0 3 0 2 1 2 1 3" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 0 2.5 L 1 2.5 M .5 3 L .5 2" style="stroke-width:.1;stroke:black;"/><path d="M 0 2.5 L 1 2.5 M .5 3 L .5 2" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,1.5],[0,1,0,-2.5],[0,0,1,0],[0,0,0,1]])"><polygon points="1 3 1 2 2 2 2 3" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 2 2.5 Q 1.5 2.5 1.5 3 M 1 2.5 Q 1.5 2.5 1.5 2" style="stroke-width:.1;stroke:black;"/><path d="M 2 2.5 Q 1.5 2.5 1.5 3 M 1 2.5 Q 1.5 2.5 1.5 2" style="stroke-width:.08;stroke:red;"/></g><g data-matrix="matrix([[1,0,0,2.5],[0,1,0,-2.5],[0,0,1,0],[0,0,0,1]])"><polygon points="2 3 2 2 3 2 3 3" style="stroke-width:.01;fill:white;stroke:black;">        <title>bbox</title>
+</polygon><path d="M 2 2.5 L 3 2.5 M 2.5 3 L 2.5 2" style="stroke-width:.1;stroke:black;"/><path d="M 2 2.5 L 3 2.5 M 2.5 3 L 2.5 2" style="stroke-width:.08;stroke:red;"/></g></g></svg> 
+  <p>In fact, the situation is much simpler and one can rigorously prove a degeneration theorem at the scheme-theoretic level.</p>
+  <p>Something similar occurs in the Temperley&mdash;Lieb loop model [ZJ '18].
+</div>
