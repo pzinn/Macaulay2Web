@@ -383,8 +383,13 @@ const extra2 = function () {
       // only if we're inside the editor
       let s;
       if (sel.isCollapsed) {
+        /*
         sel.modify("move", "backward", "lineboundary");
         sel.modify("extend", "forward", "lineboundary");
+	*/
+        sel.modify("move", "forward", "lineboundary"); // semi-fix for annoying move/backward/lineboundary bug when line empty
+        sel.modify("extend", "backward", "lineboundary");
+
         s = sel.toString();
         // sel.modify("move", "forward", "line"); // doesn't work in firefox
         sel.collapseToEnd();
