@@ -143,15 +143,6 @@ const spawnMathProgram = function (client: Client, next) {
       "Error when connecting. " + err + "; Retrying with new instance."
     );
     next(false);
-    // Make sure the sanitizer runs.
-    try {
-      delete client.instance;
-      client.saneState = true; // in principle, not needed -- next() should've covered that
-      sanitizeClient(client, false);
-    } catch (instanceDeleteError) {
-      logClient(client, "Error when deleting instance: " + instanceDeleteError);
-      deleteClientData(client);
-    }
   });
   connection
     .on("ready", function () {
@@ -160,7 +151,13 @@ const spawnMathProgram = function (client: Client, next) {
         { pty: true },
         function (err, channel: ssh2.ClientChannel) {
           if (err) {
-            throw err;
+            logClient(
+              client,
+              "Error when executing M2. " +
+                err +
+                "; Retrying with new instance."
+            );
+            next(false);
           }
           channel.on("close", function () {
             connection.end();
@@ -440,11 +437,28 @@ const sanitizeClient = function (client: Client, force: boolean, next?) {
   getInstance(client, function () {
     // then for channel to M2
     if (force || !client.channel || !client.channel.writable) {
-      spawnMathProgram(client, function () {
-        client.savedOutput = "";
-        client.outputStat = 0;
-        client.saneState = true;
-        if (next) next(true);
+      spawnMathProgram(client, function (success: boolean) {
+        if (success) {
+          client.savedOutput = "";
+          client.outputStat = 0;
+          client.saneState = true;
+          if (next) next(true);
+        } else {
+          // start over
+          try {
+            delete client.instance;
+            setTimeout(function () {
+              client.saneState = true;
+              sanitizeClient(client, force, next);
+            }, 3000); // 3 sec
+          } catch (instanceDeleteError) {
+            logClient(
+              client,
+              "Error when deleting instance: " + instanceDeleteError
+            );
+            deleteClientData(client);
+          }
+        }
       });
     } else {
       logClient(client, "Has mathProgram instance.");
