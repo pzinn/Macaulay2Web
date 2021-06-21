@@ -1,5 +1,7 @@
 // md to html conversion
-const escapeHTML = (str) =>
+const escapeHTML = (
+  str // minimal escaping. see html-entities encode for a better solution server-side
+) =>
   str.replace(
     /[&<>'"]/g,
     (tag) =>
@@ -82,7 +84,13 @@ const patterns = [
     },
   },
   {
-    pattern: /(?<![^\s>]+\s*)```/,
+    pattern: /(?<![^\s>]+\s*)```sh/,
+    tag: "pre",
+    linetag: null,
+    proc: (s, x) => (x === null ? s + "\n" : ""),
+  },
+  {
+    pattern: /(?<![^\s>]+\s*)```/, // really, this should be ```m2 and previous one should be ```
     tag: "code",
     linetag: null,
     proc: (s, x) => (x === null ? s + "\n" : ""),
@@ -105,9 +113,9 @@ const mdToHTML = function (src, sep, doublesep) {
       x = s.match(p.pattern);
       return x !== null;
     });
-    if (oldi >= 0 && patterns[oldi].tag == "code") {
+    if (oldi >= 0 && patterns[oldi].linetag === null) {
       // special
-      if (i == oldi) {
+      if (i >= 0 && patterns[i].linetag === null) {
         i = -1;
         s = "";
       } else {

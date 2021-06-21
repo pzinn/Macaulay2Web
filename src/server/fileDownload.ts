@@ -3,16 +3,15 @@ import fs = require("fs");
 import { Client } from "./client";
 import path = require("path");
 import { logger, logClient } from "./logger";
-import { staticFolder, unlink, options } from "./server";
+import { staticFolder, unlink, options, sshCredentials } from "./server";
 
 const userSpecificPath = function (client: Client): string {
   return client.id + "-files/";
 };
 
-const downloadFromDocker = function (
+const downloadFromInstance = function (
   client: Client,
   sourceFileName: string,
-  sshCredentials,
   next
 ) {
   let fileName: string = path.basename(sourceFileName);
@@ -33,7 +32,7 @@ const downloadFromDocker = function (
         let targetFileName;
 
         const success = function () {
-          logClient(client, "Successfully downloaded " + sourceFileName1);
+          logClient(client, "successfully downloaded " + sourceFileName1);
           setTimeout(unlink(targetFileName), 1000 * 60 * 10);
           sshConnection.end();
           next(userPath + fileName);
@@ -100,4 +99,4 @@ const downloadFromDocker = function (
   });
 };
 
-export { downloadFromDocker };
+export { downloadFromInstance };

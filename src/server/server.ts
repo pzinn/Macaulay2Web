@@ -6,8 +6,8 @@ import { socketChatAction, systemChat } from "./chat";
 import { Instance } from "./instance";
 import { InstanceManager } from "./instanceManager";
 import { AddressInfo } from "net";
-import { downloadFromDocker } from "./fileDownload";
-import { uploadToDocker } from "./fileUpload";
+import { downloadFromInstance } from "./fileDownload";
+import { uploadToInstance } from "./fileUpload";
 
 import Cookie = require("cookie");
 
@@ -292,7 +292,7 @@ const fileDownload = function (request, response, next) {
   const client = clients[id];
   logger.info("File request from " + id);
   const sourcePath = decodeURIComponent(request.path);
-  downloadFromDocker(client, sourcePath, sshCredentials, function (targetPath) {
+  downloadFromInstance(client, sourcePath, function (targetPath) {
     if (targetPath) {
       response.sendFile(staticFolder + targetPath);
     } else next();
@@ -346,11 +346,10 @@ const fileUpload = function (request, response) {
   fileList.forEach(
     client
       ? (file) => {
-          uploadToDocker(
+          uploadToInstance(
             client,
             file.path,
             file.originalname,
-            sshCredentials,
             function (err) {
               if (err) errorFlag = true;
               else {
@@ -530,7 +529,7 @@ const socketRestoreAction = function (socket: SocketIO.Socket, client: Client) {
 
 const socketFileExists = function (socket: SocketIO.Socket, client: Client) {
   return function (fileName: string, callback) {
-    downloadFromDocker(client, fileName, sshCredentials, callback);
+    downloadFromInstance(client, fileName, callback);
   };
 };
 
@@ -654,4 +653,5 @@ export {
   options,
   staticFolder,
   unlink,
+  sshCredentials,
 };
