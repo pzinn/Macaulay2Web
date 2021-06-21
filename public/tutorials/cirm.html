@@ -7,13 +7,60 @@
   <h3>P. Zinn-Justin</h3>
   <h6>School of Mathematics and Statistics, the University of Melbourne</h6>
   <div style="min-height:2em"></div>
-  <p style="text-align:left">
-    Work in collaboration with A. Knutson
-  </p>
 </div>
 <div>
-  <h2>The Hilbert series of the commuting scheme</h2>
+  <h2>Lattice paths and the commuting scheme</h2>
   <p>
+    Consider a $n\times n$ square grid, and a set of $n$ paths entering from the left external edges of the grid
+    and exiting at the top, in a such a way that the $i^{\rm th}$ incoming path on the left (counted from the top) 
+    exits at the $i^{\rm th}$ location at the top (counted from the left):
+    <div style="font-size:0.5em">
+<svg class="M2Svg" viewBox="-.2 -.2 2.4 2.4" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="2" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="2" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="2" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="2" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L .5 1.5 .5 1 L .5 .5 1 .5 L 1.5 .5 1.5 0" style="stroke-width:.08;stroke:green;"/></g></svg><svg class="M2Svg" viewBox="-.2 -.2 2.4 2.4" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="2" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="2" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="2" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="2" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L 1 1.5 L 1.5 1.5 1.5 1 L 1.5 0" style="stroke-width:.08;stroke:green;"/></g></svg> 
+      <br/>
+  <svg class="M2Svg" viewBox="-.3 -.3 3.6 3.6" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="3" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="2.5" x1="2.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="2.5" y1="2.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L .5 1.5 .5 1 L .5 .5 1 .5 L 1.5 .5 1.5 0" style="stroke-width:.08;stroke:green;"/><path d="M 0 2.5 L 1 2.5 L 2 2.5 L 2.5 2.5 2.5 2 L 2.5 1 L 2.5 0" style="stroke-width:.08;stroke:blue;"/></g></svg><svg class="M2Svg" viewBox="-.3 -.3 3.6 3.6" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="3" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="2.5" x1="2.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="2.5" y1="2.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L 1 1.5 L 1.5 1.5 1.5 1 L 1.5 0" style="stroke-width:.08;stroke:green;"/><path d="M 0 2.5 L .5 2.5 .5 2 L .5 1 L .5 .5 1 .5 L 2 .5 L 2.5 .5 2.5 0" style="stroke-width:.08;stroke:blue;"/></g></svg><svg class="M2Svg" viewBox="-.3 -.3 3.6 3.6" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="3" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="2.5" x1="2.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="2.5" y1="2.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L .5 1.5 .5 1 L .5 .5 1 .5 L 1.5 .5 1.5 0" style="stroke-width:.08;stroke:green;"/><path d="M 0 2.5 L .5 2.5 .5 2 L .5 1.5 1 1.5 L 1.5 1.5 1.5 1 L 1.5 .5 2 .5 L 2.5 .5 2.5 0" style="stroke-width:.08;stroke:blue;"/></g></svg><svg class="M2Svg" viewBox="-.3 -.3 3.6 3.6" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="3" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="2.5" x1="2.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="2.5" y1="2.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L .5 1.5 .5 1 L .5 .5 1 .5 L 1.5 .5 1.5 0" style="stroke-width:.08;stroke:green;"/><path d="M 0 2.5 L .5 2.5 .5 2 L .5 1.5 1 1.5 L 2 1.5 L 2.5 1.5 2.5 1 L 2.5 0" style="stroke-width:.08;stroke:blue;"/></g></svg><svg class="M2Svg" viewBox="-.3 -.3 3.6 3.6" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="3" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="2.5" x1="2.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="2.5" y1="2.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L .5 1.5 .5 1 L .5 .5 1 .5 L 1.5 .5 1.5 0" style="stroke-width:.08;stroke:green;"/><path d="M 0 2.5 L 1 2.5 L 1.5 2.5 1.5 2 L 1.5 1 L 1.5 .5 2 .5 L 2.5 .5 2.5 0" style="stroke-width:.08;stroke:blue;"/></g></svg><svg class="M2Svg" viewBox="-.3 -.3 3.6 3.6" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="3" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="2.5" x1="2.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="2.5" y1="2.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L 1 1.5 L 1.5 1.5 1.5 1 L 1.5 0" style="stroke-width:.08;stroke:green;"/><path d="M 0 2.5 L 1 2.5 L 2 2.5 L 2.5 2.5 2.5 2 L 2.5 1 L 2.5 0" style="stroke-width:.08;stroke:blue;"/></g></svg><svg class="M2Svg" viewBox="-.3 -.3 3.6 3.6" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="3" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="2.5" x1="2.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="2.5" y1="2.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L 1 1.5 L 1.5 1.5 1.5 1 L 1.5 0" style="stroke-width:.08;stroke:green;"/><path d="M 0 2.5 L 1 2.5 L 1.5 2.5 1.5 2 L 1.5 1.5 2 1.5 L 2.5 1.5 2.5 1 L 2.5 0" style="stroke-width:.08;stroke:blue;"/></g></svg><svg class="M2Svg" viewBox="-.3 -.3 3.6 3.6" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="3" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2="3" y1="0" x2="2.5" x1="2.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="2.5" y1="2.5" x2="3" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L .5 1.5 .5 1 L .5 .5 1 .5 L 1.5 .5 1.5 0" style="stroke-width:.08;stroke:green;"/><path d="M 0 2.5 L 1 2.5 L 1.5 2.5 1.5 2 L 1.5 1.5 2 1.5 L 2.5 1.5 2.5 1 L 2.5 0" style="stroke-width:.08;stroke:blue;"/></g></svg>
+    </div>
+  </p>
+  <p>
+    To each such set of lattice paths $P$ we associate a (Boltzmann) weight defined as follows:<br/>
+    <div style="margin:2em">
+      $\text{wt}(P)=\prod_{i,j=1}^n$
+      <span style="display:inline-block;vertical-align:middle;">
+      <svg class="M2Svg" viewBox="-.1 -.1 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="1" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="1" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/></g></svg>
+      <svg class="M2Svg" viewBox="-.1 -.1 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="1" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="1" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 1 .5 L .5 .5 .5 1" style="stroke-width:.08;stroke:red;"/></g></svg>
+      <svg class="M2Svg" viewBox="-.1 -.1 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="1" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="1" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 1 .5 L .5 .5 .5 1" style="stroke-width:.08;stroke:green;"/></g></svg>
+      :
+      $1-\alpha\beta$,
+
+      <svg class="M2Svg" viewBox="-.1 -.1 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="1" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="1" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:green;"/><path d="M 1 .5 L .5 .5 .5 1" style="stroke-width:.08;stroke:red;"/></g></svg>
+      :
+      $\alpha x_ix_j^{-1}(1-\alpha\beta)$;
+      <br/>
+      
+      <svg class="M2Svg" viewBox="-.1 -.1 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="1" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="1" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L 1 .5" style="stroke-width:.08;stroke:red;"/><path d="M .5 0 L .5 1" style="stroke-width:.08;stroke:green;"/></g></svg>
+      :
+      $1-\alpha x_ix_j^{-1}$,
+      <svg class="M2Svg" viewBox="-.1 -.1 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="1" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="1" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L 1 .5" style="stroke-width:.08;stroke:green;"/><path d="M .5 0 L .5 1" style="stroke-width:.08;stroke:red;"/></g></svg>
+      :
+      $\alpha\beta(1-\alpha x_ix_j^{-1})$,
+      <svg class="M2Svg" viewBox="-.1 -.1 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="1" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="1" x1="0" style="stroke-dasharray:.05,.1;"/></g><path d="M 0 .5 L 1 .5" style="stroke-width:.08;stroke:red;"/></svg>
+      :
+      $\beta^{1/2}x_i^{-1}(1-\alpha x_ix_j^{-1})$
+      ,
+      <svg class="M2Svg" viewBox="-.1 -.1 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="1" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="1" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M .5 0 L .5 1" style="stroke-width:.08;stroke:red;"/></g></svg>
+      :
+      $\beta^{1/2}x_j(1-\alpha x_ix_j^{-1})$;
+      <br/>
+      <svg class="M2Svg" viewBox="-.1 -.1 1.2 1.2" style="width:5em;height:5em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="1" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="1" x1="0" style="stroke-dasharray:.05,.1;"/></g></svg>
+      :
+      $1-\beta x_i^{-1}x_j$
+      </span>
+    </div>
+  </p>
+  <p>
+    Why should we care about such weighted paths?
+  </p>
+  <hr>
+    <p>
     The <i>commuting scheme</i> is the affine scheme
     \[
     \mathcal C = \{
@@ -40,7 +87,7 @@
 
   <p>
     Therefore, the coordinate ring of $\mathcal C$, i.e., the ring $R/I$ where
-    $R=\CC[a_{1,1},\ldots,a_{n,n},b_{1,1},\ldots,b_{n,n}]$ and
+    $R=\CC[a_{11},\ldots,a_{nn},b_{11},\ldots,b_{nn}]$ and
     $I$ is the ideal generated by $AB-BA$, is a representation of $GL(2,\CC)\times GL(n,\CC)$;
     let $H$ be its Hilbert series (or character).
   </p>
@@ -66,22 +113,7 @@ B=matrix table(n,n,(i,j)->b_(i+1,j+1))
 I=ideal(A*B-B*A);</code>
   and compute its Poincar&eacute; or $K$-polynomial:
   <code>poincare I</code>
-  <hr>
-  <p>
-    Consider a $n\times n$ square grid, and a set of $n$ paths entering from the left external edges of the grid
-    and exiting at the top, in a such a way that the $i^{\rm th}$ incoming path on the left (counted from the top) 
-    exits at the $i^{\rm th}$ location at the top (counted from the left):
-    FIGURES IN SIZE 2,3 MISSING
-  </p>
-  <p>
-    To each such set of lattice paths $P$ we associate a (Boltzmann) weight defined as follows:<br/>
-    <div style="margin:2em">
-      $\text{wt}(P)=\prod_{i,j=1}^n$
-      <table>
-	TABLE OF WTS MISSING
-      </table>
-    </div>
-  </p>
+
   <div style="border:1px solid; padding: 10px; margin: 10px 30px 30px 10px; box-shadow: 5px 10px gray;">
     <b>Conjecture</b>.
     \[
@@ -89,7 +121,7 @@ I=ideal(A*B-B*A);</code>
     \]
   </div>
   <p>
-    Check at $n=2$:
+    Check at $n=2$: <span style="font-size:0.35em"><svg class="M2Svg" viewBox="-.2 -.2 2.4 2.4" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="2" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="2" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="2" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="2" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L .5 1.5 .5 1 L .5 .5 1 .5 L 1.5 .5 1.5 0" style="stroke-width:.08;stroke:green;"/></g></svg><svg class="M2Svg" viewBox="-.2 -.2 2.4 2.4" style="width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><line y2="2" y1="0" x2=".5" x1=".5" style="stroke-dasharray:.05,.1;"/><line y2="2" y1="0" x2="1.5" x1="1.5" style="stroke-dasharray:.05,.1;"/><line y2=".5" y1=".5" x2="2" x1="0" style="stroke-dasharray:.05,.1;"/><line y2="1.5" y1="1.5" x2="2" x1="0" style="stroke-dasharray:.05,.1;"/><path d="M 0 .5 L .5 .5 .5 0" style="stroke-width:.08;stroke:red;"/><path d="M 0 1.5 L 1 1.5 L 1.5 1.5 1.5 1 L 1.5 0" style="stroke-width:.08;stroke:green;"/></g></svg> </span>
     <code>(1-α*β)*(1-β) + β*(1-α*x_2*x_1^(-1))*(1-α*x_1*x_2^(-1))</code>
   </p>
 </div>
@@ -220,7 +252,7 @@ vg = p -> (
     gList append(flatten apply(k,i->apply(#(p#i),j->svgtile#(p#i#j)++{TransformMatrix=>translation(j+0.5,-i-0.5)})),SizeX=>2*max(k,n))
     );
 html PipeDream := p -> html vg p;
-</code>      
+</code><br/>
 see in particular <code class="inline">{svgtile#crossing,svgtile#elbows}</code>. The result:
 </p>
 <p><code>apply(comps,pipeDream)</code></p>

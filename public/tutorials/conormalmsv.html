@@ -138,7 +138,7 @@ vg = p -> (
     gList append(flatten apply(k,i->apply(#(p#i),j->svgtile#(p#i#j)++{TransformMatrix=>translation(j+0.5,-i-0.5)})),SizeX=>2*max(k,n))
     );
 html PipeDream := p -> html vg p;
-</code>      
+</code><br/>      
 see in particular <code class="inline">{svgtile#crossing,svgtile#elbows}</code>. The result:
 </p>
 <p><code>apply(comps,pipeDream)</code></p>
