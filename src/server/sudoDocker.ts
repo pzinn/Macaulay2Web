@@ -49,10 +49,6 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
             const res = JSON.parse(stdout);
             let clientId = res[0].Config.Labels.clientId;
             if (clientId) {
-              // TEMPORARY: remove the "user"
-              if (clientId.substring(0, 4) === "user")
-                clientId = clientId.substring(4);
-              // END TEMPORARY
               logger.info(
                 "Scanning " + lst[i] + " found " + clientId + res[0].Name
               );

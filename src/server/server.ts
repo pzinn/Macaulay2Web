@@ -544,9 +544,6 @@ const initializeClientId = function (): string {
 const validateId = function (s): string {
   if (s === undefined) return undefined;
   s = s.replace(/\W/g, "");
-  // TEMPORARY: remove the "user"
-  if (s.substring(0, 4) === "user") s = s.substring(4);
-  // END TEMPORARY
   if (s == "") return undefined;
   else return s;
 };
