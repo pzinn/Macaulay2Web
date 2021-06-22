@@ -9,6 +9,8 @@ import {
   options,
 } from "./server";
 import { logClient, logger } from "./logger";
+import { execInInstance } from "./exec";
+import { decode, encode } from "html-entities";
 
 const chatList: Chat[] = []; // used to restore chat
 const chatBlackList: string[] = [];
@@ -90,6 +92,14 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
     logClient(client, chat.alias + " deleted #" + chat.index);
     chatList.splice(i, 1);
     safeEmit(io, "chat", chat);
+  };
+  const chatRun = function (chat: Chat) {
+    execInInstance(client, decode(chat.message).substring(1), function (out) {
+      chat.recipients = null;
+      chat.index = chatCounter++;
+      if (out) chat.message += "\n```sh\n" + encode(out) + "```";
+      safeEmit(socket, "chat", chat);
+    });
   };
   const chatAdmin = function (chat: Chat) {
     chat.recipients = null;
@@ -190,7 +200,10 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
             return; // false alarm
           chatDelete(chat, i);
         } else if (chat.type === "restore") chatRestore(chat);
-        else if (chat.type === "message") chatMessage(chat);
+        else if (chat.type === "message") {
+          if (chat.message[0] == "!") chatRun(chat);
+          else chatMessage(chat);
+        }
       }
     : function (chat: Chat) {
         // admin
@@ -202,6 +215,7 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
         } else if (chat.type === "restore") chatRestore(chat);
         else if (chat.type === "message") {
           if (chat.message[0] == "/") chatAdmin(chat);
+          else if (chat.message[0] == "!") chatRun(chat);
           else chatMessage(chat);
         }
       };

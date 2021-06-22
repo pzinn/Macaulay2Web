@@ -5,7 +5,7 @@
   <body>
     <div>
       <h2>Introduction</h2>
-      <p>If you've used previously the ``habanero'' server, you should recognize much of the interface. If not, the welcome tutorial can help.
+      <p>If you've used previously the &ldquo;<a href="http://habanero.math.cornell.edu:3690/">habanero</a>&rdquo; server, you should recognize much of the interface. If not, the <a href="#tutorial-0">welcome tutorial</a> can help.
       </p>
       <p>
 	There are various new features of this interface. Here we focus on the underlying \(\mac\) code: in order to work and produce LaTeX/HTML output, this web interface uses <code class='inline'>topLevelMode=WebApp</code>, a special output mode of \(\mac\).
@@ -50,7 +50,7 @@
 	<code>needsPackage "Text"</code>
       </p>
       <p>
-	Here is how one can create HTML classes in \(\mac\); they are <tt>MarkUpType</tt>s with common ancestor the type <tt>Hypertext</tt>.
+	HTML classes in \(\mac\) are <tt>MarkUpType</tt>s with common ancestor the type <tt>Hypertext</tt>.
 	<tt>MarkUpType</tt>s are self-initializing:
 	<code> DIV { BOLD { "hello" }, HR {}, OL {"stuff", "more stuff", LI {"and more"} },
 	  ANCHOR { "href" => "http://macaulay2.com", "A link" } }</code>
@@ -113,7 +113,7 @@
 	Let us try instead the <tt>html</tt> method for our type: (we could define it via <tt>expression</tt> as we did earlier for other modes of output, but for simplicity we define it directly here)
 	<code>needsPackage "Text"; html MyType := x -> html ( UL toList x )</code>
 	Let us test it:
-	<code>new MyType from {"ha","hi",1-ii,QQ[x]}</code>
+	<code>new MyType from {"ha",1/2,1-ii,QQ[x]}</code>
       </p>
       <p>
 	Here we show how an existing package which already has support for HTML output can be easily converted to the new interface:

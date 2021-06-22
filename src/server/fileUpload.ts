@@ -1,13 +1,12 @@
 import { Client } from "./client";
 import ssh2 = require("ssh2");
 import { logger, logClient } from "./logger";
-import { unlink, options } from "./server";
+import { unlink, options, sshCredentials } from "./server";
 
-const uploadToDocker = function (
+const uploadToInstance = function (
   client: Client,
   filePath: string,
   fileName: string,
-  sshCredentials,
   next
 ) {
   if (!fileName || !client.instance || !client.instance.host) return;
@@ -37,4 +36,4 @@ const uploadToDocker = function (
   sshConnection.connect(credentials);
 };
 
-export { uploadToDocker };
+export { uploadToInstance };
