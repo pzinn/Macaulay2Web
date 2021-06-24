@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<h1 style="font-size:1em;text-decoration:underline">GPDs, conormal MSVs and the commuting variety<style>#lesson code{font-size:initial;} #lesson > div{font-size:1.9em;}</style>
-</h1>
+<h1 style="font-size:1em;text-decoration:underline">GPDs, conormal MSVs and the commuting variety</h1>
+<style>
+  #lesson code{font-size:initial;}
+  #lesson > div{font-size:1.9em;}
+  .theorem {border:1px solid; padding: 10px; margin: 10px 30px 30px 10px; box-shadow: 5px 10px gray;}
+</style>
 <div style="font-size:2.4em; text-align:center">
   <h2>Generic pipe dreams, conormal matrix Schubert varieties and the commuting variety</h2>
   <h4>Lattice Paths, Combinatorics and Interactions, 22/06/2021</h4>
   <h3>P. Zinn-Justin</h3>
   <h6>School of Mathematics and Statistics, the University of Melbourne</h6>
-  <div style="min-height:2em"></div>
 </div>
 <div>
   <h2>Lattice paths and the commuting scheme</h2>
@@ -112,9 +115,8 @@ R=ℚ[a_(1,1)..a_(n,n),b_(1,1)..b_(n,n),
 B=matrix table(n,n,(i,j)->b_(i+1,j+1))
 I=ideal(A*B-B*A);</code>
   and compute its Poincar&eacute; or $K$-polynomial:
-  <code>poincare I</code>
-
-  <div style="border:1px solid; padding: 10px; margin: 10px 30px 30px 10px; box-shadow: 5px 10px gray;">
+  <code>K=poincare I</code>
+  <div class="theorem">
     <b>Conjecture</b>.
     \[
     K = (1-\alpha\beta)^{-n}\sum_{\substack{\text{lattice paths }P\\\text{on the }n\times n\text{ grid}}} \text{wt}(P)
@@ -153,7 +155,7 @@ In practice, only a subset of rank conditions is needed (essential conditions).
 <p><code>msv = w -&gt; (
     if n =!= #w then (
         n = #w;
-        R = QQ[m_(1,1)..m_(n,n),MonomialOrder=&gt;{Weights=&gt;flatten table(n,n,(i,j)-&gt;(n-1)^2-i*j)}];
+        R = ℚ[m_(1,1)..m_(n,n),MonomialOrder=&gt;{Weights=&gt;flatten table(n,n,(i,j)-&gt;(n-1)^2-i*j)}];
     );
     w = w - toList(n:1); w':=inversePermutation w;
     M = matrix table(n,n,(i,j)-&gt;m_(i+1,j+1));
@@ -163,41 +165,37 @@ In practice, only a subset of rank conditions is needed (essential conditions).
 	else minors(1+#select(i+1,x-&gt;w_x&lt;=j),M^{0..i}_{0..j}) -- essential rank conditions
 	)
     );</code></p>
-<p>For instance, for $w=(1423)
-=
-\begin{pmatrix}
-1&-&-&-\\
-|&&\bullet&1\\
-|&1&-&+\\
-|&|&1&+\end{pmatrix}$,
-</p>
-<p><code>ex = msv {1,4,2,3}</code></p>
-<p>is given by imposing rank 1 for the $2\times 3$ NW submatrix of $M$.
-</p>
-<p> It is easy to show that $\text{codim}\, \bar X_w=|w|$.</p>
-<p>We are interested in $\text{init}(I_w)$ for the monomial ordering above. Each determinant (minor) turns into its 
-<i>antidiagonal</i> term.
-[Knutson Miller '05] have shown that the rank conditions above (minors) form a <b>Gröbner basis</b>, 
-and that the corresponding degeneration of $\bar X_w$ is a <b>Stanley&ndash;Reisner scheme</b>, i.e., a reduced union of coordinate subspaces.
-</p>
-<p>We can encode this as
-</p>
-<p><code>degen = I -&gt; ideal leadTerm(1,I);</code></p>
-<p>e.g.
-</p>
-<p><code>comps = decompose degen ex</code></p>
-  <p>There&apos;s a convenient way to visualize each piece (coordinate subspace): so-called <b>pipe dreams</b>. [Fomin Kirillov '96,
-    Bergeron Billey '93]
+  <p>For instance, for $w=1423
+    =
+    \begin{pmatrix}
+    1&-&-&-\\
+    |&&\bullet&1\\
+    |&1&-&+\\
+    |&|&1&+\end{pmatrix}$,
+    <code>ex = msv {1,4,2,3}</code></p>
+  <p>is given by imposing rank 1 for the $2\times 3$ NW submatrix of $M$.
+  </p>
+  <p> It is easy to show that $\text{codim}\, \bar X_w=|w|$.</p>
+  <p>We are interested in $\text{init}(I_w)$ for a certain monomial ordering which turn every determinant (minor) into its
+    <i>antidiagonal</i> term.
+    [Knutson Miller '05] have shown that the rank conditions above (minors) form a <b>Gröbner basis</b>,
+    and that the corresponding degeneration of $\bar X_w$ is a <b>Stanley&ndash;Reisner scheme</b>, i.e.,
+    a reduced union of coordinate subspaces.
+  </p>
+  <p>We can encode this as
+    <code>degen = I -&gt; ideal leadTerm(1,I);</code></p>
+  <p>e.g.
+    <code>comps = decompose degen ex</code></p>
+  <p>There&apos;s a convenient way to visualize each piece (coordinate subspace): so-called <b>pipe dreams</b>
+    [Fomin Kirillov '96, Bergeron Billey '93].
     Draw the matrix $M$ where each entry is replaced with one of two pictures:
-          <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="font-size:0.5em;width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
-	      </polygon><path d="M -.5 0 L .5 0 M 0 .5 L 0 -.5" style="stroke-width:.1;stroke:black;"/><path d="M -.5 0 L .5 0 M 0 .5 L 0 -.5" style="stroke-width:.08;stroke:red;"/></g></svg>
-	  (&ldquo;crossing&rdquo;) or
-      <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="font-size:0.5em;width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
-	  </polygon><path d="M .5 0 Q 0 0 0 .5 M -.5 0 Q 0 0 0 -.5" style="stroke-width:.1;stroke:black;"/><path d="M .5 0 Q 0 0 0 .5 M -.5 0 Q 0 0 0 -.5" style="stroke-width:.08;stroke:red;"/></g></svg>
-      (&ldquo;elbows&rdquo;) depending on whether it belongs to the ideal or not.
-Let us program this:
-</p>
-  <p>
+    <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="font-size:0.5em;width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	</polygon><path d="M -.5 0 L .5 0 M 0 .5 L 0 -.5" style="stroke-width:.1;stroke:black;"/><path d="M -.5 0 L .5 0 M 0 .5 L 0 -.5" style="stroke-width:.08;stroke:red;"/></g></svg>
+    (&ldquo;crossing&rdquo;) or
+    <svg class="M2Svg" viewBox="-.6 -.6 1.2 1.2" style="font-size:0.5em;width:10em;height:10em;stroke-linejoin:round;stroke-width:1%" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" data-pmatrix="matrix([[1,0,0,0],[0,1,0,0],[0,0,-1,1000],[0,0,0,1000]])"><g><polygon points="-.5 .5 -.5 -.5 .5 -.5 .5 .5" style="stroke-width:.01;fill:white;stroke:black;">      <title>bbox</title>
+	</polygon><path d="M .5 0 Q 0 0 0 .5 M -.5 0 Q 0 0 0 -.5" style="stroke-width:.1;stroke:black;"/><path d="M .5 0 Q 0 0 0 .5 M -.5 0 Q 0 0 0 -.5" style="stroke-width:.08;stroke:red;"/></g></svg>
+    (&ldquo;elbows&rdquo;) depending on whether it belongs to the ideal or not.
+    Let us program this:
     <code style="display:inline-block;max-height:5.8em;overflow:hidden">-- pipe dreams
 PipeDream = new Type of BasicList;
 pipeDream = I -&gt; new PipeDream from table(n,n,(i,j) -&gt; if M_(i,j)%I == 0 then crossing else elbows);
@@ -253,16 +251,16 @@ vg = p -> (
     );
 html PipeDream := p -> html vg p;
 </code><br/>
-see in particular <code class="inline">{svgtile#crossing,svgtile#elbows}</code>. The result:
-</p>
-<p><code>apply(comps,pipeDream)</code></p>
+    The result:
+    <code>apply(comps,pipeDream)</code>
+  </p>
   <p>The remarkable fact is that the NW pipes in each pipe dream reproduce the permutation we started from!    
-</p>
-<p>In fact, we obtain this way every <i>reduced</i> pipe dream with connectivity $w$, where reduced means that no two pipes cross twice.
-</p>
-<p>In particular the <i>degree</i> of $\bar X_w$ is the number of reduced pipe dreams with connectivity $w$:
-</p>
-  <p><code>degree ex</code></p>
+  </p>
+  <p>In fact, we obtain this way every <i>reduced</i> pipe dream with connectivity $w$, where reduced means that no two pipes cross twice.
+  </p>
+  <p>In particular the <i>degree</i> of $\bar X_w$ is the number of reduced pipe dreams with connectivity $w$:
+    <code>degree ex</code>
+  </p>
   <p>More generally, one gets a formula for the class of $\bar X_w$ in $H^*_{B_-\times B_+}(\text{Mat}(n,\CC))\cong \ZZ[x_1,\ldots,x_n,y_1,\ldots,y_n]$:
     $$
     \text{mdeg}\,\bar X_w = \sum_{\substack{\text{reduced pipe dreams}\\\text{with connectivity }w}}\ \prod_{(i,j):\text{ crossing}} (x_i-y_j)
@@ -285,32 +283,34 @@ see in particular <code class="inline">{svgtile#crossing,svgtile#elbows}</code>.
 <div>
   <h2>The lower-upper scheme</h2>
   <p>
-  Introduce after [Knutson '05] the lower-upper scheme to be the affine scheme:
-  $$
-   E := \left\{ (M,C) \in \text{Mat}(n,\CC)^2:\  M C\text{ lower triangular, } C M\text{ upper triangular}\right\}
-  $$
-  $E$ is a complete intersection of dimension $n(n+1)$.
+    Introduce after [Knutson '05] the lower-upper scheme to be the affine scheme:
+    $$
+    E := \left\{ (M,C) \in \text{Mat}(n,\CC)^2:\  M C\text{ lower triangular, } C M\text{ upper triangular}\right\}
+    $$
+    $E$ is a complete intersection of dimension $n(n+1)$.
   </p>
   <p>Note that the diagonals of $MC$ and $CM$ must be permutations of each other. In fact, it's not hard to show that the irreducible
     components $E_w$ of $E$ are indexed by permutations $w\in \mathcal{S}_n$:
     $$
-E_w = \overline{\left\{ (M,C)\in E:\ (MC)_{i,i}=(CM)_{w(i),w(i)}\text{ and all $(MC)_{i,i}$ distinct}\right\}}
+E_w = \overline{\left\{ (M,C)\in E:\ (MC)_{ii}=(CM)_{w(i)\,w(i)}\text{ and all $(MC)_{ii}$ distinct}\right\}}
     $$
   </p>
   <p>
-    [Knutson '05] conjectures the following equations:
+    One has
     $$
-  E_w = \left\{ (M,C)\in E:\ (MC)_{i,i}=(CM)_{w(i),w(i)},\ \text{rank}\ M_{NW} \le \text{rank}\ w_{NW},\ \text{rank}\ C^T_{SE} \le \text{rank}\ w_{SE}\right\}
+  E_w \subset \left\{ (M,C)\in E:\ (MC)_{ii}=(CM)_{w(i)\,w(i)},\ \text{rank}\ M_{NW} \le \text{rank}\ w_{NW},\ \text{rank}\ C^T_{SE} \le \text{rank}\ w_{SE}\right\}
     $$
     where the last two conditions can be rewritten $M\in \bar X_w$, $C \in w_0 \bar X_{w^{-1}} w_0$.
-    Sadly, this conjecture fails for $w=1324$.
+    [Knutson '05] conjectures equality:
+    sadly, this conjecture fails for $w=1324$.
+    It is however true that $(M,C)\mapsto M$ projects $E_w$ to $\bar X_w$.
   </p>
   <p>
     We now encode this as follows:
-<code>-- lower-upper scheme
+    <code>-- lower-upper scheme
 k=n=3;
 wt = (i,j)-&gt;(i+j-n-1)^2; maxwt = max flatten table(k,n,(i,j)-&gt;wt(i+1,j+1));
-R = QQ[m_(1,1)..m_(k,n), c_(1,1)..c_(k,n),
+R = ℚ[m_(1,1)..m_(k,n), c_(1,1)..c_(k,n),
        MonomialOrder=&gt;{Weights=&gt;flatten table(k,n,(i,j)-&gt;maxwt-wt(i+1,j+1))|flatten table(k,n,(i,j)-&gt;wt(i+1,j+1))}];
 M = matrix table(k,n,(i,j)-&gt; m_(i+1,j+1));
 C = matrix table(n,k,(j,i)-&gt; c_(i+1,j+1));
@@ -320,7 +320,7 @@ I=trim ideal(upperPart (M*C),lowerPart (C*M)); -- lower upper scheme: MC lower t
 comps=decompose I; #comps
 </code>
   </p>
-  <p>NB: the $(MC)_{i,i}$ play the role of deformation parameters. As these tend to zero, components recombine à la
+  <p>NB: the $(MC)_{ii}$ play the role of deformation parameters. As these tend to zero, components recombine à la
     Kazhdan&mdash;Lusztig.</p>
 </div>
 <div>
@@ -358,7 +358,7 @@ comps=decompose I; #comps
 </polygon><path d="M 0 3.5 Q .5 3.5 .5 3" style="stroke-width:.1;stroke:black;"/><path d="M 0 3.5 Q .5 3.5 .5 3" style="stroke-width:.08;stroke:red;"/></g><polygon points="1 4 1 3 2 3 2 4" data-matrix="matrix([[1,0,0,1.5],[0,1,0,-3.5],[0,0,1,0],[0,0,0,1]])" style="stroke-width:.01;fill:white;stroke:black;"/><polygon points="2 4 2 3 3 3 3 4" data-matrix="matrix([[1,0,0,2.5],[0,1,0,-3.5],[0,0,1,0],[0,0,0,1]])" style="stroke-width:.01;fill:white;stroke:black;"/><polygon points="3 4 3 3 4 3 4 4" data-matrix="matrix([[1,0,0,3.5],[0,1,0,-3.5],[0,0,1,0],[0,0,0,1]])" style="stroke-width:.01;fill:white;stroke:black;"/></g></svg>.
   </p>
   <p>The connectivity of a pipe dream is defined as usual, e.g., $w=1423$ above.</p>
-  <div style="border:1px solid; padding: 10px; margin: 10px 30px 30px 10px; box-shadow: 5px 10px gray;">
+  <div class="theorem">
     <b>Theorem</b>.
     There exists a Gröbner degeneration of $E$ such that each $E_w$ degenerates into a union
     \[
@@ -477,12 +477,35 @@ pipeDream=I->new PipeDream from table(k,n,(i,j)->(
     </li>
     <li>There exists a Gröbner degeneration from the commuting variety $\mathcal C$ to the component $E_{Id}$.
       <br/>
-      As a special case of the formula above we can therefore write
+      As a special case of the formula above we can for example write
       $$
       \deg \mathcal C = \sum_{\substack{\text{generic pipe dreams}\\\text{with connectivity }Id}}
       2^{\#\{(i,j):\text{ bends}\}-n}
       $$
       which is probably the fastest known algorithm for it, see also <a href="https://oeis.org/A029729">OEIS A029729</a>.
+      $$
+      \deg \mathcal C_{12} = 1862632561783036151478238040096092649
+      $$
+      <code>n=6; w=2;
+Z=hashTable {append(toList(1..n),0)=>1};
+add = (p,x) -> Z'#p = if Z'#?p then Z'#p+x else x;
+scan(n,i->(
+        scan(reverse (toList(0..n-1)),j->(
+                Z'=new MutableHashTable;
+                scan(keys Z, p->(
+                            if p#j == 1 then add(p,w*Z#p)
+                            else if p#j == 0 and p#(j+1) == 0 then add(p,Z#p)
+                            else (
+                                if p#(j+1)!=1 then add(p,w*Z#p);
+                                add(switch(j,j+1,p),Z#p);
+                                )
+                            ));
+                Z=new HashTable from Z'; -- print (i,j,#Z);
+                ));
+        Z=applyKeys(Z,p->append(apply(drop(p,1),j->max(0,j-1)),0));
+        )
+    )
+first values Z//2^n</code>
     </li>
   </ul>
 </div>

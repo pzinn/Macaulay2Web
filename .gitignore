@@ -11,7 +11,6 @@ public/fonts
 public/VectorGraphics.js
 public/users.htpasswd
 public/user*
-src/client/tutorialsList.ts
 src/client/css/katex*
 src/client/css/VectorGraphics*
 src/client/css/material*
