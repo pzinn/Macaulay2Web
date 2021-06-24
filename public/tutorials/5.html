@@ -1,0 +1,47 @@
+<title>Load your own tutorial</title>
+<template>
+You can write your own tutorial, and then load it on this website
+(or, give it to your students, and let them load it). Download the
+file <a href="/tutorial-template.md" target="_blank">tutorial-template.md</a>
+which is both a template for your own tutorial, and a guide for how to write one.
+Or click on the lessons below to see the result.
+<hr>
+</template>
+<h1>My great tutorial (D. Hilbert)</h1>
+<div>
+<h2>Example lesson title</h2><p>This file is written in a simple markdown format.  After changing it,
+you upload the resulting file via the &quot;LOAD YOUR OWN TUTORIAL&quot; tab
+from the home page.  Give your modfied file to your students, and
+after they upload it themselves, they can work through your lessons.
+</p><p>The line that begins with # is
+the title for the tutorial.  Lines that begin with ## give the names
+of each lesson.  Latex math, via mathjax, can be used, and Macaulay2
+code that you wish to become buttons should be enclosed by backquotes (	`	) or
+triple backquotes (	```	), as is shown below.
+</p><p>Blank lines start new paragraphs.
+</p></div><div><h2>Code</h2><p>Macaulay2 commands (which will be displayed as clickable buttons) are
+enclosed in triple backquotes (as is standard in many markdown
+languages). Here we have blank lines between them, but that is not
+required.
+</p><code>R = QQ[x]
+</code><code>x^3-x-1
+</code><p>or inline: <code class='inline'>factor(x^2-1)</code>.
+</p><p>Multiple lines can be placed in one button too.
+</p><code>f = x -&gt; (
+    x^3-x-1
+    )
+</code></div><div><h2>KaTeX</h2><p>We use katex, which means that you can include math, in the following way:
+using <strong>\(</strong> <strong>\)</strong> for inline: \(f(x) = x^3-\sin x + 1\), or in display form via
+<strong>\[</strong> <strong>\]</strong>:
+\[ \sum_{i=0}^n (x_i y_i + 1). \]
+</p></div><div><h2>More markdown</h2><p>Other recognized markdown includes:
+<ul><li>lists</li><li><em>various</em> <u>standard</u> <strong>style</strong> <u><strong>modifications</strong></u></li><li><a href='https://github.com/pzinn/Macaulay2Web'>links</a></li><li>tables</li></ul><table><tr><td> 1 </td><td> 2 </td><td> 3 </td></tr><tr><td> 4 </td><td> 5 </td><td> 6 </td></tr></table></p><p>Caveat: markdown conversion can interfere with (Ka)TeX code.
+</p></div><div><h2>Other accepted formats</h2><h3>HTML lessons</h3><p>You can also upload lessons directly in HTML (file name with a .html extension). This offers the most flexibility since
+no translation is performed except the following.
+</p><p>The &lt;title&gt; tag is the title of the tutorial.
+If no &lt;title&gt; is given, the first element at top level is picked as the title (&lt;h1&gt; is a good choice).
+Every &lt;div&gt; at top level is a page (lesson) in the tutorial. The first element of the &lt;div&gt; is the title of the page
+(&lt;h2&gt; is a good choice). Every non &lt;div&gt; top level element will appear at the start of every lesson.
+</p><h3>M2 files</h3><p>You can directly upload a Macaulay2 file (file name with a .m2 extension). This offers the least flexibility,
+as code is simply displayed as a single page.
+</p>

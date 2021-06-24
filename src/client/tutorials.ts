@@ -1,17 +1,15 @@
-import {
-  appendTutorialToAccordion,
-  appendLoadTutorialMenuToAccordion,
-} from "./accordion";
+import { appendTutorialToAccordion } from "./accordion";
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 
 interface Lesson {
-  title: HTMLElement; // <h1> element
+  title: HTMLElement; // <h2> element
   html: HTMLElement;
 }
 
 interface Tutorial {
-  title?: HTMLElement; // <h2> html element
+  title?: HTMLElement; // <h1> html element
+  blurb?: HTMLElement;
   lessons: Lesson[];
   common: HTMLElement[];
 }
@@ -24,6 +22,8 @@ const sliceTutorial = function (theHtml: string) {
   for (let i = 0; i < children.length; i++) {
     if (children[i].tagName == "TITLE") {
       tutorial.title = children[i] as HTMLElement;
+    } else if (children[i].tagName == "TEMPLATE") {
+      tutorial.blurb = children[i] as HTMLElement;
     } else if (children[i].tagName == "DIV") {
       // lessons should be top-level div
       if (children[i].childElementCount > 0) {
@@ -72,7 +72,7 @@ const updateTutorialNav = function () {
     " " + lessonNr + "/" + tutorials[tutorialNr].lessons.length;
 };
 
-const loadLesson = function (newTutorialNr, deleteButton) {
+const loadLesson = function (newTutorialNr) {
   const xhr = new XMLHttpRequest();
   xhr.open("GET", "tutorials/" + newTutorialNr + ".html", true);
   xhr.onload = function () {
@@ -81,10 +81,10 @@ const loadLesson = function (newTutorialNr, deleteButton) {
     tutorials[newTutorialNr] = sliceTutorial(xhr.responseText);
     appendTutorialToAccordion(
       tutorials[newTutorialNr].title,
-      "",
+      tutorials[newTutorialNr].blurb,
       tutorials[newTutorialNr].lessons,
       newTutorialNr,
-      deleteButton
+      newTutorialNr == ntutorials - 1 ? doUptutorialClick : null // TEMP
     );
     if (render) renderLesson();
   };
@@ -105,7 +105,7 @@ const renderLessonMaybe = function (newTutorialNr?, newLessonNr?): void {
   lessonNr = newLessonNr;
   if (!tutorials[tutorialNr]) {
     tutorials[tutorialNr] = { render: true };
-    loadLesson(tutorialNr, true);
+    loadLesson(tutorialNr);
   } else if (!tutorials[tutorialNr].lessons)
     tutorials[tutorialNr].render = true;
   // being loaded
@@ -194,7 +194,7 @@ const uploadTutorial = function () {
     if (tutorialNr == fileName) tutorialNr = null; // force reload
     appendTutorialToAccordion(
       newTutorial.title,
-      "",
+      newTutorial.blurb,
       newTutorial.lessons,
       fileName,
       true
@@ -203,7 +203,15 @@ const uploadTutorial = function () {
   return false;
 };
 
-const ntutorials = 5; // weird hard-coding of initial tutorials TODO better
+const doUptutorialClick = function (e) {
+  e.stopPropagation();
+  const uptute = document.getElementById("uptutorial") as HTMLInputElement;
+  uptute.value = "";
+  uptute.click();
+  return false;
+};
+
+const ntutorials = 6; // weird hard-coding of initial tutorials TODO better
 
 const initTutorials = function () {
   tutorialNr = null;
@@ -211,9 +219,9 @@ const initTutorials = function () {
 
   for (let i = 0; i < ntutorials; i++) {
     tutorials[i] = { render: false };
-    loadLesson(i, false);
+    loadLesson(i);
   }
-  appendLoadTutorialMenuToAccordion();
+  //  appendLoadTutorialMenuToAccordion();
 };
 
 const removeTutorial = function (index) {
