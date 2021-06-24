@@ -1,5 +1,4 @@
-// import uploadTutorialHelp from "./uploadTutorialHelp.txt";
-import { removeTutorial } from "./tutorials.ts";
+import { Tutorial, removeTutorial } from "./tutorials.ts";
 
 const cssClasses = {
   titleSymbolClass: "material-icons titleSymbol",
@@ -33,9 +32,7 @@ const childrenTotalHeight = function (element) {
 };
 
 const appendTutorialToAccordion = function (
-  title,
-  blurb,
-  lessons,
+  tutorial: Tutorial,
   index,
   clickAction?
 ) {
@@ -65,7 +62,7 @@ const appendTutorialToAccordion = function (
     titlea.tabIndex = 0; // still want focus
     titlea.onclick = clickAction;
   }
-  titlea.innerHTML = title.innerHTML;
+  titlea.innerHTML = tutorial.title.innerHTML;
   titlespan.append(icon, titlea);
   titlespan.style.cursor = "pointer";
 
@@ -80,7 +77,7 @@ const appendTutorialToAccordion = function (
 
   const ul = document.createElement("ul");
   ul.className = cssClasses.innerList;
-  if (blurb) ul.innerHTML = blurb.innerHTML;
+  if (tutorial.blurb) ul.innerHTML = tutorial.blurb.innerHTML;
 
   let heightClosed, heightOpen;
   titlespan.onclick = function () {
@@ -101,10 +98,10 @@ const appendTutorialToAccordion = function (
   };
 
   let li, a;
-  for (let j = 0; j < lessons.length; j++) {
+  for (let j = 0; j < tutorial.lessons.length; j++) {
     li = document.createElement("li");
     a = document.createElement("a");
-    a.innerHTML = lessons[j].title.innerHTML;
+    a.innerHTML = tutorial.lessons[j].title.innerHTML;
     a.href = "#tutorial-" + index + "-" + (j + 1);
     a.target = "_self";
     li.appendChild(a);
@@ -120,20 +117,5 @@ const appendTutorialToAccordion = function (
     el.insertBefore(div, el2);
   }
 };
-
-/*
-const appendLoadTutorialMenuToAccordion = function () {
-  const title = document.createElement("h1");
-  title.innerHTML = "Load Your Own Tutorial";
-  appendTutorialToAccordion(
-    title,
-    uploadTutorialHelp,
-    [],
-    "{loadTutorial}",
-    false,
-    doUptutorialClick
-  );
-};
-*/
 
 export { appendTutorialToAccordion };

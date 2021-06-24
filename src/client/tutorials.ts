@@ -10,6 +10,7 @@ interface Lesson {
 interface Tutorial {
   title?: HTMLElement; // <h1> html element
   blurb?: HTMLElement;
+  clickAction?: any;
   lessons: Lesson[];
   common: HTMLElement[];
 }
@@ -72,6 +73,52 @@ const updateTutorialNav = function () {
     " " + lessonNr + "/" + tutorials[tutorialNr].lessons.length;
 };
 
+const uploadTutorial = function () {
+  if (this.files.length == 0) return;
+  const file = this.files[0];
+  console.log("tutorial " + file.name + " uploaded");
+  const reader = new FileReader();
+  reader.readAsText(file);
+  reader.onload = function (event) {
+    let txt = event.target.result as string;
+    let fileName = file.name;
+    if (fileName.endsWith(".md")) {
+      txt = markdownToHtml(txt);
+      fileName = fileName.substring(0, fileName.length - 3);
+    } else if (fileName.endsWith(".m2")) {
+      txt = m2ToHtml(txt);
+      fileName = fileName.substring(0, fileName.length - 3);
+    } else if (fileName.endsWith(".html"))
+      fileName = fileName.substring(0, fileName.length - 5);
+    fileName = fileName.replace(/\W/g, "");
+    if (fileName.length <= 1) fileName = "tu" + fileName; // kinda random. prevents overwrite default ones
+    // upload to server
+    const req = new XMLHttpRequest();
+    const formData = new FormData();
+    const file1 = new File([txt], fileName + ".html");
+    formData.append("files[]", file1);
+    formData.append("tutorial", "true");
+    req.open("POST", "/upload");
+    req.send(formData);
+
+    const newTutorial = sliceTutorial(txt);
+    //    if (!newTutorial.title) return; // if no title, cancel
+    if (!newTutorial.title) {
+      newTutorial.title = document.createElement("h1"); // if no title...
+      newTutorial.title.innerHTML = fileName;
+    }
+    tutorials[fileName] = newTutorial;
+    if (tutorialNr == fileName) tutorialNr = null; // force reload
+    appendTutorialToAccordion(newTutorial, fileName);
+  };
+  return false;
+};
+
+const tutorialUploadInput = document.createElement("input");
+tutorialUploadInput.setAttribute("type", "file");
+tutorialUploadInput.setAttribute("multiple", "false");
+tutorialUploadInput.addEventListener("change", uploadTutorial, false);
+
 const loadLesson = function (newTutorialNr) {
   const xhr = new XMLHttpRequest();
   xhr.open("GET", "tutorials/" + newTutorialNr + ".html", true);
@@ -80,11 +127,14 @@ const loadLesson = function (newTutorialNr) {
     const render = tutorials[newTutorialNr].render;
     tutorials[newTutorialNr] = sliceTutorial(xhr.responseText);
     appendTutorialToAccordion(
-      tutorials[newTutorialNr].title,
-      tutorials[newTutorialNr].blurb,
-      tutorials[newTutorialNr].lessons,
+      tutorials[newTutorialNr],
       newTutorialNr,
-      newTutorialNr == ntutorials - 1 ? doUptutorialClick : null // TEMP
+      newTutorialNr == ntutorials - 1 // lame
+        ? function (e) {
+            e.stopPropagation();
+            tutorialUploadInput.click();
+          }
+        : null
     );
     if (render) renderLesson();
   };
@@ -156,60 +206,6 @@ const m2ToHtml = function (m2Text) {
   );
 };
 
-const uploadTutorial = function () {
-  if (this.files.length == 0) return;
-  const file = this.files[0];
-  console.log("tutorial " + file.name + " uploaded");
-  const reader = new FileReader();
-  reader.readAsText(file);
-  reader.onload = function (event) {
-    let txt = event.target.result as string;
-    let fileName = file.name;
-    if (fileName.endsWith(".md")) {
-      txt = markdownToHtml(txt);
-      fileName = fileName.substring(0, fileName.length - 3);
-    } else if (fileName.endsWith(".m2")) {
-      txt = m2ToHtml(txt);
-      fileName = fileName.substring(0, fileName.length - 3);
-    } else if (fileName.endsWith(".html"))
-      fileName = fileName.substring(0, fileName.length - 5);
-    fileName = fileName.replace(/\W/g, "");
-    if (fileName.length <= 1) fileName = "tu" + fileName; // kinda random. prevents overwrite default ones
-    // upload to server
-    const req = new XMLHttpRequest();
-    const formData = new FormData();
-    const file1 = new File([txt], fileName + ".html");
-    formData.append("files[]", file1);
-    formData.append("tutorial", "true");
-    req.open("POST", "/upload");
-    req.send(formData);
-
-    const newTutorial = sliceTutorial(txt);
-    //    if (!newTutorial.title) return; // if no title, cancel
-    if (!newTutorial.title) {
-      newTutorial.title = document.createElement("h1"); // if no title...
-      newTutorial.title.innerHTML = fileName;
-    }
-    tutorials[fileName] = newTutorial;
-    if (tutorialNr == fileName) tutorialNr = null; // force reload
-    appendTutorialToAccordion(
-      newTutorial.title,
-      newTutorial.blurb,
-      newTutorial.lessons,
-      fileName
-    );
-  };
-  return false;
-};
-
-const doUptutorialClick = function (e) {
-  e.stopPropagation();
-  const uptute = document.getElementById("uptutorial") as HTMLInputElement;
-  uptute.value = "";
-  uptute.click();
-  return false;
-};
-
 const ntutorials = 6; // weird hard-coding of initial tutorials TODO better
 
 const initTutorials = function () {
@@ -231,4 +227,4 @@ const removeTutorial = function (index) {
   };
 };
 
-export { initTutorials, uploadTutorial, renderLessonMaybe, removeTutorial };
+export { initTutorials, renderLessonMaybe, removeTutorial, Tutorial };

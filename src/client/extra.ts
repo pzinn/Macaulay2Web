@@ -9,7 +9,7 @@ import {
   nextChar,
 } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
-import { initTutorials, uploadTutorial, renderLessonMaybe } from "./tutorials";
+import { initTutorials, renderLessonMaybe } from "./tutorials";
 import { Chat } from "../common/chatClass";
 import {
   escapeKeyHandling,
@@ -274,10 +274,6 @@ const extra1 = function () {
 
   let tab = url.hash;
   initTutorials();
-  const upTutorial = document.getElementById("uptutorial");
-  if (upTutorial) {
-    upTutorial.onchange = uploadTutorial;
-  }
 
   // supersedes mdl's internal tab handling
   const openTab = function () {
@@ -491,12 +487,13 @@ const toggleWrap = function () {
     }
   };
 
+  const fileUploadInput = document.createElement("input");
+  fileUploadInput.setAttribute("type", "file");
+  fileUploadInput.setAttribute("multiple", "true");
+  fileUploadInput.addEventListener("change", uploadFileProcess, false);
+
   const uploadFile = function () {
-    const dialog = document.createElement("input");
-    dialog.setAttribute("type", "file");
-    dialog.setAttribute("multiple", "true");
-    dialog.addEventListener("change", uploadFileProcess, false);
-    dialog.click();
+    fileUploadInput.click();
   };
 
   const loadFileProcess = function (event) {
