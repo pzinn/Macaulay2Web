@@ -1,5 +1,5 @@
 # My Great Tutorial (D. Hilbert)
-## Lesson 1 title
+## Example lesson title
 
 This file is written in a simple markdown format.  After changing it,
 you upload the resulting file via the "LOAD YOUR OWN TUTORIAL" tab
@@ -8,7 +8,7 @@ after they upload it themselves, they can work through your lessons.
 
 The line that begins with # is
 the title for the tutorial.  Lines that begin with ## give the names
-of each lesson.  Latex math, via mathjax, can be used, and Macaulay2
+of each lesson.  Macaulay2
 code that you wish to become buttons should be enclosed by backquotes (	`	) or
 triple backquotes (	```	), as is shown below.
 

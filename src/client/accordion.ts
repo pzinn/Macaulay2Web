@@ -1,4 +1,4 @@
-import uploadTutorialHelp from "./uploadTutorialHelp.txt"; // TODO rethink
+// import uploadTutorialHelp from "./uploadTutorialHelp.txt";
 import { removeTutorial } from "./tutorials.ts";
 
 const cssClasses = {
@@ -14,14 +14,6 @@ const cssClasses = {
   content: "mdl-list__item-text-body mdl-list__item",
   innerList: "unstyled",
   titleHref: "menuTitle mdl-button mdl-js-button mdl-button-raised",
-};
-
-const doUptutorialClick = function (e) {
-  e.stopPropagation();
-  const uptute = document.getElementById("uptutorial") as HTMLInputElement;
-  uptute.value = "";
-  uptute.click();
-  return false;
 };
 
 function totalHeight(element) {
@@ -45,7 +37,6 @@ const appendTutorialToAccordion = function (
   blurb,
   lessons,
   index,
-  deleteButton,
   clickAction?
 ) {
   const id = "accordion-" + index;
@@ -78,19 +69,18 @@ const appendTutorialToAccordion = function (
   titlespan.append(icon, titlea);
   titlespan.style.cursor = "pointer";
 
-  if (deleteButton) {
-    const deleteButton = document.createElement("i");
-    deleteButton.className = "material-icons";
-    deleteButton.textContent = "close";
-    deleteButton.onclick = removeTutorial(index);
-    titlespan.appendChild(deleteButton);
-  }
+  const deleteButton = document.createElement("i");
+  deleteButton.className = "material-icons";
+  deleteButton.textContent = "close";
+  deleteButton.onclick = removeTutorial(index);
+  deleteButton.style.fontSize = "1em";
+  titlespan.appendChild(deleteButton);
 
   div.appendChild(titlespan);
 
   const ul = document.createElement("ul");
   ul.className = cssClasses.innerList;
-  ul.innerHTML = blurb;
+  if (blurb) ul.innerHTML = blurb.innerHTML;
 
   let heightClosed, heightOpen;
   titlespan.onclick = function () {
@@ -131,6 +121,7 @@ const appendTutorialToAccordion = function (
   }
 };
 
+/*
 const appendLoadTutorialMenuToAccordion = function () {
   const title = document.createElement("h1");
   title.innerHTML = "Load Your Own Tutorial";
@@ -143,5 +134,6 @@ const appendLoadTutorialMenuToAccordion = function () {
     doUptutorialClick
   );
 };
+*/
 
-export { appendTutorialToAccordion, appendLoadTutorialMenuToAccordion };
+export { appendTutorialToAccordion };
