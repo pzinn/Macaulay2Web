@@ -196,9 +196,8 @@ const uploadTutorial = function () {
       newTutorial.title,
       newTutorial.blurb,
       newTutorial.lessons,
-      fileName,
-      true
-    ); // last arg = delete button
+      fileName
+    );
   };
   return false;
 };
