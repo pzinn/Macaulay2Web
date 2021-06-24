@@ -56,7 +56,18 @@ Other recognized markdown includes:
 
 Caveat: markdown conversion can interfere with (Ka)TeX code.
 
-## HTML lessons
-You can also upload html lessons, using <title> (or <h1>) for the title. Each page should be one <div>.
-For consistency of style, it is advised to
-start each page with a title with tag <h2>.
+## Other accepted formats
+
+### HTML lessons
+You can also upload lessons directly in HTML (file name with a .html extension). This offers the most flexibility since
+no translation is performed except the following.
+
+The <title> tag is the title of the tutorial.
+If no <title> is given, the first element at top level is picked as the title (<h1> is a good choice).
+Every <div> at top level is a page (lesson) in the tutorial. The first element of the <div> is the title of the page
+(<h2> is a good choice). Every non <div> top level element will appear at the start of every lesson.
+
+
+### M2 files
+You can directly upload a Macaulay2 file (file name with a .m2 extension). This offers the least flexibility,
+as code is simply displayed as a single page.

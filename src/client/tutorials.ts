@@ -13,32 +13,32 @@ interface Lesson {
 interface Tutorial {
   title?: HTMLElement; // <h2> html element
   lessons: Lesson[];
+  common: HTMLElement[];
 }
 
 const sliceTutorial = function (theHtml: string) {
-  const tutorial: Tutorial = { lessons: [] };
+  const tutorial: Tutorial = { lessons: [], common: [] };
   const el = document.createElement("div");
   el.innerHTML = theHtml;
   const children = el.children;
   for (let i = 0; i < children.length; i++) {
     if (children[i].tagName == "TITLE") {
-      // rethink TODO
-      tutorial.title = document.createElement("h1");
-      tutorial.title.innerHTML = children[i].innerHTML;
-    } else if (!tutorial.title && children[i].tagName == "H1") {
       tutorial.title = children[i] as HTMLElement;
-    } else if (
-      children[i].tagName == "DIV" &&
-      children[i].childElementCount > 0
-    ) {
-      const lessonTitle = children[i].firstElementChild; // rethink TODO
-      autoRender(lessonTitle);
-      tutorial.lessons.push({
-        title: lessonTitle as HTMLElement,
-        html: children[i] as HTMLElement,
-      });
-    }
+    } else if (children[i].tagName == "DIV") {
+      // lessons should be top-level div
+      if (children[i].childElementCount > 0) {
+        const lessonTitle = children[i].firstElementChild;
+        autoRender(lessonTitle);
+        tutorial.lessons.push({
+          title: lessonTitle as HTMLElement,
+          html: children[i] as HTMLElement,
+        });
+      }
+    } else tutorial.common.push(children[i] as HTMLElement); // rest is common stuff
   }
+  if (!tutorial.title && el.firstElementChild.tagName != "DIV")
+    // first child declared as title
+    tutorial.title = el.firstElementChild as HTMLElement;
   return tutorial;
 };
 
@@ -117,10 +117,10 @@ const renderLesson = function (): void {
   if (lessonNr < 1 || lessonNr > tutorials[tutorialNr].lessons.length)
     lessonNr = 1;
   const lessonContent = tutorials[tutorialNr].lessons[lessonNr - 1].html;
-  const title = tutorials[tutorialNr].title;
+  const common = tutorials[tutorialNr].common;
   const lesson = document.getElementById("lesson");
   lesson.innerHTML = "";
-  lesson.append(title, lessonContent);
+  lesson.append(...common, lessonContent);
   lesson.scrollTop = 0;
   // should we syntax highlight tutorials?
 
@@ -133,6 +133,29 @@ const markdownToHtml = function (markdownText) {
   return txt.replace("</h1>", "</h1><div>").replace(/<h2>/g, "</div><div><h2>");
 };
 
+const m2ToHtml = function (m2Text) {
+  return (
+    "<div>" +
+    escapeHTML(m2Text)
+      .split("\n")
+      .map(function (line) {
+        line = line.trim();
+        if (line == "") return "<br/>";
+        if (line.startsWith("--")) return line + "<br/>";
+        let i1 = line.indexOf("--");
+        if (i1 < 0) i1 = line.length;
+        return (
+          "<code>" +
+          line.substring(0, i1) +
+          "</code>" +
+          line.substring(i1, line.length)
+        );
+      })
+      .join("") +
+    "</div>"
+  );
+};
+
 const uploadTutorial = function () {
   if (this.files.length == 0) return;
   const file = this.files[0];
@@ -142,10 +165,13 @@ const uploadTutorial = function () {
   reader.onload = function (event) {
     let txt = event.target.result as string;
     let fileName = file.name;
-    if (fileName.substr(-3) == ".md") {
-      txt = markdownToHtml(txt); // by default, assume html
+    if (fileName.endsWith(".md")) {
+      txt = markdownToHtml(txt);
       fileName = fileName.substring(0, fileName.length - 3);
-    } else if (fileName.substr(-5) == ".html")
+    } else if (fileName.endsWith(".m2")) {
+      txt = m2ToHtml(txt);
+      fileName = fileName.substring(0, fileName.length - 3);
+    } else if (fileName.endsWith(".html"))
       fileName = fileName.substring(0, fileName.length - 5);
     fileName = fileName.replace(/\W/g, "");
     if (fileName.length <= 1) fileName = "tu" + fileName; // kinda random. prevents overwrite default ones
@@ -159,7 +185,11 @@ const uploadTutorial = function () {
     req.send(formData);
 
     const newTutorial = sliceTutorial(txt);
-    if (!newTutorial.title) return; // if no title, cancel
+    //    if (!newTutorial.title) return; // if no title, cancel
+    if (!newTutorial.title) {
+      newTutorial.title = document.createElement("h1"); // if no title...
+      newTutorial.title.innerHTML = fileName;
+    }
     tutorials[fileName] = newTutorial;
     if (tutorialNr == fileName) tutorialNr = null; // force reload
     appendTutorialToAccordion(
