@@ -3,8 +3,8 @@
 
 This file is written in a simple markdown format.  After changing it,
 you upload the resulting file via the "LOAD YOUR OWN TUTORIAL" tab
-from the home page.  Give your modfied file to your students, and
-after they upload it themselves, they can work through your lessons.
+from the home page.  Give your modfied file to your students for them to upload (or just give them the URL)
+so they can work through your lessons.
 
 The line that begins with # is
 the title for the tutorial.  Lines that begin with ## give the names
