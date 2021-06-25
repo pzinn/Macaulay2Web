@@ -191,15 +191,8 @@ const m2ToHtml = function (m2Text) {
       .map(function (line) {
         line = line.trim();
         if (line == "") return "<br/>";
-        if (line.startsWith("--")) return line + "<br/>";
-        let i1 = line.indexOf("--");
-        if (i1 < 0) i1 = line.length;
-        return (
-          "<code>" +
-          line.substring(0, i1) +
-          "</code>" +
-          line.substring(i1, line.length)
-        );
+        if (line.startsWith("--")) return line.substring(2) + "<br/>";
+        return "<code>" + line + "</code>";
       })
       .join("") +
     "</div>"
@@ -216,7 +209,6 @@ const initTutorials = function () {
     tutorials[i] = { render: false };
     loadLesson(i);
   }
-  //  appendLoadTutorialMenuToAccordion();
 };
 
 const removeTutorial = function (index) {
