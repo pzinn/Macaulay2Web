@@ -1,4 +1,4 @@
-import { appendTutorialToAccordion } from "./accordion";
+import { initAccordion, appendTutorialToAccordion } from "./accordion";
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 
@@ -37,7 +37,11 @@ const sliceTutorial = function (theHtml: string) {
       }
     } else tutorial.common.push(children[i] as HTMLElement); // rest is common stuff
   }
-  if (!tutorial.title && el.firstElementChild.tagName != "DIV")
+  if (
+    !tutorial.title &&
+    el.firstElementChild &&
+    el.firstElementChild.tagName != "DIV"
+  )
     // first child declared as title
     tutorial.title = el.firstElementChild as HTMLElement;
   return tutorial;
@@ -91,7 +95,7 @@ const uploadTutorial = function () {
     } else if (fileName.endsWith(".html"))
       fileName = fileName.substring(0, fileName.length - 5);
     fileName = fileName.replace(/\W/g, "");
-    if (fileName.length <= 1) fileName = "tu" + fileName; // kinda random. prevents overwrite default ones
+    if (startingTutorials.indexOf(fileName) >= 0) fileName = fileName + "1"; // prevents overwriting default ones
     // upload to server
     const req = new XMLHttpRequest();
     const formData = new FormData();
@@ -109,6 +113,7 @@ const uploadTutorial = function () {
     }
     tutorials[fileName] = newTutorial;
     if (tutorialNr == fileName) tutorialNr = null; // force reload
+    initAccordion(fileName);
     appendTutorialToAccordion(newTutorial, fileName);
   };
   return false;
@@ -120,16 +125,20 @@ tutorialUploadInput.setAttribute("multiple", "false");
 tutorialUploadInput.addEventListener("change", uploadTutorial, false);
 
 const loadLesson = function (newTutorialNr) {
+  initAccordion(newTutorialNr); // reserve a slot, for ordering purposes
   const xhr = new XMLHttpRequest();
-  xhr.open("GET", "tutorials/" + newTutorialNr + ".html", true);
   xhr.onload = function () {
+    if (xhr.status != 200) {
+      console.log("tutorial " + newTutorialNr + " failed to load");
+      return;
+    }
     console.log("tutorial " + newTutorialNr + " loaded");
     const render = tutorials[newTutorialNr].render;
     tutorials[newTutorialNr] = sliceTutorial(xhr.responseText);
     appendTutorialToAccordion(
       tutorials[newTutorialNr],
       newTutorialNr,
-      newTutorialNr == ntutorials - 1 // lame
+      newTutorialNr == "load" // lame
         ? function (e) {
             e.stopPropagation();
             tutorialUploadInput.click();
@@ -138,12 +147,13 @@ const loadLesson = function (newTutorialNr) {
     );
     if (render) renderLesson();
   };
+  xhr.open("GET", "tutorials/" + newTutorialNr + ".html", true);
   xhr.send(null);
 };
 
 const renderLessonMaybe = function (newTutorialNr?, newLessonNr?): void {
   if (newTutorialNr === undefined)
-    newTutorialNr = tutorialNr ? tutorialNr : "0";
+    newTutorialNr = tutorialNr ? tutorialNr : startingTutorials[0];
   newLessonNr =
     newLessonNr === undefined
       ? newTutorialNr === tutorialNr
@@ -199,15 +209,23 @@ const m2ToHtml = function (m2Text) {
   );
 };
 
-const ntutorials = 6; // weird hard-coding of initial tutorials TODO better
+const startingTutorials = [
+  "welcome",
+  "basic",
+  "groebner",
+  "math",
+  "interface",
+  "load",
+];
+// weird hard-coding of initial tutorials TODO better
 
 const initTutorials = function () {
   tutorialNr = null;
   lessonNr = 1;
 
-  for (let i = 0; i < ntutorials; i++) {
-    tutorials[i] = { render: false };
-    loadLesson(i);
+  for (const tute of startingTutorials) {
+    tutorials[tute] = { render: false };
+    loadLesson(tute);
   }
 };
 

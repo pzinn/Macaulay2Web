@@ -15,6 +15,14 @@ const cssClasses = {
   titleHref: "menuTitle mdl-button mdl-js-button mdl-button-raised",
 };
 
+const initAccordion = function (index) {
+  const id = "accordion-" + index;
+  if (document.getElementById(id)) return;
+  const div = document.createElement("div");
+  div.id = id;
+  document.getElementById("accordion").appendChild(div);
+};
+
 function totalHeight(element) {
   const height = element.offsetHeight,
     style = window.getComputedStyle(element);
@@ -37,8 +45,7 @@ const appendTutorialToAccordion = function (
   clickAction?
 ) {
   const id = "accordion-" + index;
-  const olddiv = document.getElementById(id);
-  const div = olddiv ? olddiv : document.createElement("div");
+  const div = document.getElementById(id);
   div.innerHTML = "";
   div.id = id;
   div.style.overflow = "hidden";
@@ -109,13 +116,6 @@ const appendTutorialToAccordion = function (
   }
   ul.style.display = "none";
   div.appendChild(ul);
-
-  if (!olddiv) {
-    const el = document.getElementById("accordion");
-    let el2 = el.firstElementChild;
-    while (el2 && el2.id < id) el2 = el2.nextElementSibling;
-    el.insertBefore(div, el2);
-  }
 };
 
-export { appendTutorialToAccordion };
+export { initAccordion, appendTutorialToAccordion };
