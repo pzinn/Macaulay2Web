@@ -1,4 +1,4 @@
-import { Instance } from "./instance";
+// import { Instance } from "./instance";
 
 interface InstanceManager {
   getNewInstance(clientId: string, next: any);

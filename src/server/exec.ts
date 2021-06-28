@@ -14,7 +14,7 @@ const execInInstance = function (client: Client, cmd: string, next) {
       }
       let out = "";
       stream
-        .on("close", (code, signal) => {
+        .on("close", () => {
           logger.info("successfully executed " + cmd);
           sshConnection.end();
           next(out);

@@ -123,14 +123,17 @@ tutorialUploadInput.setAttribute("multiple", "false");
 tutorialUploadInput.addEventListener("change", uploadTutorial, false);
 
 const loadTutorial = function (newTutorialIndex, newLessonNr) {
-  initAccordion(newTutorialIndex); // reserve a slot, for ordering purposes
+  initAccordion(newTutorialIndex); // reserve a slot in the accordion, for ordering purposes
+  tutorials[newTutorialIndex] = { lessonNr: newLessonNr }; // reserve a slot in the list
   const xhr = new XMLHttpRequest();
   xhr.onload = function () {
     if (xhr.status != 200) {
       console.log("tutorial " + newTutorialIndex + " failed to load");
+      delete tutorials[newTutorialIndex];
       return;
     }
     console.log("tutorial " + newTutorialIndex + " loaded");
+    newLessonNr = tutorials[newTutorialIndex].lessonNr; // in case it was updated
     tutorials[newTutorialIndex] = sliceTutorial(xhr.responseText);
     appendTutorialToAccordion(
       tutorials[newTutorialIndex],
@@ -159,21 +162,22 @@ const renderLessonMaybe = function (newTutorialIndex?, newLessonNr?): void {
       : +newLessonNr;
   if (tutorialIndex === newTutorialIndex && lessonNr === newLessonNr) return;
   if (!tutorials[newTutorialIndex]) loadTutorial(newTutorialIndex, newLessonNr);
-  else if (tutorials[newTutorialIndex].lessons)
-    // if not, being loaded
-    renderLesson(newTutorialIndex, newLessonNr);
+  else if (tutorials[newTutorialIndex].lessonNr !== undefined)
+    // being loaded
+    tutorials[newTutorialIndex].lessonNr = newLessonNr;
+  else renderLesson(newTutorialIndex, newLessonNr);
 };
 
 const renderLesson = function (newTutorialIndex, newLessonNr): void {
   tutorialIndex = newTutorialIndex;
   lessonNr = newLessonNr;
+  const lesson = document.getElementById("lesson");
+  lesson.innerHTML = "";
   if (tutorials[tutorialIndex].lessons.length == 0) return;
   if (lessonNr < 1 || lessonNr > tutorials[tutorialIndex].lessons.length)
     lessonNr = 1;
   const lessonContent = tutorials[tutorialIndex].lessons[lessonNr - 1].html;
   const common = tutorials[tutorialIndex].common;
-  const lesson = document.getElementById("lesson");
-  lesson.innerHTML = "";
   lesson.append(...common, lessonContent);
   lesson.scrollTop = 0;
   // should we syntax highlight tutorials?
