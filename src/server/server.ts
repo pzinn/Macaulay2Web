@@ -498,11 +498,6 @@ const checkAndWrite = function (client: Client, msg: string) {
   }
 };
 
-const checkClientSane = function (client: Client) {
-  logClient(client, "Checking sanity: " + client.saneState);
-  return client.saneState;
-};
-
 const socketInputAction = function (socket: SocketIO.Socket, client: Client) {
   return function (msg: string) {
     logClient(client, "Receiving input: " + short(msg));

@@ -50,7 +50,7 @@ const sliceTutorial = function (theHtml: string) {
 const tutorials = {};
 
 let lessonNr: number;
-let tutorialNr: string | null;
+let tutorialIndex: string | null;
 
 const updateTutorialNav = function () {
   const prevBtn = document.getElementById("prevBtn") as HTMLButtonElement;
@@ -58,23 +58,25 @@ const updateTutorialNav = function () {
   if (lessonNr > 1) {
     prevBtn.disabled = false;
     prevBtn.onclick = function () {
-      document.location.hash = "tutorial-" + tutorialNr + "-" + (lessonNr - 1);
+      document.location.hash =
+        "tutorial-" + tutorialIndex + "-" + (lessonNr - 1);
     };
   } else {
     prevBtn.disabled = true;
     prevBtn.onclick = null;
   }
-  if (lessonNr < tutorials[tutorialNr].lessons.length) {
+  if (lessonNr < tutorials[tutorialIndex].lessons.length) {
     nextBtn.disabled = false;
     nextBtn.onclick = function () {
-      document.location.hash = "tutorial-" + tutorialNr + "-" + (lessonNr + 1);
+      document.location.hash =
+        "tutorial-" + tutorialIndex + "-" + (lessonNr + 1);
     };
   } else {
     nextBtn.disabled = true;
     nextBtn.onclick = null;
   }
   document.getElementById("lessonNr").innerHTML =
-    " " + lessonNr + "/" + tutorials[tutorialNr].lessons.length;
+    " " + lessonNr + "/" + tutorials[tutorialIndex].lessons.length;
 };
 
 const uploadTutorial = function () {
@@ -107,12 +109,8 @@ const uploadTutorial = function () {
 
     const newTutorial = sliceTutorial(txt);
     //    if (!newTutorial.title) return; // if no title, cancel
-    if (!newTutorial.title) {
-      newTutorial.title = document.createElement("h1"); // if no title...
-      newTutorial.title.innerHTML = fileName;
-    }
     tutorials[fileName] = newTutorial;
-    if (tutorialNr == fileName) tutorialNr = null; // force reload
+    if (tutorialIndex == fileName) tutorialIndex = null; // force reload
     initAccordion(fileName);
     appendTutorialToAccordion(newTutorial, fileName);
   };
@@ -124,56 +122,56 @@ tutorialUploadInput.setAttribute("type", "file");
 tutorialUploadInput.setAttribute("multiple", "false");
 tutorialUploadInput.addEventListener("change", uploadTutorial, false);
 
-const loadLesson = function (newTutorialNr, newLessonNr) {
-  initAccordion(newTutorialNr); // reserve a slot, for ordering purposes
+const loadTutorial = function (newTutorialIndex, newLessonNr) {
+  initAccordion(newTutorialIndex); // reserve a slot, for ordering purposes
   const xhr = new XMLHttpRequest();
   xhr.onload = function () {
     if (xhr.status != 200) {
-      console.log("tutorial " + newTutorialNr + " failed to load");
+      console.log("tutorial " + newTutorialIndex + " failed to load");
       return;
     }
-    console.log("tutorial " + newTutorialNr + " loaded");
-    tutorials[newTutorialNr] = sliceTutorial(xhr.responseText);
+    console.log("tutorial " + newTutorialIndex + " loaded");
+    tutorials[newTutorialIndex] = sliceTutorial(xhr.responseText);
     appendTutorialToAccordion(
-      tutorials[newTutorialNr],
-      newTutorialNr,
-      newTutorialNr == "load" // load tutorial is special
+      tutorials[newTutorialIndex],
+      newTutorialIndex,
+      newTutorialIndex == "load" // load tutorial is special
         ? function (e) {
             e.stopPropagation();
             tutorialUploadInput.click();
           }
         : null
     );
-    if (newLessonNr) renderLesson(newTutorialNr, newLessonNr);
+    if (newLessonNr) renderLesson(newTutorialIndex, newLessonNr);
   };
-  xhr.open("GET", "tutorials/" + newTutorialNr + ".html", true);
+  xhr.open("GET", "tutorials/" + newTutorialIndex + ".html", true);
   xhr.send(null);
 };
 
-const renderLessonMaybe = function (newTutorialNr?, newLessonNr?): void {
-  if (newTutorialNr === undefined)
-    newTutorialNr = tutorialNr ? tutorialNr : startingTutorials[0];
+const renderLessonMaybe = function (newTutorialIndex?, newLessonNr?): void {
+  if (newTutorialIndex === undefined)
+    newTutorialIndex = tutorialIndex ? tutorialIndex : startingTutorials[0];
   newLessonNr =
     newLessonNr === undefined
-      ? newTutorialNr === tutorialNr
+      ? newTutorialIndex === tutorialIndex
         ? lessonNr
         : 1
       : +newLessonNr;
-  if (tutorialNr === newTutorialNr && lessonNr === newLessonNr) return;
-  if (!tutorials[newTutorialNr]) loadLesson(newTutorialNr, newLessonNr);
-  else if (tutorials[newTutorialNr].lessons)
+  if (tutorialIndex === newTutorialIndex && lessonNr === newLessonNr) return;
+  if (!tutorials[newTutorialIndex]) loadTutorial(newTutorialIndex, newLessonNr);
+  else if (tutorials[newTutorialIndex].lessons)
     // if not, being loaded
-    renderLesson(newTutorialNr, newLessonNr);
+    renderLesson(newTutorialIndex, newLessonNr);
 };
 
-const renderLesson = function (newTutorialNr, newLessonNr): void {
-  tutorialNr = newTutorialNr;
+const renderLesson = function (newTutorialIndex, newLessonNr): void {
+  tutorialIndex = newTutorialIndex;
   lessonNr = newLessonNr;
-  if (tutorials[tutorialNr].lessons.length == 0) return;
-  if (lessonNr < 1 || lessonNr > tutorials[tutorialNr].lessons.length)
+  if (tutorials[tutorialIndex].lessons.length == 0) return;
+  if (lessonNr < 1 || lessonNr > tutorials[tutorialIndex].lessons.length)
     lessonNr = 1;
-  const lessonContent = tutorials[tutorialNr].lessons[lessonNr - 1].html;
-  const common = tutorials[tutorialNr].common;
+  const lessonContent = tutorials[tutorialIndex].lessons[lessonNr - 1].html;
+  const common = tutorials[tutorialIndex].common;
   const lesson = document.getElementById("lesson");
   lesson.innerHTML = "";
   lesson.append(...common, lessonContent);
@@ -216,10 +214,10 @@ const startingTutorials = [
 // weird hard-coding of initial tutorials TODO better
 
 const initTutorials = function () {
-  tutorialNr = null;
+  tutorialIndex = null;
   lessonNr = 1;
 
-  for (const tute of startingTutorials) loadLesson(tute, 0);
+  for (const tute of startingTutorials) loadTutorial(tute, 0); // zero means don't render
 };
 
 const removeTutorial = function (index) {
