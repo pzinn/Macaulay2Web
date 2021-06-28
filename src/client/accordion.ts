@@ -69,7 +69,7 @@ const appendTutorialToAccordion = function (
     titlea.tabIndex = 0; // still want focus
     titlea.onclick = clickAction;
   }
-  titlea.innerHTML = tutorial.title.innerHTML;
+  titlea.innerHTML = tutorial.title ? tutorial.title.innerHTML : index; // use index as default title
   titlespan.append(icon, titlea);
   titlespan.style.cursor = "pointer";
 
