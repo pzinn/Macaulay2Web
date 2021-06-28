@@ -117,7 +117,7 @@ const mdToHTML = function (src, sep, doublesep) {
       // special
       if (i >= 0 && patterns[i].linetag === null) {
         i = -1;
-        s = "";
+        s = null;
       } else {
         i = oldi;
         x = null;
@@ -141,7 +141,7 @@ const mdToHTML = function (src, sep, doublesep) {
             patterns[i].linetag(x) +
             ">"
           : patterns[i].proc(s, x);
-    } else if (s != "" || !doublesep) {
+    } else if (s != null && (s != "" || !doublesep)) {
       if (doublesep && !doublesepopen) {
         res += "<" + doublesep + ">";
         doublesepopen = true;

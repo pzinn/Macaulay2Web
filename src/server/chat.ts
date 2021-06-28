@@ -94,12 +94,21 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
     safeEmit(io, "chat", chat);
   };
   const chatRun = function (chat: Chat) {
-    execInInstance(client, decode(chat.message).substring(1), function (out) {
-      chat.recipients = null;
-      chat.index = chatCounter++;
-      if (out) chat.message += "\n```sh\n" + encode(out) + "```";
-      safeEmit(socket, "chat", chat);
-    });
+    execInInstance(
+      client,
+      decode(chat.message.replace("<br>", "\n")).substring(1),
+      function (out) {
+        chat.recipients = null;
+        chat.index = chatCounter++;
+        chat.message =
+          "```sh\n" +
+          chat.message.substring(1) +
+          "\n```\n```sh\n" +
+          encode(out) +
+          "```";
+        safeEmit(socket, "chat", chat);
+      }
+    );
   };
   const chatAdmin = function (chat: Chat) {
     chat.recipients = null;
