@@ -13,10 +13,11 @@ module.exports = {
     // Place to specify ESLint rules. Can be used to overwrite rules specified from the extended configs
       // e.g. "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/interface-name-prefix": "off",
-      "@typescript-eslint/no-var-requires": "warn",
-      "@typescript-eslint/no-use-before-define": "warn",
+//      "@typescript-eslint/no-var-requires": "warn",
+      "@typescript-eslint/no-use-before-define": "off",
       "@typescript-eslint/no-this-alias": "warn",
       "@typescript-eslint/explicit-function-return-type": "off",
-      "@typescript-eslint/no-var-requires": "off"
+      "@typescript-eslint/no-var-requires": "off",
+      "@typescript-eslint/no-explicit-any": "off"
   }
 };
