@@ -124,7 +124,7 @@ tutorialUploadInput.setAttribute("type", "file");
 tutorialUploadInput.setAttribute("multiple", "false");
 tutorialUploadInput.addEventListener("change", uploadTutorial, false);
 
-const loadLesson = function (newTutorialNr) {
+const loadLesson = function (newTutorialNr, newLessonNr) {
   initAccordion(newTutorialNr); // reserve a slot, for ordering purposes
   const xhr = new XMLHttpRequest();
   xhr.onload = function () {
@@ -133,19 +133,18 @@ const loadLesson = function (newTutorialNr) {
       return;
     }
     console.log("tutorial " + newTutorialNr + " loaded");
-    const render = tutorials[newTutorialNr].render;
     tutorials[newTutorialNr] = sliceTutorial(xhr.responseText);
     appendTutorialToAccordion(
       tutorials[newTutorialNr],
       newTutorialNr,
-      newTutorialNr == "load" // lame
+      newTutorialNr == "load" // load tutorial is special
         ? function (e) {
             e.stopPropagation();
             tutorialUploadInput.click();
           }
         : null
     );
-    if (render) renderLesson();
+    if (newLessonNr) renderLesson(newTutorialNr, newLessonNr);
   };
   xhr.open("GET", "tutorials/" + newTutorialNr + ".html", true);
   xhr.send(null);
@@ -161,18 +160,15 @@ const renderLessonMaybe = function (newTutorialNr?, newLessonNr?): void {
         : 1
       : +newLessonNr;
   if (tutorialNr === newTutorialNr && lessonNr === newLessonNr) return;
-  tutorialNr = newTutorialNr;
-  lessonNr = newLessonNr;
-  if (!tutorials[tutorialNr]) {
-    tutorials[tutorialNr] = { render: true };
-    loadLesson(tutorialNr);
-  } else if (!tutorials[tutorialNr].lessons)
-    tutorials[tutorialNr].render = true;
-  // being loaded
-  else renderLesson();
+  if (!tutorials[newTutorialNr]) loadLesson(newTutorialNr, newLessonNr);
+  else if (tutorials[newTutorialNr].lessons)
+    // if not, being loaded
+    renderLesson(newTutorialNr, newLessonNr);
 };
 
-const renderLesson = function (): void {
+const renderLesson = function (newTutorialNr, newLessonNr): void {
+  tutorialNr = newTutorialNr;
+  lessonNr = newLessonNr;
   if (tutorials[tutorialNr].lessons.length == 0) return;
   if (lessonNr < 1 || lessonNr > tutorials[tutorialNr].lessons.length)
     lessonNr = 1;
@@ -223,10 +219,7 @@ const initTutorials = function () {
   tutorialNr = null;
   lessonNr = 1;
 
-  for (const tute of startingTutorials) {
-    tutorials[tute] = { render: false };
-    loadLesson(tute);
-  }
+  for (const tute of startingTutorials) loadLesson(tute, 0);
 };
 
 const removeTutorial = function (index) {
