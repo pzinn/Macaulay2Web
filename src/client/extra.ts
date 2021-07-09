@@ -295,17 +295,19 @@ const extra1 = function () {
     const panel = document.getElementById(loc);
     if (panel) {
       const tab = document.getElementById(loc + "Title");
-      if (tabs.MaterialTabs) {
-        tabs.MaterialTabs.resetPanelState_();
-        tabs.MaterialTabs.resetTabState_();
-      }
-      panel.classList.add("is-active");
-      tab.classList.add("is-active");
-      if (loc == "chat") {
-        tab.removeAttribute("data-message");
-        // scroll. sadly, doesn't work if started with #chat
-        const ul = document.getElementById("chatMessages");
-        scrollDown(ul);
+      if (tab) {
+        if (tabs.MaterialTabs) {
+          tabs.MaterialTabs.resetPanelState_();
+          tabs.MaterialTabs.resetTabState_();
+        }
+        panel.classList.add("is-active");
+        tab.classList.add("is-active");
+        if (loc == "chat") {
+          tab.removeAttribute("data-message");
+          // scroll. sadly, doesn't work if started with #chat
+          const ul = document.getElementById("chatMessages");
+          scrollDown(ul);
+        }
       }
     }
   };

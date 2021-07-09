@@ -76,7 +76,9 @@ const updateTutorialNav = function () {
     nextBtn.onclick = null;
   }
   document.getElementById("lessonNr").innerHTML =
-    " " + lessonNr + "/" + tutorials[tutorialIndex].lessons.length;
+    tutorials[tutorialIndex].lessons.length == 0
+      ? ""
+      : " " + lessonNr + "/" + tutorials[tutorialIndex].lessons.length;
 };
 
 const uploadTutorial = function () {
@@ -89,7 +91,7 @@ const uploadTutorial = function () {
     let txt = event.target.result as string;
     let fileName = file.name;
     if (fileName.endsWith(".md")) {
-      txt = markdownToHtml(txt);
+      txt = markdownToHTML(txt);
       fileName = fileName.substring(0, fileName.length - 3);
     } else if (fileName.endsWith(".m2")) {
       txt = m2ToHtml(txt);
@@ -114,7 +116,8 @@ const uploadTutorial = function () {
     initAccordion(fileName);
     appendTutorialToAccordion(newTutorial, fileName);
   };
-  return false;
+  tutorialUploadInput.value = "";
+  return;
 };
 
 const tutorialUploadInput = document.createElement("input");
@@ -173,12 +176,12 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
   lessonNr = newLessonNr;
   const lesson = document.getElementById("lesson");
   lesson.innerHTML = "";
-  if (tutorials[tutorialIndex].lessons.length == 0) return;
-  if (lessonNr < 1 || lessonNr > tutorials[tutorialIndex].lessons.length)
-    lessonNr = 1;
-  const lessonContent = tutorials[tutorialIndex].lessons[lessonNr - 1].html;
-  const common = tutorials[tutorialIndex].common;
-  lesson.append(...common, lessonContent);
+  if (lessonNr > tutorials[tutorialIndex].lessons.length)
+    lessonNr = tutorials[tutorialIndex].lessons.length;
+  else if (lessonNr < 1) lessonNr = 1;
+  lesson.append(...tutorials[tutorialIndex].common);
+  if (tutorials[tutorialIndex].lessons.length > 0)
+    lesson.appendChild(tutorials[tutorialIndex].lessons[lessonNr - 1].html);
   lesson.scrollTop = 0;
   // should we syntax highlight tutorials?
 
@@ -186,7 +189,7 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
   updateTutorialNav();
 };
 
-const markdownToHtml = function (markdownText) {
+const markdownToHTML = function (markdownText) {
   const txt = mdToHTML(escapeHTML(markdownText), null, "p");
   return txt.replace("</h1>", "</h1><div>").replace(/<h2>/g, "</div><div><h2>");
 };

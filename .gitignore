@@ -10,7 +10,7 @@ public/renderhelp.js.LICENSE.txt
 public/fonts
 public/VectorGraphics.js
 public/users.htpasswd
-public/user*
+public/*-files
 src/client/css/katex*
 src/client/css/VectorGraphics*
 src/client/css/material*
