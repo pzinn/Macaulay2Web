@@ -182,7 +182,7 @@ const Shell = function (
   obj.addToEditor = function (msg) {
     // add command to editor area
     if (typeof msg !== "undefined") {
-      if (editor !== null) {
+      if (editor !== null && editor.contentEditable == "true") {
         const span = document.createElement("span");
         span.innerHTML = Prism.highlight(msg, Prism.languages.macaulay2);
         editor.appendChild(span);

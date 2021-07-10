@@ -98,7 +98,8 @@ const appendTutorialToAccordion = function (
       titlespan.classList.remove(cssClasses.titleToggleClass);
       div.style.height = heightClosed + "px";
       setTimeout(function () {
-        nav.style.display = "none"; // minor: prevents tabbing to closed menu items
+        if (!titlespan.classList.contains(cssClasses.titleToggleClass))
+          nav.style.display = "none"; // minor: prevents tabbing to closed menu items
       }, 500);
     } else {
       // closed -> open
