@@ -59,14 +59,13 @@ Caveat: markdown conversion can interfere with (Ka)TeX code.
 ## Other accepted formats
 
 ### HTML lessons
+All tutorials are ultimately converted to HTML.
 You can also upload lessons directly in HTML (file name with a .html extension). This offers the most flexibility since
-no translation is performed except the following.
-
-The <title> tag is the title of the tutorial.
-If no <title> is given, the first element at top level is picked as the title (<h1> is a good choice).
-Every <div> at top level is a page (lesson) in the tutorial. The first element of the <div> is the title of the page
-(<h2> is a good choice). Every non <div> top level element will appear at the start of every lesson.
-
+no translation is performed except the following:
+* The <title> tag (or the <header> if the former is absent) is used as title of the tutorial.
+* Every <section> is a page (lesson) in the tutorial.
+The first element of the <section> is the title of the page
+(<h2> is a good choice). All content outside <section> will appear in every lesson.
 
 ### M2 files
 You can directly upload a Macaulay2 file (file name with a .m2 extension). This offers the least flexibility,

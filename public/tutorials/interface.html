@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
   <body>
-    <h5 style="text-decoration:underline;">More on the interface: the WebApp mode</h5>
-    <div>
+    <header style="text-decoration:underline;">
+      More on the interface: the WebApp mode
+    </header>
+    <section>
       <h2>Introduction</h2>
       <p>If you've used previously the &ldquo;<a href="http://habanero.math.cornell.edu:3690/">habanero</a>&rdquo; server, you should recognize much of the interface. If not, the <a href="#tutorial-welcome">welcome tutorial</a> can help.
       </p>
@@ -11,8 +13,8 @@
 	(If you're nostalgic, you can always revert to <code class='inline'>topLevelMode=Standard</code> for your usual terminal/ascii output.)
       </p>
       <p>The next few pages are meant for package developers or advanced users who wish to understand how to make the output of their programs look nice in WebApp mode.</p>
-    </div>
-    <div>
+    </section>
+    <section>
       <h2>KaTeX</h2>
       <p>By default, all mathematical output is processed by the \(\mac\) command <tt>texMath</tt> and then rendered to the browser using <a href="https://katex.org/">KaTeX</a>:
 	<code>matrix table(5,5,(i,j)->i*j)</code>
@@ -36,8 +38,8 @@
       </p>
       <!--      <p><small><i>Remark:</i> In future versions of \(\mac\), it may not even be needed to write <tt>texMath MyType := x -> texMath expression x</tt>
 		and similarly for other outputs. Stay tuned!</small></p> -->
-    </div>
-    <div>
+    </section>
+    <section>
       <h2>HTML and Hypertext</h2>
       <p>Being a web interface, this interface has native support for HTML output.</p>
       <p>
@@ -72,8 +74,8 @@
 	<code>style( SPAN { "hello" }, "font-weight" => "bold" )</code>
 	<code>style( IMG { "src"=>"http://www.lpthe.jussieu.fr/~pzinn/M2.jpg" }, "width" => "10em" )</code>
       </p>
-    </div>
-    <div>
+    </section>
+    <section>
       <h2>VectorGraphics</h2>
       <p>
 	Another type of HTML item is available: <tt>SVG</tt> (scalable vector graphics). It can be accessed via the package <tt>VectorGraphics</tt>.
@@ -98,8 +100,8 @@
       <p>For more information, consult the help:
 	<code>viewHelp VectorGraphics</code>
       </p>
-    </div>
-    <div>
+    </section>
+    <section>
       <h2>Other packages</h2>
       <p>
 	For your package to work with this interface,
@@ -120,6 +122,6 @@
 	Now check out:
 	<code>help graph</code>
       </p>
-    </div>
+    </section>
   </body>
 </html>

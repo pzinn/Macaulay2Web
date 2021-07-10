@@ -119,7 +119,7 @@ const appendTutorialToAccordion = function (
   for (let j = 0; j < tutorial.lessons.length; j++) {
     li = document.createElement("li");
     a = document.createElement("a");
-    a.innerHTML = tutorial.lessons[j].title.innerHTML;
+    a.innerHTML = tutorial.lessons[j].firstElementChild.innerHTML;
     a.href = "#tutorial-" + index + "-" + (j + 1);
     a.target = "_self";
     li.appendChild(a);
