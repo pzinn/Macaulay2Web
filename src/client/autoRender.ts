@@ -10,6 +10,8 @@ const katexMacros = {
   "\\CC": "\\mathbb{C}",
   "\\PP": "\\mathbb{P}",
   "\\mac": "\\textsf{Macaulay2}", // can't use italic because KaTeX doesn't know about italic correction
+  "\\label": "\\htmlId{#1}{}",
+  "\\arxiv": "\\href{https://arxiv.org/abs/#1}{\\mathtt{#1}}",
 };
 const delimiters = [
   { left: "$$", right: "$$", display: true },
