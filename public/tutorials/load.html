@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Load your own tutorial</title>
-    <template>
+    <nav>
       <p>
 	You can write your own tutorial, and then load it on this website
 	(or, give it to your students, and let them load it). Download the
@@ -10,11 +10,11 @@
 	which is both a template for your own tutorial, and a guide for how to write one.
 	Or click on the lessons below to see the result.
       </p>
-    </template>
+    </nav>
   </head>
   <body>
     <h1>My great tutorial (D. Hilbert)</h1>
-    <div>
+    <section>
       <h2>Example lesson title</h2>
       <p>
 	This tutorial was written in a simple markdown format (the source
@@ -33,8 +33,8 @@
       <p>
 	Blank lines start new paragraphs.
       </p>
-    </div>
-    <div>
+    </section>
+    <section>
       <h2>Code</h2>
       <p>
 	Macaulay2 commands (which will be displayed as clickable buttons) are
@@ -53,8 +53,8 @@
       <code>f = x -&gt; (
 	x^3-x-1
 	)</code>
-    </div>
-    <div>
+    </section>
+    <section>
       <h2>KaTeX</h2>
       <p>
 	We use KaTeX, which means that you can include math, in the following way:
@@ -62,8 +62,8 @@
 	<strong>\[</strong> <strong>\]</strong>:
 	\[ \sum_{i=0}^n (x_i y_i + 1). \]
       </p>
-    </div>
-    <div>
+    </section>
+    <section>
       <h2>More markdown</h2>
       <p>Other recognized markdown includes:
 	<ul>
@@ -77,23 +77,23 @@
       <p>
 	Caveat: markdown conversion can interfere with (Ka)TeX code.
       </p>
-    </div>
-    <div>
+    </section>
+    <section>
       <h2>Other accepted formats</h2>
       <h3>HTML lessons</h3>
       <p>All tutorials are ultimately converted to HTML (see <a href="tutorials/load.html" target="_blank">this tutorial</a>).
 	You can also upload lessons directly in HTML (file name with a .html extension). This offers the most flexibility since
 	no translation is performed except the following.
       </p>
-      <p>The &lt;title&gt; tag is the title of the tutorial.
-	If no &lt;title&gt; is given, the first element at top level is picked as the title (&lt;h1&gt; is a good choice).
-	Every &lt;div&gt; at top level is a page (lesson) in the tutorial. The first element of the &lt;div&gt; is the title of the page
-	(&lt;h2&gt; is a good choice). Every non &lt;div&gt; top level element will appear at the start of every lesson.
+      <p>The &lt;title&gt; tag (or the &lt;header&gt; if the former is absent) is used as title of the tutorial.
+	Every &lt;section&gt; is a page (lesson) in the tutorial.
+	The first element of the &lt;section&gt; is the title of the page
+	(&lt;h2&gt; is a good choice). All content outside &lt;section&gt; will appear in every lesson.
       </p>
       <h3>M2 files</h3>
       <p>You can directly upload a Macaulay2 file (file name with a .m2 extension). This offers the least flexibility,
 	as code is simply displayed as a single page.
       </p>
-    </div>
+    </section>
   </body>
 </html>

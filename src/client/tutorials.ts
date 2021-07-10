@@ -8,42 +8,24 @@ interface Lesson {
 }
 
 interface Tutorial {
-  title?: HTMLElement; // <h1> html element
+  body: HTMLElement;
+  lessons: HTMLCollection;
+  title?: HTMLElement;
   blurb?: HTMLElement;
   clickAction?: any;
-  lessons: Lesson[];
-  common: HTMLElement[];
 }
 
 const sliceTutorial = function (theHtml: string) {
-  const tutorial: Tutorial = { lessons: [], common: [] };
   const el = document.createElement("div");
   el.innerHTML = theHtml;
-  const children = el.children;
-  for (let i = 0; i < children.length; i++) {
-    if (children[i].tagName == "TITLE") {
-      tutorial.title = children[i] as HTMLElement;
-    } else if (children[i].tagName == "TEMPLATE") {
-      tutorial.blurb = children[i] as HTMLElement;
-    } else if (children[i].tagName == "DIV") {
-      // lessons should be top-level div
-      if (children[i].childElementCount > 0) {
-        const lessonTitle = children[i].firstElementChild;
-        autoRender(lessonTitle);
-        tutorial.lessons.push({
-          title: lessonTitle as HTMLElement,
-          html: children[i] as HTMLElement,
-        });
-      }
-    } else tutorial.common.push(children[i] as HTMLElement); // rest is common stuff
-  }
-  if (
-    !tutorial.title &&
-    el.firstElementChild &&
-    el.firstElementChild.tagName != "DIV"
-  )
-    // first child declared as title
-    tutorial.title = el.firstElementChild as HTMLElement;
+  autoRender(el); // all at once!
+  const tutorial: Tutorial = {
+    body: el,
+    lessons: el.getElementsByTagName("section"),
+    title: el.querySelector("title,header"),
+  };
+  const nav = el.getElementsByTagName("nav");
+  if (nav.length > 0) tutorial.blurb = nav[0];
   return tutorial;
 };
 
@@ -94,7 +76,7 @@ const uploadTutorial = function () {
       txt = markdownToHTML(txt);
       fileName = fileName.substring(0, fileName.length - 3);
     } else if (fileName.endsWith(".m2")) {
-      txt = m2ToHtml(txt);
+      txt = m2ToHTML(txt);
       fileName = fileName.substring(0, fileName.length - 3);
     } else if (fileName.endsWith(".html"))
       fileName = fileName.substring(0, fileName.length - 5);
@@ -172,29 +154,41 @@ const renderLessonMaybe = function (newTutorialIndex?, newLessonNr?): void {
 };
 
 const renderLesson = function (newTutorialIndex, newLessonNr): void {
-  tutorialIndex = newTutorialIndex;
-  lessonNr = newLessonNr;
   const lesson = document.getElementById("lesson");
-  lesson.innerHTML = "";
+  if (newTutorialIndex != tutorialIndex) {
+    tutorialIndex = newTutorialIndex;
+    lesson.innerHTML = "";
+    lesson.appendChild(tutorials[tutorialIndex].body);
+  }
+  lessonNr = newLessonNr;
   if (lessonNr > tutorials[tutorialIndex].lessons.length)
     lessonNr = tutorials[tutorialIndex].lessons.length;
   else if (lessonNr < 1) lessonNr = 1;
-  lesson.append(...tutorials[tutorialIndex].common);
-  if (tutorials[tutorialIndex].lessons.length > 0)
-    lesson.appendChild(tutorials[tutorialIndex].lessons[lessonNr - 1].html);
+  for (let i = 0; i < tutorials[tutorialIndex].lessons.length; i++)
+    tutorials[tutorialIndex].lessons[i].style.display =
+      i + 1 == lessonNr ? "block" : "none";
   lesson.scrollTop = 0;
   // should we syntax highlight tutorials?
 
-  autoRender(lesson);
   updateTutorialNav();
 };
 
 const markdownToHTML = function (markdownText) {
   const txt = mdToHTML(escapeHTML(markdownText), null, "p");
-  return txt.replace("</h1>", "</h1><div>").replace(/<h2>/g, "</div><div><h2>");
+  const i = txt.indexOf("<h1>");
+  const j = txt.indexOf("</h1>");
+  return (
+    "<title>" +
+    txt.substring(i + 4, j) +
+    "</title>" +
+    txt
+      .replace(/<h2>/, "<section><h2 >")
+      .replace(/<h2>/g, "</section><section><h2>") +
+    "</section>"
+  ); //eww
 };
 
-const m2ToHtml = function (m2Text) {
+const m2ToHTML = function (m2Text) {
   return (
     "<div>" +
     escapeHTML(m2Text)
