@@ -23,7 +23,7 @@ const sliceTutorial = function (theHtml: string) {
   for (let i = 0; i < children.length; i++) {
     if (children[i].tagName == "TITLE") {
       tutorial.title = children[i] as HTMLElement;
-    } else if (children[i].tagName == "TEMPLATE") {
+    } else if (children[i].tagName == "NAV") {
       tutorial.blurb = children[i] as HTMLElement;
     } else if (children[i].tagName == "DIV") {
       // lessons should be top-level div

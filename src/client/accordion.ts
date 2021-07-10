@@ -23,7 +23,9 @@ const initAccordion = function (index) {
   document.getElementById("accordion").appendChild(div);
 };
 
-function totalHeight(element) {
+/*
+
+function totalHeight(element) { // height including margins
   const height = element.offsetHeight,
     style = window.getComputedStyle(element);
 
@@ -38,6 +40,8 @@ const childrenTotalHeight = function (element) {
     height += totalHeight(element.children[i]);
   return height;
 };
+
+*/
 
 const appendTutorialToAccordion = function (
   tutorial: Tutorial,
@@ -80,28 +84,35 @@ const appendTutorialToAccordion = function (
   deleteButton.style.fontSize = "1em";
   titlespan.appendChild(deleteButton);
 
+  const nav = tutorial.blurb ? tutorial.blurb : document.createElement("nav");
   div.appendChild(titlespan);
 
   const ul = document.createElement("ul");
   ul.className = cssClasses.innerList;
-  if (tutorial.blurb) ul.innerHTML = tutorial.blurb.innerHTML;
 
-  let heightClosed, heightOpen;
+  let heightClosed = -1,
+    heightOpen;
   titlespan.onclick = function () {
-    titlespan.classList.toggle(cssClasses.titleToggleClass);
-    if (ul.style.display == "none") {
-      heightClosed = totalHeight(titlespan);
+    if (titlespan.classList.contains(cssClasses.titleToggleClass)) {
+      // open -> closed
+      titlespan.classList.remove(cssClasses.titleToggleClass);
       div.style.height = heightClosed + "px";
-      ul.style.display = "block";
       setTimeout(function () {
-        heightOpen = childrenTotalHeight(div);
-        div.style.height = heightOpen + "px";
-      }, 1);
-    } else
-      div.style.height =
-        (titlespan.classList.contains(cssClasses.titleToggleClass)
-          ? heightOpen
-          : heightClosed) + "px";
+        nav.style.display = "none"; // minor: prevents tabbing to closed menu items
+      }, 500);
+    } else {
+      // closed -> open
+      titlespan.classList.add(cssClasses.titleToggleClass);
+      nav.style.display = "block";
+      if (heightClosed < 0) {
+        heightClosed = titlespan.offsetHeight; // the first time
+        div.style.height = heightClosed + "px";
+        setTimeout(function () {
+          heightOpen = titlespan.offsetHeight + nav.offsetHeight; // okay as long as no margins
+          div.style.height = heightOpen + "px";
+        }, 1);
+      } else div.style.height = heightOpen + "px";
+    }
   };
 
   let li, a;
@@ -114,8 +125,9 @@ const appendTutorialToAccordion = function (
     li.appendChild(a);
     ul.appendChild(li);
   }
-  ul.style.display = "none";
-  div.appendChild(ul);
+  nav.style.display = "none";
+  nav.appendChild(ul);
+  div.appendChild(nav);
 };
 
 export { initAccordion, appendTutorialToAccordion };
