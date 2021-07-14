@@ -206,7 +206,6 @@ const init2 = function () {
       if (!MINIMAL) setCookieId();
     }
     if (!MINIMAL) {
-      setCookie(options.cookieInstanceName, clientId);
       if (!initDone) {
         extra2();
         initDone = true;

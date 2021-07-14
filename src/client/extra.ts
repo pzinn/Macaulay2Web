@@ -852,7 +852,6 @@ const toggleWrap = function () {
   attachClick("uploadBtn", uploadFile);
 
   window.addEventListener("beforeunload", function () {
-    unsetCookie(options.cookieInstanceName);
     autoSave();
   });
 
