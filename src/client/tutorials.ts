@@ -178,13 +178,15 @@ const markdownToHTML = function (markdownText) {
   const i = txt.indexOf("<h1>");
   const j = txt.indexOf("</h1>");
   return (
+    "<!DOCTYPE html>\n<html>\n<body>\n" +
     "<title>" +
     txt.substring(i + 4, j) +
     "</title>" +
     txt
       .replace(/<h2>/, "<section><h2 >")
       .replace(/<h2>/g, "</section><section><h2>") +
-    "</section>"
+    "</section>" +
+    "\n</body>\n</html>\n"
   ); //eww
 };
 
