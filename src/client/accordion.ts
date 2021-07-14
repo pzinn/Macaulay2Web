@@ -73,7 +73,8 @@ const appendTutorialToAccordion = function (
     titlea.tabIndex = 0; // still want focus
     titlea.onclick = clickAction;
   }
-  titlea.innerHTML = tutorial.title ? tutorial.title.innerHTML : index; // use index as default title
+  const title = tutorial.body.querySelector("title,header");
+  titlea.innerHTML = title ? title.innerHTML : index; // use index as default title
   titlespan.append(icon, titlea);
   titlespan.style.cursor = "pointer";
 
@@ -84,7 +85,9 @@ const appendTutorialToAccordion = function (
   deleteButton.style.fontSize = "1em";
   titlespan.appendChild(deleteButton);
 
-  const nav = tutorial.blurb ? tutorial.blurb : document.createElement("nav");
+  const navl = tutorial.body.getElementsByTagName("nav");
+  const nav = navl.length > 0 ? navl[0] : document.createElement("nav");
+
   div.appendChild(titlespan);
 
   const ul = document.createElement("ul");
@@ -118,13 +121,16 @@ const appendTutorialToAccordion = function (
 
   let li, a;
   for (let j = 0; j < tutorial.lessons.length; j++) {
-    li = document.createElement("li");
-    a = document.createElement("a");
-    a.innerHTML = tutorial.lessons[j].firstElementChild.innerHTML;
-    a.href = "#tutorial-" + index + "-" + (j + 1);
-    a.target = "_self";
-    li.appendChild(a);
-    ul.appendChild(li);
+    const lessonTitle = tutorial.lessons[j].querySelector("header");
+    if (lessonTitle) {
+      li = document.createElement("li");
+      a = document.createElement("a");
+      a.innerHTML = lessonTitle.innerHTML;
+      a.href = "#tutorial-" + index + "-" + (j + 1);
+      a.target = "_self";
+      li.appendChild(a);
+      ul.appendChild(li);
+    }
   }
   nav.style.display = "none";
   nav.appendChild(ul);

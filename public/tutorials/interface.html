@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
   <body>
-    <header style="text-decoration:underline;">
+    <header style="text-decoration:underline; font-size:1.2em;">
       More on the interface: the WebApp mode
     </header>
     <section>
-      <h2>Introduction</h2>
+      <header>Introduction</header>
       <p>If you've used previously the &ldquo;<a href="http://habanero.math.cornell.edu:3690/">habanero</a>&rdquo; server, you should recognize much of the interface. If not, the <a href="#tutorial-welcome">welcome tutorial</a> can help.
       </p>
       <p>
@@ -15,7 +15,7 @@
       <p>The next few pages are meant for package developers or advanced users who wish to understand how to make the output of their programs look nice in WebApp mode.</p>
     </section>
     <section>
-      <h2>KaTeX</h2>
+      <header>KaTeX</header>
       <p>By default, all mathematical output is processed by the \(\mac\) command <tt>texMath</tt> and then rendered to the browser using <a href="https://katex.org/">KaTeX</a>:
 	<code>matrix table(5,5,(i,j)->i*j)</code>
       </p>
@@ -40,7 +40,7 @@
 		and similarly for other outputs. Stay tuned!</small></p> -->
     </section>
     <section>
-      <h2>HTML and Hypertext</h2>
+      <header>HTML and Hypertext</header>
       <p>Being a web interface, this interface has native support for HTML output.</p>
       <p>
 	For non mathematical types such as <tt>Net</tt> and <tt>String</tt>, direct HTML output (rather than KaTeX) is used.
@@ -76,7 +76,7 @@
       </p>
     </section>
     <section>
-      <h2>VectorGraphics</h2>
+      <header>VectorGraphics</header>
       <p>
 	Another type of HTML item is available: <tt>SVG</tt> (scalable vector graphics). It can be accessed via the package <tt>VectorGraphics</tt>.
 	<code>needsPackage "VectorGraphics"</code>
@@ -102,7 +102,7 @@
       </p>
     </section>
     <section>
-      <h2>Other packages</h2>
+      <header>Other packages</header>
       <p>
 	For your package to work with this interface,
 	it needs to have either a <tt>texMath</tt> or <tt>html</tt> method for all defined types. (By default,
