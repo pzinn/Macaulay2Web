@@ -139,12 +139,16 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
         process.exit(0);
       }, 5000);
     } else {
-      // default: list
-      const clientsList = Object.values(clients).sort(function (a, b) {
+      // default: (short) list
+      let clientsList = Object.values(clients).sort(function (a, b) {
         const timea = a.instance ? a.instance.lastActiveTime : 0;
         const timeb = b.instance ? b.instance.lastActiveTime : 0;
         return timea - timeb;
       });
+      if (!chat.message.startsWith("/list"))
+        clientsList = clientsList.filter(
+          (client) => client.instance && client.sockets.length > 0
+        );
       chat.message +=
         "\n | id | sockets | output | last | docker | inputs | active time " +
         clientsList
