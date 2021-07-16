@@ -320,3 +320,15 @@ nav {
     padding: 1em;
     margin: 0px;
 }
+
+#lesson header { /* similar to h1 */
+    font-size: 2.5em;
+    margin: 0.7em 0em;
+    line-height: 1.2;
+}
+
+#lesson section header { /* similar to h2 */
+    font-size: 2em;
+    margin: 0.5em 0em;
+    line-height: 1.2;
+}

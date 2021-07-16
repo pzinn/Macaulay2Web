@@ -1,8 +1,9 @@
 # My Great Tutorial (D. Hilbert)
 ## Example lesson title
 
-This file is written in a simple markdown format.  After changing it,
-you upload the resulting file via the "LOAD YOUR OWN TUTORIAL" tab
+The simplest way to produce a tutorial is by writing it in markdown.
+This tutorial was written in a simple markdown format.  After changing it,
+you upload the resulting file (file name with a .md extension) via the "LOAD YOUR OWN TUTORIAL" tab
 from the home page.  Give your modfied file to your students for them to upload (or just give them the URL)
 so they can work through your lessons.
 
@@ -64,8 +65,9 @@ You can also upload lessons directly in HTML (file name with a .html extension).
 no translation is performed except the following:
 * The <title> tag (or the <header> if the former is absent) is used as title of the tutorial.
 * Every <section> is a page (lesson) in the tutorial.
-The first element of the <section> is the title of the page
-(<h2> is a good choice). All content outside <section> will appear in every lesson.
+The <header> of each <section> is its title (for the table of contents on the HOME tab).
+All content outside <section> will appear in every lesson.
+If there is a <nav> section it will be transferred to the HOME tab (right before the table of contents).
 
 ### M2 files
 You can directly upload a Macaulay2 file (file name with a .m2 extension). This offers the least flexibility,

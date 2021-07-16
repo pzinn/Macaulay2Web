@@ -10,8 +10,6 @@ interface Lesson {
 interface Tutorial {
   body: HTMLElement;
   lessons: HTMLCollection;
-  title?: HTMLElement;
-  blurb?: HTMLElement;
   clickAction?: any;
 }
 
@@ -22,10 +20,7 @@ const sliceTutorial = function (theHtml: string) {
   const tutorial: Tutorial = {
     body: el,
     lessons: el.getElementsByTagName("section"),
-    title: el.querySelector("title,header"),
   };
-  const nav = el.getElementsByTagName("nav");
-  if (nav.length > 0) tutorial.blurb = nav[0];
   return tutorial;
 };
 
@@ -175,16 +170,15 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
 
 const markdownToHTML = function (markdownText) {
   const txt = mdToHTML(escapeHTML(markdownText), null, "p");
-  const i = txt.indexOf("<h1>");
-  const j = txt.indexOf("</h1>");
   return (
-    "<title>" +
-    txt.substring(i + 4, j) +
-    "</title>" +
+    "<!DOCTYPE html>\n<html>\n<body>\n" +
     txt
-      .replace(/<h2>/, "<section><h2 >")
-      .replace(/<h2>/g, "</section><section><h2>") +
-    "</section>"
+      .replace(/<h1>/, "<header>")
+      .replace(/<h2>/, "<section><header>")
+      .replace(/<h2>/g, "</section><section><header>")
+      .replace(/<\/h2>|<\/h1>/g, "</header>") +
+    "</section>" +
+    "\n</body>\n</html>\n"
   ); //eww
 };
 

@@ -1,4 +1,4 @@
-import { Socket } from "./main";
+import { Socket, clientId } from "./main";
 
 import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "../common/tags";
@@ -430,13 +430,19 @@ const Shell = function (
     } else if (htmlSec.classList.contains("M2Url")) {
       let url = htmlSec.dataset.code.trim();
       console.log("Opening URL " + url);
-      if (url.startsWith("file://")) url = url.slice(7); // internal link
       if (
-        iFrame &&
-        !(window.location.protocol == "https:" && url.startsWith("http://")) // no insecure in frame
+        !iFrame ||
+        (window.location.protocol == "https:" && url.startsWith("http://")) // no insecure in frame
       )
+        window.open(url, "M2 browse");
+      else {
+        const url1 = new URL(url, "file://");
+        if (!url1.searchParams.get("user"))
+          url1.searchParams.append("user", clientId); // should we exclude "public"?
+        url = url1.toString();
+        if (url.startsWith("file://")) url = url.slice(7);
         iFrame.src = url;
-      else window.open(url, "M2 browse");
+      }
     } else if (htmlSec.classList.contains("M2Html")) {
       htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code);
       autoRender(htmlSec);

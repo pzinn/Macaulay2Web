@@ -15,11 +15,12 @@
   <body>
     <h1>My great tutorial (D. Hilbert)</h1>
     <section>
-      <h2>Example lesson title</h2>
+      <header>Example lesson title</header>
       <p>
+	The simplest way to produce a tutorial is by writing it in markdown.
 	This tutorial was written in a simple markdown format (the source
 	is <a href="/tutorial-template.md" target="_blank">tutorial-template.md</a>). After changing it,
-	you upload the resulting file via the &quot;LOAD YOUR OWN TUTORIAL&quot; tab
+	you upload the resulting file (file name with a .md extension) via the &quot;LOAD YOUR OWN TUTORIAL&quot; tab
 	from the home page.  Give your modfied file to your students for them to upload (or just give them the URL, e.g.,
 	<a href="#tutorial-load">this tutorial</a>), so they can work through your lessons.
       </p>
@@ -35,7 +36,7 @@
       </p>
     </section>
     <section>
-      <h2>Code</h2>
+      <header>Code</header>
       <p>
 	Macaulay2 commands (which will be displayed as clickable buttons) are
 	enclosed in triple backquotes (as is standard in many markdown
@@ -55,7 +56,7 @@
 	)</code>
     </section>
     <section>
-      <h2>KaTeX</h2>
+      <header>KaTeX</header>
       <p>
 	We use KaTeX, which means that you can include math, in the following way:
 	using <strong>\(</strong> <strong>\)</strong> for inline: \(f(x) = x^3-\sin x + 1\), or in display form via
@@ -64,7 +65,7 @@
       </p>
     </section>
     <section>
-      <h2>More markdown</h2>
+      <header>More markdown</header>
       <p>Other recognized markdown includes:
 	<ul>
 	  <li>lists</li>
@@ -79,7 +80,7 @@
       </p>
     </section>
     <section>
-      <h2>Other accepted formats</h2>
+      <header>Other accepted formats</header>
       <h3>HTML lessons</h3>
       <p>All tutorials are ultimately converted to HTML (see <a href="tutorials/load.html" target="_blank">this tutorial</a>).
 	You can also upload lessons directly in HTML (file name with a .html extension). This offers the most flexibility since
@@ -87,9 +88,9 @@
       </p>
       <p>The &lt;title&gt; tag (or the &lt;header&gt; if the former is absent) is used as title of the tutorial.
 	Every &lt;section&gt; is a page (lesson) in the tutorial.
-	The first element of the &lt;section&gt; is the title of the page
-	(&lt;h2&gt; is a good choice). All content outside &lt;section&gt; will appear in every lesson.
-	If there is a &lt;nav&gt; section it will be transferred to the tutorial dropdown in the HOME tab.
+	The &lt;header&gt; of each &lt;section&gt; is its title (for the table of contents on the HOME tab).
+	All content outside &lt;section&gt; will appear in every lesson.
+	If there is a &lt;nav&gt; section it will be transferred to the HOME tab (right before the table of contents).
       </p>
       <h3>M2 files</h3>
       <p>You can directly upload a Macaulay2 file (file name with a .m2 extension). This offers the least flexibility,
