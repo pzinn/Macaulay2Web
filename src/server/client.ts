@@ -1,7 +1,8 @@
 import { Instance } from "./instance";
+import { logger } from "./logger";
 import ssh2 = require("ssh2");
 
-export class Client {
+class Client {
   public saneState: boolean;
   public instance: Instance;
   public sockets: SocketIO.Socket[];
@@ -22,4 +23,14 @@ export class Client {
 interface IClients {
   [clientId: string]: Client;
 }
-export { IClients };
+
+const getNewId = function (clients: IClients) {
+  let clientId: string;
+  do {
+    clientId = String(Math.floor(Math.random() * 1000000));
+  } while (clientId in clients);
+  logger.info("New client id " + clientId);
+  return clientId;
+};
+
+export { Client, IClients, getNewId };

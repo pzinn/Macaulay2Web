@@ -2,7 +2,7 @@ import ssh2 = require("ssh2");
 import fs = require("fs");
 import { Client } from "./client";
 import path = require("path");
-import { logger, logClient } from "./logger";
+import { logger } from "./logger";
 import { staticFolder, unlink, options, sshCredentials } from "./server";
 
 const userSpecificPath = function (client: Client): string {
@@ -24,7 +24,7 @@ const downloadFromInstance = function (
   fs.mkdir(targetPath, function (fsError) {
     if (fsError) {
       if (fsError.code !== "EEXIST")
-        logger.error("Error creating directory: " + targetPath);
+        logger.error("Error creating directory: " + targetPath, client);
     }
     sshConnection.on("ready", function () {
       sshConnection.sftp(function (generateError, sftp) {
@@ -32,19 +32,19 @@ const downloadFromInstance = function (
         let targetFileName;
 
         const success = function () {
-          logClient(client, "successfully downloaded " + sourceFileName1);
+          logger.info("successfully downloaded " + sourceFileName1, client);
           setTimeout(unlink(targetFileName), 1000 * 60 * 10);
           sshConnection.end();
           next(userPath + fileName);
         };
         const failure = function () {
-          logClient(client, "failed to download " + sourceFileName);
+          logger.error("failed to download " + sourceFileName, client);
           sshConnection.end();
           next();
         };
 
         if (generateError) {
-          logger.error("ssh2.sftp() failed: " + generateError);
+          logger.error("ssh2.sftp() failed: " + generateError, client);
           return failure();
         }
 

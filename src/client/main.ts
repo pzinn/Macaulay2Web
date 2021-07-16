@@ -7,7 +7,6 @@ import socketIo from "socket.io-client";
 import {
   extra1,
   extra2,
-  setCookie,
   getCookieId,
   setCookieId,
   newEditorFileMaybe,
