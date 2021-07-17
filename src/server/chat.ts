@@ -8,7 +8,7 @@ import {
   clients,
   options,
 } from "./server";
-import { logClient, logger } from "./logger";
+import { logger } from "./logger";
 import { execInInstance } from "./exec";
 import { decode, encode } from "html-entities";
 
@@ -59,7 +59,7 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
       ); // welcome only if first time
   };
   const chatMessage = function (chat: Chat) {
-    logClient(client, chat.alias + " said: " + short(chat.message));
+    logger.info(chat.alias + " said: " + short(chat.message), client);
     chat.index = chatCounter++;
     chatList.push(chat); // right now, only non system messages logged
     // default: to user
@@ -89,7 +89,7 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
     chat.id = client.id;
   };
   const chatDelete = function (chat: Chat, i: number) {
-    logClient(client, chat.alias + " deleted #" + chat.index);
+    logger.info(chat.alias + " deleted #" + chat.index, client);
     chatList.splice(i, 1);
     safeEmit(io, "chat", chat);
   };
@@ -189,12 +189,12 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
   return client.id != options.adminName
     ? function (chat: Chat) {
         // normal user
-        logClient(client, "Chat of type " + chat.type);
+        logger.info("Chat of type " + chat.type, client);
         if (
           chat.alias == options.adminAlias ||
           chat.alias == options.systemAlias
         ) {
-          logClient(client, "tried to impersonate Admin or System");
+          logger.warn("tried to impersonate Admin or System", client);
           chat.alias = options.defaultAlias;
         }
         if (
@@ -220,7 +220,7 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
       }
     : function (chat: Chat) {
         // admin
-        logClient(client, "chat of type " + chat.type);
+        logger.info("chat of type " + chat.type, client);
         if (chat.type == "delete") {
           const i = chatList.findIndex((x) => x.index === chat.index); // sigh
           if (i < 0) return; // false alarm

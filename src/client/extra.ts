@@ -56,12 +56,14 @@ const setCookieId = function (): void {
   setCookie(options.cookieName, clientId);
 };
 
+/*
 const unsetCookie = function (name: string): void {
   document.cookie = Cookie.serialize(name, "", {
     expires: new Date(0),
     path: "/",
   });
 };
+*/
 
 const emitReset = function () {
   myshell.reset();

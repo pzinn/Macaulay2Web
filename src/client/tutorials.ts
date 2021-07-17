@@ -1,6 +1,7 @@
 import { initAccordion, appendTutorialToAccordion } from "./accordion";
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
+import Prism from "prismjs";
 
 interface Lesson {
   title: HTMLElement; // <h2> element
@@ -13,10 +14,27 @@ interface Tutorial {
   clickAction?: any;
 }
 
-const sliceTutorial = function (theHtml: string) {
+const processTutorial = function (theHtml: string) {
   const el = document.createElement("div");
   el.innerHTML = theHtml;
-  autoRender(el); // all at once!
+  // minor improvement: because <code> use white-space: pre, we remove extra spacing
+  const codes = Array.from(el.getElementsByTagName("code"));
+  for (const code of codes) {
+    let lines = code.innerText.split(/\r?\n/);
+    while (lines.length > 0 && lines[0].trim() == "") lines.shift();
+    while (lines.length > 0 && lines[lines.length - 1].trim() == "")
+      lines.pop();
+    let minIndent = 1000;
+    lines.forEach((l) => {
+      const indent = l.match(/^\s*/)[0].length;
+      if (indent != l.length && indent < minIndent) minIndent = indent;
+    });
+    code.innerHTML = Prism.highlight(
+      lines.map((l) => l.substring(minIndent)).join("\n"),
+      Prism.languages.macaulay2
+    );
+  }
+  autoRender(el); // convert all the LaTeX at once
   const tutorial: Tutorial = {
     body: el,
     lessons: el.getElementsByTagName("section"),
@@ -86,7 +104,7 @@ const uploadTutorial = function () {
     req.open("POST", "/upload");
     req.send(formData);
 
-    const newTutorial = sliceTutorial(txt);
+    const newTutorial = processTutorial(txt);
     //    if (!newTutorial.title) return; // if no title, cancel
     tutorials[fileName] = newTutorial;
     if (tutorialIndex == fileName) tutorialIndex = null; // force reload
@@ -114,7 +132,7 @@ const loadTutorial = function (newTutorialIndex, newLessonNr) {
     }
     console.log("tutorial " + newTutorialIndex + " loaded");
     newLessonNr = tutorials[newTutorialIndex].lessonNr; // in case it was updated
-    tutorials[newTutorialIndex] = sliceTutorial(xhr.responseText);
+    tutorials[newTutorialIndex] = processTutorial(xhr.responseText);
     appendTutorialToAccordion(
       tutorials[newTutorialIndex],
       newTutorialIndex,
@@ -186,7 +204,7 @@ const m2ToHTML = function (m2Text) {
   return (
     "<div>" +
     escapeHTML(m2Text)
-      .split("\n")
+      .split(/\r?\n/)
       .map(function (line) {
         line = line.trim();
         if (line == "") return "<br/>";

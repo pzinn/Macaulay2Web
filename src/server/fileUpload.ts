@@ -1,6 +1,6 @@
 import { Client } from "./client";
 import ssh2 = require("ssh2");
-import { logger, logClient } from "./logger";
+import { logger } from "./logger";
 import { unlink, options, sshCredentials } from "./server";
 
 const uploadToInstance = function (
@@ -17,16 +17,20 @@ const uploadToInstance = function (
   sshConnection.on("ready", function () {
     sshConnection.sftp(function (err, sftp) {
       if (err) {
-        logger.error("There was an error while connecting via sftp: " + err);
+        logger.error(
+          "There was an error while connecting via sftp: " + err,
+          client
+        );
         sshConnection.end();
         return next(err);
       }
-      logClient(client, "Uploading " + fileName);
+      logger.info("Uploading " + fileName, client);
       sftp.fastPut(filePath, fileName, function (sftpError) {
         unlink(filePath);
         if (sftpError)
           logger.error(
-            "Error while uploading file: " + fileName + ", ERROR: " + sftpError
+            "Error while uploading file: " + fileName + ", ERROR: " + sftpError,
+            client
           );
         sshConnection.end();
         next(sftpError);
