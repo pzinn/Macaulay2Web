@@ -280,7 +280,6 @@ code {
     white-space: pre;
     font-family: 'Roboto Mono';
     font-weight: normal;
-    display: inline-block;
     line-height: 1.5;
     background-color: lightyellow;
     text-decoration: none;
@@ -289,15 +288,11 @@ code {
     box-shadow: 1px 1px 2px 0px black;
     padding: 2px 4px;
     border-radius: 7px;
-    /* below used to be "block" */
-    display: table;
-    margin-top: 5px;
-    margin-bottom: 16px;
+    display: block; /* used to be table but has buggy spacing in chrome */
+    width: fit-content; /* this works instead */
+    margin-top: 10px;
+    margin-bottom: 10px;
     margin-left: 20px;
-/*
-    padding: 3px 6px;
-    border-radius: 10px;
-*/
 }
 
 code.inline {
