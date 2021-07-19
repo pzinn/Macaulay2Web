@@ -332,3 +332,11 @@ nav {
     margin: 0.5em 0em;
     line-height: 1.2;
 }
+
+#lesson section {
+    display: none;
+}
+
+#lesson section.current-lesson {
+    display: block;
+}
