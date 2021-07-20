@@ -61,8 +61,9 @@ Caveat: markdown conversion can interfere with (Ka)TeX code.
 
 ### HTML lessons
 All tutorials are ultimately converted to HTML.
-You can also upload lessons directly in HTML (file name with a .html extension). This offers the most flexibility since
-no translation is performed except the following:
+You can also upload lessons directly in HTML (file name with a .html extension).
+Use <code> for Macaulay2 code.
+This offers the most flexibility since no translation is performed except the following:
 * The <title> tag (or the <header> if the former is absent) is used as title of the tutorial.
 * Every <section> is a page (lesson) in the tutorial.
 The <header> of each <section> is its title (for the table of contents on the HOME tab).

@@ -1,4 +1,4 @@
-import { InstanceManager } from "./instanceManager";
+import { InstanceManager } from "./instance";
 import childProcess = require("child_process");
 const exec = childProcess.exec;
 
@@ -29,7 +29,7 @@ class LocalContainerManager implements InstanceManager {
     next(false, { ...this.options.credentials, lastActiveTime: Date.now() });
   };
 
-  public recoverInstances(next) {
+  public recoverInstances(recreate: boolean, next) {
     // not implemented
     next();
   }

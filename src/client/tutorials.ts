@@ -178,10 +178,11 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
     lessonNr = tutorials[tutorialIndex].lessons.length;
   else if (lessonNr < 1) lessonNr = 1;
   for (let i = 0; i < tutorials[tutorialIndex].lessons.length; i++)
-    tutorials[tutorialIndex].lessons[i].style.display =
-      i + 1 == lessonNr ? "block" : "none";
+    if (i + 1 == lessonNr)
+      tutorials[tutorialIndex].lessons[i].classList.add("current-lesson");
+    else tutorials[tutorialIndex].lessons[i].classList.remove("current-lesson");
   lesson.scrollTop = 0;
-  // should we syntax highlight tutorials?
+  //tutorials[tutorialIndex].lessons[lessonNr-1].scrollIntoView();
 
   updateTutorialNav();
 };
