@@ -1,8 +1,6 @@
-import { InstanceManager } from "./instanceManager";
+import { Instance, InstanceManager } from "./instance";
 import ssh2 = require("ssh2");
 import fs = require("fs");
-
-import { Instance } from "./instance";
 
 import { logger } from "./logger";
 
@@ -228,7 +226,7 @@ class SshDockerContainersInstanceManager implements InstanceManager {
     }
   };
 
-  public recoverInstances(next) {
+  public recoverInstances(recreate: boolean, next) {
     // not implemented yet
     next();
   }

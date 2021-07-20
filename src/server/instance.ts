@@ -1,4 +1,4 @@
-export interface Instance {
+interface Instance {
   host: string;
   port: number;
   username: string;
@@ -10,3 +10,10 @@ export interface Instance {
   killNotify?: () => void;
   clientId: string;
 }
+
+interface InstanceManager {
+  getNewInstance(clientId: string, next: any);
+  recoverInstances(recreate: boolean, next: any);
+}
+
+export { Instance, InstanceManager };

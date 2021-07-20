@@ -2,8 +2,7 @@
 
 import { Client, IClients, getNewId } from "./client";
 import { socketChatAction, systemChat } from "./chat";
-import { Instance } from "./instance";
-import { InstanceManager } from "./instanceManager";
+import { Instance, InstanceManager } from "./instance";
 import { AddressInfo } from "net";
 import { downloadFromInstance } from "./fileDownload";
 import { uploadToInstance } from "./fileUpload";
@@ -98,22 +97,12 @@ const getInstance = function (client: Client, next) {
     next();
   } else {
     try {
-      instanceManager.getNewInstance(
-        client.id,
-        function (err, instance: Instance) {
-          if (err) {
-            systemChat(
-              client,
-              "Sorry, there was an error. Please come back later.\n" + err
-            );
-            deleteClientData(client);
-          } else {
-            client.instance = instance;
-            client.instance.killNotify = killNotify(client); // what is this for???
-            next();
-          }
-        }
-      );
+      logger.info("no instance", client);
+      instanceManager.getNewInstance(client.id, function (instance: Instance) {
+        client.instance = instance;
+        client.instance.killNotify = killNotify(client); // what is this for???
+        next();
+      });
     } catch (error) {
       logger.error(
         "Could not get new instance. Should not drop in here.",
@@ -626,7 +615,7 @@ const mathServer = function (o) {
     guestInstance
   );
 
-  instanceManager.recoverInstances(function () {
+  instanceManager.recoverInstances(options.recreate, function () {
     logger.info("Start init");
     initializeServer();
     listen();

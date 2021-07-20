@@ -4,6 +4,7 @@ const options = {
   ...globalOptions,
   adminName: "pzinn", // to be set live only
   authentication: false, // overridden anyway depending on existence of public/users.htpasswd
+  recreate: false, // try to recreate existing dockers
   perContainerResources: {
     cpuShares: 1,
     memory: 384, // Mb
