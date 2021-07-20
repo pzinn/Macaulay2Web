@@ -100,7 +100,7 @@ const getInstance = function (client: Client, next) {
     next();
   } else {
     try {
-      logger.info("no instance", client);
+      logger.info("No instance", client);
       instanceManager.getNewInstance(client.id, function (instance: Instance) {
         client.instance = instance;
         client.instance.killNotify = killNotify(client); // what is this for???
