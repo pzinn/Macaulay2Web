@@ -26,7 +26,7 @@ class LocalContainerManager implements InstanceManager {
   }
 
   public getNewInstance = function (clientId: string, next: any) {
-    next(false, { ...this.options.credentials, lastActiveTime: Date.now() });
+    next({ ...this.options.credentials, lastActiveTime: Date.now() });
   };
 
   public recoverInstances(recreate: boolean, next) {
