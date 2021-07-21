@@ -271,7 +271,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
 const options = {
   serverConfig: {
-    MATH_PROGRAM_COMMAND: "stty cols 1000000000; M2MODE=sudoDocker M2 --webapp",
+    MATH_PROGRAM_COMMAND: "stty cols 1000000000; TERM=dumb M2MODE=sudoDocker M2 --webapp",
     CONTAINERS(resources, hostConfig, guestInstance): InstanceManager {
       return new SudoDockerContainersInstanceManager(
         resources,
