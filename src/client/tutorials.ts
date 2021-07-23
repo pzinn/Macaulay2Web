@@ -239,6 +239,10 @@ const removeTutorial = function (index) {
     e.stopPropagation();
     e.currentTarget.parentElement.parentElement.remove();
     delete tutorials[index];
+    if (tutorialIndex == index) {
+      tutorialIndex = null;
+      lessonNr = 1;
+    }
   };
 };
 
