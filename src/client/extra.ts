@@ -181,13 +181,15 @@ const listDirToEditor = function (dirName: string, fileName: string) {
       .split("\n")
       .sort()
       .map((s) => [dirName + s, s]);
-    const i = dirName.lastIndexOf("/", dirName.length - 2);
-    if (i >= 0)
+    if (dirName != "./") {
+      // a bit crude
+      const i = dirName.lastIndexOf("/", dirName.length - 2);
+      const ancestor = i >= 0 ? dirName.substring(0, i + 1) : "./";
       lst.unshift([
-        dirName.substring(0, i + 1),
+        ancestor,
         "<i class='material-icons'>subdirectory_arrow_left</i>",
       ]);
-
+    }
     editor.innerHTML =
       "<ul style='list-style:none'>" +
       lst
@@ -239,6 +241,8 @@ const positioning = function (m) {
 
 const newEditorFileMaybe = function (arg: string, missing: any) {
   // missing = what to do if file missing : false = nothing, true = create new, string = load this instead
+  // get rid of leading "./"
+  if (arg.length > 2 && arg.startsWith("./")) arg = arg.substring(2);
   // parse newName for positioning
   // figure out filename
   const m = arg.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
@@ -454,6 +458,12 @@ const toggleWrap = function () {
   pastFileNames.onchange = function () {
     const newName = pastFileNames.options[pastFileNames.selectedIndex].text;
     newEditorFileMaybe(newName, true);
+  };
+
+  const homeEditorBtn = document.getElementById("homeEditorBtn");
+  homeEditorBtn.onclick = function () {
+    autoSave();
+    newEditorFileMaybe("./", false);
   };
 
   const clearEditorBtn = document.getElementById("clearEditorBtn");
