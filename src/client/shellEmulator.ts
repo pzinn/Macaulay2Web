@@ -435,6 +435,7 @@ const Shell = function (
         (window.location.protocol == "https:" && url.startsWith("http://")) // no insecure in frame
       )
         window.open(url, "M2 browse");
+      else if (url.startsWith("#")) document.location.hash = url;
       else {
         const url1 = new URL(url, "file://");
         if (!url1.searchParams.get("user"))
