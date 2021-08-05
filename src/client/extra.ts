@@ -294,7 +294,7 @@ const extra1 = function () {
     const e = /^editor:(.+)$/.exec(loc);
     if (e) {
       // do something *if* session started
-      if (socket && socket.connected) newEditorFileMaybe(e[1], true);
+      if (socket && socket.connected) newEditorFileMaybe(decodeURI(e[1]), true);
       document.location.hash = "#editor"; // this will start over openTab
       return;
     }
@@ -673,7 +673,7 @@ const toggleWrap = function () {
     const c =
       e.clipboardData.getData("text/html") ||
       e.clipboardData.getData("text/plain");
-    document.execCommand("insertHTML", false, c);
+    document.execCommand("insertHTML", false, c); // slightly unusual behavior: it will paste text/plain as HTML... e.g. <b>YO</b>
     if (!returnNext && nextChar() == "\n")
       document.execCommand("forwardDelete");
   };
