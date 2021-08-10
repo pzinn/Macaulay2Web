@@ -45,7 +45,7 @@ const options = {
       baseDirectory +
       "; cd " +
       baseDirectory +
-      "; TERM=dumb M2MODE=localServer M2 --webapp",
+      "; TERM=dumb M2MODE=localServer M2 --webapp --no-readline",
     CONTAINERS(): InstanceManager {
       return new LocalContainerManager();
     },
