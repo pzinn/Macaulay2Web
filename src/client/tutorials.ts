@@ -35,6 +35,30 @@ const processTutorial = function (theHtml: string) {
     );
   }
   autoRender(el); // convert all the LaTeX at once
+  // add breaks
+  const breaks = Array.from(el.getElementsByTagName("hr"));
+  for (const hr of breaks) {
+    hr.onclick = function (e) {
+      const cur0 = e.target as HTMLElement;
+      console.log(cur0);
+      let cur = cur0;
+      const closing = cur.classList.toggle("closed");
+      while (
+        cur.nextElementSibling &&
+        (closing || cur == cur0 || cur.tagName != "HR")
+      ) {
+        cur = cur.nextElementSibling as HTMLElement;
+        if (closing) {
+          if (cur.dataset.display === undefined)
+            cur.dataset.display = cur.style.display;
+          cur.style.display = "none";
+          if (cur.tagName == "HR") cur.classList.add("closed");
+        } else cur.style.display = cur.dataset.display;
+      }
+      cur0.scrollIntoView({ behavior: "smooth" });
+    };
+  }
+
   const tutorial: Tutorial = {
     body: el,
     lessons: el.getElementsByTagName("section"),
@@ -173,6 +197,7 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
     lesson.innerHTML = "";
     lesson.appendChild(tutorials[tutorialIndex].body);
   }
+
   lessonNr = newLessonNr;
   if (lessonNr > tutorials[tutorialIndex].lessons.length)
     lessonNr = tutorials[tutorialIndex].lessons.length;
@@ -183,6 +208,11 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
     else tutorials[tutorialIndex].lessons[i].classList.remove("current-lesson");
   lesson.scrollTop = 0;
   //tutorials[tutorialIndex].lessons[lessonNr-1].scrollIntoView();
+  const hr = tutorials[tutorialIndex].lessons[lessonNr - 1].querySelector("hr");
+  if (hr) {
+    hr.classList.remove("closed");
+    hr.click();
+  }
 
   updateTutorialNav();
 };

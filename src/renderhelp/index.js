@@ -7,6 +7,8 @@ const sourcePath =
 const targetPath = "/usr/share/doc/Macaulay2/";
 // browser
 const browserPath = "/usr/bin/google-chrome";
+// time we wait before giving up
+const timeout = 60000 // 60 secs
 
 let overwrite = false;
 let verbose = false;
@@ -70,6 +72,7 @@ const head = fs.readFileSync("src/renderhelp/head.html").toString();
         `");'></body></html>`;
       try {
         page = await browser.newPage();
+        page.setDefaultNavigationTimeout(timeout);
       } catch (e) {
         console.log("cant get new page -- " + e);
       }
