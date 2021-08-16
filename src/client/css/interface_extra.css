@@ -340,3 +340,20 @@ nav {
 #lesson section.current-lesson {
     display: block;
 }
+
+#lesson hr {
+  text-align: center; /* horizontal centering */
+  border: 8px solid #000080;
+  border-radius: 8px;
+  height: fit-content;
+  margin: 10px 0px 10px 0px;
+  cursor: pointer;
+}
+
+/*
+#lesson hr::after {
+  content: "X";
+  display: inline;
+  background-color: green;
+}
+*/
