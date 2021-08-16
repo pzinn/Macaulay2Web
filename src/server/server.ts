@@ -133,7 +133,7 @@ const spawnMathProgram = function (client: Client, next) {
     .on("ready", function () {
       connection.exec(
         serverConfig.MATH_PROGRAM_COMMAND,
-        { pty: true },
+          { pty: { term: "dumb" } },
         function (err, channel: ssh2.ClientChannel) {
           if (err) {
             logger.error(
