@@ -535,7 +535,8 @@ const Shell = function (
           }
         } else if (tag === webAppTags.InputContd) {
           // continuation of input section
-          inputEndFlag = false;
+          if (inputEndFlag) inputEndFlag = false;
+          else createHtml(webAppClasses[tag]); // else clause should almost never occur -- broken input
         } else {
           // new section
           createHtml(webAppClasses[tag]);
