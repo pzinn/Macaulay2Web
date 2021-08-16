@@ -342,18 +342,23 @@ nav {
 }
 
 #lesson hr {
-  text-align: center; /* horizontal centering */
-  border: 8px solid #000080;
+  text-align: center;
+  background-color: #000080;
   border-radius: 8px;
   height: fit-content;
   margin: 10px 0px 10px 0px;
   cursor: pointer;
+  /*  display: block; */
 }
 
-/*
+
 #lesson hr::after {
-  content: "X";
+  font-family: Material Icons;
+  content: "expand_less";
+  color: white;
   display: inline;
-  background-color: green;
 }
-*/
+
+#lesson hr.closed::after {
+  content: "expand_more";
+}
