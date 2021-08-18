@@ -51,10 +51,10 @@ const appendTutorialToAccordion = function (
   const id = "accordion-" + index;
   const div = document.getElementById(id);
   div.innerHTML = "";
-  div.id = id;
   div.style.overflow = "hidden";
   div.style.transition = "height 0.5s";
   div.style.paddingBottom = "5px";
+  div.style.height = "";
 
   const titlespan = document.createElement("span"); //title.cloneNode(false);
   titlespan.className = cssClasses.title;

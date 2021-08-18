@@ -340,3 +340,25 @@ nav {
 #lesson section.current-lesson {
     display: block;
 }
+
+#lesson hr {
+  text-align: center;
+  background-color: #000080;
+  border-radius: 8px;
+  height: fit-content;
+  margin: 10px 0px 10px 0px;
+  cursor: pointer;
+  /*  display: block; */
+}
+
+
+#lesson hr::after {
+  font-family: Material Icons;
+  content: "expand_less";
+  color: white;
+  display: inline;
+}
+
+#lesson hr.closed::after {
+  content: "expand_more";
+}
