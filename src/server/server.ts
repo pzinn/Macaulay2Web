@@ -142,7 +142,7 @@ const spawnMathProgram = function (client: Client, next) {
                 "; Retrying with new instance.",
               client
             );
-            next(false);
+            return next(false);
           }
           channel.on("close", function () {
             connection.end();
