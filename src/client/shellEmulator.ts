@@ -533,14 +533,16 @@ const Shell = function (
               console.log("Warning: end tag mismatch");
             closeHtml();
           }
-        } else if (tag === webAppTags.InputContd) {
+        } else if (tag === webAppTags.InputContd && inputEndFlag) {
           // continuation of input section
-          if (inputEndFlag) inputEndFlag = false;
-          else createHtml(webAppClasses[tag]); // else clause should almost never occur -- broken input
+          inputEndFlag = false;
         } else {
           // new section
           createHtml(webAppClasses[tag]);
-          if (tag === webAppTags.Input && inputSpan) {
+          if (
+            inputSpan &&
+            (tag === webAppTags.Input || tag === webAppTags.InputContd)
+          ) {
             // input section: a bit special (ends at first \n)
             attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
           }
