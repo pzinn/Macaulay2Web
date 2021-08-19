@@ -20,7 +20,7 @@ const processTutorial = function (theHtml: string) {
   // minor improvement: because <code> use white-space: pre, we remove extra spacing
   const codes = Array.from(el.getElementsByTagName("code"));
   for (const code of codes) {
-    let lines = code.innerText.split(/\r?\n/);
+    const lines = code.innerText.split(/\r?\n/);
     while (lines.length > 0 && lines[0].trim() == "") lines.shift();
     while (lines.length > 0 && lines[lines.length - 1].trim() == "")
       lines.pop();
