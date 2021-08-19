@@ -1,5 +1,3 @@
-import { Client } from "./client";
-
 const winston = require("winston");
 const loggerSettings = {
   transports: [new winston.transports.Console()],
