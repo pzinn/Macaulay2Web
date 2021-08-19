@@ -79,6 +79,7 @@ const Shell = function (
   // input is a bit messy...
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
+  let inputLineNo = 0; // current input line number
 
   const createHtml = function (className) {
     const cell = className.indexOf("M2Cell") >= 0; // a bit special
@@ -421,6 +422,14 @@ const Shell = function (
     }
 
     if (htmlSec.classList.contains("M2Input")) {
+      // count lines
+      const lineCount = (htmlSec.textContent.match(/\n/g) || []).length; // could return null in theory tho shouldn't
+      let s = " ";
+      for (let i = 0; i < lineCount; i++) {
+        inputLineNo++;
+        s = s + inputLineNo + " ";
+      }
+      htmlSec.dataset.lines = s;
       // highlight
       htmlSec.innerHTML = Prism.highlight(
         htmlSec.textContent,
@@ -591,6 +600,41 @@ const Shell = function (
     removeDelimiterHighlight(htmlSec);
     postRawMessage("\x03");
     setCaretAtEndMaybe(inputSpan);
+  };
+
+  obj.selectPastInput = function (row1, col1, row2, col2) {
+    const pastInput = shell.querySelector(
+      '.M2PastInput[data-lines*=" ' + row1 + ' "][data-lines*=" ' + row2 + ' "]'
+    ) as HTMLElement;
+    if (pastInput) {
+      const inputText = pastInput.innerText; // TODO copy pasted from extra.ts instead call
+      let j = -1;
+      let k = +pastInput.dataset.lines.match(/ \d+ /)[0];
+      let j1, j2;
+      while (true) {
+        if (k == row1) j1 = j;
+        else if (k == row1 + 1 && col1 > j - j1) col1 = j - j1;
+        if (k == row2) j2 = j;
+        else if (k == row2 + 1) {
+          if (col2 > j - j2) col2 = j - j2;
+          break;
+        }
+        j = inputText.indexOf("\n", j + 1);
+        if (j < 0) break;
+        k++;
+      }
+      j1 = j1 === undefined ? inputText.length : j1 + col1;
+      j2 =
+        j2 === undefined || j2 + col2 > inputText.length
+          ? inputText.length
+          : j2 + col2;
+      setCaret(pastInput, j1, j2, false);
+      pastInput.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      }); // sucks that can't use option of setCaret -- TODO better
+    }
   };
 
   if (inputSpan)

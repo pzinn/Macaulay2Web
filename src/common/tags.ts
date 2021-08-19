@@ -1,10 +1,10 @@
 const webAppTagCodes = [
   ["Html", 17, "M2Html"], // indicates what follows is HTML
-  ["End", 18, ""], // end of HTML (or url) section
+  ["End", 18, "M2End"], // end of HTML (or url) section
   ["Cell", 19, "M2Text M2Cell"], // cell (bundled input + output)
-  ["CellEnd", 20, ""], // end of cell
+  ["CellEnd", 20, "M2CellEnd"], // end of cell
   ["Input", 28, "M2Text M2Input"], // it's text but it's input
-  ["InputContd", 29, "M2Text M2Input"], // text, continuation of input
+  ["InputContd", 29, "M2Text M2Input M2InputContd"], // text, continuation of input
   ["Url", 30, "M2Url"], // url
 ];
 const webAppTags = {} as any;

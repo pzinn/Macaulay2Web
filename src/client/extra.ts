@@ -247,7 +247,13 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
   // figure out filename
   const m = arg.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
   const newName = m ? m[1] : arg;
+  if (newName == "stdio") {
+    // special case
+    myshell.selectPastInput(+m[2], +m[3], +m[4], +m[5]);
+    return;
+  }
   if (fileName == newName || !newName) {
+    // file already open in editor
     updateFileName(newName); // in case of positioning data
     if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
     positioning(m);
