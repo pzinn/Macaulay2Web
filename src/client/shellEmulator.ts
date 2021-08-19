@@ -602,39 +602,13 @@ const Shell = function (
     setCaretAtEndMaybe(inputSpan);
   };
 
-  obj.selectPastInput = function (row1, col1, row2, col2) {
+  obj.selectPastInput = function (row1, row2) {
     const pastInput = shell.querySelector(
       '.M2PastInput[data-lines*=" ' + row1 + ' "][data-lines*=" ' + row2 + ' "]'
     ) as HTMLElement;
-    if (pastInput) {
-      const inputText = pastInput.innerText; // TODO copy pasted from extra.ts instead call
-      let j = -1;
-      let k = +pastInput.dataset.lines.match(/ \d+ /)[0];
-      let j1, j2;
-      while (true) {
-        if (k == row1) j1 = j;
-        else if (k == row1 + 1 && col1 > j - j1) col1 = j - j1;
-        if (k == row2) j2 = j;
-        else if (k == row2 + 1) {
-          if (col2 > j - j2) col2 = j - j2;
-          break;
-        }
-        j = inputText.indexOf("\n", j + 1);
-        if (j < 0) break;
-        k++;
-      }
-      j1 = j1 === undefined ? inputText.length : j1 + col1;
-      j2 =
-        j2 === undefined || j2 + col2 > inputText.length
-          ? inputText.length
-          : j2 + col2;
-      setCaret(pastInput, j1, j2, false);
-      pastInput.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "center",
-      }); // sucks that can't use option of setCaret -- TODO better
-    }
+    return pastInput
+      ? [pastInput, +pastInput.dataset.lines.match(/ \d+ /)[0]]
+      : null;
   };
 
   if (inputSpan)
