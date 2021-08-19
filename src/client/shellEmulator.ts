@@ -508,6 +508,7 @@ const Shell = function (
     }
     const txt = msg.split(webAppRegex);
     for (let i = 0; i < txt.length; i += 2) {
+      //console.log(i+"-"+(i+1)+"/"+txt.length+": ",i==0?"":webAppClasses[txt[i-1]]," : ",txt[i].replace("\n",returnSymbol));
       // if we are at the end of an input section
       if (
         inputEndFlag &&
@@ -523,6 +524,8 @@ const Shell = function (
           if (htmlSec != shell || !createInputSpan) {
             // htmlSec == shell should only happen at very start
             // or at the very end for rendering help -- then it's OK
+            while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
+            // but in rare circumstances (interrupt) it may be missing its \n
             if (
               htmlSec.classList.contains("M2Cell") !=
               (tag == webAppTags.CellEnd)
@@ -530,13 +533,16 @@ const Shell = function (
               console.log("Warning: end tag mismatch");
             closeHtml();
           }
-        } else if (tag === webAppTags.InputContd) {
+        } else if (tag === webAppTags.InputContd && inputEndFlag) {
           // continuation of input section
           inputEndFlag = false;
         } else {
           // new section
           createHtml(webAppClasses[tag]);
-          if (tag === webAppTags.Input && inputSpan) {
+          if (
+            inputSpan &&
+            (tag === webAppTags.Input || tag === webAppTags.InputContd)
+          ) {
             // input section: a bit special (ends at first \n)
             attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
           }

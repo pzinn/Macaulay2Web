@@ -18,13 +18,14 @@ viewHelp "determinant"
 -- Here are some sample commands:
 R = ZZ/101[a,b,c,d]
 I = ideal(a^2-b*c, a^3-b^3, a^4-b*d^3, a^5-c^2*d^3)
-J = ideal groebnerBasis I;
-VerticalList J_* -- for emulation of ascii style, try netList J_* instead
+g = first entries groebnerBasis I;
+VerticalList g -- for emulation of ascii style, try netList g instead
+I == ideal g
 
 -- Some examples of rings
 A = ZZ/32003[a..g]
 B = QQ[x_1..x_6]
-C = ZZ/101[vars(0..12)]
+C = (GF 32)[α,β,γ]
 
 -- something fun
 needsPackage "VectorGraphics"
@@ -36,7 +37,7 @@ dodecasplit=apply(F,C,(f,c)->Polygon{apply(f,j->V#j),
         AnimMatrix=>apply(steps,j->rotation(2*pi/5/steps*4*min(j/steps,1-j/steps),c,c)*translation(0.075*sin(2*pi*j/steps)*c)),
         "fill"=>concatenate("rgb(",toString(134+round(1.2*c_0)),",",toString(134+round(1.2*c_1)),",",toString(134+round(1.2*c_2)),")")});
 d=gList(dodecasplit,"fill-opacity"=>0.7,AnimMatrix=>rotation(0.02,(1,2,3)));
-d1=d ++ {TransformMatrix=>translation(200,0,0)}; -- using alternate syntax of Sequence instead of Vector
+d1=d ++ {TransformMatrix=>translation(200,0,0)};
 d2=d ++ {TransformMatrix=>translation(-200,0,0)};
 gList(d1,d2,ViewPort=>{vector{-400,-400},vector{400,400}},SizeY=>25,"stroke-width"=>2) -- press button at top/left!
 

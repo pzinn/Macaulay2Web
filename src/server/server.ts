@@ -136,7 +136,7 @@ const spawnMathProgram = function (client: Client, next) {
     .on("ready", function () {
       connection.exec(
         serverConfig.MATH_PROGRAM_COMMAND,
-        { pty: true },
+        { pty: { term: "dumb" } },
         function (err, channel: ssh2.ClientChannel) {
           if (err) {
             logger.error(
@@ -145,7 +145,7 @@ const spawnMathProgram = function (client: Client, next) {
                 "; Retrying with new instance.",
               client
             );
-            next(false);
+            return next(false);
           }
           channel.on("close", function () {
             connection.end();

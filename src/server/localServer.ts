@@ -41,11 +41,11 @@ const options = {
   serverConfig: {
     baseDirectory: baseDirectory,
     MATH_PROGRAM_COMMAND:
-      "stty cols 1000000000; mkdir -p " +
+      "mkdir -p " +
       baseDirectory +
       "; cd " +
       baseDirectory +
-      "; TERM=dumb M2MODE=localServer M2 --webapp",
+      "; stty -echo; M2MODE=localServer M2 --webapp",
     CONTAINERS(): InstanceManager {
       return new LocalContainerManager();
     },
