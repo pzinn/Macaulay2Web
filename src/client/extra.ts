@@ -245,7 +245,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
   const newName = m ? m[1] : arg;
   if (newName == "stdio") {
     // special case
-    const s = myshell.selectPastInput(+m[2], +m[4]);
+    const s = myshell.selectPastInput([m[2], m[4]]);
     if (s) positioning(s[0], m, s[1]);
     return;
   }

@@ -602,10 +602,12 @@ const Shell = function (
     setCaretAtEndMaybe(inputSpan);
   };
 
-  obj.selectPastInput = function (row1, row2) {
-    const pastInput = shell.querySelector(
-      '.M2PastInput[data-lines*=" ' + row1 + ' "][data-lines*=" ' + row2 + ' "]'
-    ) as HTMLElement;
+  obj.selectPastInput = function (rows) {
+    let query = ".M2PastInput";
+    rows.forEach((row) => {
+      if (row) query += '[data-lines*=" ' + row + ' "]';
+    });
+    const pastInput = shell.querySelector(query) as HTMLElement;
     return pastInput
       ? [pastInput, +pastInput.dataset.lines.match(/ \d+ /)[0]]
       : null;
