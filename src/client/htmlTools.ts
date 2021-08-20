@@ -86,24 +86,36 @@ const getCaret2 = function (el) {
   }
 };
 
-const scrollToCaret = function () {
-  // painful way of getting scrolling to work
-  setTimeout(function () {
-    // in case not in editor tab, need to wait
-    document.execCommand("insertHTML", false, "<span id='scrll'></span>");
-    document.getElementById("scrll").scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-      inline: "center",
-    });
-    document.execCommand("undo", false, null);
-  }, 0);
+const selectAndScroll = function (
+  node1,
+  offset1: number,
+  node2,
+  offset2: number,
+  scroll: boolean
+) {
+  const sel = window.getSelection();
+  let scrll;
+  if (scroll) {
+    scrll = document.createElement("span");
+    scrll.id = "scrll";
+    node2.parentElement.insertBefore(scrll, node2.splitText(offset2)); // !!
+  }
+  sel.setBaseAndExtent(node1, offset1, node2, offset2);
+  if (scroll)
+    setTimeout(function () {
+      // in case not in editor tab, need to wait
+      scrll.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "end",
+      });
+      scrll.remove();
+    }, 0);
 };
 
 const setCaretInternal = function (
   el,
   cur,
-  sel,
   pos: number,
   len: number,
   scroll?: boolean
@@ -115,12 +127,10 @@ const setCaretInternal = function (
       if (pos <= cur.textContent.length) {
         // bingo
         if (first) {
-          sel.setBaseAndExtent(first, firstpos, cur, pos);
-          if (scroll) scrollToCaret();
+          selectAndScroll(first, firstpos, cur, pos, scroll);
           return;
         } else if (pos + len <= cur.textContent.length) {
-          sel.setBaseAndExtent(cur, pos, cur, pos + len);
-          if (scroll) scrollToCaret();
+          selectAndScroll(cur, pos, cur, pos + len, scroll);
           return;
         } else {
           first = cur;
@@ -157,19 +167,18 @@ const setCaret = function (
     pos = pos2;
   } else len = pos2 - pos;
   el.focus({ preventScroll: true });
-  const sel = window.getSelection();
   if (pos === 0 && len === 0) {
-    sel.collapse(el, pos);
+    window.getSelection().collapse(el, pos);
     return;
   }
   const cur = el.firstChild;
   if (!cur) return;
-  setCaretInternal(el, cur, sel, pos, len, scroll);
+  setCaretInternal(el, cur, pos, len, scroll);
 };
 
 const forwardCaret = function (el, incr: number): void {
   const sel = window.getSelection();
-  setCaretInternal(el, sel.focusNode, sel, incr + sel.focusOffset, 0);
+  setCaretInternal(el, sel.focusNode, incr + sel.focusOffset, 0);
 };
 
 const nextChar = function () {

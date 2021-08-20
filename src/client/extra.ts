@@ -164,7 +164,7 @@ const localFileToEditor = function (fileName: string, m?) {
     editor.contentEditable = "true";
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
     autoSaveHash = hashCode(xhr.responseText);
-    if (m) positioning(m);
+    if (m) positioning(document.getElementById("editorDiv"), m, 1);
   };
   xhr.send(null);
 };
@@ -200,11 +200,11 @@ const listDirToEditor = function (dirName: string, fileName: string) {
   xhr.send(null);
 };
 
-const positioning = function (m) {
-  const editor = document.getElementById("editorDiv");
-  // find location in file
+const positioning = function (el, m, k) {
+  // element,rows/cols,starting line no
+  // find location in element text and select it/scroll
   if (!m || !m[2]) {
-    editor.focus({ preventScroll: true });
+    el.focus({ preventScroll: true });
     return;
   }
   let row1 = +m[2];
@@ -215,9 +215,8 @@ const positioning = function (m) {
   if (row2 < row1) row2 = row1;
   let col2 = m[5] ? +m[5] : m[4] ? +m[4] : col1;
   if (row2 == row1 && col2 < col1) col2 = col1;
-  const editorText = editor.innerText;
+  const txt = el.innerText;
   let j = -1;
-  let k = 1;
   let j1, j2;
   while (true) {
     if (k == row1) j1 = j;
@@ -227,16 +226,13 @@ const positioning = function (m) {
       if (col2 > j - j2) col2 = j - j2;
       break;
     }
-    j = editorText.indexOf("\n", j + 1);
+    j = txt.indexOf("\n", j + 1);
     if (j < 0) break;
     k++;
   }
-  j1 = j1 === undefined ? editorText.length : j1 + col1;
-  j2 =
-    j2 === undefined || j2 + col2 > editorText.length
-      ? editorText.length
-      : j2 + col2;
-  setCaret(editor, j1, j2, true); // true = scroll to caret
+  j1 = j1 === undefined ? txt.length : j1 + col1;
+  j2 = j2 === undefined || j2 + col2 > txt.length ? txt.length : j2 + col2;
+  setCaret(el, j1, j2, true); // true = scroll to selection
 };
 
 const newEditorFileMaybe = function (arg: string, missing: any) {
@@ -247,10 +243,18 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
   // figure out filename
   const m = arg.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
   const newName = m ? m[1] : arg;
+  if (newName == "stdio") {
+    // special case
+    const s = myshell.selectPastInput(+m[2], +m[4]);
+    if (s) positioning(s[0], m, s[1]);
+    return;
+  }
+  const el = document.getElementById("editorDiv");
   if (fileName == newName || !newName) {
+    // file already open in editor
     updateFileName(newName); // in case of positioning data
     if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
-    positioning(m);
+    positioning(el, m, 1);
     return;
   }
 
@@ -258,7 +262,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
     if (!response) {
       if (missing === true) {
         updateFileName(newName);
-        positioning(m);
+        positioning(el, m, 1);
         autoSaveHash = null; // force save
         autoSave();
         return;
