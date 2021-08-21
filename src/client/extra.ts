@@ -403,41 +403,16 @@ const extra2 = function () {
         sel.collapseToEnd();
         sel.modify("move", "forward", "character");
       } else s = sel.toString(); // fragInnerText(sel.getRangeAt(0).cloneContents()); // toString used to fail because ignored BR / DIV which firefox creates
-      myshell.postMessage(s, false, false); // important not to move the pointer so can move to next line
+      //      myshell.postMessage(s, false, false); // important not to move the pointer so can move to next line
+      s.split("\n").forEach((line) => myshell.postMessage(line, false, false)); // should work fine now that echo mode is on
       editor.focus(); // in chrome, this.blur() would be enough, but not in firefox
     }
   };
-
-  /*
-  const editorEvaluate = function () {
-    const input = msg.split("\n");
-    for (var line=0; line<input.length; line++) {
-    if ((line<input.length-1)||(msg[msg.length-1]=="\n"))
-    myshell.postMessage(input[line], false, false);
-    }
-    // doesn't work -- feeding line by line is a bad idea, M2 then spits out input twice
-    var dataTrans = new DataTransfer();
-    dataTrans.setData("text/plain",msg);
-    var event = new ClipboardEvent('paste',{clipboardData: dataTrans});
-    document.getElementById("terminal").dispatchEvent(event);
-    // sadly, doesn't work either -- cf https://www.w3.org/TR/clipboard-apis/
-    // "A synthetic paste event can be manually constructed and dispatched, but it will not affect the contents of the document."
-  };
-*/
 
   const clearOut = function () {
     while (terminal.childElementCount > 1)
       terminal.removeChild(terminal.firstChild);
   };
-
-  /*
-const toggleWrap = function () {
-  const out = document.getElementById("terminal");
-  const btn = document.getElementById("wrapBtn");
-  btn.classList.toggle("rotated");
-  out.classList.toggle("M2Wrapped");
-};
-  */
 
   const fileNameEl = document.getElementById(
     "editorFileName"
