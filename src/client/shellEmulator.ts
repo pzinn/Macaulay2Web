@@ -7,6 +7,7 @@ import {
   scrollDown,
   scrollLeft,
   baselinePosition,
+  getCaret,
   setCaret,
   setCaretAtEndMaybe,
   attachElement,
@@ -193,34 +194,41 @@ const Shell = function (
   };
 
   obj.addToHistory = function (msg) {
-    const input = msg.split("\n");
-    for (let line = 0; line < input.length; line++) {
-      if (input[line].length > 0) {
-        cmdHistory.index = cmdHistory.push(input[line]);
-        cmdHistory.sorted.sortedPush(input[line].trim());
-      }
-    }
+    cmdHistory.index = cmdHistory.push(msg);
+    msg.split("\n").forEach((line) => {
+      line = line.trim();
+      if (line.length > 0) cmdHistory.sorted.sortedPush(line);
+    });
   };
 
   const downArrowKeyHandling = function () {
-    if (cmdHistory.index < cmdHistory.length) {
+    if (
+      inputSpan.textContent.substring(getCaret(inputSpan) || 0).indexOf("\n") <
+        0 &&
+      cmdHistory.index < cmdHistory.length
+    ) {
       cmdHistory.index++;
-      if (cmdHistory.index === cmdHistory.length) {
-        inputSpan.textContent = cmdHistory.current;
-      } else {
-        inputSpan.textContent = cmdHistory[cmdHistory.index];
-      }
-    }
+      inputSpan.textContent =
+        cmdHistory.index === cmdHistory.length
+          ? cmdHistory.current
+          : cmdHistory[cmdHistory.index];
+      return true;
+    } else return false;
   };
 
   const upArrowKeyHandling = function () {
-    if (cmdHistory.index > 0) {
-      if (cmdHistory.index === cmdHistory.length) {
+    if (
+      inputSpan.textContent
+        .substring(0, getCaret(inputSpan) || 0)
+        .indexOf("\n") < 0 &&
+      cmdHistory.index > 0
+    ) {
+      if (cmdHistory.index === cmdHistory.length)
         cmdHistory.current = inputSpan.textContent;
-      }
       cmdHistory.index--;
       inputSpan.textContent = cmdHistory[cmdHistory.index];
-    }
+      return true;
+    } else return false;
   };
 
   shell.onpaste = function (e) {
@@ -257,7 +265,7 @@ const Shell = function (
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
     removeDelimiterHighlight(htmlSec);
     if ((e.target as HTMLElement).classList.contains("M2CellBar")) return;
-    if (e.key == "Enter") {
+    if (e.key == "Enter" && !e.shiftKey) {
       obj.postMessage(
         inputSpan.textContent,
         editorToggle && editorToggle.checked,
@@ -268,13 +276,15 @@ const Shell = function (
     }
 
     if ((e.key == "ArrowDown" || e.key == "ArrowUp") && !e.shiftKey) {
-      if (e.key == "ArrowDown") downArrowKeyHandling();
-      else upArrowKeyHandling();
-      e.preventDefault();
-      setCaretAtEndMaybe(inputSpan);
-      scrollDown(shell);
-      //
-      return;
+      if (
+        e.key == "ArrowDown" ? downArrowKeyHandling() : upArrowKeyHandling()
+      ) {
+        e.preventDefault();
+        setCaretAtEndMaybe(inputSpan);
+        scrollDown(shell);
+        //
+        return;
+      }
     }
 
     if (
