@@ -262,6 +262,16 @@ const initTutorials = function () {
   lessonNr = 1;
 
   for (const tute of startingTutorials) loadTutorial(tute, 0); // zero means don't render
+
+  document.getElementById("runAll").onclick = function () {
+    if (tutorials[tutorialIndex]) {
+      const lesson = tutorials[tutorialIndex].lessons[lessonNr - 1];
+      if (lesson)
+        Array.from(lesson.getElementsByTagName("code")).forEach((code) =>
+          (code as HTMLElement).click()
+        );
+    }
+  };
 };
 
 const removeTutorial = function (index) {
