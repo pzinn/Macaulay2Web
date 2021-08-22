@@ -426,7 +426,10 @@ const Shell = function (
       // number lines and add input to history
       let txt = htmlSec.textContent;
       if (txt[txt.length - 1] == "\n") txt = txt.substring(0, txt.length - 1); // should be true
-      cmdHistory.index = cmdHistory.push(txt);
+      if (htmlSec.classList.contains("M2InputContd"))
+        // rare case where input is broken
+        cmdHistory[cmdHistory.length - 1] += "\n" + txt;
+      else cmdHistory.index = cmdHistory.push(txt);
       let s = " ";
       txt.split("\n").forEach((line) => {
         line = line.trim();
