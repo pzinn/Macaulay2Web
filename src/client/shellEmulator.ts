@@ -164,7 +164,6 @@ const Shell = function (
     removeDelimiterHighlight(htmlSec);
     let clean = sanitizeInput(msg);
     if (clean.length > 0) {
-      obj.addToHistory(clean);
       if (procInputSpan === null) {
         // it'd be nicer to use ::before on inputSpan but sadly caret issues... cf https://stackoverflow.com/questions/60843694/cursor-position-in-an-editable-div-with-a-before-pseudo-element
         procInputSpan = document.createElement("span");
@@ -191,14 +190,6 @@ const Shell = function (
         scrollDownLeft(editor);
       }
     }
-  };
-
-  obj.addToHistory = function (msg) {
-    cmdHistory.index = cmdHistory.push(msg);
-    msg.split("\n").forEach((line) => {
-      line = line.trim();
-      if (line.length > 0) cmdHistory.sorted.sortedPush(line);
-    });
   };
 
   const downArrowKeyHandling = function () {
@@ -432,13 +423,17 @@ const Shell = function (
     }
 
     if (htmlSec.classList.contains("M2Input")) {
-      // count lines
-      const lineCount = (htmlSec.textContent.match(/\n/g) || []).length; // could return null in theory tho shouldn't
+      // number lines and add input to history
+      let txt = htmlSec.textContent;
+      if (txt[txt.length - 1] == "\n") txt = txt.substring(0, txt.length - 1); // should be true
+      cmdHistory.index = cmdHistory.push(txt);
       let s = " ";
-      for (let i = 0; i < lineCount; i++) {
+      txt.split("\n").forEach((line) => {
+        line = line.trim();
+        if (line.length > 0) cmdHistory.sorted.sortedPush(line);
         inputLineNo++;
         s = s + inputLineNo + " ";
-      }
+      });
       htmlSec.dataset.lines = s;
       // highlight
       htmlSec.innerHTML = Prism.highlight(
@@ -525,7 +520,7 @@ const Shell = function (
       procInputSpan.remove();
       procInputSpan = null;
     }
-    const txt = msg.split(webAppRegex);
+    const txt = msg.replace(/\r/g, "").split(webAppRegex);
     for (let i = 0; i < txt.length; i += 2) {
       //console.log(i+"-"+(i+1)+"/"+txt.length+": ",i==0?"":webAppClasses[txt[i-1]]," : ",txt[i].replace("\n",returnSymbol));
       // if we are at the end of an input section
@@ -568,9 +563,8 @@ const Shell = function (
         }
       }
       if (txt[i].length > 0) {
-        let l = htmlSec.classList;
         // for next round, check if we're nearing the end of an input section
-        if (l.contains("M2Input")) {
+        if (htmlSec.classList.contains("M2Input")) {
           const ii = txt[i].indexOf("\n");
           if (ii >= 0) {
             if (ii < txt[i].length - 1) {
@@ -581,8 +575,8 @@ const Shell = function (
               );
               txt[i] = txt[i].substring(ii + 1, txt[i].length);
               closeHtml();
-              l = htmlSec.classList;
-            } else inputEndFlag = true; // can't tell for sure if it's the end or not, so set a flag to remind us
+            } else inputEndFlag = true;
+            // can't tell for sure if it's the end of input or not (could be a InputContd), so set a flag to remind us
           }
         }
 
