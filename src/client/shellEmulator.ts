@@ -7,6 +7,7 @@ import {
   scrollDown,
   scrollLeft,
   baselinePosition,
+  getCaret,
   setCaret,
   setCaretAtEndMaybe,
   attachElement,
@@ -163,7 +164,6 @@ const Shell = function (
     removeDelimiterHighlight(htmlSec);
     let clean = sanitizeInput(msg);
     if (clean.length > 0) {
-      obj.addToHistory(clean);
       if (procInputSpan === null) {
         // it'd be nicer to use ::before on inputSpan but sadly caret issues... cf https://stackoverflow.com/questions/60843694/cursor-position-in-an-editable-div-with-a-before-pseudo-element
         procInputSpan = document.createElement("span");
@@ -192,35 +192,34 @@ const Shell = function (
     }
   };
 
-  obj.addToHistory = function (msg) {
-    const input = msg.split("\n");
-    for (let line = 0; line < input.length; line++) {
-      if (input[line].length > 0) {
-        cmdHistory.index = cmdHistory.push(input[line]);
-        cmdHistory.sorted.sortedPush(input[line].trim());
-      }
-    }
-  };
-
   const downArrowKeyHandling = function () {
-    if (cmdHistory.index < cmdHistory.length) {
+    if (
+      inputSpan.textContent.substring(getCaret(inputSpan) || 0).indexOf("\n") <
+        0 &&
+      cmdHistory.index < cmdHistory.length
+    ) {
       cmdHistory.index++;
-      if (cmdHistory.index === cmdHistory.length) {
-        inputSpan.textContent = cmdHistory.current;
-      } else {
-        inputSpan.textContent = cmdHistory[cmdHistory.index];
-      }
-    }
+      inputSpan.textContent =
+        cmdHistory.index === cmdHistory.length
+          ? cmdHistory.current
+          : cmdHistory[cmdHistory.index];
+      return true;
+    } else return false;
   };
 
   const upArrowKeyHandling = function () {
-    if (cmdHistory.index > 0) {
-      if (cmdHistory.index === cmdHistory.length) {
+    if (
+      inputSpan.textContent
+        .substring(0, getCaret(inputSpan) || 0)
+        .indexOf("\n") < 0 &&
+      cmdHistory.index > 0
+    ) {
+      if (cmdHistory.index === cmdHistory.length)
         cmdHistory.current = inputSpan.textContent;
-      }
       cmdHistory.index--;
       inputSpan.textContent = cmdHistory[cmdHistory.index];
-    }
+      return true;
+    } else return false;
   };
 
   shell.onpaste = function (e) {
@@ -257,7 +256,7 @@ const Shell = function (
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
     removeDelimiterHighlight(htmlSec);
     if ((e.target as HTMLElement).classList.contains("M2CellBar")) return;
-    if (e.key == "Enter") {
+    if (e.key == "Enter" && !e.shiftKey) {
       obj.postMessage(
         inputSpan.textContent,
         editorToggle && editorToggle.checked,
@@ -268,13 +267,15 @@ const Shell = function (
     }
 
     if ((e.key == "ArrowDown" || e.key == "ArrowUp") && !e.shiftKey) {
-      if (e.key == "ArrowDown") downArrowKeyHandling();
-      else upArrowKeyHandling();
-      e.preventDefault();
-      setCaretAtEndMaybe(inputSpan);
-      scrollDown(shell);
-      //
-      return;
+      if (
+        e.key == "ArrowDown" ? downArrowKeyHandling() : upArrowKeyHandling()
+      ) {
+        e.preventDefault();
+        setCaretAtEndMaybe(inputSpan);
+        scrollDown(shell);
+        //
+        return;
+      }
     }
 
     if (
@@ -422,13 +423,17 @@ const Shell = function (
     }
 
     if (htmlSec.classList.contains("M2Input")) {
-      // count lines
-      const lineCount = (htmlSec.textContent.match(/\n/g) || []).length; // could return null in theory tho shouldn't
+      // number lines and add input to history
+      let txt = htmlSec.textContent;
+      if (txt[txt.length - 1] == "\n") txt = txt.substring(0, txt.length - 1); // should be true
+      cmdHistory.index = cmdHistory.push(txt);
       let s = " ";
-      for (let i = 0; i < lineCount; i++) {
+      txt.split("\n").forEach((line) => {
+        line = line.trim();
+        if (line.length > 0) cmdHistory.sorted.sortedPush(line);
         inputLineNo++;
         s = s + inputLineNo + " ";
-      }
+      });
       htmlSec.dataset.lines = s;
       // highlight
       htmlSec.innerHTML = Prism.highlight(
@@ -515,7 +520,7 @@ const Shell = function (
       procInputSpan.remove();
       procInputSpan = null;
     }
-    const txt = msg.split(webAppRegex);
+    const txt = msg.replace(/\r/g, "").split(webAppRegex);
     for (let i = 0; i < txt.length; i += 2) {
       //console.log(i+"-"+(i+1)+"/"+txt.length+": ",i==0?"":webAppClasses[txt[i-1]]," : ",txt[i].replace("\n",returnSymbol));
       // if we are at the end of an input section
@@ -558,9 +563,8 @@ const Shell = function (
         }
       }
       if (txt[i].length > 0) {
-        let l = htmlSec.classList;
         // for next round, check if we're nearing the end of an input section
-        if (l.contains("M2Input")) {
+        if (htmlSec.classList.contains("M2Input")) {
           const ii = txt[i].indexOf("\n");
           if (ii >= 0) {
             if (ii < txt[i].length - 1) {
@@ -571,8 +575,8 @@ const Shell = function (
               );
               txt[i] = txt[i].substring(ii + 1, txt[i].length);
               closeHtml();
-              l = htmlSec.classList;
-            } else inputEndFlag = true; // can't tell for sure if it's the end or not, so set a flag to remind us
+            } else inputEndFlag = true;
+            // can't tell for sure if it's the end of input or not (could be a InputContd), so set a flag to remind us
           }
         }
 
@@ -602,10 +606,12 @@ const Shell = function (
     setCaretAtEndMaybe(inputSpan);
   };
 
-  obj.selectPastInput = function (row1, row2) {
-    const pastInput = shell.querySelector(
-      '.M2PastInput[data-lines*=" ' + row1 + ' "][data-lines*=" ' + row2 + ' "]'
-    ) as HTMLElement;
+  obj.selectPastInput = function (rows) {
+    let query = ".M2PastInput";
+    rows.forEach((row) => {
+      if (row) query += '[data-lines*=" ' + row + ' "]';
+    });
+    const pastInput = shell.querySelector(query) as HTMLElement;
     return pastInput
       ? [pastInput, +pastInput.dataset.lines.match(/ \d+ /)[0]]
       : null;

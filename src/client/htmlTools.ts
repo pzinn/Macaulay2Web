@@ -109,7 +109,13 @@ const selectAndScroll = function (
         block: "center",
         inline: "end",
       });
-      scrll.remove();
+      if (node1 != node2 || offset1 != offset2) scrll.remove();
+      else {
+        scrll.classList.add("caret-marker");
+        setTimeout(function () {
+          scrll.remove();
+        }, 1000);
+      }
     }, 0);
 };
 
