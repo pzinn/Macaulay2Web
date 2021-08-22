@@ -21,7 +21,6 @@ const hideContextMenu = function () {
 };
 
 const cutList = [];
-const selInput = [];
 let group;
 let target;
 
@@ -29,8 +28,11 @@ let target;
 const runEl = (el) => {
   if (el.classList.contains("M2Cell")) Array.from(el.children).forEach(runEl);
   else if (el.classList.contains("M2PastInput")) {
-    selInput.push(el);
+    myshell.postMessage(el.textContent, false, true);
     el.classList.add("codetrigger");
+    setTimeout(() => {
+      el.classList.remove("codetrigger");
+    }, 200);
   }
 };
 const removeEl = (el) => {
@@ -65,7 +67,6 @@ const barAction = function (action: string, target0: HTMLElement) {
   const list: HTMLElement[] = Array.from(
     doc.getElementsByClassName("M2CellSelected")
   );
-  selInput.length = 0;
 
   if (action == "ctrl-x" || action == "ctrl-c") cutList.length = 0;
   else if (action == "g") {
@@ -100,22 +101,6 @@ const barAction = function (action: string, target0: HTMLElement) {
       el2.classList.remove("M2CellSelected");
       target.before(el2);
     });
-  }
-  if (selInput.length > 0) {
-    myshell.postMessage(
-      selInput
-        .map((el) => {
-          return el.textContent;
-        })
-        .join(""),
-      false,
-      true
-    );
-    setTimeout(() => {
-      selInput.forEach((el) => {
-        el.classList.remove("codetrigger");
-      });
-    }, 200);
   }
   return true;
 };
