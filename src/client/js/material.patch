@@ -1,0 +1,35 @@
+--- ./material.js	2016-12-22 00:18:49.000000000 +1100
++++ ./material.js	2021-08-22 11:22:56.639573810 +1000
+@@ -3090,14 +3090,22 @@
+     } else {
+         this.element_.style.top = props.top + props.height + 10 + 'px';
+     }
+-    this.element_.classList.add(this.CssClasses_.IS_ACTIVE);
++    if (!this.delayFunc)
++	this.delayFunc = setTimeout(() => {
++	    this.element_.classList.add(this.CssClasses_.IS_ACTIVE);
++	    this.delayFunc = null;
++	},700);
+ };
+ /**
+    * Hide tooltip on mouseleave or scroll
+    *
+    * @private
+    */
+-MaterialTooltip.prototype.hideTooltip_ = function () {
++    MaterialTooltip.prototype.hideTooltip_ = function () {
++	if (this.delayFunc) {
++	    clearTimeout(this.delayFunc);
++	    this.delayFunc = null;
++	}
+     this.element_.classList.remove(this.CssClasses_.IS_ACTIVE);
+ };
+ /**
+@@ -3119,6 +3127,7 @@
+             this.forElement_.addEventListener('mouseenter', this.boundMouseEnterHandler, false);
+             this.forElement_.addEventListener('touchend', this.boundMouseEnterHandler, false);
+             this.forElement_.addEventListener('mouseleave', this.boundMouseLeaveAndScrollHandler, false);
++            this.forElement_.addEventListener('click', this.boundMouseLeaveAndScrollHandler, false);
+             window.addEventListener('scroll', this.boundMouseLeaveAndScrollHandler, true);
+             window.addEventListener('touchstart', this.boundMouseLeaveAndScrollHandler);
+         }
