@@ -14,6 +14,7 @@ cd ..
 echo Installing Material Design Lite
 cd js
 wget -nv -N https://code.getmdl.io/1.3.0/material.js
+patch -p0 material.js < material.patch
 cd ../css
 wget -nv -N https://code.getmdl.io/1.3.0/material.indigo-deep_orange.min.css
 cd ..
