@@ -135,7 +135,7 @@ const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
     } else if (chat.message.startsWith("/stop")) {
       systemChat(null, "The server is stopping.");
       setTimeout(function () {
-        logger.info("Exiting.");
+        logger.info("Exiting");
         process.exit(0);
       }, 5000);
     } else {

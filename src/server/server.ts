@@ -6,6 +6,8 @@ import { Instance, InstanceManager } from "./instance";
 import { AddressInfo } from "net";
 import { downloadFromInstance } from "./fileDownload";
 import { uploadToInstance } from "./fileUpload";
+import { webAppTags } from "../common/tags";
+import { logger } from "./logger";
 
 import Cookie = require("cookie");
 
@@ -24,10 +26,6 @@ import ssh2 = require("ssh2");
 
 import socketio = require("socket.io");
 const io: SocketIO.Server = socketio(http, { pingTimeout: 30000 });
-
-import { webAppTags } from "../common/tags";
-
-import { logger } from "./logger";
 
 import path = require("path");
 let getClientId;
@@ -66,7 +64,7 @@ const disconnectSocket = function (socket: SocketIO.Socket): void {
 
 const deleteClientData = function (client: Client): void {
   try {
-    logger.info("Sending disconnect. ", client);
+    logger.info("Sending disconnect", client);
     clients[client.id].sockets.forEach(disconnectSocket);
   } catch (error) {
     logger.error("Socket seems already dead: " + error, client);
@@ -105,7 +103,7 @@ const getInstance = function (client: Client, next) {
       });
     } catch (error) {
       logger.error(
-        "Could not get new instance. Should not drop in here.",
+        "Could not get new instance. Should not drop in here",
         client
       );
     }
@@ -114,17 +112,17 @@ const getInstance = function (client: Client, next) {
 
 const killNotify = function (client: Client) {
   return function () {
-    logger.info("getting killed.", client);
+    logger.info("getting killed", client);
     deleteClientData(client);
   };
 };
 
 const spawnMathProgram = function (client: Client, next) {
-  logger.info("Spawning new MathProgram process...", client);
+  logger.info("Spawning new MathProgram process", client);
   const connection: ssh2.Client = new ssh2.Client();
   connection.on("error", function (err) {
     logger.error(
-      "Error when connecting. " + err + "; Retrying with new instance.",
+      "Error when connecting. " + err + "; Retrying with new instance",
       client
     );
     next(false);
@@ -139,7 +137,7 @@ const spawnMathProgram = function (client: Client, next) {
             logger.error(
               "Error when executing M2. " +
                 err +
-                "; Retrying with new instance.",
+                "; Retrying with new instance",
               client
             );
             return next(false);
@@ -150,7 +148,7 @@ const spawnMathProgram = function (client: Client, next) {
           channel.on("end", function () {
             channel.close();
             logger.info(
-              "Channel to Math program ended, closing connection.",
+              "Channel to Math program ended, closing connection",
               client
             );
             connection.end();
@@ -190,7 +188,7 @@ const sendDataToClient = function (client: Client) {
   return function (dataObject) {
     if (client.outputStat < 0) return; // output rate exceeded
     if (!client.instance) {
-      logger.warn("No instance for client.", client);
+      logger.warn("No instance for client", client);
       return;
     }
     const data: string = dataObject.toString();
@@ -203,8 +201,9 @@ const sendDataToClient = function (client: Client) {
     client.instance.lastActiveTime = Date.now();
     if (client.outputStat < 0) client.outputStat = 0;
     else if (client.outputStat > options.perContainerResources.maxOutputStat) {
-      systemChat(client, "Output rate exceeded. Killing M2.");
       killMathProgram(client);
+      systemChat(client, "Output rate exceeded. Killing M2.");
+      logger.warn("Output rate exceeded", client);
       client.outputStat = -1; // signal to avoid repeat message
       emitViaClientSockets(client, "output", webAppTags.CellEnd + "\n"); // to make it look nicer
       return;
@@ -263,7 +262,7 @@ const attachChannelToClient = function (
 };
 
 const killMathProgram = function (client: Client) {
-  logger.info("kill MathProgram.", client);
+  logger.info("kill MathProgram", client);
   client.channel.close();
 };
 
@@ -449,7 +448,7 @@ const sanitizeClient = function (client: Client, force: boolean, next?) {
         }
       });
     } else {
-      logger.info("Has mathProgram instance.", client);
+      logger.info("Has mathProgram instance", client);
       client.saneState = true;
       if (next) next(true);
     }
@@ -495,7 +494,7 @@ const socketInputAction = function (socket: SocketIO.Socket, client: Client) {
 
 const socketResetAction = function (client: Client) {
   return function () {
-    logger.info("Received reset.", client);
+    logger.info("Received reset", client);
     systemChat(client, "Resetting M2.");
     if (client.saneState) {
       if (client.channel) killMathProgram(client);
@@ -525,7 +524,7 @@ const validateId = function (s): string {
 
 const listen = function () {
   io.on("connection", function (socket: SocketIO.Socket) {
-    logger.info("Incoming new connection!");
+    logger.info("Incoming new connection");
     const version = socket.handshake.query.version;
     if (options.version && version != options.version) {
       safeEmit(
@@ -538,7 +537,7 @@ const listen = function () {
     }
     let clientId: string = getClientId(socket);
     if (clientId === "failed") {
-      logger.info("Disconnecting for failed authentication.");
+      logger.info("Disconnecting for failed authentication");
       disconnectSocket(socket);
       return;
     }
@@ -600,7 +599,7 @@ const mathServer = function (o) {
   serverConfig = options.serverConfig;
 
   if (!serverConfig.CONTAINERS) {
-    logger.error("error, no container management given.");
+    logger.error("error, no container management given");
     throw new Error("No CONTAINERS!");
   }
 

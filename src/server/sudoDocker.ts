@@ -258,10 +258,10 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
         logger.info("Looking for sshd. OUT: " + stdout + " ERR: " + stderr);
 
         if (runningSshDaemons) {
-          logger.info("sshd is ready.");
+          logger.info("sshd is ready");
           next(instance);
         } else {
-          logger.info("sshd not ready yet.");
+          logger.info("sshd not ready yet");
           self.waitForSshd(next, instance);
         }
       }
