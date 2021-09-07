@@ -81,6 +81,8 @@ const Shell = function (
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
   let inputLineNo = 0; // current input line number
+  let inputPromptNo = 0; // current input prompt line number -- sadly, distinct from the above
+  let debugPrompt = false; // whether M2 is in debugging mode
 
   const createHtml = function (className) {
     const cell = className.indexOf("M2Cell") >= 0; // a bit special
@@ -422,8 +424,22 @@ const Shell = function (
       return;
     }
 
-    if (htmlSec.classList.contains("M2Input")) {
-      if (htmlSec.parentElement.parentElement == shell) {
+    if (
+      htmlSec.classList.contains("M2InputPrompt") &&
+      htmlSec.parentElement.parentElement == shell
+    ) {
+      // analyze the prompt to keep track of line no correctly
+      const txt = htmlSec.textContent;
+      if (txt.startsWith("ii")) debugPrompt = true;
+      else {
+        debugPrompt = false;
+        const newNo = +txt.substring(1);
+        if (newNo == inputPromptNo) inputLineNo--;
+        else if (newNo < inputPromptNo) inputLineNo = 0;
+        inputPromptNo = newNo;
+      }
+    } else if (htmlSec.classList.contains("M2Input")) {
+      if (!debugPrompt && htmlSec.parentElement.parentElement == shell) {
         // eww
         // number lines and add input to history
         let txt = htmlSec.textContent;
@@ -601,7 +617,6 @@ const Shell = function (
     console.log("Reset");
     removeAutoComplete(false, false); // remove autocomplete menu if open
     createInputEl(); // recreate the input area
-    inputLineNo = 0; // current input line number
 
     //    htmlSec.parentElement.insertBefore(document.createElement("hr"), htmlSec); // insert an additional horizontal line to distinguish successive M2  runs
   };
