@@ -173,12 +173,16 @@ const setCaret = function (
     pos = pos2;
   } else len = pos2 - pos;
   el.focus({ preventScroll: true });
+  /*
   if (pos === 0 && len === 0) {
     window.getSelection().collapse(el, pos);
     return;
-  }
+  }*/
   const cur = el.firstChild;
-  if (!cur) return;
+  if (!cur) {
+    window.getSelection().collapse(el, pos);
+    return;
+  }
   setCaretInternal(el, cur, pos, len, scroll);
 };
 
