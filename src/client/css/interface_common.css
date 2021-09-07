@@ -396,3 +396,17 @@ a {
     margin-left: 0.2em;
     margin-right: 0.2em;
 }
+
+/*
+.M2InputPrompt {
+    color: #000060;
+}
+
+.M2OutputPrompt {
+    color: #202500;
+}
+*/
+
+.M2OutputPrompt, .M2InputPrompt {
+    text-decoration: underline;
+}
