@@ -601,6 +601,8 @@ const Shell = function (
     console.log("Reset");
     removeAutoComplete(false, false); // remove autocomplete menu if open
     createInputEl(); // recreate the input area
+    inputLineNo = 0; // current input line number
+
     //    htmlSec.parentElement.insertBefore(document.createElement("hr"), htmlSec); // insert an additional horizontal line to distinguish successive M2  runs
   };
 
@@ -617,10 +619,10 @@ const Shell = function (
     rows.forEach((row) => {
       if (row) query += '[data-lines*=" ' + row + ' "]';
     });
-    const pastInput = shell.querySelector(query) as HTMLElement;
-    return pastInput
-      ? [pastInput, +pastInput.dataset.lines.match(/ \d+ /)[0]]
-      : null;
+    const pastInputs = shell.querySelectorAll(query);
+    if (pastInputs.length == 0) return null;
+    const pastInput = pastInputs[pastInputs.length - 1] as HTMLElement;
+    return [pastInput, +pastInput.dataset.lines.match(/ \d+ /)[0]];
   };
 
   if (inputSpan)

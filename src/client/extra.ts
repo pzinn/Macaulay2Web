@@ -262,6 +262,10 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
     if (!response) {
       if (missing === true) {
         updateFileName(newName);
+        if (el.contentEditable != "true") {
+          el.contentEditable = "true";
+          el.innerHTML = "";
+        }
         positioning(el, m, 1);
         autoSaveHash = null; // force save
         autoSave();
