@@ -19,6 +19,7 @@ import {
   sanitizeInput,
   delimiterHandling,
   removeDelimiterHighlight,
+  selectRowColumn,
 } from "./editor";
 
 //const unicodeBell = "\u0007";
@@ -428,14 +429,23 @@ const Shell = function (
       htmlSec.classList.contains("M2InputPrompt") &&
       htmlSec.parentElement.parentElement == shell
     ) {
-      // analyze the prompt to keep track of line no correctly
+      // TEMP? analyze the prompt to keep track of line no correctly
       const txt = htmlSec.textContent;
       if (txt.startsWith("ii")) debugPrompt = true;
+      // that part is fine
       else {
         debugPrompt = false;
         const newNo = +txt.substring(1);
         if (newNo == inputPromptNo) inputLineNo--;
-        else if (newNo < inputPromptNo) inputLineNo = 0;
+        // no! TODO: fix (caused by syntax error)
+        else if (newNo < inputPromptNo) {
+          // very primitive too. what if we restarted on first line?
+          inputLineNo = 0;
+          // remove all past line numbers
+          Array.from(
+            shell.querySelectorAll(".M2PastInput[data-lines]")
+          ).forEach((x) => x.removeAttribute("data-lines"));
+        }
         inputPromptNo = newNo;
       }
     } else if (htmlSec.classList.contains("M2Input")) {
@@ -602,6 +612,17 @@ const Shell = function (
           }
         }
 
+        if (htmlSec.classList.contains("M2Cell")) {
+          const m = txt[i].match(
+            /(stdio)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
+          ) as any;
+          if (m) {
+            // experimental: highlight error? for now only stdio
+            obj.selectPastInput(m);
+            // also at this stage one could try to catch syntax error for row/column counter purposes TODO
+          }
+        }
+
         if (htmlSec.dataset.code !== undefined) htmlSec.dataset.code += txt[i];
         //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // used to update in real time
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
@@ -629,15 +650,27 @@ const Shell = function (
     setCaretAtEndMaybe(inputSpan);
   };
 
-  obj.selectPastInput = function (rows) {
+  obj.selectPastInput = function (m) {
+    // TODO shouldn't move caret at all?
+    const rows = [m[2], m[4]];
     let query = ".M2PastInput";
     rows.forEach((row) => {
       if (row) query += '[data-lines*=" ' + row + ' "]';
     });
-    const pastInputs = shell.querySelectorAll(query);
+    const pastInputs = shell.querySelectorAll(query) as NodeListOf<HTMLElement>;
     if (pastInputs.length == 0) return null;
-    const pastInput = pastInputs[pastInputs.length - 1] as HTMLElement;
-    return [pastInput, +pastInput.dataset.lines.match(/ \d+ /)[0]];
+
+    let k = pastInputs[0].dataset.lines.match(/ \d+ /)[0];
+    let i = 0;
+    while (
+      i < pastInputs.length &&
+      !selectRowColumn(pastInputs[i], m, k, false)
+    ) {
+      m[3] = +m[3] - pastInputs[i].innerText.length; // a bit messy
+      m[5] = +m[5] - pastInputs[i].innerText.length;
+      k = m[2];
+      i++;
+    }
   };
 
   if (inputSpan)

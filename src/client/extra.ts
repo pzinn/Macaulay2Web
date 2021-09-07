@@ -20,6 +20,7 @@ import {
   autoIndent,
   syntaxHighlight,
   updateAndHighlightMaybe,
+  selectRowColumn,
 } from "./editor";
 
 const hashCode = function (s: string) {
@@ -164,7 +165,7 @@ const localFileToEditor = function (fileName: string, m?) {
     editor.contentEditable = "true";
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
     autoSaveHash = hashCode(xhr.responseText);
-    if (m) positioning(document.getElementById("editorDiv"), m, 1);
+    if (m) selectRowColumn(document.getElementById("editorDiv"), m, 1, true);
   };
   xhr.send(null);
 };
@@ -200,53 +201,19 @@ const listDirToEditor = function (dirName: string, fileName: string) {
   xhr.send(null);
 };
 
-const positioning = function (el, m, k) {
-  // element,rows/cols,starting line no
-  // find location in element text and select it/scroll
-  if (!m || !m[2]) {
-    el.focus({ preventScroll: true });
-    return;
-  }
-  let row1 = +m[2];
-  if (row1 < 1) row1 = 1;
-  let col1 = m[3] ? +m[3] : 1;
-  if (col1 < 1) col1 = 1;
-  let row2 = m[5] ? +m[4] : row1;
-  if (row2 < row1) row2 = row1;
-  let col2 = m[5] ? +m[5] : m[4] ? +m[4] : col1;
-  if (row2 == row1 && col2 < col1) col2 = col1;
-  const txt = el.innerText;
-  let j = -1;
-  let j1, j2;
-  while (true) {
-    if (k == row1) j1 = j;
-    else if (k == row1 + 1 && col1 > j - j1) col1 = j - j1;
-    if (k == row2) j2 = j;
-    else if (k == row2 + 1) {
-      if (col2 > j - j2) col2 = j - j2;
-      break;
-    }
-    j = txt.indexOf("\n", j + 1);
-    if (j < 0) break;
-    k++;
-  }
-  j1 = j1 === undefined ? txt.length : j1 + col1;
-  j2 = j2 === undefined || j2 + col2 > txt.length ? txt.length : j2 + col2;
-  setCaret(el, j1, j2, true); // true = scroll to selection
-};
-
 const newEditorFileMaybe = function (arg: string, missing: any) {
   // missing = what to do if file missing : false = nothing, true = create new, string = load this instead
   // get rid of leading "./"
   if (arg.length > 2 && arg.startsWith("./")) arg = arg.substring(2);
   // parse newName for positioning
   // figure out filename
-  const m = arg.match(/([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/); // e.g. test.m2:3:5-5:7
+  const m = arg.match(
+    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
+  ) as any; // e.g. test.m2:3:5-5:7
   const newName = m ? m[1] : arg;
   if (newName == "stdio") {
     // special case
-    const s = myshell.selectPastInput([m[2], m[4]]);
-    if (s) positioning(s[0], m, s[1]);
+    myshell.selectPastInput(m);
     return;
   }
   const el = document.getElementById("editorDiv");
@@ -254,7 +221,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
     // file already open in editor
     updateFileName(newName); // in case of positioning data
     if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
-    positioning(el, m, 1);
+    selectRowColumn(el, m, 1, true);
     return;
   }
 
@@ -266,7 +233,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
           el.contentEditable = "true";
           el.innerHTML = "";
         }
-        positioning(el, m, 1);
+        selectRowColumn(el, m, 1, true);
         autoSaveHash = null; // force save
         autoSave();
         return;
@@ -627,6 +594,11 @@ const extra2 = function () {
     if (i >= 0) {
       searchSuccess = searchString.length;
       setCaret(editor, i, i + searchString.length, true);
+      document.getElementById("marker").scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "end",
+      });
       searchStringEl.textContent = searchString;
     } else {
       if (searchSuccess == searchString.length) searchSuccess = 0;

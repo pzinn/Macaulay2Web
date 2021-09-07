@@ -91,32 +91,25 @@ const selectAndScroll = function (
   offset1: number,
   node2,
   offset2: number,
-  scroll: boolean
+  mark: boolean
 ) {
   const sel = window.getSelection();
-  let scrll;
-  if (scroll) {
-    scrll = document.createElement("span");
-    scrll.id = "scrll";
-    node2.parentElement.insertBefore(scrll, node2.splitText(offset2)); // !!
+
+  let marker;
+  if (mark) {
+    marker = document.getElementById("marker");
+    if (marker) marker.remove(); // simpler to delete and remake
+    marker = document.createElement("span");
+    marker.id = "marker";
+    node2.parentElement.insertBefore(marker, node2.splitText(offset2)); // !!
   }
+
   sel.setBaseAndExtent(node1, offset1, node2, offset2);
-  if (scroll)
+
+  if (mark)
     setTimeout(function () {
-      // in case not in editor tab, need to wait
-      scrll.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "end",
-      });
-      if (node1 != node2 || offset1 != offset2) scrll.remove();
-      else {
-        scrll.classList.add("caret-marker");
-        setTimeout(function () {
-          scrll.remove();
-        }, 1000);
-      }
-    }, 0);
+      marker.remove();
+    }, 1000);
 };
 
 const setCaretInternal = function (
@@ -124,7 +117,7 @@ const setCaretInternal = function (
   cur,
   pos: number,
   len: number,
-  scroll?: boolean
+  mark?: boolean
 ) {
   let first = null;
   let firstpos;
@@ -133,10 +126,10 @@ const setCaretInternal = function (
       if (pos <= cur.textContent.length) {
         // bingo
         if (first) {
-          selectAndScroll(first, firstpos, cur, pos, scroll);
+          selectAndScroll(first, firstpos, cur, pos, mark);
           return;
         } else if (pos + len <= cur.textContent.length) {
-          selectAndScroll(cur, pos, cur, pos + len, scroll);
+          selectAndScroll(cur, pos, cur, pos + len, mark);
           return;
         } else {
           first = cur;
@@ -164,7 +157,7 @@ const setCaret = function (
   el,
   pos: number,
   pos2?: number,
-  scroll?: boolean
+  mark?: boolean
 ): void {
   let len;
   if (!pos2) len = 0;
@@ -183,7 +176,7 @@ const setCaret = function (
     window.getSelection().collapse(el, pos);
     return;
   }
-  setCaretInternal(el, cur, pos, len, scroll);
+  setCaretInternal(el, cur, pos, len, mark);
 };
 
 const forwardCaret = function (el, incr: number): void {
