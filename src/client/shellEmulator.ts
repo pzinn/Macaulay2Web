@@ -458,23 +458,26 @@ const Shell = function (
         // also at this stage one could try to catch syntax error for row/column counter purposes TODO
       }
     } else if (htmlSec.classList.contains("M2Input")) {
-      if (!debugPrompt && htmlSec.parentElement.parentElement == shell) {
+      if (htmlSec.parentElement.parentElement == shell) {
         // eww
-        // number lines and add input to history
+        // add input to history
         let txt = htmlSec.textContent;
         if (txt[txt.length - 1] == "\n") txt = txt.substring(0, txt.length - 1); // should be true
         if (htmlSec.classList.contains("M2InputContd"))
           // rare case where input is broken
           cmdHistory[cmdHistory.length - 1] += "\n" + txt;
         else cmdHistory.index = cmdHistory.push(txt);
-        let s = " ";
-        txt.split("\n").forEach((line) => {
-          line = line.trim();
-          if (line.length > 0) cmdHistory.sorted.sortedPush(line);
-          inputLineNo++;
-          s = s + inputLineNo + " ";
-        });
-        htmlSec.dataset.lines = s;
+        if (!debugPrompt) {
+          // number and record individual lines
+          let s = " ";
+          txt.split("\n").forEach((line) => {
+            line = line.trim();
+            if (line.length > 0) cmdHistory.sorted.sortedPush(line);
+            inputLineNo++;
+            s = s + inputLineNo + " ";
+          });
+          htmlSec.dataset.lines = s;
+        }
       }
       // highlight
       htmlSec.innerHTML = Prism.highlight(
