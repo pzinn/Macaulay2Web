@@ -6,8 +6,9 @@ const webAppTagCodes = [
   ["Input", 28, "M2Text M2Input"], // it's text but it's input
   ["InputContd", 29, "M2Text M2Input M2InputContd"], // text, continuation of input
   ["Url", 30, "M2Url"], // url
-  ["OutputPrompt", 14, "M2Text M2OutputPrompt"],
-  ["InputPrompt", 15, "M2Text M2InputPrompt"],
+  ["Prompt", 14, "M2Text M2Prompt"],
+  ["Error", 15, "M2Text M2Error"],
+  ["ErrorEnd", 16, "M2ErrorEnd"],
 ];
 const webAppTags = {} as any;
 const webAppClasses = {} as any;

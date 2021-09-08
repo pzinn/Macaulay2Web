@@ -45,7 +45,7 @@ const options = {
       baseDirectory +
       "; cd " +
       baseDirectory +
-      "; stty -echo; M2MODE=localServer M2 --webapp",
+      "; stty -echo; LD_PRELOAD=/home/pzinn/temp/stderred/build/libstderred.so M2MODE=localServer M2 --webapp",
     CONTAINERS(): InstanceManager {
       return new LocalContainerManager();
     },

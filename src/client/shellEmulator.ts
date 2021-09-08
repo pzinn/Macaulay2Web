@@ -426,14 +426,14 @@ const Shell = function (
     }
 
     if (
-      htmlSec.classList.contains("M2InputPrompt") &&
+      htmlSec.classList.contains("M2Prompt") &&
       htmlSec.parentElement.parentElement == shell
     ) {
       // TEMP? analyze the prompt to keep track of line no correctly
       const txt = htmlSec.textContent;
       if (txt.startsWith("ii")) debugPrompt = true;
       // that part is fine
-      else {
+      else if (txt.startsWith("i")) {
         debugPrompt = false;
         const newNo = +txt.substring(1);
         if (newNo == inputPromptNo) inputLineNo--;
@@ -447,6 +447,15 @@ const Shell = function (
           ).forEach((x) => x.removeAttribute("data-lines"));
         }
         inputPromptNo = newNo;
+      }
+    } else if (htmlSec.classList.contains("M2Error")) {
+      const m = htmlSec.textContent.match(
+        /(stdio)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
+      ) as any;
+      if (m) {
+        // experimental: highlight error? for now only stdio
+        obj.selectPastInput(m);
+        // also at this stage one could try to catch syntax error for row/column counter purposes TODO
       }
     } else if (htmlSec.classList.contains("M2Input")) {
       if (!debugPrompt && htmlSec.parentElement.parentElement == shell) {
@@ -566,7 +575,11 @@ const Shell = function (
       }
       if (i > 0) {
         const tag = txt[i - 1];
-        if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
+        if (
+          tag == webAppTags.End ||
+          tag == webAppTags.CellEnd ||
+          tag == webAppTags.ErrorEnd
+        ) {
           if (htmlSec != shell || !createInputSpan) {
             // htmlSec == shell should only happen at very start
             // or at the very end for rendering help -- then it's OK
@@ -577,7 +590,12 @@ const Shell = function (
               (tag == webAppTags.CellEnd)
             )
               console.log("Warning: end tag mismatch");
-            closeHtml();
+            if (
+              tag != webAppTags.ErrorEnd ||
+              htmlSec.classList.contains("M2Error")
+            )
+              // error end tags are sometimes redundant, must be ignored :/
+              closeHtml();
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {
           // continuation of input section
@@ -594,6 +612,7 @@ const Shell = function (
           }
         }
       }
+
       if (txt[i].length > 0) {
         // for next round, check if we're nearing the end of an input section
         if (htmlSec.classList.contains("M2Input")) {
@@ -601,37 +620,28 @@ const Shell = function (
           if (ii >= 0) {
             if (ii < txt[i].length - 1) {
               // need to do some surgery
-              htmlSec.insertBefore(
-                document.createTextNode(txt[i].substring(0, ii + 1)),
-                inputSpan
-              );
-              txt[i] = txt[i].substring(ii + 1, txt[i].length);
+              display(txt[i].substring(0, ii + 1));
               closeHtml();
+              txt[i] = txt[i].substring(ii + 1, txt[i].length);
             } else inputEndFlag = true;
             // can't tell for sure if it's the end of input or not (could be a InputContd), so set a flag to remind us
           }
         }
 
-        if (htmlSec.classList.contains("M2Cell")) {
-          const m = txt[i].match(
-            /(stdio)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
-          ) as any;
-          if (m) {
-            // experimental: highlight error? for now only stdio
-            obj.selectPastInput(m);
-            // also at this stage one could try to catch syntax error for row/column counter purposes TODO
-          }
-        }
-
         if (htmlSec.dataset.code !== undefined) htmlSec.dataset.code += txt[i];
+        else display(txt[i]);
         //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // used to update in real time
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
-        else if (inputSpan && inputSpan.parentElement == htmlSec)
-          htmlSec.insertBefore(document.createTextNode(txt[i]), inputSpan);
-        else htmlSec.appendChild(document.createTextNode(txt[i]));
       }
     }
     scrollDownLeft(shell);
+  };
+
+  const display = function (msg) {
+    const node = document.createTextNode(msg);
+    if (inputSpan && inputSpan.parentElement == htmlSec)
+      htmlSec.insertBefore(node, inputSpan);
+    else htmlSec.appendChild(node);
   };
 
   obj.reset = function () {

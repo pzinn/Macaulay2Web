@@ -407,6 +407,10 @@ a {
 }
 */
 
-.M2OutputPrompt, .M2InputPrompt {
+.M2Prompt {
     text-decoration: underline;
+}
+
+.M2Error {
+    color: #800000;
 }
