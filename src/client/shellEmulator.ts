@@ -438,10 +438,8 @@ const Shell = function (
       else if (txt.startsWith("i")) {
         debugPrompt = false;
         const newNo = +txt.substring(1);
-        if (newNo == inputPromptNo) inputLineNo--;
-        // no! TODO: fix (caused by syntax error)
-        else if (newNo < inputPromptNo) {
-          // very primitive too. what if we restarted on first line?
+        if (newNo < inputPromptNo) {
+          // very primitive. what if we restarted on first line? TODO better
           inputLineNo = 0;
           // remove all past line numbers
           Array.from(
@@ -461,6 +459,11 @@ const Shell = function (
         if (nodeOffset) {
           const marker = addMarker(nodeOffset[0], nodeOffset[1]);
           marker.classList.add("caret-marker");
+          if (htmlSec.textContent.match(/syntax error|missing/)) {
+            // TEMP, obviously
+            nodeOffset[2].dataset.errorColumn = nodeOffset[3] + 1; // +1 because includes the character that triggered error
+            inputLineNo--;
+          }
         }
         // also at this stage one could try to catch syntax error for row/column counter purposes TODO
         // need to search thru all matching lines and add some dataset flag that indicates where error was
@@ -697,7 +700,12 @@ const Shell = function (
         pastInputs[i].dataset.errorColumn !== undefined
           ? +pastInputs[i].dataset.errorColumn // TODO
           : pastInputs[i].innerText.length; // should only happen for last one
-      if (offset < len) return locateOffset(pastInputs[i], offset);
+      if (offset < len) {
+        const nodeOffset = locateOffset(pastInputs[i], offset);
+        if (nodeOffset)
+          // should always be true
+          return [nodeOffset[0], nodeOffset[1], pastInputs[i], offset]; // node, offset in node, element, offset in element
+      }
       offset -= len;
       i++;
     }
@@ -712,7 +720,7 @@ const Shell = function (
     const nodeOffset1 = obj.locateStdio(row1, col1);
     if (!nodeOffset1) return;
     const nodeOffset2 = obj.locateStdio(row2, col2);
-    if (!nodeOffset2 || nodeOffset2[0] != nodeOffset1[0]) return;
+    if (!nodeOffset2 || nodeOffset2[2] != nodeOffset1[2]) return;
     const sel = window.getSelection();
     sel.setBaseAndExtent(
       nodeOffset1[0],
@@ -721,7 +729,7 @@ const Shell = function (
       nodeOffset2[1]
     );
     const marker = addMarker(nodeOffset2[0], nodeOffset2[1]);
-    if (nodeOffset1[1] == nodeOffset2[1]) marker.classList.add("caret-marker");
+    if (row1 == col1 && row2 == col2) marker.classList.add("caret-marker");
     marker.scrollIntoView({
       behavior: "smooth",
       block: "center",

@@ -90,8 +90,15 @@ const getCaret2 = function (el) {
 const locateRowColumn = function (txt: string, row: number, col: number) {
   // finds the offset of a row/col location in a text element
   // TODO: treat row<1 case (fail or return 0???)
-  const matches = [...txt.matchAll(/\n/g)]; // a bit clumsy TODO don't scan the whole text
-  return matches.length < row ? null : matches[row - 1].index - col + 1; // not too subtle: TODO test length of row
+  const matches = [
+    { index: -1 },
+    ...txt.matchAll(/\n/g),
+    { index: txt.length },
+  ]; // a bit clumsy TODO don't scan the whole text
+  // what to do if beyond column? for now just truncate to length
+  if (row > matches.length) return null;
+  const offset = matches[row - 1].index + col;
+  return offset < matches[row].index ? offset : matches[row].index - 1;
 };
 
 const locateOffsetInternal = function (el, cur, pos: number) {
