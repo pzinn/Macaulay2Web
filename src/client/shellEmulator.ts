@@ -432,7 +432,7 @@ const Shell = function (
       // TEMP? analyze the prompt to keep track of line no correctly
       const txt = htmlSec.textContent;
       if (txt.startsWith("ii")) debugPrompt = true;
-      // that part is fine
+      // that part is fine; all that follows needs to go
       else if (txt.startsWith("i")) {
         debugPrompt = false;
         const newNo = +txt.substring(1);
@@ -456,6 +456,8 @@ const Shell = function (
         // experimental: highlight error? for now only stdio
         obj.selectPastInput(m);
         // also at this stage one could try to catch syntax error for row/column counter purposes TODO
+        // need to search thru all matching lines and add some dataset flag that indicates where error was
+        // which is of course what selectPastInput does in the first place! just need to break it
       }
     } else if (htmlSec.classList.contains("M2Input")) {
       if (htmlSec.parentElement.parentElement == shell) {
@@ -623,7 +625,7 @@ const Shell = function (
           if (ii >= 0) {
             if (ii < txt[i].length - 1) {
               // need to do some surgery
-              display(txt[i].substring(0, ii + 1));
+              displayText(txt[i].substring(0, ii + 1));
               closeHtml();
               txt[i] = txt[i].substring(ii + 1, txt[i].length);
             } else inputEndFlag = true;
@@ -632,7 +634,7 @@ const Shell = function (
         }
 
         if (htmlSec.dataset.code !== undefined) htmlSec.dataset.code += txt[i];
-        else display(txt[i]);
+        else displayText(txt[i]);
         //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // used to update in real time
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
       }
@@ -640,7 +642,7 @@ const Shell = function (
     scrollDownLeft(shell);
   };
 
-  const display = function (msg) {
+  const displayText = function (msg) {
     const node = document.createTextNode(msg);
     if (inputSpan && inputSpan.parentElement == htmlSec)
       htmlSec.insertBefore(node, inputSpan);
