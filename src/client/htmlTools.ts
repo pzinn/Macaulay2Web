@@ -98,7 +98,7 @@ const locateRowColumn = function (txt: string, row: number, col: number) {
   // what to do if beyond column? for now just truncate to length
   if (row > matches.length) return null;
   const offset = matches[row - 1].index + col;
-  return offset < matches[row].index ? offset : matches[row].index - 1;
+  return offset < matches[row].index ? offset : matches[row].index;
 };
 
 const locateOffsetInternal = function (el, cur, pos: number) {
@@ -272,10 +272,9 @@ const caretIsAtEnd = function () {
   }
 };
 
-// TODO retire/rewrite this function (two distinct uses: for editor / for stdio error)
 const selectRowColumn = function (el, row1, col1, row2, col2) {
-  const pos1 = locateRowColumn(el.innerText, row1, col1);
-  if (pos1 === null) return false; // TODO maybe treat differently depending on use
+  let pos1 = locateRowColumn(el.innerText, row1, col1);
+  if (pos1 === null) pos1 = el.innerText.length;
   let pos2 = locateRowColumn(el.innerText, row2, col2);
   if (pos2 === null) pos2 = el.innerText.length;
   const nodesOffsets = locateOffset2(el, pos1, pos2);
