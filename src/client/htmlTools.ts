@@ -87,9 +87,9 @@ const getCaret2 = function (el) {
   }
 };
 
-const locateRowColumn = function (el: HTMLElement, row: number, col: number) {
+const locateRowColumn = function (txt: string, row: number, col: number) {
   // finds the offset of a row/col location in a text element
-  const txt = el.innerText;
+  // TODO: treat row<1 case (fail or return 0???)
   const matches = [...txt.matchAll(/\n/g)]; // a bit clumsy TODO don't scan the whole text
   return matches.length < row ? null : matches[row - 1].index - col + 1; // not too subtle: TODO test length of row
 };
@@ -233,62 +233,6 @@ const selectAndScroll = function (
 };
 */
 
-// TODO retire/rewrite this function (two distinct uses: for editor / for stdio error)
-const selectRowColumn = function (el, m, k, scroll) {
-  // element,rows/cols,starting line no
-  // find location in element text and select it/scroll
-  if (!m || !m[2]) {
-    el.focus({ preventScroll: true });
-    return true;
-  }
-  let row1 = +m[2];
-  if (row1 < 1) row1 = 1;
-  let col1 = m[3] ? +m[3] : 1;
-  if (col1 < 1) col1 = 1;
-  let row2 = m[5] ? +m[4] : row1;
-  if (row2 < row1) row2 = row1;
-  let col2 = m[5] ? +m[5] : m[4] ? +m[4] : col1;
-  if (row2 == row1 && col2 < col1) col2 = col1;
-  const pos1 = locateRowColumn(el, row1, col1);
-  if (pos1 === null) return false;
-  let pos2 = locateRowColumn(el, row2, col2);
-  if (pos2 === null) pos2 = el.innerText.length;
-  const nodesOffsets = locateOffset2(el, pos1, pos2);
-  if (!nodesOffsets) return false; // shouldn't happen
-  const sel = window.getSelection();
-  sel.setBaseAndExtent(
-    nodesOffsets[0],
-    nodesOffsets[1],
-    nodesOffsets[2],
-    nodesOffsets[3]
-  );
-
-  let marker = document.getElementById("marker");
-  if (marker) marker.remove(); // simpler to delete and remake
-  marker = document.createElement("span");
-  marker.id = "marker";
-  nodesOffsets[2].parentElement.insertBefore(
-    marker,
-    nodesOffsets[2].splitText(nodesOffsets[3])
-  ); // !!
-
-  if (pos1 == pos2) marker.classList.add("caret-marker");
-  if (scroll)
-    setTimeout(function () {
-      // in case not in editor tab, need to wait
-      marker.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "end",
-      });
-    }, 0);
-  setTimeout(function () {
-    marker.remove();
-  }, 1000);
-
-  return true;
-};
-
 const attachElement = function (el, container) {
   // move an HTML element (with single text node) while preserving focus/caret
   const caret = getCaret(el);
@@ -321,6 +265,49 @@ const caretIsAtEnd = function () {
   }
 };
 
+// TODO retire/rewrite this function (two distinct uses: for editor / for stdio error)
+const selectRowColumn = function (el, row1, col1, row2, col2) {
+  const pos1 = locateRowColumn(el.innerText, row1, col1);
+  if (pos1 === null) return false; // TODO maybe treat differently depending on use
+  let pos2 = locateRowColumn(el.innerText, row2, col2);
+  if (pos2 === null) pos2 = el.innerText.length;
+  const nodesOffsets = locateOffset2(el, pos1, pos2);
+  if (!nodesOffsets) return false; // shouldn't happen
+  const sel = window.getSelection();
+  sel.setBaseAndExtent(
+    nodesOffsets[0],
+    nodesOffsets[1],
+    nodesOffsets[2],
+    nodesOffsets[3]
+  );
+
+  const marker = addMarker(nodesOffsets[2], nodesOffsets[3]);
+
+  if (pos1 == pos2) marker.classList.add("caret-marker");
+  setTimeout(function () {
+    // in case not in editor tab, need to wait
+    marker.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "end",
+    });
+  }, 0);
+
+  return true;
+};
+
+const addMarker = function (node, offset) {
+  let marker = document.getElementById("marker");
+  if (marker) marker.remove(); // simpler to delete and remake
+  marker = document.createElement("span");
+  marker.id = "marker";
+  node.parentElement.insertBefore(marker, node.splitText(offset)); // !!
+  setTimeout(function () {
+    marker.remove();
+  }, 1000);
+  return marker;
+};
+
 export {
   scrollDownLeft,
   scrollDown,
@@ -335,5 +322,8 @@ export {
   setCaretAtEndMaybe,
   forwardCaret,
   nextChar,
+  locateOffset,
+  locateRowColumn,
   selectRowColumn,
+  addMarker,
 };

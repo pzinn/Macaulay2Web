@@ -156,7 +156,13 @@ const fileChangedCheck = function (data) {
   dialog.showModal();
 };
 
-const localFileToEditor = function (fileName: string, m?) {
+const localFileToEditor = function (
+  fileName: string,
+  row1?,
+  col1?,
+  row2?,
+  col2?
+) {
   if (highlightTimeout) window.clearTimeout(highlightTimeout);
   const editor = document.getElementById("editorDiv");
   const xhr = new XMLHttpRequest();
@@ -165,7 +171,14 @@ const localFileToEditor = function (fileName: string, m?) {
     editor.contentEditable = "true";
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
     autoSaveHash = hashCode(xhr.responseText);
-    if (m) selectRowColumn(document.getElementById("editorDiv"), m, 1, true);
+    if (row1)
+      selectRowColumn(
+        document.getElementById("editorDiv"),
+        row1,
+        col1,
+        row2,
+        col2
+      );
   };
   xhr.send(null);
 };
@@ -207,21 +220,38 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
   if (arg.length > 2 && arg.startsWith("./")) arg = arg.substring(2);
   // parse newName for positioning
   // figure out filename
-  const m = arg.match(
+  let m = arg.match(
     /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
   ) as any; // e.g. test.m2:3:5-5:7
   const newName = m ? m[1] : arg;
+  const el = document.getElementById("editorDiv");
+
+  let row1, col1, row2, col2;
+  if (!m || !m[2]) {
+    el.focus({ preventScroll: true });
+    m = null;
+  } else {
+    // parse m
+    row1 = +m[2];
+    if (row1 < 1) row1 = 1;
+    col1 = m[3] ? +m[3] : 1;
+    if (col1 < 1) col1 = 1;
+    row2 = m[5] ? +m[4] : row1;
+    if (row2 < row1) row2 = row1;
+    col2 = m[5] ? +m[5] : m[4] ? +m[4] : col1;
+    if (row2 == row1 && col2 < col1) col2 = col1;
+  }
+
   if (newName == "stdio") {
     // special case
-    myshell.selectPastInput(m);
+    if (m) myshell.selectPastInput(row1, col1, row2, col2);
     return;
   }
-  const el = document.getElementById("editorDiv");
   if (fileName == newName || !newName) {
     // file already open in editor
     updateFileName(newName); // in case of positioning data
     if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
-    selectRowColumn(el, m, 1, true);
+    if (m) selectRowColumn(el, row1, col1, row2, col2);
     return;
   }
 
@@ -233,7 +263,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
           el.contentEditable = "true";
           el.innerHTML = "";
         }
-        selectRowColumn(el, m, 1, true);
+        if (m) selectRowColumn(el, row1, col1, row2, col2);
         autoSaveHash = null; // force save
         autoSave();
         return;

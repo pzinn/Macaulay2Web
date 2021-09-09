@@ -11,7 +11,9 @@ import {
   setCaret,
   setCaretAtEndMaybe,
   attachElement,
-  selectRowColumn,
+  locateRowColumn,
+  locateOffset,
+  addMarker,
 } from "./htmlTools";
 import {
   escapeKeyHandling,
@@ -450,11 +452,16 @@ const Shell = function (
       }
     } else if (htmlSec.classList.contains("M2Error")) {
       const m = htmlSec.textContent.match(
-        /(stdio)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
-      ) as any;
+        //        /(stdio)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
+        /stdio:(\d+):(\d+)/
+      );
       if (m) {
         // experimental: highlight error? for now only stdio
-        obj.selectPastInput(m);
+        const nodeOffset = obj.locateStdio(+m[1], +m[2]);
+        if (nodeOffset) {
+          const marker = addMarker(nodeOffset[0], nodeOffset[1]);
+          marker.classList.add("caret-marker");
+        }
         // also at this stage one could try to catch syntax error for row/column counter purposes TODO
         // need to search thru all matching lines and add some dataset flag that indicates where error was
         // which is of course what selectPastInput does in the first place! just need to break it
@@ -665,27 +672,61 @@ const Shell = function (
     setCaretAtEndMaybe(inputSpan);
   };
 
-  obj.selectPastInput = function (m) {
-    // TODO shouldn't move caret at all?
-    const rows = [m[2], m[4]];
-    let query = ".M2PastInput";
-    rows.forEach((row) => {
-      if (row) query += '[data-lines*=" ' + row + ' "]';
-    });
+  obj.locateStdio = function (row: number, column: number) {
+    // find relevant input from stdio:row:column
+    let query = '.M2PastInput[data-lines*=" ' + row + ' "]';
     const pastInputs = shell.querySelectorAll(query) as NodeListOf<HTMLElement>;
     if (pastInputs.length == 0) return null;
 
-    let k = pastInputs[0].dataset.lines.match(/ \d+ /)[0];
+    let row0 = +pastInputs[0].dataset.lines.match(/ \d+ /)[0];
+    let txt = "";
+    for (let i = 0; i < pastInputs.length; i++)
+      txt +=
+        pastInputs[i].dataset.errorColumn !== undefined
+          ? pastInputs[i].innerText.substring(
+              0,
+              +pastInputs[i].dataset.errorColumn
+            )
+          : pastInputs[i].innerText;
+    let offset = locateRowColumn(txt, row - row0 + 1, column);
+    if (offset === null) return null;
+
     let i = 0;
-    while (
-      i < pastInputs.length &&
-      !selectRowColumn(pastInputs[i], m, k, false)
-    ) {
-      m[3] = +m[3] - pastInputs[i].innerText.length; // a bit messy
-      m[5] = +m[5] - pastInputs[i].innerText.length;
-      k = m[2];
+    while (i < pastInputs.length) {
+      const len =
+        pastInputs[i].dataset.errorColumn !== undefined
+          ? +pastInputs[i].dataset.errorColumn // TODO
+          : pastInputs[i].innerText.length; // should only happen for last one
+      if (offset < len) return locateOffset(pastInputs[i], offset);
+      offset -= len;
       i++;
     }
+  };
+
+  obj.selectPastInput = function (
+    row1: number,
+    col1: number,
+    row2: number,
+    col2: number
+  ) {
+    const nodeOffset1 = obj.locateStdio(row1, col1);
+    if (!nodeOffset1) return;
+    const nodeOffset2 = obj.locateStdio(row2, col2);
+    if (!nodeOffset2 || nodeOffset2[0] != nodeOffset1[0]) return;
+    const sel = window.getSelection();
+    sel.setBaseAndExtent(
+      nodeOffset1[0],
+      nodeOffset1[1],
+      nodeOffset2[0],
+      nodeOffset2[1]
+    );
+    const marker = addMarker(nodeOffset2[0], nodeOffset2[1]);
+    if (nodeOffset1[1] == nodeOffset2[1]) marker.classList.add("caret-marker");
+    marker.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "end",
+    });
   };
 
   if (inputSpan)
