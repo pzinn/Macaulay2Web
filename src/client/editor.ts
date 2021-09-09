@@ -490,55 +490,6 @@ const updateAndHighlightMaybe = function (
   else el.textContent = txt;
 };
 
-const selectRowColumn = function (el, m, k, scroll) {
-  // element,rows/cols,starting line no
-  // find location in element text and select it/scroll
-  if (!m || !m[2]) {
-    el.focus({ preventScroll: true });
-    return true;
-  }
-  let row1 = +m[2];
-  if (row1 < 1) row1 = 1;
-  let col1 = m[3] ? +m[3] : 1;
-  if (col1 < 1) col1 = 1;
-  let row2 = m[5] ? +m[4] : row1;
-  if (row2 < row1) row2 = row1;
-  let col2 = m[5] ? +m[5] : m[4] ? +m[4] : col1;
-  if (row2 == row1 && col2 < col1) col2 = col1;
-  const txt = el.innerText;
-  let j = -1;
-  let j1, j2;
-  while (true) {
-    if (k == row1) j1 = j;
-    else if (k == row1 + 1 && col1 > j - j1) col1 = j - j1;
-    if (k == row2) j2 = j;
-    else if (k == row2 + 1) {
-      if (col2 > j - j2) col2 = j - j2;
-      break;
-    }
-    j = txt.indexOf("\n", j + 1);
-    if (j < 0) break;
-    k++;
-  }
-  if (j1 === undefined || j1 + col1 > txt.length) return false;
-  j1 += col1;
-  j2 = j2 === undefined || j2 + col2 > txt.length ? txt.length : j2 + col2;
-  setCaret(el, j1, j2, true);
-  const marker = document.getElementById("marker");
-  if (j1 == j2) marker.classList.add("caret-marker");
-  if (scroll)
-    setTimeout(function () {
-      // in case not in editor tab, need to wait
-      marker.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "end",
-      });
-    }, 0);
-
-  return true;
-};
-
 export {
   escapeKeyHandling,
   autoCompleteHandling,
@@ -549,5 +500,4 @@ export {
   syntaxHighlight,
   updateAndHighlightMaybe,
   autoIndent,
-  selectRowColumn,
 };

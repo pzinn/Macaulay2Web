@@ -4,7 +4,7 @@
     "module": "commonjs",
     "outDir": "dist",
     "sourceMap": true, 
-    "lib": ["es7"],
+    "lib": ["es2020"],
     "types" : ["node", "express", "socket.io", "ssh2"]
   },
   "include": [

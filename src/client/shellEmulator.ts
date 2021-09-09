@@ -11,6 +11,7 @@ import {
   setCaret,
   setCaretAtEndMaybe,
   attachElement,
+  selectRowColumn,
 } from "./htmlTools";
 import {
   escapeKeyHandling,
@@ -19,7 +20,6 @@ import {
   sanitizeInput,
   delimiterHandling,
   removeDelimiterHighlight,
-  selectRowColumn,
 } from "./editor";
 
 //const unicodeBell = "\u0007";

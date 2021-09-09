@@ -7,6 +7,7 @@ import {
   getCaret2,
   caretIsAtEnd,
   nextChar,
+  selectRowColumn,
 } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import { initTutorials, renderLessonMaybe } from "./tutorials";
@@ -20,7 +21,6 @@ import {
   autoIndent,
   syntaxHighlight,
   updateAndHighlightMaybe,
-  selectRowColumn,
 } from "./editor";
 
 const hashCode = function (s: string) {
