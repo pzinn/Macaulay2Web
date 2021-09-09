@@ -220,17 +220,16 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
   if (arg.length > 2 && arg.startsWith("./")) arg = arg.substring(2);
   // parse newName for positioning
   // figure out filename
-  let m = arg.match(
-    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
+  const m = arg.match(
+    //    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
+    /([^:]*):(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)/
   ) as any; // e.g. test.m2:3:5-5:7
   const newName = m ? m[1] : arg;
   const el = document.getElementById("editorDiv");
 
   let row1, col1, row2, col2;
-  if (!m || !m[2]) {
-    el.focus({ preventScroll: true });
-    m = null;
-  } else {
+  if (!m) el.focus({ preventScroll: true });
+  else {
     // parse m
     row1 = +m[2];
     if (row1 < 1) row1 = 1;
@@ -275,7 +274,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
     updateFileName(newName);
     if (response.search("directory@") >= 0) listDirToEditor(newName, response);
     // eww
-    else localFileToEditor(response, m);
+    else localFileToEditor(response, row1, col1, row2, col2);
   });
 };
 

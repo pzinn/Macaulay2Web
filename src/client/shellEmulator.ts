@@ -590,16 +590,17 @@ const Shell = function (
             while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
             // but in rare circumstances (interrupt) it may be missing its \n
             if (
-              htmlSec.classList.contains("M2Cell") !=
-              (tag == webAppTags.CellEnd)
-            )
-              console.log("Warning: end tag mismatch");
-            if (
               tag != webAppTags.ErrorEnd ||
               htmlSec.classList.contains("M2Error")
-            )
+            ) {
               // error end tags are sometimes redundant, must be ignored :/
+              if (
+                htmlSec.classList.contains("M2Cell") !=
+                (tag == webAppTags.CellEnd)
+              )
+                console.log("Warning: end tag mismatch");
               closeHtml();
+            }
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {
           // continuation of input section
