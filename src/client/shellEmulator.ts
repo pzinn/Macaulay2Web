@@ -83,8 +83,7 @@ const Shell = function (
   // input is a bit messy...
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input
-  let inputLineNo = 0; // current input line number
-  let inputPromptNo = 0; // current input prompt line number -- sadly, distinct from the above
+  let inputLineNo = 0; // current input line counter -- not to be confused with lineNumber (prompt)
   let debugPrompt = false; // whether M2 is in debugging mode
 
   const createHtml = function (className) {
@@ -431,25 +430,11 @@ const Shell = function (
       htmlSec.classList.contains("M2Prompt") &&
       htmlSec.parentElement.parentElement == shell
     ) {
-      // TEMP? analyze the prompt to keep track of line no correctly
       const txt = htmlSec.textContent;
-      if (txt.startsWith("ii")) debugPrompt = true;
-      // that part is fine; all that follows needs to go
-      else if (txt.startsWith("i")) {
-        debugPrompt = false;
-        const newNo = +txt.substring(1);
-        if (newNo < inputPromptNo) {
-          // very primitive. what if we restarted on first line? TODO better
-          inputLineNo = 0;
-          // remove all past line numbers
-          Array.from(
-            shell.querySelectorAll(".M2PastInput[data-lines]")
-          ).forEach((x) => x.removeAttribute("data-lines"));
-        }
-        inputPromptNo = newNo;
-      }
+      if (txt.startsWith("i")) debugPrompt = txt.startsWith("ii");
     } else if (htmlSec.classList.contains("M2Error")) {
-      const m = htmlSec.textContent.match(
+      const txt = htmlSec.textContent;
+      const m = txt.match(
         //        /(stdio)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
         /stdio:(\d+):(\d+)/
       );
@@ -459,15 +444,19 @@ const Shell = function (
         if (nodeOffset) {
           const marker = addMarker(nodeOffset[0], nodeOffset[1]);
           marker.classList.add("caret-marker");
-          if (htmlSec.textContent.match(/syntax error|missing/)) {
+          if (txt.match(/syntax error|missing/)) {
             // TEMP, obviously
             nodeOffset[2].dataset.errorColumn = nodeOffset[3] + 1; // +1 because includes the character that triggered error
             inputLineNo--;
           }
         }
-        // also at this stage one could try to catch syntax error for row/column counter purposes TODO
-        // need to search thru all matching lines and add some dataset flag that indicates where error was
-        // which is of course what selectPastInput does in the first place! just need to break it
+      } else if (txt.startsWith("Macaulay2, version")) {
+        // TEMP, obviously
+        inputLineNo = 0;
+        // remove all past line numbers
+        Array.from(shell.querySelectorAll(".M2PastInput[data-lines]")).forEach(
+          (x) => x.removeAttribute("data-lines")
+        );
       }
     } else if (htmlSec.classList.contains("M2Input")) {
       if (htmlSec.parentElement.parentElement == shell) {
@@ -698,7 +687,7 @@ const Shell = function (
     while (i < pastInputs.length) {
       const len =
         pastInputs[i].dataset.errorColumn !== undefined
-          ? +pastInputs[i].dataset.errorColumn // TODO
+          ? +pastInputs[i].dataset.errorColumn
           : pastInputs[i].innerText.length; // should only happen for last one
       if (offset < len) {
         const nodeOffset = locateOffset(pastInputs[i], offset);
