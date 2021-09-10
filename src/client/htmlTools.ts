@@ -272,10 +272,10 @@ const caretIsAtEnd = function () {
   }
 };
 
-const selectRowColumn = function (el, row1, col1, row2, col2) {
-  let pos1 = locateRowColumn(el.innerText, row1, col1);
+const selectRowColumn = function (el, rowcols) {
+  let pos1 = locateRowColumn(el.innerText, rowcols[0], rowcols[1]);
   if (pos1 === null) pos1 = el.innerText.length;
-  let pos2 = locateRowColumn(el.innerText, row2, col2);
+  let pos2 = locateRowColumn(el.innerText, rowcols[2], rowcols[3]);
   if (pos2 === null) pos2 = el.innerText.length;
   const nodesOffsets = locateOffset2(el, pos1, pos2);
   if (!nodesOffsets) return false; // shouldn't happen

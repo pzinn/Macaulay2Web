@@ -701,15 +701,10 @@ const Shell = function (
     }
   };
 
-  obj.selectPastInput = function (
-    row1: number,
-    col1: number,
-    row2: number,
-    col2: number
-  ) {
-    const nodeOffset1 = obj.locateStdio(row1, col1);
+  obj.selectPastInput = function (rowcols) {
+    const nodeOffset1 = obj.locateStdio(rowcols[0], rowcols[1]);
     if (!nodeOffset1) return;
-    const nodeOffset2 = obj.locateStdio(row2, col2);
+    const nodeOffset2 = obj.locateStdio(rowcols[2], rowcols[3]);
     if (!nodeOffset2 || nodeOffset2[2] != nodeOffset1[2]) return;
     const sel = window.getSelection();
     sel.setBaseAndExtent(
@@ -719,7 +714,8 @@ const Shell = function (
       nodeOffset2[1]
     );
     const marker = addMarker(nodeOffset2[0], nodeOffset2[1]);
-    if (row1 == col1 && row2 == col2) marker.classList.add("caret-marker");
+    if (rowcols[0] == rowcols[2] && rowcols[1] == rowcols[3])
+      marker.classList.add("caret-marker");
     marker.scrollIntoView({
       behavior: "smooth",
       block: "center",

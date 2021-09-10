@@ -156,13 +156,7 @@ const fileChangedCheck = function (data) {
   dialog.showModal();
 };
 
-const localFileToEditor = function (
-  fileName: string,
-  row1?,
-  col1?,
-  row2?,
-  col2?
-) {
+const localFileToEditor = function (fileName: string, rowcols?) {
   if (highlightTimeout) window.clearTimeout(highlightTimeout);
   const editor = document.getElementById("editorDiv");
   const xhr = new XMLHttpRequest();
@@ -171,14 +165,7 @@ const localFileToEditor = function (
     editor.contentEditable = "true";
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
     autoSaveHash = hashCode(xhr.responseText);
-    if (row1)
-      selectRowColumn(
-        document.getElementById("editorDiv"),
-        row1,
-        col1,
-        row2,
-        col2
-      );
+    if (rowcols) selectRowColumn(document.getElementById("editorDiv"), rowcols);
   };
   xhr.send(null);
 };
@@ -227,30 +214,32 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
   const newName = m ? m[1] : arg;
   const el = document.getElementById("editorDiv");
 
-  let row1, col1, row2, col2;
+  let rowcols;
   if (!m) el.focus({ preventScroll: true });
   else {
+    rowcols = [];
     // parse m
-    row1 = +m[2];
-    if (row1 < 1) row1 = 1;
-    col1 = m[3] ? +m[3] : 1;
-    if (col1 < 1) col1 = 1;
-    row2 = m[5] ? +m[4] : row1;
-    if (row2 < row1) row2 = row1;
-    col2 = m[5] ? +m[5] : m[4] ? +m[4] : col1;
-    if (row2 == row1 && col2 < col1) col2 = col1;
+    rowcols[0] = +m[2];
+    if (rowcols[0] < 1) rowcols[0] = 1;
+    rowcols[1] = m[3] ? +m[3] : 1;
+    if (rowcols[1] < 1) rowcols[1] = 1;
+    rowcols[2] = m[5] ? +m[4] : rowcols[0];
+    if (rowcols[2] < rowcols[0]) rowcols[2] = rowcols[0];
+    rowcols[3] = m[5] ? +m[5] : m[4] ? +m[4] : rowcols[1];
+    if (rowcols[2] == rowcols[0] && rowcols[3] < rowcols[1])
+      rowcols[3] = rowcols[1];
   }
 
   if (newName == "stdio") {
     // special case
-    if (m) myshell.selectPastInput(row1, col1, row2, col2);
+    if (rowcols) myshell.selectPastInput(rowcols);
     return;
   }
   if (fileName == newName || !newName) {
     // file already open in editor
     updateFileName(newName); // in case of positioning data
     if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
-    if (m) selectRowColumn(el, row1, col1, row2, col2);
+    if (rowcols) selectRowColumn(el, rowcols);
     return;
   }
 
@@ -262,7 +251,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
           el.contentEditable = "true";
           el.innerHTML = "";
         }
-        if (m) selectRowColumn(el, row1, col1, row2, col2);
+        if (rowcols) selectRowColumn(el, rowcols);
         autoSaveHash = null; // force save
         autoSave();
         return;
@@ -274,7 +263,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
     updateFileName(newName);
     if (response.search("directory@") >= 0) listDirToEditor(newName, response);
     // eww
-    else localFileToEditor(response, row1, col1, row2, col2);
+    else localFileToEditor(response, rowcols);
   });
 };
 
