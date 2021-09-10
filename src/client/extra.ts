@@ -611,8 +611,7 @@ const extra2 = function () {
     const i = txt.indexOf(searchString, pos);
     if (i >= 0) {
       searchSuccess = searchString.length;
-      setCaret(editor, i, i + searchString.length, true);
-      document.getElementById("marker").scrollIntoView({
+      setCaret(editor, i, i + searchString.length, true).scrollIntoView({
         behavior: "smooth",
         block: "center",
         inline: "end",

@@ -141,12 +141,7 @@ const locateOffset2 = function (el: HTMLElement, pos1: number, pos2: number) {
 };
 
 // some of these edge cases need to be clarified (empty HTMLElements; etc)
-const setCaret = function (
-  el,
-  pos1: number,
-  pos2?: number,
-  mark?: boolean
-): void {
+const setCaret = function (el, pos1: number, pos2?: number, mark?: boolean) {
   let len;
   if (!pos2) pos2 = pos1;
   else if (pos2 < pos1) {
@@ -166,9 +161,8 @@ const setCaret = function (
       nodeOffsets[2],
       nodeOffsets[3]
     );
+  if (mark) return addMarker(nodeOffsets[2], nodeOffsets[3]);
 };
-// TODO redo scrolling, marking...
-//          selectAndScroll(first, firstpos, cur, pos, mark);
 
 const forwardCaret = function (el, incr: number): void {
   const sel = window.getSelection();
@@ -211,34 +205,6 @@ const setCaretAtEndMaybe = function (el, flag?) {
     el.scrollIntoView({ inline: "end", block: "nearest" });
   }
 };
-
-/*
-const selectAndScroll = function (
-  node1,
-  offset1: number,
-  node2,
-  offset2: number,
-  mark: boolean
-) {
-  const sel = window.getSelection();
-
-  let marker;
-  if (mark) {
-    marker = document.getElementById("marker");
-    if (marker) marker.remove(); // simpler to delete and remake
-    marker = document.createElement("span");
-    marker.id = "marker";
-    node2.parentElement.insertBefore(marker, node2.splitText(offset2)); // !!
-  }
-
-  sel.setBaseAndExtent(node1, offset1, node2, offset2);
-
-  if (mark)
-    setTimeout(function () {
-      marker.remove();
-    }, 1000);
-};
-*/
 
 const attachElement = function (el, container) {
   // move an HTML element (with single text node) while preserving focus/caret
@@ -303,10 +269,10 @@ const selectRowColumn = function (el, rowcols) {
 };
 
 const addMarker = function (node, offset) {
-  let marker = document.getElementById("marker");
-  if (marker) marker.remove(); // simpler to delete and remake
-  marker = document.createElement("span");
-  marker.id = "marker";
+  //  let marker = document.getElementById("marker");
+  //  if (marker) marker.remove(); // simpler to delete and remake
+  const marker = document.createElement("span");
+  //  marker.id = "marker";
   node.parentElement.insertBefore(marker, node.splitText(offset)); // !!
   setTimeout(function () {
     marker.remove();
