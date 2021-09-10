@@ -444,10 +444,16 @@ const Shell = function (
         if (nodeOffset) {
           const marker = addMarker(nodeOffset[0], nodeOffset[1]);
           marker.classList.add("caret-marker");
-          if (txt.match(/syntax error|missing/)) {
+          if (txt.match(/error: (syntax error|missing|expected)/)) {
             // TEMP, obviously
-            nodeOffset[2].dataset.errorColumn = nodeOffset[3] + 1; // +1 because includes the character that triggered error
-            inputLineNo--;
+            //           nodeOffset[2].dataset.errorColumn = nodeOffset[3] + 1; // +1 because includes the character that triggered error
+            const fullText = nodeOffset[2].innerText;
+            let ind = fullText.indexOf("\n", nodeOffset[3] + 1);
+            if (ind < 0) ind = fullText.length - 1; // shouldn't happen
+            nodeOffset[2].dataset.truncatedText =
+              fullText.substring(0, nodeOffset[3] + 1) +
+              fullText.substring(ind + 1);
+            if (fullText.indexOf("\n", ind + 1) < 0) inputLineNo--; // oddity: counter not incremented only if error happened during parsing of that line
           }
         }
       } else if (txt.startsWith("Macaulay2, version")) {
@@ -675,11 +681,13 @@ const Shell = function (
     let txt = "";
     for (let i = 0; i < pastInputs.length; i++)
       txt +=
-        pastInputs[i].dataset.errorColumn !== undefined
+        /*        pastInputs[i].dataset.errorColumn !== undefined
           ? pastInputs[i].innerText.substring(
               0,
               +pastInputs[i].dataset.errorColumn
-            )
+              )*/
+        pastInputs[i].dataset.truncatedText !== undefined
+          ? pastInputs[i].dataset.truncatedText
           : pastInputs[i].innerText;
     let offset = locateRowColumn(txt, row - row0 + 1, column);
     if (offset === null) return null;
@@ -687,11 +695,13 @@ const Shell = function (
     let i = 0;
     while (i < pastInputs.length) {
       const len =
-        pastInputs[i].dataset.errorColumn !== undefined
-          ? +pastInputs[i].dataset.errorColumn
+        /*        pastInputs[i].dataset.errorColumn !== undefined
+          ? +pastInputs[i].dataset.errorColumn */
+        pastInputs[i].dataset.truncatedText !== undefined
+          ? pastInputs[i].dataset.truncatedText.length
           : pastInputs[i].innerText.length; // should only happen for last one
       if (offset < len) {
-        const nodeOffset = locateOffset(pastInputs[i], offset);
+        const nodeOffset = locateOffset(pastInputs[i], offset); // that doesn't seem right: what if it's truncated?
         if (nodeOffset)
           // should always be true
           return [nodeOffset[0], nodeOffset[1], pastInputs[i], offset]; // node, offset in node, element, offset in element
