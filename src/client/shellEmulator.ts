@@ -83,6 +83,7 @@ const Shell = function (
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input (for aesthetics only)
   let stdioRow = 0; // current input line counter -- not to be confused with lineNumber (prompt)
+  // value < 0 means disabled
   let debugPrompt = false; // whether M2 is in debugging mode, determined by prompt (ii*)
 
   const createHtml = function (className) {
@@ -429,19 +430,35 @@ const Shell = function (
       htmlSec.classList.contains("M2Prompt") &&
       htmlSec.parentElement.parentElement == shell
     ) {
+      // eww
       const txt = htmlSec.textContent;
       if (txt.startsWith("i")) debugPrompt = txt.startsWith("ii");
-    } else if (htmlSec.classList.contains("M2Error")) {
+    } else if (
+      htmlSec.classList.contains("M2Error") &&
+      (htmlSec.parentElement == shell ||
+        htmlSec.parentElement.parentElement == shell)
+    ) {
+      // eww
       const txt = htmlSec.textContent;
+      if (txt.startsWith("Macaulay2, version")) {
+        // TEMP, obviously
+        stdioRow = 0;
+        // remove all past line numbers
+        Array.from(shell.querySelectorAll(".M2PastInput[data-lines]")).forEach(
+          (x) => x.removeAttribute("data-lines")
+        );
+      } else if (txt == "\u22EE") {
+        // history has been truncated: need to turn off row counter
+        stdioRow = -1;
+      }
       if (!debugPrompt) {
         // for now, errors not hilited in debug mode
         const m = txt.match(
-          //        /(stdio)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
           /^([^:]+):(\d+):(\d+)/ // cf similar pattern in extra.ts
         );
         if (m) {
           // highlight error
-          if (m[1] == "stdio") {
+          if (m[1] == "stdio" && stdioRow >= 0) {
             const nodeOffset = obj.locateStdio(+m[2], +m[3]);
             if (nodeOffset) {
               const marker = addMarker(nodeOffset[0], nodeOffset[1]);
@@ -484,14 +501,6 @@ const Shell = function (
           }
         }
       }
-      if (txt.startsWith("Macaulay2, version")) {
-        // TEMP, obviously
-        stdioRow = 0;
-        // remove all past line numbers
-        Array.from(shell.querySelectorAll(".M2PastInput[data-lines]")).forEach(
-          (x) => x.removeAttribute("data-lines")
-        );
-      }
     } else if (htmlSec.classList.contains("M2Input")) {
       if (htmlSec.parentElement.parentElement == shell) {
         // eww
@@ -508,10 +517,12 @@ const Shell = function (
           txt.split("\n").forEach((line) => {
             line = line.trim();
             if (line.length > 0) cmdHistory.sorted.sortedPush(line);
-            stdioRow++;
-            s = s + stdioRow + " ";
+            if (stdioRow >= 0) {
+              stdioRow++;
+              s = s + stdioRow + " ";
+            }
           });
-          htmlSec.dataset.lines = s;
+          if (stdioRow >= 0) htmlSec.dataset.lines = s;
         }
       }
       // highlight

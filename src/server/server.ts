@@ -184,6 +184,8 @@ const socketErrorAction = function (client: Client) {
   };
 };
 
+const vdots = " " + webAppTags.Error + "\u22EE" + webAppTags.ErrorEnd + "\n";
+
 const sendDataToClient = function (client: Client) {
   return function (dataObject) {
     if (client.outputStat < 0) return; // output rate exceeded
@@ -227,17 +229,17 @@ const sendDataToClient = function (client: Client) {
         if (m === null) break; // give up -- normally, shouldn't happen except transitionally
         client.savedOutput =
           client.savedOutput.substring(0, m.index) +
-          " \u2026\n" +
+          vdots +
           client.savedOutput.substring(m.index + m[0].length);
       }
     } else {
       const i = client.savedOutput.lastIndexOf(webAppTags.Cell);
       client.savedOutput =
         i < 0 ||
-        client.savedOutput.length - i >
+        client.savedOutput.length - (vdots.length + i) >
           options.perContainerResources.maxSavedOutput
-          ? ""
-          : client.savedOutput.substring(i);
+          ? vdots
+          : vdots + client.savedOutput.substring(i);
       //client.savedOutput = webAppTags.Cell + "i* : " + webAppTags.Input; // a little better than that: keeps last cell
     }
     emitViaClientSockets(client, "output", data);
