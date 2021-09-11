@@ -142,7 +142,6 @@ const locateOffset2 = function (el: HTMLElement, pos1: number, pos2: number) {
 
 // some of these edge cases need to be clarified (empty HTMLElements; etc)
 const setCaret = function (el, pos1: number, pos2?: number, mark?: boolean) {
-  let len;
   if (!pos2) pos2 = pos1;
   else if (pos2 < pos1) {
     const pos = pos1;
@@ -269,10 +268,8 @@ const selectRowColumn = function (el, rowcols) {
 };
 
 const addMarker = function (node, offset) {
-  //  let marker = document.getElementById("marker");
-  //  if (marker) marker.remove(); // simpler to delete and remake
+  // markers are used for scrolling or highlighting
   const marker = document.createElement("span");
-  //  marker.id = "marker";
   node.parentElement.insertBefore(marker, node.splitText(offset)); // !!
   setTimeout(function () {
     marker.remove();

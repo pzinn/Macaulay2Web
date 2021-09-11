@@ -24,7 +24,6 @@ import {
   removeDelimiterHighlight,
 } from "./editor";
 
-//const unicodeBell = "\u0007";
 import Prism from "prismjs";
 
 /*
@@ -82,9 +81,9 @@ const Shell = function (
   cmdHistory.sorted = []; // a sorted version
   // input is a bit messy...
   let inputEndFlag = false;
-  let procInputSpan = null; // temporary span containing currently processed input
-  let inputLineNo = 0; // current input line counter -- not to be confused with lineNumber (prompt)
-  let debugPrompt = false; // whether M2 is in debugging mode
+  let procInputSpan = null; // temporary span containing currently processed input (for aesthetics only)
+  let stdioRow = 0; // current input line counter -- not to be confused with lineNumber (prompt)
+  let debugPrompt = false; // whether M2 is in debugging mode, determined by prompt (ii*)
 
   const createHtml = function (className) {
     const cell = className.indexOf("M2Cell") >= 0; // a bit special
@@ -434,29 +433,36 @@ const Shell = function (
       if (txt.startsWith("i")) debugPrompt = txt.startsWith("ii");
     } else if (htmlSec.classList.contains("M2Error")) {
       const txt = htmlSec.textContent;
-      const m = txt.match(
-        //        /(stdio)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
-        /stdio:(\d+):(\d+)/
-      );
-      if (m) {
-        // experimental: highlight error? for now only stdio
-        const nodeOffset = obj.locateStdio(+m[1], +m[2]);
-        if (nodeOffset) {
-          const marker = addMarker(nodeOffset[0], nodeOffset[1]);
-          marker.classList.add("caret-marker");
-          if (txt.match(/error: (syntax error|missing|expected)/)) {
-            // TEMP, obviously
-            let ind = nodeOffset[2].innerText.indexOf("\n", nodeOffset[3] + 1);
-            if (ind < 0 || ind == nodeOffset[2].innerText.length - 1) {
-              // ind<0 shouldn't happen
-              nodeOffset[2].dataset.errorColumn = nodeOffset[3] + 1; // +1 because includes the character that triggered error
-              inputLineNo--; // oddity: counter not incremented only if error happened during parsing of that line
+      if (!debugPrompt) {
+        // for now, errors not hilited in debug mode
+        const m = txt.match(
+          //        /(stdio)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
+          /^stdio:(\d+):(\d+)/
+        );
+        if (m) {
+          // experimental: highlight error? for now only stdio
+          const nodeOffset = obj.locateStdio(+m[1], +m[2]);
+          if (nodeOffset) {
+            const marker = addMarker(nodeOffset[0], nodeOffset[1]);
+            marker.classList.add("error-marker");
+            if (txt.match(/error: (syntax error|missing|expected)/)) {
+              // TEMP, obviously
+              const ind = nodeOffset[2].innerText.indexOf(
+                "\n",
+                nodeOffset[3] + 1
+              );
+              if (ind < 0 || ind == nodeOffset[2].innerText.length - 1) {
+                // ind<0 shouldn't happen
+                nodeOffset[2].dataset.errorColumn = nodeOffset[3] + 1; // +1 because includes the character that triggered error
+                stdioRow--; // oddity: counter not incremented only if error happened during parsing of that line
+              }
             }
           }
         }
-      } else if (txt.startsWith("Macaulay2, version")) {
+      }
+      if (txt.startsWith("Macaulay2, version")) {
         // TEMP, obviously
-        inputLineNo = 0;
+        stdioRow = 0;
         // remove all past line numbers
         Array.from(shell.querySelectorAll(".M2PastInput[data-lines]")).forEach(
           (x) => x.removeAttribute("data-lines")
@@ -478,8 +484,8 @@ const Shell = function (
           txt.split("\n").forEach((line) => {
             line = line.trim();
             if (line.length > 0) cmdHistory.sorted.sortedPush(line);
-            inputLineNo++;
-            s = s + inputLineNo + " ";
+            stdioRow++;
+            s = s + stdioRow + " ";
           });
           htmlSec.dataset.lines = s;
         }
@@ -671,11 +677,11 @@ const Shell = function (
 
   obj.locateStdio = function (row: number, column: number) {
     // find relevant input from stdio:row:column
-    let query = '.M2PastInput[data-lines*=" ' + row + ' "]';
+    const query = '.M2PastInput[data-lines*=" ' + row + ' "]';
     const pastInputs = shell.querySelectorAll(query) as NodeListOf<HTMLElement>;
     if (pastInputs.length == 0) return null;
 
-    let row0 = +pastInputs[0].dataset.lines.match(/ \d+ /)[0];
+    const row0 = +pastInputs[0].dataset.lines.match(/ \d+ /)[0];
     let txt = "";
     for (let i = 0; i < pastInputs.length; i++)
       txt +=

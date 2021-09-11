@@ -388,7 +388,7 @@ a {
     color: rgb(200,50,0);
 }
 
-.caret-marker {
+.error-marker, .caret-marker {
 /*    width: 0.4em;
     height: 0.8em;
     margin-left: 0.2em;
@@ -398,11 +398,19 @@ a {
     width: 0em;
     height: 0em;
 }
-.caret-marker::after {
+.error-marker::after {
     /*    content: '▶';*/
     content: '▒';
     color: red;
     position: relative;
+    opacity: 0.8;
+}
+.caret-marker::after {
+    /*    content: '▶';*/
+    content: '▒';
+    color: black;
+    position: relative;
+    opacity: 0.8;
 }
 
 .M2Prompt {
