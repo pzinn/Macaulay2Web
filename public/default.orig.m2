@@ -18,9 +18,9 @@ viewHelp "determinant"
 -- Here are some sample commands:
 R = ZZ/101[a,b,c,d]
 I = ideal(a^2-b*c, a^3-b^3, a^4-b*d^3, a^5-c^2*d^3)
-g = first entries groebnerBasis I;
-VerticalList g -- for emulation of ascii style, try netList g instead
-I == ideal g
+grb = first entries groebnerBasis I;
+VerticalList grb -- for emulation of ascii style, try netList grb instead
+I == ideal grb
 
 -- Some examples of rings
 A = ZZ/32003[a..g]

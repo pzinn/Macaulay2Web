@@ -95,7 +95,7 @@ body {
 			      and incompatible with position: absolute */
     outline: none;
     overflow: scroll;
-    background: #F8FAE8; /* var(--left-color); */
+    background: #F8FAE8;
     white-space: pre;
     width: 100%;
     height: 100%;

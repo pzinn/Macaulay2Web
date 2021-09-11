@@ -1,6 +1,6 @@
 {
   "name": "macaulay2web",
-  "version": "3.7.3",
+  "version": "3.8.0",
   "homepage": "https://github.com/pzinn/Macaulay2Web",
   "description": "Web app for Macaulay2",
   "author": {
@@ -67,6 +67,7 @@
     "css": "cd src/client/css; lessc ../../../KaTeX/src/katex.less katex.css; cat katex.css VectorGraphics.css interface_common.css interface_minimal.css prism-M2.css | postcss -o ../../../public/minimal.css && cat material.indigo-deep_orange.min.css katex.css VectorGraphics.css interface_common.css interface_extra.css prism-M2.css | postcss -o ../../../public/index.css",
     "start": "node dist/server/index.js",
     "docker": "npm run build && npm start docker",
+    "docker-recreate": "npm run build && npm start docker-recreate",
     "local": "npm run build && npm start local",
     "debug": "npm run build:debug && npm start local",
     "ssh": "npm run build && npm start ssh",

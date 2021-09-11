@@ -11,6 +11,9 @@ import {
   setCaret,
   setCaretAtEndMaybe,
   attachElement,
+  locateRowColumn,
+  locateOffset,
+  addMarker,
 } from "./htmlTools";
 import {
   escapeKeyHandling,
@@ -21,7 +24,6 @@ import {
   removeDelimiterHighlight,
 } from "./editor";
 
-//const unicodeBell = "\u0007";
 import Prism from "prismjs";
 
 /*
@@ -79,8 +81,10 @@ const Shell = function (
   cmdHistory.sorted = []; // a sorted version
   // input is a bit messy...
   let inputEndFlag = false;
-  let procInputSpan = null; // temporary span containing currently processed input
-  let inputLineNo = 0; // current input line number
+  let procInputSpan = null; // temporary span containing currently processed input (for aesthetics only)
+  let stdioRow = 0; // current input line counter -- not to be confused with lineNumber (prompt)
+  // value < 0 means disabled
+  let debugPrompt = false; // whether M2 is in debugging mode, determined by prompt (ii*)
 
   const createHtml = function (className) {
     const cell = className.indexOf("M2Cell") >= 0; // a bit special
@@ -422,24 +426,104 @@ const Shell = function (
       return;
     }
 
-    if (htmlSec.classList.contains("M2Input")) {
+    if (
+      htmlSec.classList.contains("M2Prompt") &&
+      htmlSec.parentElement.parentElement == shell
+    ) {
+      // eww
+      const txt = htmlSec.textContent;
+      if (txt.startsWith("i")) debugPrompt = txt.startsWith("ii");
+    } else if (
+      htmlSec.classList.contains("M2Error") &&
+      (htmlSec.parentElement == shell ||
+        htmlSec.parentElement.parentElement == shell)
+    ) {
+      // eww
+      const txt = htmlSec.textContent;
+      if (txt.startsWith("Macaulay2, version")) {
+        // TEMP, obviously
+        stdioRow = 0;
+        // remove all past line numbers
+        Array.from(shell.querySelectorAll(".M2PastInput[data-lines]")).forEach(
+          (x) => x.removeAttribute("data-lines")
+        );
+      } else if (txt == "\u22EE") {
+        // history has been truncated: need to turn off row counter
+        stdioRow = -1;
+      }
+      if (!debugPrompt) {
+        // for now, errors not hilited in debug mode
+        const m = txt.match(
+          /^([^:]+):(\d+):(\d+)/ // cf similar pattern in extra.ts
+        );
+        if (m) {
+          // highlight error
+          if (m[1] == "stdio" && stdioRow >= 0) {
+            const nodeOffset = obj.locateStdio(+m[2], +m[3]);
+            if (nodeOffset) {
+              const marker = addMarker(nodeOffset[0], nodeOffset[1]);
+              marker.classList.add("error-marker");
+              if (txt.match(/error: (syntax error|missing|expected)/)) {
+                // TEMP, obviously
+                const ind = nodeOffset[2].innerText.indexOf(
+                  "\n",
+                  nodeOffset[3] + 1
+                );
+                if (ind < 0 || ind == nodeOffset[2].innerText.length - 1) {
+                  // ind<0 shouldn't happen
+                  nodeOffset[2].dataset.errorColumn = nodeOffset[3] + 1; // +1 because includes the character that triggered error
+                  stdioRow--; // oddity: counter not incremented only if error happened during parsing of that line
+                }
+              }
+            }
+          } else if (editor) {
+            // check if by any chance file is open in editor
+            const fileNameEl = document.getElementById(
+              "editorFileName"
+            ) as HTMLInputElement;
+            if (fileNameEl.value == m[1]) {
+              const pos = locateRowColumn(editor.innerText, +m[2], +m[3]);
+              if (pos !== null) {
+                const nodeOffset = locateOffset(editor, pos);
+                if (nodeOffset) {
+                  const marker = addMarker(nodeOffset[0], nodeOffset[1]);
+                  marker.classList.add("error-marker");
+                  setTimeout(function () {
+                    marker.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                      inline: "end",
+                    });
+                  }, 0);
+                }
+              }
+            }
+          }
+        }
+      }
+    } else if (htmlSec.classList.contains("M2Input")) {
       if (htmlSec.parentElement.parentElement == shell) {
         // eww
-        // number lines and add input to history
+        // add input to history
         let txt = htmlSec.textContent;
         if (txt[txt.length - 1] == "\n") txt = txt.substring(0, txt.length - 1); // should be true
         if (htmlSec.classList.contains("M2InputContd"))
           // rare case where input is broken
           cmdHistory[cmdHistory.length - 1] += "\n" + txt;
         else cmdHistory.index = cmdHistory.push(txt);
-        let s = " ";
-        txt.split("\n").forEach((line) => {
-          line = line.trim();
-          if (line.length > 0) cmdHistory.sorted.sortedPush(line);
-          inputLineNo++;
-          s = s + inputLineNo + " ";
-        });
-        htmlSec.dataset.lines = s;
+        if (!debugPrompt) {
+          // number and record individual lines
+          let s = " ";
+          txt.split("\n").forEach((line) => {
+            line = line.trim();
+            if (line.length > 0) cmdHistory.sorted.sortedPush(line);
+            if (stdioRow >= 0) {
+              stdioRow++;
+              s = s + stdioRow + " ";
+            }
+          });
+          if (stdioRow >= 0) htmlSec.dataset.lines = s;
+        }
       }
       // highlight
       htmlSec.innerHTML = Prism.highlight(
@@ -540,18 +624,28 @@ const Shell = function (
       }
       if (i > 0) {
         const tag = txt[i - 1];
-        if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
+        if (
+          tag == webAppTags.End ||
+          tag == webAppTags.CellEnd ||
+          tag == webAppTags.ErrorEnd
+        ) {
           if (htmlSec != shell || !createInputSpan) {
             // htmlSec == shell should only happen at very start
             // or at the very end for rendering help -- then it's OK
             while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
             // but in rare circumstances (interrupt) it may be missing its \n
             if (
-              htmlSec.classList.contains("M2Cell") !=
-              (tag == webAppTags.CellEnd)
-            )
-              console.log("Warning: end tag mismatch");
-            closeHtml();
+              tag != webAppTags.ErrorEnd ||
+              htmlSec.classList.contains("M2Error")
+            ) {
+              // error end tags are sometimes redundant, must be ignored :/
+              if (
+                htmlSec.classList.contains("M2Cell") !=
+                (tag == webAppTags.CellEnd)
+              )
+                console.log("Warning: end tag mismatch");
+              closeHtml();
+            }
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {
           // continuation of input section
@@ -568,6 +662,7 @@ const Shell = function (
           }
         }
       }
+
       if (txt[i].length > 0) {
         // for next round, check if we're nearing the end of an input section
         if (htmlSec.classList.contains("M2Input")) {
@@ -575,32 +670,35 @@ const Shell = function (
           if (ii >= 0) {
             if (ii < txt[i].length - 1) {
               // need to do some surgery
-              htmlSec.insertBefore(
-                document.createTextNode(txt[i].substring(0, ii + 1)),
-                inputSpan
-              );
-              txt[i] = txt[i].substring(ii + 1, txt[i].length);
+              displayText(txt[i].substring(0, ii + 1));
               closeHtml();
+              txt[i] = txt[i].substring(ii + 1, txt[i].length);
             } else inputEndFlag = true;
             // can't tell for sure if it's the end of input or not (could be a InputContd), so set a flag to remind us
           }
         }
 
         if (htmlSec.dataset.code !== undefined) htmlSec.dataset.code += txt[i];
+        else displayText(txt[i]);
         //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // used to update in real time
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
-        else if (inputSpan && inputSpan.parentElement == htmlSec)
-          htmlSec.insertBefore(document.createTextNode(txt[i]), inputSpan);
-        else htmlSec.appendChild(document.createTextNode(txt[i]));
       }
     }
     scrollDownLeft(shell);
+  };
+
+  const displayText = function (msg) {
+    const node = document.createTextNode(msg);
+    if (inputSpan && inputSpan.parentElement == htmlSec)
+      htmlSec.insertBefore(node, inputSpan);
+    else htmlSec.appendChild(node);
   };
 
   obj.reset = function () {
     console.log("Reset");
     removeAutoComplete(false, false); // remove autocomplete menu if open
     createInputEl(); // recreate the input area
+
     //    htmlSec.parentElement.insertBefore(document.createElement("hr"), htmlSec); // insert an additional horizontal line to distinguish successive M2  runs
   };
 
@@ -612,15 +710,62 @@ const Shell = function (
     setCaretAtEndMaybe(inputSpan);
   };
 
-  obj.selectPastInput = function (rows) {
-    let query = ".M2PastInput";
-    rows.forEach((row) => {
-      if (row) query += '[data-lines*=" ' + row + ' "]';
+  obj.locateStdio = function (row: number, column: number) {
+    // find relevant input from stdio:row:column
+    const query = '.M2PastInput[data-lines*=" ' + row + ' "]';
+    const pastInputs = shell.querySelectorAll(query) as NodeListOf<HTMLElement>;
+    if (pastInputs.length == 0) return null;
+
+    const row0 = +pastInputs[0].dataset.lines.match(/ \d+ /)[0];
+    let txt = "";
+    for (let i = 0; i < pastInputs.length; i++)
+      txt +=
+        pastInputs[i].dataset.errorColumn !== undefined
+          ? pastInputs[i].innerText.substring(
+              0,
+              +pastInputs[i].dataset.errorColumn
+            )
+          : pastInputs[i].innerText;
+    let offset = locateRowColumn(txt, row - row0 + 1, column);
+    if (offset === null) return null;
+
+    let i = 0;
+    while (i < pastInputs.length) {
+      const len =
+        pastInputs[i].dataset.errorColumn !== undefined
+          ? +pastInputs[i].dataset.errorColumn
+          : pastInputs[i].innerText.length;
+      if (offset < len) {
+        const nodeOffset = locateOffset(pastInputs[i], offset);
+        if (nodeOffset)
+          // should always be true
+          return [nodeOffset[0], nodeOffset[1], pastInputs[i], offset]; // node, offset in node, element, offset in element
+      }
+      offset -= len;
+      i++;
+    }
+  };
+
+  obj.selectPastInput = function (rowcols) {
+    const nodeOffset1 = obj.locateStdio(rowcols[0], rowcols[1]);
+    if (!nodeOffset1) return;
+    const nodeOffset2 = obj.locateStdio(rowcols[2], rowcols[3]);
+    if (!nodeOffset2 || nodeOffset2[2] != nodeOffset1[2]) return;
+    const sel = window.getSelection();
+    sel.setBaseAndExtent(
+      nodeOffset1[0],
+      nodeOffset1[1],
+      nodeOffset2[0],
+      nodeOffset2[1]
+    );
+    const marker = addMarker(nodeOffset2[0], nodeOffset2[1]);
+    if (rowcols[0] == rowcols[2] && rowcols[1] == rowcols[3])
+      marker.classList.add("caret-marker");
+    marker.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "end",
     });
-    const pastInput = shell.querySelector(query) as HTMLElement;
-    return pastInput
-      ? [pastInput, +pastInput.dataset.lines.match(/ \d+ /)[0]]
-      : null;
   };
 
   if (inputSpan)

@@ -1,3 +1,6 @@
+3.8.0 09/2021
+    * more coloring/interpreting output: prompts, errors
+
 3.7.0 04/2021
     * tutorial system revamped
     * docker creation fixes

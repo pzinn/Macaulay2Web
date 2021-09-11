@@ -16,25 +16,22 @@ const usage = function (): void {
 
 logger.info("Macaulay2Web version " + options.version);
 
-if (n > 2) {
-  logger.info("mode " + args[2] + " requested");
-  mode = args[2];
-}
-
 if (n > 5) {
   logger.error("Too many options");
   usage();
   process.exit(0);
 }
 
-// Dirname is dist.
-import p = require("path"); // eslint-disable-line  no-undef
-const path = p.join(__dirname, "/"); // eslint-disable-line  no-undef
+if (n > 2) mode = args[2];
 
 if (mode === "--help") {
   usage();
   process.exit(0);
-}
+} else logger.info("mode " + mode + " requested");
+
+// Dirname is dist.
+import p = require("path"); // eslint-disable-line  no-undef
+const path = p.join(__dirname, "/"); // eslint-disable-line  no-undef
 
 let overrideOptions;
 if (mode === "local") {
@@ -44,7 +41,9 @@ if (mode === "local") {
 } else if (mode === "ssh") {
   overrideOptions = require(path + "sshDocker");
 } else {
-  throw new Error("There is no mode " + mode);
+  logger.error("There is no mode " + mode);
+  usage();
+  process.exit(0);
 }
 
 overrideDefaultOptions(overrideOptions.options, options);

@@ -58,7 +58,6 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                       self.removeInstance(clients[clientId].instance);
                   } else clients[clientId] = new Client(clientId);
                   clients[clientId].instance = newInstance;
-                  self.addInstanceToArray(newInstance);
                   exec(
                     "sudo docker cp " +
                       lst[i] +
@@ -84,9 +83,12 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                                 " /home/" +
                                 newInstance.username,
                               function () {
-                                exec("sudo rm -rf /tmp/m2user", function () {
-                                  asyncLoop(i);
-                                });
+                                exec(
+                                  "sudo rm -rf /tmp/" + newInstance.username,
+                                  function () {
+                                    asyncLoop(i);
+                                  }
+                                );
                               }
                             );
                           }
@@ -271,7 +273,8 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
 const options = {
   serverConfig: {
-    MATH_PROGRAM_COMMAND: "stty -echo; M2MODE=sudoDocker M2 --webapp",
+    MATH_PROGRAM_COMMAND:
+      "stty -echo; LD_PRELOAD=/usr/lib64/libtagstderr.so M2MODE=sudoDocker M2 --webapp",
     CONTAINERS(resources, hostConfig, guestInstance): InstanceManager {
       return new SudoDockerContainersInstanceManager(
         resources,

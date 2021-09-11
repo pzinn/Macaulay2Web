@@ -23,6 +23,7 @@ const baselinePosition = function (el) {
   return result;
 };
 
+// TODO: rewrite getCaret(2) in a similar way as setCaret
 // caret (always assuming selection is collapsed)
 const getCaret = function (el): number | null {
   const sel = window.getSelection();
@@ -86,64 +87,26 @@ const getCaret2 = function (el) {
   }
 };
 
-const selectAndScroll = function (
-  node1,
-  offset1: number,
-  node2,
-  offset2: number,
-  scroll: boolean
-) {
-  const sel = window.getSelection();
-  let scrll;
-  if (scroll) {
-    scrll = document.createElement("span");
-    scrll.id = "scrll";
-    node2.parentElement.insertBefore(scrll, node2.splitText(offset2)); // !!
-  }
-  sel.setBaseAndExtent(node1, offset1, node2, offset2);
-  if (scroll)
-    setTimeout(function () {
-      // in case not in editor tab, need to wait
-      scrll.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "end",
-      });
-      if (node1 != node2 || offset1 != offset2) scrll.remove();
-      else {
-        scrll.classList.add("caret-marker");
-        setTimeout(function () {
-          scrll.remove();
-        }, 1000);
-      }
-    }, 0);
+const locateRowColumn = function (txt: string, row: number, col: number) {
+  // finds the offset of a row/col location in a text element
+  // TODO: treat row<1 case (fail or return 0???)
+  const matches = [
+    { index: -1 },
+    ...txt.matchAll(/\n/g),
+    { index: txt.length },
+  ]; // a bit clumsy TODO don't scan the whole text
+  // what to do if beyond column? for now just truncate to length
+  if (row > matches.length) return null;
+  const offset = matches[row - 1].index + col;
+  return offset < matches[row].index ? offset : matches[row].index;
 };
 
-const setCaretInternal = function (
-  el,
-  cur,
-  pos: number,
-  len: number,
-  scroll?: boolean
-) {
-  let first = null;
-  let firstpos;
+const locateOffsetInternal = function (el, cur, pos: number) {
   while (true) {
     if (cur.nodeType === 3) {
-      if (pos <= cur.textContent.length) {
+      if (pos <= cur.textContent.length)
         // bingo
-        if (first) {
-          selectAndScroll(first, firstpos, cur, pos, scroll);
-          return;
-        } else if (pos + len <= cur.textContent.length) {
-          selectAndScroll(cur, pos, cur, pos + len, scroll);
-          return;
-        } else {
-          first = cur;
-          firstpos = pos;
-          pos += len;
-        }
-      }
+        return [cur, pos];
       pos -= cur.textContent.length;
     }
     if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
@@ -154,37 +117,57 @@ const setCaretInternal = function (
         if (cur == el) return null;
       }
       if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
+      // then go to next sibling
       cur = cur.nextSibling;
-    } else cur = cur.firstChild; // forward
+    } else cur = cur.firstChild; // otherwise forward
   }
 };
 
-// some of these edge cases need to be clarified (empty HTMLElements; etc)
-const setCaret = function (
-  el,
-  pos: number,
-  pos2?: number,
-  scroll?: boolean
-): void {
-  let len;
-  if (!pos2) len = 0;
-  else if (pos2 < pos) {
-    len = pos - pos2;
-    pos = pos2;
-  } else len = pos2 - pos;
-  el.focus({ preventScroll: true });
-  if (pos === 0 && len === 0) {
-    window.getSelection().collapse(el, pos);
-    return;
-  }
+const locateOffset = function (el: HTMLElement, pos: number) {
+  // finds the node/node offset of a given character pos in a text element
   const cur = el.firstChild;
-  if (!cur) return;
-  setCaretInternal(el, cur, pos, len, scroll);
+  return cur ? locateOffsetInternal(el, cur, pos) : pos == 0 ? [el, 0] : null; // not sure about the cur === null case
+};
+
+const locateOffset2 = function (el: HTMLElement, pos1: number, pos2: number) {
+  // finds the node/node offset of two character pos in a text element
+  const cur = el.firstChild;
+  if (cur === null) return pos1 == 0 && pos2 == 0 ? [el, 0] : null; // not sure about the cur === null case
+  const node1 = locateOffsetInternal(el, cur, pos1);
+  if (node1 === null) return null;
+  const node2 = locateOffsetInternal(el, node1[0], pos2 - pos1 + node1[1]);
+  if (node2 === null) return null;
+  return [node1[0], node1[1], node2[0], node2[1]]; // TODO use objects
+};
+
+// some of these edge cases need to be clarified (empty HTMLElements; etc)
+const setCaret = function (el, pos1: number, pos2?: number, mark?: boolean) {
+  if (!pos2) pos2 = pos1;
+  else if (pos2 < pos1) {
+    const pos = pos1;
+    pos1 = pos2;
+    pos2 = pos;
+  }
+  el.focus({ preventScroll: true });
+  const nodeOffsets = locateOffset2(el, pos1, pos2);
+  const sel = window.getSelection();
+  if (!nodeOffsets) sel.collapse(el, pos1);
+  // ?
+  else
+    sel.setBaseAndExtent(
+      nodeOffsets[0],
+      nodeOffsets[1],
+      nodeOffsets[2],
+      nodeOffsets[3]
+    );
+  if (mark) return addMarker(nodeOffsets[2], nodeOffsets[3]);
 };
 
 const forwardCaret = function (el, incr: number): void {
   const sel = window.getSelection();
-  setCaretInternal(el, sel.focusNode, incr + sel.focusOffset, 0);
+  const node = locateOffsetInternal(el, sel.focusNode, sel.focusOffset + incr);
+  if (node !== null)
+    window.getSelection().setBaseAndExtent(node[0], node[1], node[0], node[1]);
 };
 
 const nextChar = function () {
@@ -254,6 +237,46 @@ const caretIsAtEnd = function () {
   }
 };
 
+const selectRowColumn = function (el, rowcols) {
+  let pos1 = locateRowColumn(el.innerText, rowcols[0], rowcols[1]);
+  if (pos1 === null) pos1 = el.innerText.length;
+  let pos2 = locateRowColumn(el.innerText, rowcols[2], rowcols[3]);
+  if (pos2 === null) pos2 = el.innerText.length;
+  const nodesOffsets = locateOffset2(el, pos1, pos2);
+  if (!nodesOffsets) return false; // shouldn't happen
+  const sel = window.getSelection();
+  sel.setBaseAndExtent(
+    nodesOffsets[0],
+    nodesOffsets[1],
+    nodesOffsets[2],
+    nodesOffsets[3]
+  );
+
+  const marker = addMarker(nodesOffsets[2], nodesOffsets[3]);
+
+  if (pos1 == pos2) marker.classList.add("caret-marker");
+  setTimeout(function () {
+    // in case not in editor tab, need to wait
+    marker.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "end",
+    });
+  }, 0);
+
+  return true;
+};
+
+const addMarker = function (node, offset) {
+  // markers are used for scrolling or highlighting
+  const marker = document.createElement("span");
+  node.parentElement.insertBefore(marker, node.splitText(offset)); // !!
+  setTimeout(function () {
+    marker.remove();
+  }, 1000);
+  return marker;
+};
+
 export {
   scrollDownLeft,
   scrollDown,
@@ -268,4 +291,8 @@ export {
   setCaretAtEndMaybe,
   forwardCaret,
   nextChar,
+  locateOffset,
+  locateRowColumn,
+  selectRowColumn,
+  addMarker,
 };
