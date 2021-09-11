@@ -17,7 +17,6 @@ import {
   autoCompleteHandling,
   removeAutoComplete,
   delimiterHandling,
-  removeDelimiterHighlight,
   autoIndent,
   syntaxHighlight,
   updateAndHighlightMaybe,
@@ -541,7 +540,7 @@ const extra2 = function () {
 
   const editorKeyDown = function (e) {
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
-    removeDelimiterHighlight(editor);
+    //removeDelimiterHighlight(editor);
     if (searchMode) {
       if (editorKeyDownSearch(e)) {
         e.preventDefault();

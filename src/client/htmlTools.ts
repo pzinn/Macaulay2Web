@@ -271,11 +271,17 @@ const selectRowColumn = function (el, rowcols) {
 const addMarker = function (node?, offset?) {
   // markers are used for scrolling or highlighting
   const marker = document.createElement("span");
+  marker.classList.add("marker");
   if (node) node.parentElement.insertBefore(marker, node.splitText(offset)); // !!
   setTimeout(function () {
     marker.remove();
   }, 1000);
   return marker;
+};
+
+const addMarkerEl = function (el, pos) {
+  const nodeOffset = locateOffset(el, pos);
+  return nodeOffset ? addMarker(nodeOffset[0], nodeOffset[1]) : addMarker();
 };
 
 export {
@@ -296,4 +302,5 @@ export {
   locateRowColumn,
   selectRowColumn,
   addMarker,
+  addMarkerEl,
 };
