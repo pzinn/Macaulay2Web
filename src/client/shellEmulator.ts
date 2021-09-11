@@ -471,11 +471,13 @@ const Shell = function (
                 if (nodeOffset) {
                   const marker = addMarker(nodeOffset[0], nodeOffset[1]);
                   marker.classList.add("error-marker");
-                  marker.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                    inline: "end",
-                  });
+                  setTimeout(function () {
+                    marker.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                      inline: "end",
+                    });
+                  }, 0);
                 }
               }
             }
