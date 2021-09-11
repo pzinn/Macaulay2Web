@@ -437,24 +437,46 @@ const Shell = function (
         // for now, errors not hilited in debug mode
         const m = txt.match(
           //        /(stdio)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
-          /^stdio:(\d+):(\d+)/
+          /^([^:]+):(\d+):(\d+)/ // cf similar pattern in extra.ts
         );
         if (m) {
-          // experimental: highlight error? for now only stdio
-          const nodeOffset = obj.locateStdio(+m[1], +m[2]);
-          if (nodeOffset) {
-            const marker = addMarker(nodeOffset[0], nodeOffset[1]);
-            marker.classList.add("error-marker");
-            if (txt.match(/error: (syntax error|missing|expected)/)) {
-              // TEMP, obviously
-              const ind = nodeOffset[2].innerText.indexOf(
-                "\n",
-                nodeOffset[3] + 1
-              );
-              if (ind < 0 || ind == nodeOffset[2].innerText.length - 1) {
-                // ind<0 shouldn't happen
-                nodeOffset[2].dataset.errorColumn = nodeOffset[3] + 1; // +1 because includes the character that triggered error
-                stdioRow--; // oddity: counter not incremented only if error happened during parsing of that line
+          // highlight error
+          if (m[1] == "stdio") {
+            const nodeOffset = obj.locateStdio(+m[2], +m[3]);
+            if (nodeOffset) {
+              const marker = addMarker(nodeOffset[0], nodeOffset[1]);
+              marker.classList.add("error-marker");
+              if (txt.match(/error: (syntax error|missing|expected)/)) {
+                // TEMP, obviously
+                const ind = nodeOffset[2].innerText.indexOf(
+                  "\n",
+                  nodeOffset[3] + 1
+                );
+                if (ind < 0 || ind == nodeOffset[2].innerText.length - 1) {
+                  // ind<0 shouldn't happen
+                  nodeOffset[2].dataset.errorColumn = nodeOffset[3] + 1; // +1 because includes the character that triggered error
+                  stdioRow--; // oddity: counter not incremented only if error happened during parsing of that line
+                }
+              }
+            }
+          } else if (editor) {
+            // check if by any chance file is open in editor
+            const fileNameEl = document.getElementById(
+              "editorFileName"
+            ) as HTMLInputElement;
+            if (fileNameEl.value == m[1]) {
+              const pos = locateRowColumn(editor.innerText, +m[2], +m[3]);
+              if (pos !== null) {
+                const nodeOffset = locateOffset(editor, pos);
+                if (nodeOffset) {
+                  const marker = addMarker(nodeOffset[0], nodeOffset[1]);
+                  marker.classList.add("error-marker");
+                  marker.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                    inline: "end",
+                  });
+                }
               }
             }
           }

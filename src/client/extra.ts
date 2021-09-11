@@ -209,7 +209,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
   // figure out filename
   const m = arg.match(
     //    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
-    /([^:]*):(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)/
+    /^([^:]+):(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)/
   ) as any; // e.g. test.m2:3:5-5:7
   const newName = m ? m[1] : arg;
   const el = document.getElementById("editorDiv");
