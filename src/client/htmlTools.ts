@@ -132,7 +132,7 @@ const locateOffset = function (el: HTMLElement, pos: number) {
 const locateOffset2 = function (el: HTMLElement, pos1: number, pos2: number) {
   // finds the node/node offset of two character pos in a text element
   const cur = el.firstChild;
-  if (cur === null) return pos1 == 0 && pos2 == 0 ? [el, 0] : null; // not sure about the cur === null case
+  if (cur === null) return pos1 == 0 && pos2 == 0 ? [el, 0, el, 0] : null; // not sure about the cur === null case
   const node1 = locateOffsetInternal(el, cur, pos1);
   if (node1 === null) return null;
   const node2 = locateOffsetInternal(el, node1[0], pos2 - pos1 + node1[1]);
