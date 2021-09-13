@@ -15,34 +15,6 @@
 
   </head>
   <body>
-    <dialog id="changeUserDialog" class="mdl-dialog" style="max-height:200px;min-width:300px">
-      <form method="dialog">
-	You have requested the new user id <b id="newUserId"></b>. Is this change:
-	<menu>
-	  <button id="changeUserTemporary" value="temporary" class="mdl-button mdl-js-button">temporary</button>
-	  <button id="changeUserPermanent" value="permanent" class="mdl-button mdl-js-button">permanent</button>
-	</menu>
-	<span id="oldUserIdReminder"></span>
-      </form>
-    </dialog>
-
-    <dialog id="editorFileChanged" class="mdl-dialog" style="max-height:200px;min-width:300px">
-      <form method="dialog">
-	The file <b id="newEditorFileName"></b> has changed on the server. Do you want to:
-	<menu>
-	  <button id="loadEditorFileName" value="load" class="mdl-button mdl-js-button">load it</button>
-	  <button id="overwriteEditorFileName" value="overwrite" class="mdl-button mdl-js-button">overwrite it</button>
-	</menu>
-      </form>
-    </dialog>
-    <dialog id="uploadSuccessDialog" class="mdl-dialog" style="max-height:250px;min-width:300px">
-      <button id="uploadSuccessDialogClose" class="saveDialogButton mdl-button mdl-js-button mdl-button--icon">
-        <i class="material-icons">close</i>
-      </button>
-      <div class="mdl-dialog__content" id="uploadSuccessText">
-      </div>
-    </dialog>
-
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--no-desktop-drawer-button">
       <header class="mdl-layout__header">
         <div class="mdl-layout__header-row">
@@ -238,33 +210,59 @@
           </div>
 	  <div id="resize"></div>
           <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone" id="right-half">
+	    <div id="changeUserDialog" class="mdl-dialog" style="background:white;max-height:200px;min-width:300px;display:none">
+	      You have requested the new user id <b id="newUserId"></b>. Is this change:
+	      <menu>
+		<button id="changeUserTemporary" value="temporary" class="mdl-button mdl-js-button">temporary</button>
+		<button id="changeUserPermanent" value="permanent" class="mdl-button mdl-js-button">permanent</button>
+	      </menu>
+	      <span id="oldUserIdReminder"></span>
+	    </div>
+	    <div id="terminalDiv" style="display:none">
               <div id="terminalZoomBtns">
-                    <button id="terminalZoomIn" class="mdl-button mdl-js-button mdl-button--icon">
-                      <i class="material-icons">zoom_in</i>
-		    </button>
-                    <button id="terminalResetZoom" class="mdl-button mdl-js-button mdl-button--icon">
-                      <i class="material-icons">find_replace</i>
-		    </button>
-                    <button id="terminalZoomOut" class="mdl-button mdl-js-button mdl-button--icon">
-                      <i class="material-icons">zoom_out</i>
-		    </button>
-                    <button id="clearBtn" class="mdl-button mdl-js-button mdl-button--icon">
-		      <i class="material-icons">delete</i>
-		    </button>
-		    <div style="min-height:5pt"></div>
-		    <span style="float:right;position:relative;right:24px"><label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="editorToggle">
-			<span class="mdl-switch__label" style="font-size:10px">copy to editor</span>
-			<input type="checkbox" id="editorToggle" class="mdl-switch__input">
-		      </label>
-		    </span>
+                <button id="terminalZoomIn" class="mdl-button mdl-js-button mdl-button--icon">
+                  <i class="material-icons">zoom_in</i>
+		</button>
+                <button id="terminalResetZoom" class="mdl-button mdl-js-button mdl-button--icon">
+                  <i class="material-icons">find_replace</i>
+		</button>
+                <button id="terminalZoomOut" class="mdl-button mdl-js-button mdl-button--icon">
+                  <i class="material-icons">zoom_out</i>
+		</button>
+                <button id="clearBtn" class="mdl-button mdl-js-button mdl-button--icon">
+		  <i class="material-icons">delete</i>
+		</button>
+		<div style="min-height:5pt"></div>
+		<span style="float:right;position:relative;right:24px"><label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="editorToggle">
+		    <span class="mdl-switch__label" style="font-size:10px">copy to editor</span>
+		    <input type="checkbox" id="editorToggle" class="mdl-switch__input">
+		  </label>
+		</span>
               </div>
-            <div id="terminal" tabindex="0" class="M2Text"></div>
-          </div>
-
+              <div id="terminal" tabindex="0" class="M2Text"></div>
+            </div>
+	  </div>
         </div>
       </main>
 
     </div>
+
+    <dialog id="editorFileChanged" class="mdl-dialog" style="max-height:200px;min-width:300px;display:none">
+      <form method="dialog">
+	The file <b id="changedFileName"></b> has changed on the server. Do you want to:
+	<menu>
+	  <button id="loadEditorFileName" value="load" class="mdl-button mdl-js-button">load it</button>
+	  <button id="overwriteEditorFileName" value="overwrite" class="mdl-button mdl-js-button">overwrite it</button>
+	</menu>
+      </form>
+    </dialog>
+    <dialog id="uploadSuccessDialog" class="mdl-dialog" style="max-height:250px;min-width:300px;display:none">
+      <button id="uploadSuccessDialogClose" class="saveDialogButton mdl-button mdl-js-button mdl-button--icon">
+        <i class="material-icons">close</i>
+      </button>
+      <div class="mdl-dialog__content" id="uploadSuccessText">
+      </div>
+    </dialog>
 
   </body>
 </html>

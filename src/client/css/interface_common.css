@@ -25,27 +25,6 @@ body {
     text-decoration: inherit; /* for "closed" state */
 }
 
-[data-highlight]::after {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    color: #50A000;
-    text-shadow: -1px 0px #70E000,1px 0px #70E000,0px -1px #70E000,0px 1px #70E000;
-    content: attr(data-highlight);
-    cursor: text;
-    pointer-events: none;
-}
-
-[data-highlight-error]::after {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    color: red;
-    content: attr(data-highlight-error);
-    cursor: text;
-    pointer-events: none;
-}
-
 .M2CurrentInput {
     position: relative;
     outline: none;
@@ -388,28 +367,33 @@ a {
     color: rgb(200,50,0);
 }
 
-.error-marker, .caret-marker {
-/*    width: 0.4em;
-    height: 0.8em;
-    margin-left: 0.2em;
-    margin-right: 0.2em;
-    background: black;*/
+.marker {
     display: inline-block;
     width: 0em;
     height: 0em;
+    cursor: text;
+    pointer-events: none;
 }
+
+.marker[data-content]::after {
+    content: attr(data-content); /* currently not used */
+}
+
+.valid-marker::after {
+    content: '▒'; /* default */
+    color: #50A000;
+    opacity: 0.8;
+}
+
 .error-marker::after {
     /*    content: '▶';*/
-    content: '▒';
+    content: '▒'; /* default */
     color: red;
-    position: relative;
     opacity: 0.8;
 }
 .caret-marker::after {
-    /*    content: '▶';*/
-    content: '▒';
+    content: '▒'; /* default */
     color: black;
-    position: relative;
     opacity: 0.8;
 }
 

@@ -151,16 +151,17 @@ const setCaret = function (el, pos1: number, pos2?: number, mark?: boolean) {
   el.focus({ preventScroll: true });
   const nodeOffsets = locateOffset2(el, pos1, pos2);
   const sel = window.getSelection();
-  if (!nodeOffsets) sel.collapse(el, pos1);
-  // ?
-  else
+  if (!nodeOffsets) {
+    if (mark) return el.appendChild(addMarker());
+  } else {
     sel.setBaseAndExtent(
       nodeOffsets[0],
       nodeOffsets[1],
       nodeOffsets[2],
       nodeOffsets[3]
     );
-  if (mark) return addMarker(nodeOffsets[2], nodeOffsets[3]);
+    if (mark) return addMarker(nodeOffsets[2], nodeOffsets[3]);
+  }
 };
 
 const forwardCaret = function (el, incr: number): void {
@@ -267,14 +268,20 @@ const selectRowColumn = function (el, rowcols) {
   return true;
 };
 
-const addMarker = function (node, offset) {
+const addMarker = function (node?, offset?) {
   // markers are used for scrolling or highlighting
   const marker = document.createElement("span");
-  node.parentElement.insertBefore(marker, node.splitText(offset)); // !!
+  marker.classList.add("marker");
+  if (node) node.parentElement.insertBefore(marker, node.splitText(offset)); // !!
   setTimeout(function () {
     marker.remove();
   }, 1000);
   return marker;
+};
+
+const addMarkerEl = function (el, pos) {
+  const nodeOffset = locateOffset(el, pos);
+  return nodeOffset ? addMarker(nodeOffset[0], nodeOffset[1]) : addMarker();
 };
 
 export {
@@ -295,4 +302,5 @@ export {
   locateRowColumn,
   selectRowColumn,
   addMarker,
+  addMarkerEl,
 };

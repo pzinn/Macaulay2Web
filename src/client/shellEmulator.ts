@@ -21,7 +21,6 @@ import {
   removeAutoComplete,
   sanitizeInput,
   delimiterHandling,
-  removeDelimiterHighlight,
 } from "./editor";
 
 import Prism from "prismjs";
@@ -165,7 +164,6 @@ const Shell = function (
   obj.postMessage = function (msg, flag1, flag2) {
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
-    removeDelimiterHighlight(htmlSec);
     let clean = sanitizeInput(msg);
     if (clean.length > 0) {
       if (procInputSpan === null) {
@@ -258,7 +256,6 @@ const Shell = function (
   shell.onkeydown = function (e: KeyboardEvent) {
     if (!inputSpan) return;
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
-    removeDelimiterHighlight(htmlSec);
     if ((e.target as HTMLElement).classList.contains("M2CellBar")) return;
     if (e.key == "Enter" && !e.shiftKey) {
       obj.postMessage(
@@ -461,8 +458,9 @@ const Shell = function (
           if (m[1] == "stdio" && stdioRow >= 0) {
             const nodeOffset = obj.locateStdio(+m[2], +m[3]);
             if (nodeOffset) {
-              const marker = addMarker(nodeOffset[0], nodeOffset[1]);
-              marker.classList.add("error-marker");
+              addMarker(nodeOffset[0], nodeOffset[1]).classList.add(
+                "error-marker"
+              );
               if (txt.match(/error: (syntax error|missing|expected)/)) {
                 // TEMP, obviously
                 const ind = nodeOffset[2].innerText.indexOf(
@@ -705,7 +703,6 @@ const Shell = function (
   obj.interrupt = function () {
     removeAutoComplete(false, false); // remove autocomplete menu if open
     inputSpan.textContent = "";
-    removeDelimiterHighlight(htmlSec);
     postRawMessage("\x03");
     setCaretAtEndMaybe(inputSpan);
   };

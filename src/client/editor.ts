@@ -1,7 +1,13 @@
 // contains functions used by both terminal and editor
 import { setupMenu } from "./menu";
 import M2symbols from "./prism-M2";
-import { getCaret, getCaret2, setCaret, forwardCaret } from "./htmlTools";
+import {
+  getCaret,
+  getCaret2,
+  setCaret,
+  forwardCaret,
+  addMarkerEl,
+} from "./htmlTools";
 import Prism from "prismjs";
 
 // partial support for unicode symbols
@@ -222,10 +228,12 @@ const autoCompleteHandling = function (el, dictionary?) {
   return true;
 };
 
+/*
 const removeDelimiterHighlight = function (el) {
   el.removeAttribute("data-highlight");
   el.removeAttribute("data-highlight-error");
 };
+*/
 
 const openingDelimiters = "([{";
 const closingDelimiters = ")]}";
@@ -254,42 +262,31 @@ const delimiterHandling = function (el) {
 
 // quotes need to be treated separately
 const quoteHandling = function (quote, el) {
-  //  removeDelimiterHighlight(el);
   const pos = getCaret(el) - 1;
   const input = el.innerText;
-  const highlight = input.replace(/\S/g, " "); // only newlines left
   if (pos > 0 && input[pos - 1] == "\\") return true; // \" does not trigger highlighting
-  let flag = 0;
+  let flag = true;
   let last = -1;
   let i;
   for (i = 0; i < pos; i++)
     if (input[i] == quote && (i == 0 || input[i - 1] != "\\")) {
-      flag = 1 - flag;
+      flag = !flag;
       last = i;
     }
-  if (flag == 0) return true;
-  // it was closing "
-  el.dataset.highlight =
-    highlight.substring(0, last) +
-    quote +
-    highlight.substring(last + 1, pos) +
-    quote;
-  // does not try to check if opening ", too confusing
-  setTimeout(function () {
-    el.removeAttribute("data-highlight");
-  }, 1000);
+  if (flag) return true; // opening " -- does not try to check, too confusing
+  // otherwise, closing "
+  addMarkerEl(el, last).classList.add("valid-marker");
+  //	marker.dataset.content=quote;
+  addMarkerEl(el, pos).classList.add("valid-marker");
+  //	marker.dataset.content=quote;
+
   return true;
 };
 
 const closingDelimiterHandling = function (index, el) {
-  //  removeDelimiterHighlight(el);
   const pos = getCaret(el) - 1;
 
-  const opening = openingDelimiters[index];
-  const closing = closingDelimiters[index];
-
   const input = el.innerText;
-  const highlight = input.replace(/\S/g, " "); // only newlines left
   let i, j;
   const depth = [];
   for (i = 0; i < openingDelimiters.length; i++) depth.push(i == index ? 1 : 0);
@@ -312,29 +309,15 @@ const closingDelimiterHandling = function (index, el) {
     }
   }
   if (depth.every((val) => val == 0)) {
-    el.dataset.highlight =
-      highlight.substring(0, i) +
-      opening +
-      highlight.substring(i + 1, pos) +
-      closing;
-    setTimeout(function () {
-      el.removeAttribute("data-highlight");
-    }, 1000);
-  } else el.dataset.highlightError = highlight.substring(0, pos) + closing;
-  setTimeout(function () {
-    el.removeAttribute("data-highlight-error");
-  }, 1000);
-  //  }
+    addMarkerEl(el, i).classList.add("valid-marker");
+    addMarkerEl(el, pos).classList.add("valid-marker");
+  } else addMarkerEl(el, pos).classList.add("error-marker");
   return true;
 };
 
 const openingDelimiterHandling = function (index, el) {
-  //  removeDelimiterHighlight(el);
   const pos = getCaret(el) - 1;
-  const opening = openingDelimiters[index];
-  const closing = closingDelimiters[index];
   const input = el.innerText;
-  const highlight = input.replace(/\S/g, " "); // only newlines left
   let i, j;
   const depth = [];
   for (i = 0; i < openingDelimiters.length; i++) depth.push(i == index ? 1 : 0);
@@ -357,14 +340,8 @@ const openingDelimiterHandling = function (index, el) {
     }
   }
   if (depth.every((val) => val == 0)) {
-    el.dataset.highlight =
-      highlight.substring(0, pos) +
-      opening +
-      highlight.substring(pos + 1, i) +
-      closing;
-    setTimeout(function () {
-      el.removeAttribute("data-highlight");
-    }, 1000);
+    addMarkerEl(el, pos).classList.add("valid-marker");
+    addMarkerEl(el, i).classList.add("valid-marker");
   } // we never throw an error on an opening delimiter -- it's assumed more input is coming
   return true;
 };
@@ -496,7 +473,6 @@ export {
   removeAutoComplete,
   sanitizeInput,
   delimiterHandling,
-  removeDelimiterHighlight,
   syntaxHighlight,
   updateAndHighlightMaybe,
   autoIndent,
