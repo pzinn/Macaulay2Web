@@ -149,21 +149,25 @@ const init = function () {
   if (userId && clientId !== newId) {
     if (MINIMAL) clientId = newId;
     else {
-      const dialog = document.getElementById(
-        "changeUserDialog"
-      ) as HTMLDialogElement;
+      const dialog = document.getElementById("changeUserDialog"); // not a dialog
       document.getElementById("newUserId").textContent = userId;
       document.getElementById("oldUserIdReminder").innerHTML = clientId
         ? "Choosing `permanent' will overwrite the current id <b>" +
           clientId +
           "</b> in your cookie."
         : "";
-      dialog.onclose = function () {
-        clientId = newId;
-        if (dialog.returnValue !== "temporary") setCookieId();
-        init2();
+      dialog.style.display = "block";
+      dialog.onclick = function (e) {
+        const el = e.target as HTMLElement;
+        if (el.tagName === "BUTTON") {
+          // eww
+          clientId = newId;
+          if (el.textContent == "permanent") setCookieId();
+          dialog.style.display = "none";
+          init2();
+        }
       };
-      dialog.showModal();
+      //      dialog.showModal();
       return;
     }
   } else if (!MINIMAL) {
@@ -194,6 +198,8 @@ const init = function () {
 let initDone = false;
 
 const init2 = function () {
+  if (!MINIMAL)
+    document.getElementById("terminalDiv").style.display = "initial";
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
   socket = socketIo(ioParams);

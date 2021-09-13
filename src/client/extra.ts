@@ -135,14 +135,18 @@ let highlightTimeout = 0;
 
 const fileChangedCheck = function (data) {
   if (data.fileName != fileName || data.hash == autoSaveHash) return;
-  const dialog = document.getElementById(
-    "editorFileChanged"
-  ) as HTMLDialogElement;
+  const dialog = document.getElementById("editorFileChanged") as any; //HTMLDialogElement;
   if (dialog.open)
     // already open -- we're in trouble
     return; // ???
-
-  document.getElementById("newEditorFileName").textContent = fileName;
+  if (!dialog.showModal) {
+    socket.emit("fileexists", fileName, function (response) {
+      if (response) localFileToEditor(response);
+    });
+    return;
+  }
+  dialog.style.display = ""; // turned off for safari etc that don't support Dialog
+  document.getElementById("changedFileName").textContent = fileName;
   dialog.onclose = function () {
     if (dialog.returnValue == "overwrite") {
       autoSaveHash = null; // force save
@@ -446,11 +450,12 @@ const extra2 = function () {
     console.log("file upload returned status code " + event.target.status);
     const response = event.target.responseText;
     if (response) {
-      const dialog = document.getElementById(
-        "uploadSuccessDialog"
-      ) as HTMLDialogElement;
-      document.getElementById("uploadSuccessText").innerHTML = response;
-      dialog.showModal();
+      const dialog = document.getElementById("uploadSuccessDialog") as any; //HTMLDialogElement;
+      if (dialog.showModal) {
+        dialog.style.display = ""; // turned off for safari etc that don't support Dialog
+        document.getElementById("uploadSuccessText").innerHTML = response;
+        dialog.showModal();
+      }
     }
   };
 
@@ -493,10 +498,10 @@ const extra2 = function () {
   };
 
   const loadFile = function () {
-    const dialog = document.createElement("input");
-    dialog.setAttribute("type", "file"),
-      dialog.addEventListener("change", loadFileProcess, false);
-    dialog.click();
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.addEventListener("change", loadFileProcess, false);
+    input.click();
   };
 
   const saveFile = function () {
