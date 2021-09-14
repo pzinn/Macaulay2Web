@@ -279,7 +279,7 @@ const quoteHandling = function (quote, el) {
   //	marker.dataset.content=quote;
   addMarkerEl(el, pos).classList.add("valid-marker");
   //	marker.dataset.content=quote;
-
+  setCaret(el, pos + 1);
   return true;
 };
 
@@ -312,6 +312,7 @@ const closingDelimiterHandling = function (index, el) {
     addMarkerEl(el, i).classList.add("valid-marker");
     addMarkerEl(el, pos).classList.add("valid-marker");
   } else addMarkerEl(el, pos).classList.add("error-marker");
+  setCaret(el, pos + 1);
   return true;
 };
 
@@ -343,6 +344,7 @@ const openingDelimiterHandling = function (index, el) {
     addMarkerEl(el, pos).classList.add("valid-marker");
     addMarkerEl(el, i).classList.add("valid-marker");
   } // we never throw an error on an opening delimiter -- it's assumed more input is coming
+  setCaret(el, pos + 1);
   return true;
 };
 
