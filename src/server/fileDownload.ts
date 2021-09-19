@@ -38,7 +38,7 @@ const downloadFromInstance = function (
           next(userPath + fileName);
         };
         const failure = function () {
-          logger.error("failed to download " + sourceFileName, client);
+          logger.warn("failed to download " + sourceFileName, client);
           sshConnection.end();
           next();
         };
