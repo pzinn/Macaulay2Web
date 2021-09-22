@@ -2,7 +2,7 @@
 "use strict";
 declare const MINIMAL;
 
-import socketIo from "socket.io-client";
+import { Socket as Socket0, io } from "socket.io-client";
 
 import {
   extra1,
@@ -13,7 +13,7 @@ import {
 } from "./extra";
 import { syncChat } from "./chat";
 
-type Socket = SocketIOClient.Socket & { oldEmit?: any };
+type Socket = Socket0 & { oldEmit?: any };
 
 export { Socket };
 let socket: Socket;
@@ -57,6 +57,11 @@ const keydownAction = function (e) {
 
 const socketDisconnect = function (msg) {
   console.log("We got disconnected. " + msg);
+  serverDisconnect = true;
+};
+
+const socketError = function (error) {
+  console.log("Socket error. " + error);
   serverDisconnect = true;
 };
 
@@ -123,13 +128,6 @@ const rightclickAction = function (e) {
 
 const socketOutput = function (msg: string) {
   myshell.displayOutput(msg);
-};
-
-const socketError = function (type) {
-  return function (error) {
-    console.log("We got an " + type + " error. " + error);
-    serverDisconnect = true;
-  };
 };
 
 const url = new URL(document.location.href);
@@ -202,7 +200,7 @@ const init2 = function () {
     document.getElementById("terminalDiv").style.display = "initial";
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
-  socket = socketIo(ioParams);
+  socket = io(ioParams);
   socket.on("instance", function (id) {
     console.log("Instance with id " + id);
     if (id != clientId) {
@@ -217,9 +215,7 @@ const init2 = function () {
       }
     }
   });
-  socket.on("reconnect_failed", socketError("reconnect_fail"));
-  socket.on("reconnect_error", socketError("reconnect_error"));
-  socket.on("connect_error", socketError("connect_error"));
+  socket.on("connect_error", socketError);
   socket.on("output", socketOutput);
   socket.on("disconnect", socketDisconnect);
   socket.oldEmit = socket.emit;
