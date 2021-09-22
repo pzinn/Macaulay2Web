@@ -17,7 +17,6 @@ type Socket = Socket0 & { oldEmit?: any };
 
 export { Socket };
 let socket: Socket;
-let serverDisconnect = false;
 import { Shell } from "./shellEmulator";
 
 import {
@@ -57,23 +56,21 @@ const keydownAction = function (e) {
 
 const socketDisconnect = function (msg) {
   console.log("We got disconnected. " + msg);
-  serverDisconnect = true;
 };
 
 const socketError = function (error) {
   console.log("Socket error. " + error);
-  serverDisconnect = true;
 };
 
+const emitStack = [];
+
 const wrapEmitForDisconnect = function (event, msg, callback?) {
-  if (serverDisconnect) {
+  if (socket.disconnected) {
+    //    console.log("We are disconnected. "+event);
     const events = ["reset", "input", "chat", "fileexists"]; // !!!
-    console.log("We are disconnected.");
     if (events.indexOf(event) >= 0) {
+      emitStack.push([event, msg, callback]);
       socket.connect();
-      if (!MINIMAL) syncChat();
-      serverDisconnect = false; // not really... we could still be disconnected, obviously
-      socket.oldEmit(event, msg, callback);
     }
   } else {
     socket.oldEmit(event, msg, callback);
@@ -200,7 +197,8 @@ const init2 = function () {
     document.getElementById("terminalDiv").style.display = "initial";
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
-  socket = io(ioParams);
+  socket = io(ioParams, { autoConnect: false });
+
   socket.on("instance", function (id) {
     console.log("Instance with id " + id);
     if (id != clientId) {
@@ -208,18 +206,34 @@ const init2 = function () {
       clientId = id;
       if (!MINIMAL) setCookieId();
     }
-    if (!MINIMAL) {
-      if (!initDone) {
-        extra2();
-        initDone = true;
-      }
+    if (!initDone) {
+      // first time we get our id, finish init
+      initDone = true;
+      socket.on("output", socketOutput);
+      socket.oldEmit = socket.emit;
+      socket.emit = wrapEmitForDisconnect;
+      //  window.addEventListener("load", function () {
+      socket.emit("restore"); // restore former M2 output
+      //  });
+
+      if (!MINIMAL) extra2();
+      const exec = url.searchParams.get("exec");
+      if (exec) myshell.postMessage(exec, false, false);
     }
   });
+
+  socket.on("connect", function () {
+    if (initDone) {
+      console.log("Socket reconnected");
+      // reconnect stuff
+      if (!MINIMAL) syncChat();
+      for (const e of emitStack) socket.emit(e[0], e[1], e[2]);
+      emitStack.length = 0;
+    } else console.log("Socket connected");
+  });
+
   socket.on("connect_error", socketError);
-  socket.on("output", socketOutput);
   socket.on("disconnect", socketDisconnect);
-  socket.oldEmit = socket.emit;
-  socket.emit = wrapEmitForDisconnect;
 
   document.body.onclick = clickAction;
   document.body.onkeydown = keydownAction;
@@ -228,22 +242,14 @@ const init2 = function () {
 
   myshell = new Shell(
     document.getElementById("terminal"),
-    socket,
+    (msg) => socket.emit("input", msg),
     document.getElementById("editorDiv"),
     document.getElementById("editorToggle") as HTMLInputElement,
     document.getElementById("browseFrame") as HTMLFrameElement,
     true
   );
 
-  //  window.addEventListener("load", function () {
-  socket.emit("restore");
-  //  });
-
-  const exec = url.searchParams.get("exec");
-  if (exec)
-    setTimeout(function () {
-      myshell.postMessage(exec, false, false);
-    }, 2000); // weak
+  socket.connect();
 };
 
 export { init, myshell, socket, url, clientId };

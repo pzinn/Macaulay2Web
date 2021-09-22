@@ -1,4 +1,4 @@
-import { Socket, clientId } from "./main";
+import { clientId } from "./main";
 
 import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "../common/tags";
@@ -63,7 +63,7 @@ Array.prototype.sortedPush = function (el: any) {
 
 const Shell = function (
   shell: HTMLElement,
-  socket: Socket,
+  emitInput: (msg: string) => void,
   editor: HTMLElement,
   editorToggle: HTMLInputElement,
   iFrame: HTMLFrameElement,
@@ -157,10 +157,6 @@ const Shell = function (
 
   const returnSymbol = "\u21B5";
 
-  const postRawMessage = function (msg: string) {
-    socket.emit("input", msg);
-  };
-
   obj.postMessage = function (msg, flag1, flag2) {
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
@@ -178,7 +174,7 @@ const Shell = function (
       if (flag2) setCaret(inputSpan, 0);
       clean = clean + "\n";
       if (flag1) obj.addToEditor(clean);
-      postRawMessage(clean);
+      emitInput(clean);
     }
   };
 
@@ -703,7 +699,7 @@ const Shell = function (
   obj.interrupt = function () {
     removeAutoComplete(false, false); // remove autocomplete menu if open
     inputSpan.textContent = "";
-    postRawMessage("\x03");
+    emitInput("\x03");
     setCaretAtEndMaybe(inputSpan);
   };
 
