@@ -526,7 +526,7 @@ const listen = function () {
       safeEmit(
         socket,
         "output",
-        "Client/server version mismatch. Please refresh your page."
+        "Client/server version mismatch. Please refresh your page.\n"
       );
       disconnectSocket(socket);
       return; // brutal

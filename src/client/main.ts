@@ -209,9 +209,6 @@ const init2 = function () {
     if (!initDone) {
       // first time we get our id, finish init
       initDone = true;
-      socket.on("output", socketOutput);
-      socket.oldEmit = socket.emit;
-      socket.emit = wrapEmitForDisconnect;
       //  window.addEventListener("load", function () {
       socket.emit("restore"); // restore former M2 output
       //  });
@@ -232,6 +229,9 @@ const init2 = function () {
     } else console.log("Socket connected");
   });
 
+  socket.on("output", socketOutput);
+  socket.oldEmit = socket.emit;
+  socket.emit = wrapEmitForDisconnect;
   socket.on("connect_error", socketError);
   socket.on("disconnect", socketDisconnect);
 
