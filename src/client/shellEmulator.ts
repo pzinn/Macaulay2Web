@@ -224,12 +224,9 @@ const Shell = function (
     if (!inputSpan) return;
     setCaretAtEndMaybe(inputSpan, true);
     e.preventDefault();
+    const txt = e.clipboardData.getData("text/plain").replace(/\t/g, "    "); // chrome doesn't like \t
     // paste w/o formatting
-    document.execCommand(
-      "insertText",
-      false,
-      e.clipboardData.getData("text/plain")
-    );
+    document.execCommand("insertText", false, txt);
     scrollDown(shell);
   };
 
