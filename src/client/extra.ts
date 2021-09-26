@@ -111,9 +111,10 @@ const autoSave = function () {
   }
   if (
     !fileName ||
+    autoSaveHash === undefined ||
     document.getElementById("editorDiv").contentEditable != "true"
   )
-    return;
+    return; // the autoSaveHash === undefined is important -- sometimes autoSave gets called too early, *after* fileName has been set but *before* file has been loaded / hash computed
   const content = document.getElementById("editorDiv").innerText as string;
   const newHash = hashCode(content);
   if (newHash != autoSaveHash) {
