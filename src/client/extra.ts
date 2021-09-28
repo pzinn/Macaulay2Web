@@ -171,6 +171,7 @@ const localFileToEditor = function (fileName: string, rowcols?) {
     autoSaveHash = hashCode(xhr.responseText);
     if (rowcols) selectRowColumn(document.getElementById("editorDiv"), rowcols);
   };
+  autoSaveHash = undefined; // no autosaving while loading
   xhr.send(null);
 };
 
@@ -202,6 +203,7 @@ const listDirToEditor = function (dirName: string, fileName: string) {
         .join("") +
       "</ul>";
   };
+  autoSaveHash = undefined; // no autosaving for directories
   xhr.send(null);
 };
 
