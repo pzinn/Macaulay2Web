@@ -1,5 +1,6 @@
 3.8.0 09/2021
     * more coloring/interpreting output: prompts, errors
+    * upgrade to socket.io 4, better socket disconnect handling
 
 3.7.0 04/2021
     * tutorial system revamped

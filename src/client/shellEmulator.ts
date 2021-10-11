@@ -1,4 +1,4 @@
-import { Socket, clientId } from "./main";
+import { clientId } from "./main";
 
 import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "../common/tags";
@@ -63,7 +63,7 @@ Array.prototype.sortedPush = function (el: any) {
 
 const Shell = function (
   shell: HTMLElement,
-  socket: Socket,
+  emitInput: (msg: string) => void,
   editor: HTMLElement,
   editorToggle: HTMLInputElement,
   iFrame: HTMLFrameElement,
@@ -157,10 +157,6 @@ const Shell = function (
 
   const returnSymbol = "\u21B5";
 
-  const postRawMessage = function (msg: string) {
-    socket.emit("input", msg);
-  };
-
   obj.postMessage = function (msg, flag1, flag2) {
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
@@ -168,17 +164,16 @@ const Shell = function (
     if (clean.length > 0) {
       if (procInputSpan === null) {
         // it'd be nicer to use ::before on inputSpan but sadly caret issues... cf https://stackoverflow.com/questions/60843694/cursor-position-in-an-editable-div-with-a-before-pseudo-element
-        procInputSpan = document.createElement("span");
-        procInputSpan.classList.add("M2Input");
+        procInputSpan = document.createElement("div");
         inputSpan.parentElement.insertBefore(procInputSpan, inputSpan);
       }
-      procInputSpan.textContent += clean + returnSymbol;
+      procInputSpan.textContent += clean + returnSymbol + "\n";
       inputSpan.textContent = "";
       scrollDownLeft(shell);
       if (flag2) setCaret(inputSpan, 0);
       clean = clean + "\n";
       if (flag1) obj.addToEditor(clean);
-      postRawMessage(clean);
+      emitInput(clean);
     }
   };
 
@@ -228,12 +223,9 @@ const Shell = function (
     if (!inputSpan) return;
     setCaretAtEndMaybe(inputSpan, true);
     e.preventDefault();
+    const txt = e.clipboardData.getData("text/plain").replace(/\t/g, "    "); // chrome doesn't like \t
     // paste w/o formatting
-    document.execCommand(
-      "insertText",
-      false,
-      e.clipboardData.getData("text/plain")
-    );
+    document.execCommand("insertText", false, txt);
     scrollDown(shell);
   };
 
@@ -703,7 +695,7 @@ const Shell = function (
   obj.interrupt = function () {
     removeAutoComplete(false, false); // remove autocomplete menu if open
     inputSpan.textContent = "";
-    postRawMessage("\x03");
+    emitInput("\x03");
     setCaretAtEndMaybe(inputSpan);
   };
 

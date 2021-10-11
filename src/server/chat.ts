@@ -1,4 +1,5 @@
 import { Client } from "./client";
+import { Socket } from "socket.io";
 import { Chat } from "../common/chatClass";
 import {
   emitViaClientSockets,
@@ -29,7 +30,7 @@ const systemChat = function (client: Client | null, msg: string) {
   else safeEmit(io, "chat", chat);
 };
 
-const socketChatAction = function (socket: SocketIO.Socket, client: Client) {
+const socketChatAction = function (socket: Socket, client: Client) {
   const chatRestore = function (chat0: Chat) {
     safeEmit(
       socket,

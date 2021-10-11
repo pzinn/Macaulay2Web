@@ -8,6 +8,7 @@ import { downloadFromInstance } from "./fileDownload";
 import { uploadToInstance } from "./fileUpload";
 import { webAppTags } from "../common/tags";
 import { logger } from "./logger";
+import { Socket, Server } from "socket.io";
 
 import Cookie = require("cookie");
 
@@ -25,7 +26,7 @@ const upload = multer({
 import ssh2 = require("ssh2");
 
 import socketio = require("socket.io");
-let io: SocketIO.Server; // = socketio(http, { pingTimeout: 30000 });
+let io: Server; // = socketio(http, { pingTimeout: 30000 });
 
 const greenlock = require("greenlock-express");
 
@@ -57,7 +58,7 @@ const clients: IClients = {};
 
 let instanceManager: InstanceManager;
 
-const disconnectSocket = function (socket: SocketIO.Socket): void {
+const disconnectSocket = function (socket: Socket): void {
   try {
     socket.disconnect();
   } catch (error) {
@@ -75,11 +76,7 @@ const deleteClientData = function (client: Client): void {
   delete clients[client.id];
 };
 
-const safeEmit = function (
-  target: SocketIO.Socket | SocketIO.Server,
-  type: string,
-  data
-): void {
+const safeEmit = function (target: Socket | Server, type: string, data): void {
   try {
     target.emit(type, data);
   } catch (error) {
@@ -164,15 +161,12 @@ const spawnMathProgram = function (client: Client, next) {
     .connect(sshCredentials(client.instance));
 };
 
-const addNewSocket = function (client: Client, socket: SocketIO.Socket) {
+const addNewSocket = function (client: Client, socket: Socket) {
   logger.info("Adding new socket", client);
   client.sockets.push(socket);
 };
 
-const socketDisconnectAction = function (
-  socket: SocketIO.Socket,
-  client: Client
-) {
+const socketDisconnectAction = function (socket: Socket, client: Client) {
   return function () {
     logger.info("Removing socket", client);
     const index = client.sockets.indexOf(socket);
@@ -488,7 +482,7 @@ const checkAndWrite = function (client: Client, msg: string) {
   }
 };
 
-const socketInputAction = function (socket: SocketIO.Socket, client: Client) {
+const socketInputAction = function (socket: Socket, client: Client) {
   return function (msg: string) {
     logger.info("Receiving input: " + short(msg), client);
     //      updateLastActiveTime(client); // only output now triggers that
@@ -508,14 +502,14 @@ const socketResetAction = function (client: Client) {
   };
 };
 
-const socketRestoreAction = function (socket: SocketIO.Socket, client: Client) {
+const socketRestoreAction = function (socket: Socket, client: Client) {
   return function () {
     logger.info("Restoring output", client);
     safeEmit(socket, "output", client.savedOutput); // send previous output
   };
 };
 
-const socketFileExists = function (socket: SocketIO.Socket, client: Client) {
+const socketFileExists = function (socket: Socket, client: Client) {
   return function (fileName: string, callback) {
     downloadFromInstance(client, fileName, callback);
   };
@@ -532,14 +526,14 @@ const httpsWorker = function (glx) {
 
   io = socketio(server, { pingTimeout: 30000 });
 
-  io.on("connection", function (socket: SocketIO.Socket) {
+  io.on("connection", function (socket: Socket) {
     logger.info("Incoming new connection");
     const version = socket.handshake.query.version;
     if (options.version && version != options.version) {
       safeEmit(
         socket,
         "output",
-        "Client/server version mismatch. Please refresh your page."
+        "Client/server version mismatch. Please refresh your page.\n"
       );
       disconnectSocket(socket);
       return; // brutal
@@ -598,7 +592,7 @@ const getClientIdAuth = function (authOption: boolean) {
       file: path.join(__dirname, "/../../public/users.htpasswd"),
     });
     app.use(auth.connect(basic));
-    return function (socket: SocketIO.Socket) {
+    return function (socket: Socket) {
       if (socket.handshake.query.id)
         logger.warn("Ignoring userId command line");
       try {
@@ -613,7 +607,7 @@ const getClientIdAuth = function (authOption: boolean) {
       }
     };
   } else
-    return function (socket: SocketIO.Socket) {
+    return function (socket: Socket) {
       return validateId(socket.handshake.query.id);
     };
 };
