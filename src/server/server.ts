@@ -25,7 +25,7 @@ const upload = multer({
 });
 import ssh2 = require("ssh2");
 
-import socketio = require("socket.io");
+//import socketio = require("socket.io");
 let io: Server; // = socketio(http, { pingTimeout: 30000 });
 
 const greenlock = require("greenlock-express");
@@ -524,7 +524,7 @@ const validateId = function (s): string {
 const httpsWorker = function (glx) {
   const server = glx.httpsServer();
 
-  io = socketio(server, { pingTimeout: 30000 });
+  io = new Server(server, { pingTimeout: 30000 });
 
   io.on("connection", function (socket: Socket) {
     logger.info("Incoming new connection");
