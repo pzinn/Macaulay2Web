@@ -164,11 +164,10 @@ const Shell = function (
     if (clean.length > 0) {
       if (procInputSpan === null) {
         // it'd be nicer to use ::before on inputSpan but sadly caret issues... cf https://stackoverflow.com/questions/60843694/cursor-position-in-an-editable-div-with-a-before-pseudo-element
-        procInputSpan = document.createElement("span");
-        procInputSpan.classList.add("M2Input");
+        procInputSpan = document.createElement("div");
         inputSpan.parentElement.insertBefore(procInputSpan, inputSpan);
       }
-      procInputSpan.textContent += clean + returnSymbol;
+      procInputSpan.textContent += clean + returnSymbol + "\n";
       inputSpan.textContent = "";
       scrollDownLeft(shell);
       if (flag2) setCaret(inputSpan, 0);
