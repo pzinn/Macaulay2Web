@@ -55,7 +55,7 @@ const processTutorial = function (theHtml: string) {
           if (cur.tagName == "HR") cur.classList.add("closed");
         } else cur.style.display = cur.dataset.display;
       }
-      cur0.scrollIntoView({ behavior: "smooth" });
+      if (!closing) cur0.scrollIntoView({ behavior: "smooth" });
     };
   }
 
