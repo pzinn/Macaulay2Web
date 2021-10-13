@@ -19,7 +19,7 @@ cd ../css
 wget -nv -N https://code.getmdl.io/1.3.0/material.indigo-deep_orange.min.css
 cd ..
 cd ../..
-# sym link
+# sym link (necessary for e.g. help pages)
 echo Sym-linking
 cd public
 ln -sf ../src/client/js/VectorGraphics.js .
