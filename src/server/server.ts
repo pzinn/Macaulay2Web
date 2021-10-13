@@ -307,12 +307,14 @@ const fileUpload = function (request, response) {
       file.path,
       staticFolder + "tutorials/" + file.originalname,
       (err) => {
-        if (err) {
-          response.writeHead(500);
-          response.write("File upload failed. Please try again later.");
-        } else {
-          response.writeHead(200);
-        }
+        if (!request.body.noreply)
+          if (err) {
+            response.writeHead(500);
+            response.write("File upload failed. Please try again later.");
+          } else {
+            response.writeHead(200);
+          }
+        response.end();
         unlink(file.path);
       }
     );
@@ -345,21 +347,22 @@ const fileUpload = function (request, response) {
               }
               nFiles--;
               if (nFiles == 0) {
-                if (errorFlag) {
-                  response.writeHead(500);
-                  response.write(
-                    "File upload failed. Please try again later.<br/><b>" +
-                      str +
-                      "</b>"
-                  );
-                } else {
-                  response.writeHead(200);
-                  response.write(
-                    "The following files have been uploaded and can be used in your session:<br/><b>" +
-                      str +
-                      "</b>"
-                  );
-                }
+                if (!request.body.noreply)
+                  if (errorFlag) {
+                    response.writeHead(500);
+                    response.write(
+                      "File upload failed. Please try again later.<br/><b>" +
+                        str +
+                        "</b>"
+                    );
+                  } else {
+                    response.writeHead(200);
+                    response.write(
+                      "The following files have been uploaded and can be used in your session:<br/><b>" +
+                        str +
+                        "</b>"
+                    );
+                  }
                 response.end();
               }
             }
