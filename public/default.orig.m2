@@ -36,7 +36,7 @@ steps=30;
 dodecasplit=apply(F,C,(f,c)->Polygon{apply(f,j->V#j),
         AnimMatrix=>apply(steps,j->rotation(2*pi/5/steps*4*min(j/steps,1-j/steps),c,c)*translation(0.075*sin(2*pi*j/steps)*c)),
         "fill"=>concatenate("rgb(",toString(134+round(1.2*c_0)),",",toString(134+round(1.2*c_1)),",",toString(134+round(1.2*c_2)),")")});
-d=gList(dodecasplit,"fill-opacity"=>0.7,AnimMatrix=>rotation(0.02,(1,2,3)));
+d=gList(dodecasplit,"fill-opacity"=>0.7,AnimMatrix=>rotation(0.02,(1,2,3)),Draggable=>true);
 d1=d ++ {TransformMatrix=>translation(200,0,0)};
 d2=d ++ {TransformMatrix=>translation(-200,0,0)};
 gList(d1,d2,ViewPort=>{vector{-400,-400},vector{400,400}},SizeY=>25,"stroke-width"=>2) -- press button at top/left!
