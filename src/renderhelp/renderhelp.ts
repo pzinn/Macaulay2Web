@@ -16,10 +16,11 @@ const b64DecodeUnicode = function (str: string) {
 function extractTag(text: string, tag: string) {
   // primitive extracter
   const i1 = text.indexOf("<" + tag);
-  const i2 = text.lastIndexOf("</" + tag);
-  if (i1 < 0 || i2 < 0) return "";
+  if (i1 < 0) return "";
   const i1b = text.indexOf(">", i1);
   if (i1b < 0) return "";
+  const i2 = text.indexOf("</" + tag, i1b);
+  if (i2 < 0) return "";
   return text.substring(i1b + 1, i2);
 }
 
