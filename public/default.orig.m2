@@ -39,8 +39,8 @@ dodecasplit=apply(F,C,(f,c)->Polygon{apply(f,j->V#j),
 d=gList(dodecasplit,"fill-opacity"=>0.7,AnimMatrix=>rotation(0.02,(1,2,3)),Draggable=>true);
 d1=d ++ {TransformMatrix=>translation(200,0,0)};
 d2=d ++ {TransformMatrix=>translation(-200,0,0)};
-gList(d1,d2,ViewPort=>{vector{-400,-400},vector{400,400}},SizeY=>25,"stroke-width"=>2) -- press button at top/left!
+gList(d1,d2,ViewPort=>{vector{-400,-400},vector{400,400}},Size=>40,"stroke-width"=>2) -- press button at top/left!
 
 -- or (more serious)
 R=RR[x,y]; P=y^2-(x+1)*(x-1)*(x-2);
-plot(P,{-2,3},"stroke-width"=>0.05,SizeY=>25,"stroke"=>"red")
+plot(P,{-2,3},"stroke-width"=>0.05,Size=>35,"stroke"=>"red")
