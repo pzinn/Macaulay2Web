@@ -83,14 +83,14 @@
       </p>
       <p>
 	Some examples:
-	<code>uglyLogo=gList(Ellipse{(0,0),90,30,"stroke"=>"none",Blur=>0.3,
+	<code>uglyLogo=gList(Ellipse{vector{0,0},90,30,"stroke"=>"none",Blur=>0.3,
 	  "fill"=>linearGradient{("0%","stop-color:red"),("100%","stop-color:yellow")}},
-	  GraphicsText{(-65,-7),"Macaulay2",
+	  GraphicsText{vector{-65,-7},"Macaulay2",
 	  FontSize=>25,"stroke"=>"black","stroke-width"=>"0.5%","fill"=>"white"},
-	  AnimMatrix=>translation(0,0,10),Size=>30)</code>
+	  AnimMatrix=>translation[0,0,10],Size=>30)</code>
 	The next one mixes KaTeX and HTML output:
 	<code>rgb={"red","green","blue"}; scan(rgb, x -> globalAssign(value x,
-	  Circle{"fill"=>x,"stroke"=>"black",Size=>(0.8,0.8),Margin=>0}));
+	  Circle{"fill"=>x,"stroke"=>"black",Size=>vector{0.8,0.8},Margin=>0}));
 	  R=QQ[x_red,x_green,x_blue]; print describe R; res cokernel vars R</code>
       </p>
       <p>To access the underlying SVG object, just write
