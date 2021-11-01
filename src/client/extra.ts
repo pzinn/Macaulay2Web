@@ -122,6 +122,7 @@ const autoSave = function () {
     const formData = new FormData();
     formData.append("files[]", file);
     formData.append("id", clientId);
+    formData.append("noreply", "true");
     autoSaveHash = newHash;
     formData.append("hash", autoSaveHash);
     /*    const req = new XMLHttpRequest();

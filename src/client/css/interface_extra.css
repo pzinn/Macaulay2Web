@@ -346,6 +346,7 @@ nav {
   background-color: #000080;
   border-radius: 8px;
   height: fit-content;
+  height: -moz-fit-content;
   margin: 10px 0px 10px 0px;
   cursor: pointer;
   /*  display: block; */
