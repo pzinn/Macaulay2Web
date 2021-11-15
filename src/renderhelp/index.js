@@ -22,6 +22,7 @@ for (let i = 2; i < process.argv.length; i++)
     else if (process.argv[i] == "--skip") skip = true; // whether to try again failed ones
     else if (process.argv[i] == "--test") { overwrite=true; verbose=true; fileList.push("Macaulay2Doc/html/_determinant.html"); }
     else if (process.argv[i] == "--test2") { overwrite=true; verbose=true; fileList.push("GraphicalModels/html/_hidden__Map.html"); }
+    else if (process.argv[i] == "--test3") { overwrite=true; verbose=true; fileList.push("VectorGraphics/html/___Circle.html"); }
   } else fileList.push(process.argv[i]);
 
 const walk = function (dir, prefix) {
