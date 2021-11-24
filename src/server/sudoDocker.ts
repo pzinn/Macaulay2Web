@@ -230,7 +230,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   }
 
   private constructDockerRunCommand(resources, newInstance: Instance) {
-    let dockerRunCmd = "sudo docker run -d";
+    let dockerRunCmd = "sudo docker run  --security-opt seccomp=seccomp.json -d";
     dockerRunCmd += ' --cpus="' + resources.cpuShares + '"';
     dockerRunCmd += ' --memory="' + resources.memory + 'm"';
     dockerRunCmd += " --name " + newInstance.containerName;
