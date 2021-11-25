@@ -117,10 +117,9 @@ const socketChatAction = function (socket: Socket, client: Client) {
     if (chat.message.startsWith("/kill")) {
       const i = chat.message.indexOf(" ");
       if (i < 0) {
-          for (const id in clients) {
-	      if (id!=options.adminName)
-		  instanceManager.removeInstanceFromId(id);
-	  }
+        for (const id in clients) {
+          if (id != options.adminName) instanceManager.removeInstanceFromId(id);
+        }
       } else {
         chat.message
           .substring(i + 1)
