@@ -133,81 +133,77 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
   public getNewInstance(clientId, next) {
     const self = this;
-    if (self.currentContainers.length >= self.hostConfig.maxContainerNumber) {
-      self.killOldestContainer(function () {
-        self.getNewInstance(clientId, next);
-      });
-    } else {
-      const instance = JSON.parse(JSON.stringify(self.currentInstance));
-      self.incrementPort();
-      instance.containerName = "m2Port" + instance.port;
-      instance.clientId = clientId;
-      instance.lastActiveTime = Date.now();
-      instance.numInputs = 0;
-      exec(
-        self.constructDockerRunCommand(self.resources, instance),
-        function (error) {
-          if (error) {
-            logger.error(
-              "Error starting the docker container: " + error.message
-            );
-            setTimeout(function () {
-              self.getNewInstance(clientId, next);
-            }, 3000);
-          } else {
-            logger.info(
-              "Docker container " +
+    if (self.currentContainers.length >= self.hostConfig.maxContainerNumber)
+      self.killOldestContainer(); // no waiting for it
+    const instance = JSON.parse(JSON.stringify(self.currentInstance));
+    self.incrementPort();
+    instance.containerName = "m2Port" + instance.port;
+    instance.clientId = clientId;
+    instance.lastActiveTime = Date.now();
+    instance.numInputs = 0;
+    exec(
+      self.constructDockerRunCommand(self.resources, instance),
+      function (error) {
+        if (error) {
+          logger.error("Error starting the docker container: " + error.message);
+          setTimeout(function () {
+            self.getNewInstance(clientId, next);
+          }, 3000);
+        } else {
+          logger.info(
+            "Docker container " +
+              instance.containerName +
+              " created for " +
+              clientId
+          );
+          self.addInstanceToArray(instance);
+          // check for saved files
+          const savePath = staticFolder + userSpecificPath(clientId);
+          const saveFile = savePath + save;
+          fs.access(saveFile, function (err) {
+            if (!err) {
+              logger.info("Restoring files for " + clientId);
+              const restoreDockerContainer =
+                "sudo docker exec -i " +
                 instance.containerName +
-                " created for " +
-                clientId
-            );
-            self.addInstanceToArray(instance);
-            // check for saved files
-            const savePath = staticFolder + userSpecificPath(clientId);
-            const saveFile = savePath + save;
-            fs.access(saveFile, function (err) {
-              if (!err) {
-                logger.info("Restoring files for " + clientId);
-                const restoreDockerContainer =
-                  "sudo docker exec -i " +
-                  instance.containerName +
-                  " tar -C /home/" +
-                  instance.username +
-                  " -xzf - . < " +
-                  saveFile;
-                exec(restoreDockerContainer, function (error) {
-                  if (error) {
-                    logger.error(
-                      "Error restoring files for container " +
-                        instance.containerName +
-                        " with error:" +
-                        error
-                    );
-                  } else {
-                    // cleanup
-                    fs.rm(
-                      savePath,
-                      { recursive: true, force: true },
-                      function (err) {
-                        if (err) {
-                          logger.warn(
-                            "Unable to delete user directory " +
-                              savePath +
-                              " : " +
-                              err
-                          );
-                        }
+                " tar -C /home/" +
+                instance.username +
+                " -xzf - . < " +
+                saveFile;
+              exec(restoreDockerContainer, function (error) {
+                if (error) {
+                  logger.error(
+                    "Error restoring files for container " +
+                      instance.containerName +
+                      " with error:" +
+                      error
+                  );
+                } else {
+                  // cleanup: TODO reactivate
+                  /*
+                  fs.rm(
+                    savePath,
+                    { recursive: true, force: true },
+                    function (err) {
+                      if (err) {
+                        logger.warn(
+                          "Unable to delete user directory " +
+                            savePath +
+                            " : " +
+                            err
+                        );
                       }
+                    }
                     );
-                  }
-                  self.waitForSshd(next, instance);
-                });
-              } else self.waitForSshd(next, instance);
-            });
-          }
+		    */
+                }
+                self.waitForSshd(next, instance);
+              });
+            } else self.waitForSshd(next, instance);
+          });
         }
-      );
-    }
+      }
+    );
   }
 
   private removeInstanceFromArray = function (instance: Instance) {
@@ -234,12 +230,12 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     );
   };
 
-  private killOldestContainer = function (next) {
+  private killOldestContainer = function () {
     const self = this;
     self.sortInstancesByAge();
     const instance = self.currentContainers[0];
     if (self.isLegal(instance)) {
-      self.removeInstance(instance, next);
+      self.removeInstance(instance);
     } else {
       throw new Error("Too many active users.");
     }
@@ -250,9 +246,11 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       this.removeInstance(clients[clientId].instance);
   };
 
-  private removeInstance(instance: Instance, next?) {
+  private removeInstance(instance: Instance) {
     const self = this;
     logger.info("Removing container: " + instance.containerName);
+    self.removeInstanceFromArray(instance); // do this first to avoid trying to remove the same container multiple times
+
     // first, save files
     const savePath = staticFolder + userSpecificPath(instance.clientId);
     fs.mkdir(savePath, function (fsError) {
@@ -291,11 +289,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                 error
             );
           }
-          self.removeInstanceFromArray(instance);
           clients[instance.clientId].instance = null;
-          if (next) {
-            next();
-          }
         });
       });
     });
