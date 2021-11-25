@@ -22,7 +22,7 @@ node_modules
 .vagrant/
 .cache/
 .vscode/
-*.swp
 id_rsa*
 docker_key*
 host_key*
+public/tutorials
