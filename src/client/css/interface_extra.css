@@ -161,11 +161,11 @@ body {
     box-sizing: border-box;
 }
 
-#terminalZoomBtns {
+#terminalCopyToggle {
     z-index: 2;
     position: absolute;
-    top: 5px;
-    right: 30px;
+    top: -4px;
+    right: 50px;
 }
 #maximizeOutput, #downsizeOutput {
     z-index: 2;
