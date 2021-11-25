@@ -1,13 +1,9 @@
 import ssh2 = require("ssh2");
 import fs = require("fs");
-import { Client } from "./client";
+import { Client, userSpecificPath } from "./client";
 import path = require("path");
 import { logger } from "./logger";
 import { staticFolder, unlink, options, sshCredentials } from "./server";
-
-const userSpecificPath = function (client: Client): string {
-  return client.id + "-files/";
-};
 
 const downloadFromInstance = function (
   client: Client,
@@ -18,7 +14,7 @@ const downloadFromInstance = function (
   if (!fileName || !client.instance || !client.instance.host) return next();
   const sshConnection: ssh2.Client = new ssh2.Client();
 
-  const userPath = userSpecificPath(client);
+  const userPath = userSpecificPath(client.id);
   const targetPath = staticFolder + userPath;
 
   fs.mkdir(targetPath, function (fsError) {

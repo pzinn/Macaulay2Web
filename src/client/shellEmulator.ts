@@ -124,7 +124,7 @@ const Shell = function (
     inputSpan.classList.add("M2Text");
 
     htmlSec = shell;
-    if (editor) htmlSec.appendChild(document.createElement("br")); // a bit of extra space doesn't hurt
+    //    if (editor) htmlSec.appendChild(document.createElement("br")); // a bit of extra space doesn't hurt
     // createHtml(webAppClasses[webAppTags.Cell]);
     htmlSec.appendChild(inputSpan);
 

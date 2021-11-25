@@ -8,6 +8,7 @@ import {
   short,
   clients,
   options,
+  instanceManager,
 } from "./server";
 import { logger } from "./logger";
 import { execInInstance } from "./exec";
@@ -113,7 +114,19 @@ const socketChatAction = function (socket: Socket, client: Client) {
   };
   const chatAdmin = function (chat: Chat) {
     chat.recipients = null;
-    if (chat.message.startsWith("/block")) {
+    if (chat.message.startsWith("/kill")) {
+      const i = chat.message.indexOf(" ");
+      if (i < 0) {
+        for (const id in clients) {
+          if (id != options.adminName) instanceManager.removeInstanceFromId(id);
+        }
+      } else {
+        chat.message
+          .substring(i + 1)
+          .split(" ")
+          .forEach((id) => instanceManager.removeInstanceFromId(id));
+      }
+    } else if (chat.message.startsWith("/block")) {
       const i = chat.message.indexOf(" ");
       if (i < 0) {
         // toggle full block

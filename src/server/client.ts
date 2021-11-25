@@ -34,4 +34,8 @@ const getNewId = function (clients: IClients) {
   return clientId;
 };
 
-export { Client, IClients, getNewId };
+const userSpecificPath = function (clientId: string): string {
+  return clientId + "-files/";
+};
+
+export { Client, IClients, getNewId, userSpecificPath };

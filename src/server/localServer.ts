@@ -33,6 +33,10 @@ class LocalContainerManager implements InstanceManager {
     // not implemented
     next();
   }
+
+  public removeInstanceFromId(clientId: string) {
+    // not needed
+  }
 }
 
 const baseDirectory = "m2/";
