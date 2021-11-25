@@ -1,11 +1,14 @@
 import { Instance, InstanceManager } from "./instance";
+import fs = require("fs");
 
 import childProcess = require("child_process");
 const exec = childProcess.exec;
 
-import { Client } from "./client";
-import { clients } from "./server";
+import { Client, userSpecificPath } from "./client";
+import { clients, staticFolder } from "./server";
 import { logger } from "./logger";
+
+const save = "save.tar.gz";
 
 class SudoDockerContainersInstanceManager implements InstanceManager {
   private resources: any;
@@ -135,14 +138,14 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
         self.getNewInstance(clientId, next);
       });
     } else {
-      const newInstance = JSON.parse(JSON.stringify(self.currentInstance));
+      const instance = JSON.parse(JSON.stringify(self.currentInstance));
       self.incrementPort();
-      newInstance.containerName = "m2Port" + newInstance.port;
-      newInstance.clientId = clientId;
-      newInstance.lastActiveTime = Date.now();
-      newInstance.numInputs = 0;
+      instance.containerName = "m2Port" + instance.port;
+      instance.clientId = clientId;
+      instance.lastActiveTime = Date.now();
+      instance.numInputs = 0;
       exec(
-        self.constructDockerRunCommand(self.resources, newInstance),
+        self.constructDockerRunCommand(self.resources, instance),
         function (error) {
           if (error) {
             logger.error(
@@ -154,22 +157,58 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
           } else {
             logger.info(
               "Docker container " +
-                newInstance.containerName +
+                instance.containerName +
                 " created for " +
-                newInstance.clientId
+                clientId
             );
-            self.addInstanceToArray(newInstance);
-            self.waitForSshd(next, newInstance);
+            self.addInstanceToArray(instance);
+            // check for saved files
+            const savePath = staticFolder + userSpecificPath(clientId);
+            const saveFile = savePath + save;
+            fs.access(saveFile, function (err) {
+              if (!err) {
+                logger.info("Restoring files for " + clientId);
+                const restoreDockerContainer =
+                  "sudo docker exec -i " +
+                  instance.containerName +
+                  " tar -C /home/" +
+                  instance.username +
+                  " -xzf - . < " +
+                  saveFile;
+                exec(restoreDockerContainer, function (error) {
+                  if (error) {
+                    logger.error(
+                      "Error restoring files for container " +
+                        instance.containerName +
+                        " with error:" +
+                        error
+                    );
+                  } else {
+                    // cleanup
+                    fs.rm(
+                      savePath,
+                      { recursive: true, force: true },
+                      function (err) {
+                        if (err) {
+                          logger.warn(
+                            "Unable to delete user directory " +
+                              savePath +
+                              " : " +
+                              err
+                          );
+                        }
+                      }
+                    );
+                  }
+                  self.waitForSshd(next, instance);
+                });
+              } else self.waitForSshd(next, instance);
+            });
           }
         }
       );
     }
   }
-  /*
-  public updateLastActiveTime(instance: Instance) {
-    instance.lastActiveTime = Date.now();
-  }
-*/
 
   private removeInstanceFromArray = function (instance: Instance) {
     const position = this.currentContainers.indexOf(instance);
@@ -200,37 +239,71 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     self.sortInstancesByAge();
     const instance = self.currentContainers[0];
     if (self.isLegal(instance)) {
-      self.removeInstance(instance, function () {
-        clients[instance.clientId].instance = null;
-        next();
-      });
+      self.removeInstance(instance, next);
     } else {
       throw new Error("Too many active users.");
     }
   };
 
+  public removeInstanceFromId = function (clientId: string) {
+    if (clients[clientId] && clients[clientId].instance)
+      this.removeInstance(clients[clientId].instance);
+  };
+
   private removeInstance(instance: Instance, next?) {
     const self = this;
     logger.info("Removing container: " + instance.containerName);
-    const removeDockerContainer = "sudo docker rm -f " + instance.containerName;
-    exec(removeDockerContainer, function (error) {
-      if (error) {
-        logger.error(
-          "Error removing container " +
-            instance.containerName +
-            " with error:" +
-            error
-        );
+    // first, save files
+    const savePath = staticFolder + userSpecificPath(instance.clientId);
+    fs.mkdir(savePath, function (fsError) {
+      if (fsError) {
+        if (fsError.code !== "EEXIST")
+          logger.error("Error creating directory: " + savePath);
       }
-      self.removeInstanceFromArray(instance);
-      if (next) {
-        next();
-      }
+      const saveFile = savePath + save;
+      const saveDockerContainer =
+        "rm -f " +
+        saveFile +
+        "; sudo docker exec " +
+        instance.containerName +
+        ' tar --exclude "./.*" -C /home/' +
+        instance.username +
+        " -czf - . > " +
+        saveFile;
+      exec(saveDockerContainer, function (error) {
+        if (error) {
+          logger.error(
+            "Error saving container " +
+              instance.containerName +
+              " with error:" +
+              error
+          );
+        }
+        // then remove docker
+        const removeDockerContainer =
+          "sudo docker rm -f " + instance.containerName;
+        exec(removeDockerContainer, function (error) {
+          if (error) {
+            logger.error(
+              "Error removing container " +
+                instance.containerName +
+                " with error:" +
+                error
+            );
+          }
+          self.removeInstanceFromArray(instance);
+          clients[instance.clientId].instance = null;
+          if (next) {
+            next();
+          }
+        });
+      });
     });
   }
 
   private constructDockerRunCommand(resources, newInstance: Instance) {
-    let dockerRunCmd = "sudo docker run  --security-opt seccomp=seccomp.json -d";
+    let dockerRunCmd =
+      "sudo docker run  --security-opt seccomp=seccomp.json -d";
     dockerRunCmd += ' --cpus="' + resources.cpuShares + '"';
     dockerRunCmd += ' --memory="' + resources.memory + 'm"';
     dockerRunCmd += " --name " + newInstance.containerName;

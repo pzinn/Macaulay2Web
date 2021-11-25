@@ -95,6 +95,14 @@ class SshDockerContainersInstanceManager implements InstanceManager {
     });
   }
 
+  public removeInstanceFromId(clientId: string) {
+    // TODO
+    /*
+	if (clients[clientId] && clients[clientId].instance)
+	    removeInstance(clients[clientId].instance);
+	*/
+  }
+
   private getDockerStartCmd(instance: Instance) {
     let result = this.hostConfig.dockerRunCmd;
     result += " " + instance.containerName;
