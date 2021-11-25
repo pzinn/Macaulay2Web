@@ -179,8 +179,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                       error
                   );
                 } else {
-                  // cleanup: TODO reactivate
-                  /*
+                  // cleanup
                   fs.rm(
                     savePath,
                     { recursive: true, force: true },
@@ -194,8 +193,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                         );
                       }
                     }
-                    );
-		    */
+                  );
                 }
                 self.waitForSshd(next, instance);
               });
