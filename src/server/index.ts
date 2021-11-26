@@ -9,9 +9,7 @@ import { mathServer } from "./server";
 import { logger } from "./logger";
 
 const usage = function (): void {
-  logger.info(
-    "Usage: npm {run/start} {local|docker|docker-recreate|ssh} [port]"
-  );
+  logger.info("Usage: npm {run/start} {local|docker|ssh} [port]");
 };
 
 logger.info("Macaulay2Web version " + options.version);
@@ -36,7 +34,7 @@ const path = p.join(__dirname, "/"); // eslint-disable-line  no-undef
 let overrideOptions;
 if (mode === "local") {
   overrideOptions = require(path + "localServer");
-} else if (mode === "docker" || mode === "docker-recreate") {
+} else if (mode === "docker") {
   overrideOptions = require(path + "sudoDocker");
 } else if (mode === "ssh") {
   overrideOptions = require(path + "sshDocker");
@@ -47,8 +45,6 @@ if (mode === "local") {
 }
 
 overrideDefaultOptions(overrideOptions.options, options);
-
-if (mode === "docker-recreate") options.recreate = true;
 
 if (n > 3) {
   logger.info("port " + args[3] + " requested");

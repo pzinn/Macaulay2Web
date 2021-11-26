@@ -234,7 +234,7 @@ class SshDockerContainersInstanceManager implements InstanceManager {
     }
   };
 
-  public recoverInstances(recreate: boolean, next) {
+  public recoverInstances(next) {
     // not implemented yet
     next();
   }

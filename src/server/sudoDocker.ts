@@ -32,7 +32,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   }
 
   // scan existing dockers
-  public recoverInstances(recreate: boolean, next) {
+  public recoverInstances(next) {
     const self = this;
     const dockerPsCmd = "sudo docker ps -q";
     exec(dockerPsCmd, function (error, stdout, stderr) {
@@ -54,76 +54,27 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               logger.info(
                 "Scanning " + lst[i] + " found " + clientId + res[0].Name
               );
-              if (recreate) {
-                self.getNewInstance(clientId, function (newInstance: Instance) {
-                  if (clients[clientId]) {
-                    if (clients[clientId].instance)
-                      self.removeInstance(clients[clientId].instance);
-                  } else clients[clientId] = new Client(clientId);
-                  clients[clientId].instance = newInstance;
-                  exec(
-                    "sudo docker cp " +
-                      lst[i] +
-                      ":/home/" +
-                      newInstance.username +
-                      " /tmp",
-                    function () {
-                      exec("sudo docker rm -f " + lst[i], function () {
-                        exec(
-                          "sudo docker cp /tmp/" +
-                            newInstance.username +
-                            " " +
-                            newInstance.containerName +
-                            ":/home",
-                          function () {
-                            exec(
-                              "sudo docker exec " +
-                                newInstance.containerName +
-                                " chown -R " +
-                                newInstance.username +
-                                ":" +
-                                newInstance.username +
-                                " /home/" +
-                                newInstance.username,
-                              function () {
-                                exec(
-                                  "sudo rm -rf /tmp/" + newInstance.username,
-                                  function () {
-                                    asyncLoop(i);
-                                  }
-                                );
-                              }
-                            );
-                          }
-                        );
-                      });
-                    }
-                  );
-                });
-              } else {
-                // find port
-                const port =
-                  +res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
-                const newInstance = JSON.parse(
-                  JSON.stringify(self.currentInstance)
-                ); // eww
-                // test for sshd?
-                newInstance.port = port;
-                if (self.currentInstance.port < port)
-                  self.currentInstance.port = port;
-                newInstance.clientId = clientId;
-                newInstance.lastActiveTime = Date.now();
-                newInstance.numInputs = 0;
-                newInstance.containerName = "m2Port" + newInstance.port;
-                if (clients[clientId]) {
-                  if (clients[clientId].instance)
-                    self.removeInstance(clients[clientId].instance);
-                } else clients[clientId] = new Client(clientId);
-                clients[clientId].instance = newInstance;
-                self.addInstanceToArray(newInstance);
-                asyncLoop(i);
-              }
-            } else asyncLoop(i);
+              // find port
+              const port = +res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
+              const newInstance = JSON.parse(
+                JSON.stringify(self.currentInstance)
+              ); // eww
+              // test for sshd?
+              newInstance.port = port;
+              if (self.currentInstance.port < port)
+                self.currentInstance.port = port;
+              newInstance.clientId = clientId;
+              newInstance.lastActiveTime = Date.now();
+              newInstance.numInputs = 0;
+              newInstance.containerName = "m2Port" + newInstance.port;
+              if (clients[clientId]) {
+                if (clients[clientId].instance)
+                  self.removeInstance(clients[clientId].instance);
+              } else clients[clientId] = new Client(clientId);
+              clients[clientId].instance = newInstance;
+              self.addInstanceToArray(newInstance);
+            }
+            asyncLoop(i);
           });
         } else asyncLoop(i);
       };

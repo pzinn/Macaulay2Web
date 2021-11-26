@@ -616,7 +616,7 @@ const mathServer = function (o) {
     guestInstance
   );
 
-  instanceManager.recoverInstances(options.recreate, function () {
+  instanceManager.recoverInstances(function () {
     logger.info("Start init");
     initializeServer();
     listen();
