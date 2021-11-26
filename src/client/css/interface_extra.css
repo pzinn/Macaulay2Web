@@ -71,6 +71,17 @@ body {
     }
 }
 */
+@media (max-width:479px) {
+    #resize {
+	display: none;
+    }
+    .mdl-layout__header-row {
+	padding: 0px 16px 0px 50px;
+    }
+    .mdl-layout-title {
+	font-size: 16px;
+    }
+}
 
 #lesson {
     height: 100%;
