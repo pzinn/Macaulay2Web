@@ -372,6 +372,25 @@ const extra1 = function () {
     document.body.style.userSelect = "";
   };
   resize.onmousedown = resizeMouseDown;
+  const resizeTouchStart = () => {
+    document.body.addEventListener("touchmove", resizeTouchMove);
+    document.body.addEventListener("touchend", resizeTouchEnd);
+    document.body.addEventListener("touchcancel", resizeTouchEnd);
+    document.body.style.userSelect = "none";
+  };
+
+  const resizeTouchMove = (event) => {
+    (document.getElementById("left-half") as any).style.flexBasis =
+      event.changedTouches[0].clientX - 24 + "px";
+    // 24 is left-padding+left-margin+right-margin
+  };
+  const resizeTouchEnd = () => {
+    document.body.removeEventListener("touchmove", resizeTouchMove);
+    document.body.removeEventListener("touchend", resizeTouchEnd);
+    document.body.removeEventListener("touchcancel", resizeTouchEnd);
+    document.body.style.userSelect = "";
+  };
+  resize.ontouchstart = resizeTouchStart;
 };
 
 // 2nd part: once session active
