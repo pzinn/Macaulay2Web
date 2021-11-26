@@ -171,15 +171,15 @@ const init = function () {
     else {
       // set up start button
       const resetBtn = document.getElementById("resetBtn");
-      resetBtn.firstElementChild.textContent = "Start";
-      resetBtn.lastElementChild.innerHTML =
-        "<i class='material-icons'>not_started</i>";
+      const resetBtn1 = document.getElementById("resetBtn1");
+      const resetBtn2 = document.getElementById("resetBtn2");
+      resetBtn1.textContent = "Start";
+      resetBtn2.innerHTML = "<i class='material-icons'>not_started</i>";
       resetBtn.classList.add("startButton");
       resetBtn.onclick = function (e) {
         e.stopPropagation();
-        resetBtn.firstElementChild.textContent = "Reset";
-        resetBtn.lastElementChild.innerHTML =
-          "<i class='material-icons'>replay</i>";
+        resetBtn1.textContent = "Reset";
+        resetBtn2.innerHTML = "<i class='material-icons'>replay</i>";
         resetBtn.classList.remove("startButton");
         clientId = getCookieId(); // in the unlikely event that it got changed while we were waiting
         init2();
