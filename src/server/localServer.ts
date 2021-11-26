@@ -29,7 +29,7 @@ class LocalContainerManager implements InstanceManager {
     next({ ...this.options.credentials, lastActiveTime: Date.now() });
   };
 
-  public recoverInstances(recreate: boolean, next) {
+  public recoverInstances(next) {
     // not implemented
     next();
   }
