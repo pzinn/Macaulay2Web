@@ -133,7 +133,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
   public getNewInstance(clientId, next) {
     const self = this;
-    if (self.currentContainers.length >= self.hostConfig.maxContainerNumber)
+    while (self.currentContainers.length >= self.hostConfig.maxContainerNumber)
       self.killOldestContainer(); // no waiting for it
     const instance = JSON.parse(JSON.stringify(self.currentInstance));
     self.incrementPort();
@@ -179,8 +179,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                       error
                   );
                 } else {
-                  // cleanup: TODO reactivate
-                  /*
+                  // cleanup
                   fs.rm(
                     savePath,
                     { recursive: true, force: true },
@@ -194,8 +193,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                         );
                       }
                     }
-                    );
-		    */
+                  );
                 }
                 self.waitForSshd(next, instance);
               });

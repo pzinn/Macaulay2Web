@@ -46,6 +46,14 @@ body {
 	cursor: col-resize;
 	margin: 0 0 0 auto;
     }
+    #resizeball {
+	z-index: 1;
+	position: relative;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%,0%) scale(75%);
+	color: rgb(63,81,181);
+    }
 }
 /*
 #right-half {
@@ -161,11 +169,11 @@ body {
     box-sizing: border-box;
 }
 
-#terminalZoomBtns {
+#terminalCopyToggle {
     z-index: 2;
     position: absolute;
-    top: 5px;
-    right: 30px;
+    top: -4px;
+    right: 50px;
 }
 #maximizeOutput, #downsizeOutput {
     z-index: 2;
