@@ -463,6 +463,7 @@ const updateAndHighlightMaybe = function (
   txt: string,
   fileName: string
 ) {
+  el.contentEditable = "true";
   // different: replace content
   if (fileName.endsWith(".m2"))
     el.innerHTML = Prism.highlight(txt, Prism.languages.macaulay2);

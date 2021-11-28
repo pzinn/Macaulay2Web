@@ -167,7 +167,6 @@ const localFileToEditor = function (fileName: string, rowcols?) {
   const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName, true);
   xhr.onload = function () {
-    editor.contentEditable = "true";
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
     autoSaveHash = hashCode(xhr.responseText);
     if (rowcols) selectRowColumn(document.getElementById("editorDiv"), rowcols);
