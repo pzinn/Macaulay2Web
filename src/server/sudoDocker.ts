@@ -133,6 +133,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                   );
                 } else {
                   // cleanup
+                  /*
                   fs.rm(
                     savePath,
                     { recursive: true, force: true },
@@ -147,10 +148,11 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                       }
                     }
                   );
+		    */
                 }
-                self.waitForSshd(next, instance);
               });
-            } else self.waitForSshd(next, instance);
+            }
+            self.waitForSshd(next, instance);
           });
         }
       }
@@ -286,7 +288,9 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
           next(instance);
         } else {
           logger.info("sshd not ready yet");
-          self.waitForSshd(next, instance);
+          setTimeout(function () {
+            self.waitForSshd(next, instance);
+          }, 3000);
         }
       }
     );
