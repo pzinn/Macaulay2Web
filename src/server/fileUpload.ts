@@ -37,6 +37,10 @@ const uploadToInstance = function (
       });
     });
   });
+  sshConnection.on("error", function (error) {
+    logger.error("ssh2 connection failed: " + error, client);
+    next();
+  });
   sshConnection.connect(credentials);
 };
 
