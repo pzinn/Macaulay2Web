@@ -275,7 +275,7 @@ code {
     margin-left: 20px;
 }
 
-code.inline {
+code.inline, span > code:only-child {
     margin: 0;
     display: inline;
 }

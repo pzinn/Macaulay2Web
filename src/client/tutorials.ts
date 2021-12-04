@@ -208,12 +208,14 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
     else tutorials[tutorialIndex].lessons[i].classList.remove("current-lesson");
   lesson.scrollTop = 0;
   //tutorials[tutorialIndex].lessons[lessonNr-1].scrollIntoView();
-  const hr = tutorials[tutorialIndex].lessons[lessonNr - 1].querySelector("hr");
-  if (hr) {
-    hr.classList.remove("closed");
-    hr.click();
+  if (lessonNr > 0) {
+    const hr =
+      tutorials[tutorialIndex].lessons[lessonNr - 1].querySelector("hr");
+    if (hr) {
+      hr.classList.remove("closed");
+      hr.click();
+    }
   }
-
   updateTutorialNav();
 };
 
