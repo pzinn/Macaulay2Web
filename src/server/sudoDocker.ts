@@ -152,7 +152,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                 }
               });
             }
-            self.waitForSshd(next, instance);
+            self.waitForSshd(next, instance); // don't wait for restore in case it hangs
           });
         }
       }
