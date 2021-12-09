@@ -123,9 +123,38 @@ const rightclickAction = function (e) {
   if (e.target.classList.contains("M2CellBar")) barRightClick(e);
 };
 
-const socketOutput = function (msg: string) {
-  myshell.displayOutput(msg);
-};
+let socketOutput;
+if (MINIMAL) {
+  socketOutput = function (msg: string) {
+    myshell.displayOutput(msg);
+  };
+} else {
+  let title;
+  let titleTimeout;
+  const animateTitle = function () {
+    document.title = document.title == title ? "New Macaulay2 output" : title;
+    titleTimeout = setTimeout(animateTitle, 500);
+  };
+  socketOutput = function (msg: string) {
+    if (
+      !(
+        document.hasFocus() ||
+        (
+          document.getElementById("browseFrame") as HTMLFrameElement
+        ).contentDocument.hasFocus()
+      )
+    ) {
+      window.onfocus = function () {
+        clearTimeout(titleTimeout);
+        window.onfocus = null;
+        document.title = title;
+      };
+      title = document.title;
+      animateTitle();
+    }
+    myshell.displayOutput(msg);
+  };
+}
 
 const url = new URL(document.location.href);
 

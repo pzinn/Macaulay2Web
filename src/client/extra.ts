@@ -353,6 +353,11 @@ const extra1 = function () {
     document.body.addEventListener("mousemove", resizeMouseMove);
     document.body.addEventListener("mouseup", resizeMouseEnd);
     document.body.addEventListener("mouseleave", resizeMouseEnd);
+    if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body)
+      iFrame.contentDocument.body.addEventListener(
+        "mousemove",
+        resizeMouseMove
+      );
     document.body.style.userSelect = "none";
   };
 
@@ -368,6 +373,11 @@ const extra1 = function () {
     document.body.removeEventListener("mousemove", resizeMouseMove);
     document.body.removeEventListener("mouseup", resizeMouseEnd);
     document.body.removeEventListener("mouseleave", resizeMouseEnd);
+    if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body)
+      iFrame.contentDocument.body.removeEventListener(
+        "mousemove",
+        resizeMouseMove
+      );
     document.body.style.userSelect = "";
   };
   resize.onmousedown = resizeMouseDown;
