@@ -275,7 +275,7 @@ const addMarker = function (node?, offset?) {
   if (node) node.parentElement.insertBefore(marker, node.splitText(offset)); // !!
   setTimeout(function () {
     marker.remove();
-  }, 1000);
+  }, 1500);
   return marker;
 };
 

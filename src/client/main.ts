@@ -141,7 +141,8 @@ if (MINIMAL) {
         document.hasFocus() ||
         (
           document.getElementById("browseFrame") as HTMLFrameElement
-        ).contentDocument.hasFocus()
+        ).contentDocument.hasFocus() ||
+        titleTimeout
       )
     ) {
       window.onfocus = function () {

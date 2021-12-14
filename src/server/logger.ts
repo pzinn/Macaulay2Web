@@ -5,7 +5,7 @@ const loggerSettings = {
     winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     winston.format.printf(
       (info) =>
-        `${info.timestamp}\t${info.level}\t${
+        `${info.timestamp}\t${info.level.toUpperCase()}\t${
           info.id ? info.id.padEnd(6) : ""
         }\t${info.message}`
     )
