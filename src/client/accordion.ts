@@ -7,7 +7,8 @@ const cssClasses = {
   //  titleSymbolInactive: "expand_less",
   // titleSymbolInactive: "arrow_drop_down",
   titleSymbolInactive: "arrow_right",
-  title: "title mdl-button mdl-js-button mdl-button--raised mdl-list__item",
+  title:
+    "accordionTitle mdl-button mdl-js-button mdl-button--raised mdl-list__item",
   titleHover: "mdl-button--colored",
   titleToggleClass: "rotated",
   content: "mdl-list__item-text-body mdl-list__item",

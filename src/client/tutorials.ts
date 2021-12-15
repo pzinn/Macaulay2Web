@@ -267,7 +267,10 @@ const initTutorials = function () {
 
   document.getElementById("runAll").onclick = function () {
     if (tutorials[tutorialIndex]) {
-      const lesson = tutorials[tutorialIndex].lessons[lessonNr - 1];
+      const lesson =
+        lessonNr > 0
+          ? tutorials[tutorialIndex].lessons[lessonNr - 1]
+          : tutorials[tutorialIndex].body;
       if (lesson)
         Array.from(lesson.getElementsByTagName("code")).forEach((code) =>
           (code as HTMLElement).click()
