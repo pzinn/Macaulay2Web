@@ -26,19 +26,19 @@
 <p>
     Our favorite field
 </p>
-<p><code>KK = ZZ/31991</code></p>
+<pre><code>KK = ZZ/31991</code></pre>
 <p>
     The polynomial ring
 </p>
-<p><code>R = KK[x,y,z,w]</code></p>
+<pre><code>R = KK[x,y,z,w]</code></pre>
 <p>
     and the ideal
 </p>
-<p><code>I = ideal(x^2*y,x*y^2+x^3)</code></p>
+<pre><code>I = ideal(x^2*y,x*y^2+x^3)</code></pre>
 <p>
     now the punch line:
 </p>
-<p><code>J = groebnerBasis I</code></p>
+<pre><code>J = groebnerBasis I</code></pre>
 <p>
     From this we can for example compute the
     codimension, dimension,
@@ -59,18 +59,18 @@
     polynomial ring in 4 variables (the
     homogeneous coordinate ring of ${\PP}^3$)
 </p>
-<p><code>R = KK[a..d]</code></p>
+<pre><code>R = KK[a..d]</code></pre>
 <p>
     and then using a function "monomialCurveIdeal", which we shall
     treat for now as a black box
 </p>
-<p><code>I = monomialCurveIdeal(R,{1,3,4})</code></p>
+<pre><code>I = monomialCurveIdeal(R,{1,3,4})</code></pre>
 <p>
     $I$ is an ideal, and the codimension of its support
     is 2, while its dimension is 2:
 </p>
-<p><code>codim I</code></p>
-<p><code>dim I</code></p>
+<pre><code>codim I</code></pre>
+<pre><code>dim I</code></pre>
 <p>
     This is the codimension of $R/I$ in $R$
     and the dimension of $R/I$.  We could work with
@@ -79,20 +79,20 @@
     of $R$ ($R$ is a ring, and $R^1$ is
     the free module of rank 1 over it)
 </p>
-<p><code>codim (R^1/(I*R^1))</code></p>
+<pre><code>codim (R^1/(I*R^1))</code></pre>
 <p>
     We could also extract the generators of
     $I$ (as a matrix) and take the cokernel to
     get the same thing:
 </p>
-<p><code>M = coker gens I</code></p>
-<p><code>codim M</code></p>
-<p><code>dim M</code></p>
+<pre><code>M = coker gens I</code></pre>
+<pre><code>codim M</code></pre>
+<pre><code>dim M</code></pre>
 <p>
     And similarly for the degree:
 </p>
-<p><code>degree I</code></p>
-<p><code>degree M</code></p>
+<pre><code>degree I</code></pre>
+<pre><code>degree M</code></pre>
 <p>
     As one might expect, the degree of the quartic
     is 4.
@@ -100,7 +100,7 @@
 <p>
     The Hilbert polynomial is obtained by
 </p>
-<p><code>hilbertPolynomial M</code></p>
+<pre><code>hilbertPolynomial M</code></pre>
 <p>
     The term ${\PP}_i$ represents the Hilbert polynomial of
     projective $i$-space.  This formula tells
@@ -116,7 +116,7 @@
     The Hilbert series of $M$ (the generating function
     for the dimensions of the graded pieces of $M$) is
 </p>
-<p><code>hilbertSeries M</code></p>
+<pre><code>hilbertSeries M</code></pre>
 <p>
     The indeterminate in this expression is \(T\).
 </p>
@@ -124,12 +124,12 @@
     Another way to get information about
     the module $M$ is to see its free resolution
 </p>
-<p><code>Mres = res M</code></p>
+<pre><code>Mres = res M</code></pre>
 <p>
     To get more precise information about \({\tt Mres}\),
     we could do
 </p>
-<p><code>betti Mres</code></p>
+<pre><code>betti Mres</code></pre>
 <p>
     The display is chosen for compactness:
     the first line gives the total betti
@@ -161,8 +161,8 @@
     in a polynomial ring in
     3 variables:
 </p>
-<p><code>R = KK[x,y,z]</code></p>
-<p><code>F = random(R^1, R^{-2,-3})</code></p>
+<pre><code>R = KK[x,y,z]</code></pre>
+<pre><code>F = random(R^1, R^{-2,-3})</code></pre>
 <p>
     makes $F$ into a $1 \times 2$ matrix whose elements
     have degrees $2,3$ (that is, $F$ is a random map
@@ -171,9 +171,9 @@
     the free module with generators in the listed
     degrees, $\{2,3\}$).  We now can compute
 </p>
-<p><code>GB = groebnerBasis F</code></p>
-<p><code>LT = leadTerm GB</code></p>
-<p><code>betti LT</code></p>
+<pre><code>GB = groebnerBasis F</code></pre>
+<pre><code>LT = leadTerm GB</code></pre>
+<pre><code>betti LT</code></pre>
 <p>
     shows that there are Gröbner basis elements
     of degrees 2,3, and 4.  This result is
@@ -181,15 +181,15 @@
     for example we could take the lexicographic
     order
 </p>
-<p><code>R = KK[x,y,z, MonomialOrder => Lex]</code></p>
+<pre><code>R = KK[x,y,z, MonomialOrder => Lex]</code></pre>
 <p>
     (do "help MonomialOrder" for other possibilities).
     We get
 </p>
-<p><code>F = random(R^1, R^{-2,-3})</code></p>
-<p><code>GB = gens gb F</code></p>
-<p><code>LT = leadTerm gens gb F</code></p>
-<p><code>betti LT</code></p>
+<pre><code>F = random(R^1, R^{-2,-3})</code></pre>
+<pre><code>GB = gens gb F</code></pre>
+<pre><code>LT = leadTerm gens gb F</code></pre>
+<pre><code>betti LT</code></pre>
 <p>
     and there are Gröbner basis elements of degrees
     $2,3,4,5,6.$
@@ -209,10 +209,10 @@
     of a generic matrix and setting the entries
     equal to zero.  Here's how:
 </p>
-<p><code>R = KK[a..i]</code></p>
-<p><code>M = genericMatrix(R,a,3,3)</code></p>
-<p><code>N = M^3</code></p>
-<p><code>I = flatten N</code></p>
+<pre><code>R = KK[a..i]</code></pre>
+<pre><code>M = genericMatrix(R,a,3,3)</code></pre>
+<pre><code>N = M^3</code></pre>
+<pre><code>I = flatten N</code></pre>
 <p>
     (actually this produces a $1 \times 9$ matrix of
     of forms, not the ideal: <tt>J = ideal I</tt>;
@@ -223,9 +223,9 @@
     We could also check by division with
     remainder:
 </p>
-<p><code>Tr = trace M </code></p>
-<p><code>Tr //I  -- the quotient, which is 0</code></p>
-<p><code>Tr % I  -- the remainder, which is Tr again</code></p>
+<pre><code>Tr = trace M </code></pre>
+<pre><code>Tr //I  -- the quotient, which is 0</code></pre>
+<pre><code>Tr % I  -- the remainder, which is Tr again</code></pre>
 <p>
     (Here <tt>Tr</tt> is an element of $R$, not a matrix.
     We could do the same thing with a $1 \times 1$ matrix
@@ -235,8 +235,8 @@
     generate the ideal of all forms
     vanishing on $X$ &mdash; this we may find with
 </p>
-<p><code>J = radical ideal I;</code></p>
-<p><code>netList J_*</code></p>
+<pre><code>J = radical ideal I;</code></pre>
+<pre><code>netList J_*</code></pre>
 <p>
     that the radical is generated by
     the trace, the determinant, and the sum of
@@ -245,24 +245,24 @@
     In particular, we can try the powers of the
     trace:
 </p>
-<p><code>Tr^2 % I</code></p>
-<p><code>Tr^3 % I</code></p>
-<p><code>Tr^4 % I</code></p>
-<p><code>Tr^5 % I</code></p>
-<p><code>Tr^6 % I</code></p>
-<p><code>Tr^7 % I</code></p>
+<pre><code>Tr^2 % I</code></pre>
+<pre><code>Tr^3 % I</code></pre>
+<pre><code>Tr^4 % I</code></pre>
+<pre><code>Tr^5 % I</code></pre>
+<pre><code>Tr^6 % I</code></pre>
+<pre><code>Tr^7 % I</code></pre>
 <p>
     The seventh power is the first one in the
     ideal!  (Bernard Mourrain has worked out a
     formula for which power in general.)
     In this case
 </p>
-<p><code>Tr^6 // I</code></p>
+<pre><code>Tr^6 // I</code></pre>
 <p>
     is not 0.  It is a matrix that makes the
     following true:
 </p>
-<p><code>Tr^6 == I * (Tr^6 // I) + (Tr^6 % I)</code></p>
+<pre><code>Tr^6 == I * (Tr^6 // I) + (Tr^6 % I)</code></pre>
 </section>
 <section>
     <header>D. Elimination Theory</header>
@@ -287,24 +287,24 @@
     clear the earlier meaning of $x$ to make it
     into a subscripted variable
 </p>
-<p><code>x = global x</code></p>
+<pre><code>x = global x</code></pre>
 <p>
     and then set
 </p>
-<p><code>R = KK[x_0..x_3] </code></p>
+<pre><code>R = KK[x_0..x_3] </code></pre>
 <p>
     the homogeneous coordinate ring of ${\PP}^3$
     and
 </p>
-<p><code>M = map(R^2, 3, (i,j)->x_(i+j))</code></p>
-<p><code>I = gens minors(2,M)</code></p>
+<pre><code>M = map(R^2, 3, (i,j)->x_(i+j))</code></pre>
+<pre><code>I = gens minors(2,M)</code></pre>
 <p>
     a matrix whose image is
     the ideal of the twisted cubic.
     As projection center we
     take the point defined by
 </p>
-<p><code>pideal = ideal(x_0+x_3, x_1, x_2)</code></p>
+<pre><code>pideal = ideal(x_0+x_3, x_1, x_2)</code></pre>
 <p>
     To find the image we must intersect the ideal
     $I$ with the subring generated by the
@@ -319,18 +319,18 @@
     We want the new ring to have an elimination
     order for the first variable.
 </p>
-<p><code>y = global y</code></p>
-<p><code>S = KK[y_0..y_3,MonomialOrder => Eliminate 1]</code></p>
+<pre><code>y = global y</code></pre>
+<pre><code>S = KK[y_0..y_3,MonomialOrder => Eliminate 1]</code></pre>
 <p>
     Here is one way to make the substitution
 </p>
-<p><code>I1 = substitute(I, matrix{{y_0,y_1,y_2,y_3-y_0}})</code></p>
+<pre><code>I1 = substitute(I, matrix{{y_0,y_1,y_2,y_3-y_0}})</code></pre>
 <p>
     The elimination of 1 variable from the
     matrix of Gröbner basis elements proceeds
     as follows:
 </p>
-<p><code>J = selectInSubring(1,gens gb I1)</code></p>
+<pre><code>J = selectInSubring(1,gens gb I1)</code></pre>
 <p>
     and gives (a matrix with element)
     the cubic equation of a rational
@@ -340,8 +340,8 @@
     curve (and not the cone over one) we must
     move to yet another ring:
 </p>
-<p><code>S1 = KK[y_1..y_3]</code></p>
-<p><code>J1 = substitute(J, S1)</code></p>
+<pre><code>S1 = KK[y_1..y_3]</code></pre>
+<pre><code>J1 = substitute(J, S1)</code></pre>
 <p>
     This time we didn't have to give so much
     detail to the "substitute" command because of
@@ -360,12 +360,12 @@
     of the same computation as before.)
     Here is the ring map
 </p>
-<p><code>Rbar = R/(ideal I)</code></p>
-<p><code>f = map(Rbar, S1, matrix(Rbar,{{x_0+x_3, x_1,x_2}}))</code></p>
+<pre><code>Rbar = R/(ideal I)</code></pre>
+<pre><code>f = map(Rbar, S1, matrix(Rbar,{{x_0+x_3, x_1,x_2}}))</code></pre>
 <p>
     and the desired ideal
 </p>
-<p><code>J1 = ker f</code></p>
+<pre><code>J1 = ker f</code></pre>
 </section>
 <section>
     <header>E. Quotients and saturation</header>
@@ -420,8 +420,8 @@
     efficient in this case.  We shall illustrate
     both. First we set up the example above:
 </p>
-<p><code>R = KK[a,b,c,d]</code></p>
-<p><code>I1 = ideal(d*b-a^2, d^2*c-a^3)</code></p>
+<pre><code>R = KK[a,b,c,d]</code></pre>
+<pre><code>I1 = ideal(d*b-a^2, d^2*c-a^3)</code></pre>
 <p>
     How to compute the ideal quotient:
     If $I$ is generated by $f_1,\ldots,f_n$, we see that
@@ -438,14 +438,14 @@
     by concatenating the matrix for $I_1$
     with the single variable $d$
 </p>
-<p><code>I1aug = (gens I1) | matrix{{d}}</code></p>
-<p><code>augrelations = gens ker I1aug</code></p>
+<pre><code>I1aug = (gens I1) | matrix{{d}}</code></pre>
+<pre><code>augrelations = gens ker I1aug</code></pre>
 <p>
     There are 3 rows (numbered 0,1,2 !) and
     2 columns, so to extract the last row we
     may do
 </p>
-<p><code>I21 = submatrix(augrelations, {2}, {0,1})</code></p>
+<pre><code>I21 = submatrix(augrelations, {2}, {0,1})</code></pre>
 <p>
     But this is not an ``ideal'' properly speaking:
     first of all, it is a matrix, not an ideal,
@@ -454,7 +454,7 @@
     generator in degree 1.  We can fix both
     of these problems by
 </p>
-<p><code>I21 = ideal I21</code></p>
+<pre><code>I21 = ideal I21</code></pre>
 <p>
     This is larger than the original ideal, having
     two quadratic generators instead of a
@@ -463,12 +463,12 @@
     computation again, we introduce the built-in
     command
 </p>
-<p><code>I22 = I21 : d</code></p>
+<pre><code>I22 = I21 : d</code></pre>
 <p>
     which is again larger than "I21", having
     three quadratic generators. Repeating,
 </p>
-<p><code>I23 = I22 : d</code></p>
+<pre><code>I23 = I22 : d</code></pre>
 <p>
     we get another ideal with three quadratic
     generators.  It must be the same as {\tt I21},
@@ -476,7 +476,7 @@
     because of the route taken to get it, so
     (being suspicious) we might check with
 </p>
-<p><code>(gens I23) % (gens I22)</code></p>
+<pre><code>(gens I23) % (gens I22)</code></pre>
 <p>
     which returns 0, showing that "I23" is
     contained in (gives remainder 0 when divided
@@ -493,7 +493,7 @@
     is first to compute a reverse lex Gröbner
     basis.
 </p>
-<p><code>gens gb I1</code></p>
+<pre><code>gens gb I1</code></pre>
 <p>
     This yields
     $$(a^2-bd, abd-cd^2, b^2d^2-acd^2).$$
@@ -506,11 +506,11 @@
     as previously computed.  The same thing
     can be accomplished in one line by
 </p>
-<p><code>I2 = divideByVariable(gens gb I1,d)</code></p>
+<pre><code>I2 = divideByVariable(gens gb I1,d)</code></pre>
 <p>
     This saturation may be found directly in \(\mac\):
 </p>
-<p><code>saturate(I1, d)</code></p>
+<pre><code>saturate(I1, d)</code></pre>
     </section>
   </body>
 </html>

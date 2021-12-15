@@ -12,21 +12,21 @@
 <p>
     First, let's restart \(\mac\) so that we are starting fresh.
 </p>
-<p><code>restart</code></p>
+<pre><code>restart</code></pre>
 <p>
     Your first input prompt will be <tt>i1 : </tt>.  In response to the prompt,
     either press the "2+2" button below, or
     type <tt>2+2</tt>, and press return.  The expression you entered will be
     evaluated - no punctuation is required at the end of the line.
 </p>
-<p><code>2+2</code></p>
+<pre><code>2+2</code></pre>
 <p>
     The answer is displayed to the right of the output label <tt>o1 = </tt>.
 </p>
 <p>
     Here is some arithmetic with fractions.
 </p>
-<p><code>3/5 + 7/11</code></p>
+<pre><code>3/5 + 7/11</code></pre>
 <p>
     Notice the additional line of output labeled with \({\tt o2\colon }\).
     Output lines labeled with colons provide information about the type of
@@ -37,18 +37,18 @@
 <p>
     Multiplication is indicated with an asterisk:
 </p>
-<p><code>1*2*3*4</code></p>
+<pre><code>1*2*3*4</code></pre>
 <p>
     Powers are obtained with " <tt>^</tt> ":
 </p>
-<p><code>2^200</code></p>
+<pre><code>2^200</code></pre>
 <p>
     Factorials are obtained with " <tt>!</tt> ":
 </p>
-<p><code>40!</code></p>
+<pre><code>40!</code></pre>
     <p>
       Some output is longer than the window:
-      <code>100!</code>
+      <pre><code>100!</code></pre>
       Scroll horizontally to see
       the rest of the output. (Alternatively, click on the bar to the left of the output
       and press <tt>W</tt> to wrap it.)
@@ -56,92 +56,92 @@
     <p>
     Multiple expressions may be separated by semicolons:
 </p>
-<p><code>1;2;3*4</code></p>
+<pre><code>1;2;3*4</code></pre>
 <p>
     A semicolon at the end of the line suppresses the printing of the value:
 </p>
-<p><code>4*5;</code></p>
+<pre><code>4*5;</code></pre>
 <p>
     The output from the previous line can be obtained with <tt>oo</tt>  even if 
     a semicolon prevented it from being printed.
 </p>
-<p><code>oo</code></p>
+<pre><code>oo</code></pre>
 <p>
     Lines before that can be obtained with <tt>ooo</tt> and <tt>oooo</tt>.
     Alternatively, the symbol labeling an output line
     can be used to retrieve the value, as in the following example.
 </p>
-<p><code>o5 + 1</code></p>
+<pre><code>o5 + 1</code></pre>
 <p>
     To enter a string, use quotation marks:
 </p>
-<p><code>"hi there"</code></p>
+<pre><code>"hi there"</code></pre>
 <p>
     A value can be assigned to a variable with " <tt>=</tt> ":
 </p>
-<p><code>s = "hi there"</code></p>
+<pre><code>s = "hi there"</code></pre>
 <p>
     Strings may be concatenated horizontally with " <tt>|</tt> ":
 </p>
-<p><code>s | " - " | s</code></p>
+<pre><code>s | " - " | s</code></pre>
 <p>
     or vertically with " <tt>||</tt> ":
 </p>
-<p><code>s || "-- -----" || s</code></p>
+<pre><code>s || "-- -----" || s</code></pre>
 </section>
 <section>
     <header>Lists and functions</header>
 <p>
     A list of expressions can be formed with braces.
 </p>
-<p><code>L = {1, 2, s}</code></p>
+<pre><code>L = {1, 2, s}</code></pre>
 <p>
     All indexing in \(\mac\) is 0-based.  Indexing of lists is done
     using underscores:
 </p>
-<p><code>L_0</code></p>
-<p><code>L_1</code></p>
+<pre><code>L_0</code></pre>
+<pre><code>L_1</code></pre>
 <p>
     Lists behave like vectors.
 </p>
-<p><code>10*{1,2,3} + {1,1,1}</code></p>
+<pre><code>10*{1,2,3} + {1,1,1}</code></pre>
 <p>
     A function can be created with the arrow operator, <tt>-></tt>.
 </p>
-<p><code>f = i -> i^3</code></p>
+<pre><code>f = i -> i^3</code></pre>
 <p>
     To evaluate a function, place its argument to the right of the function.
 </p>
-<p><code>f 5</code></p>
+<pre><code>f 5</code></pre>
 <p>
     Functions of more than one variable take a parenthesized sequence of arguments.
 </p>
-<p><code>g = (x,y) -> x * y</code></p>
-<p><code>g(6,9)</code></p>
+<pre><code>g = (x,y) -> x * y</code></pre>
+<pre><code>g(6,9)</code></pre>
 <p>
     The function <tt>apply</tt> can be used to apply a function to each element of a list.
 </p>
-<p><code>apply({1,2,3,4}, i -> i^2)</code></p>
-<p><code>apply({1,2,3,4}, f)</code></p>
+<pre><code>apply({1,2,3,4}, i -> i^2)</code></pre>
+<pre><code>apply({1,2,3,4}, f)</code></pre>
 <p>
     The operator " <tt>..</tt> " may be used to generate sequences of consecutive numbers.
 </p>
-<p><code>apply(1 .. 4, f) </code></p>
+<pre><code>apply(1 .. 4, f) </code></pre>
 <p>
     If the first argument to <tt>apply</tt> is an integer \(n\), then it stands for the list \(\{0, 1, ..., n-1\}\).
 </p>
-<p><code>apply(5, f)</code></p>
+<pre><code>apply(5, f)</code></pre>
 <p>
     The syntax for a <tt>for</tt> loop is the following:
 </p>
-<p><code>for i from 1 to 5 do print(i, i^3)</code></p>
+<pre><code>for i from 1 to 5 do print(i, i^3)</code></pre>
 </section>
 <section>
     <header>Rings, matrices, and ideals</header>
 <p>
     Most computations with polynomials take place in rings that may be specified in usual mathematical notation.
 </p>
-<p><code>R = ZZ/5[x,y,z];</code></p>
+<pre><code>R = ZZ/5[x,y,z];</code></pre>
 <p>
     <tt>ZZ</tt> represents the ring of integers.
     The symbols <tt>ZZ/5</tt>
@@ -149,51 +149,51 @@
     represents the ring of polynomials in the variables $x$, $y$, and $z$ with coefficients
     in the ring \(\ZZ/5\ZZ\).
 </p>
-<p><code>(x+y)^5</code></p>
+<pre><code>(x+y)^5</code></pre>
 <p>
     Rings and certain other types of things acquire the name of the global variable they are assigned to.
 </p>
-<p><code>R</code></p>
+<pre><code>R</code></pre>
 <p>
     To see the original description of a ring, use <tt>describe</tt>.
 </p>
-<p><code>describe R</code></p>
+<pre><code>describe R</code></pre>
 <p>
     A free module can be created as follows.
 </p>
-<p><code>F = R^3</code></p>
+<pre><code>F = R^3</code></pre>
 <p>
     The $i^{\rm th}$ basis element of \(F\) can be obtained by indexing with underscore.
     In this example, the valid values for \(i\) are 0, 1, and 2.
 </p>
-<p><code>F_1</code></p>
+<pre><code>F_1</code></pre>
 <p>
     Using a list of indices instead will produce the homomorphism 
     corresponding to the basis vectors indicated.
 </p>
-<p><code>F_{1,2}</code></p>
+<pre><code>F_{1,2}</code></pre>
 <p>
     Repetitions are allowed.
 </p>
-<p><code>F_{2,1,1}</code></p>
+<pre><code>F_{2,1,1}</code></pre>
 <p>
     We can create a homomorphism between free modules with "matrix"
     by providing the list of rows of the matrix, each of which is in turn
     a list of ring elements.
 </p>
-<p><code>f = matrix {{x,y,z}}</code></p>
+<pre><code>f = matrix {{x,y,z}}</code></pre>
 <p>
     Use <tt>image</tt> to get the image of \(f\).
 </p>
-<p><code>image f</code></p>
+<pre><code>image f</code></pre>
 <p>
     We may use <tt>ideal</tt> to produce the corresponding ideal:
 </p>
-<p><code>ideal (x,y,z)</code></p>
+<pre><code>ideal (x,y,z)</code></pre>
 <p>
     We may use <tt>kernel</tt> to compute the kernel of \(f\):
 </p>
-<p><code>kernel f</code></p>
+<pre><code>kernel f</code></pre>
 <p>
     The answer comes out as a module that is expressed as the image of
     a homomorphism whose matrix is displayed.  Integers inside braces to
@@ -202,104 +202,104 @@
     In case the matrix itself is desired, it can be obtained 
     with <tt>generators</tt>, as follows.
 </p>
-<p><code>generators oo</code></p>
+<pre><code>generators oo</code></pre>
 <p>
     We may use <tt>poincare</tt> to compute the Poincare polynomial (the numerator of
     the Hilbert function):
 </p>
-<p><code>poincare kernel f</code></p>
+<pre><code>poincare kernel f</code></pre>
 <p>
     We may use <tt>rank</tt> to compute the rank:
 </p>
-<p><code>rank kernel f</code></p>
+<pre><code>rank kernel f</code></pre>
 <p>
     A presentation for the kernel can be obtained with <tt>presentation</tt>:
 </p>
-<p><code>presentation kernel f</code></p>
+<pre><code>presentation kernel f</code></pre>
 <p>
     We can produce the cokernel with <tt>cokernel</tt>; no computation is performed.
 </p>
-<p><code>cokernel f</code></p>
+<pre><code>cokernel f</code></pre>
 <p>
     The direct sum is formed with " <tt>++</tt> ".
 </p>
-<p><code>N = kernel f ++ cokernel f</code></p>
+<pre><code>N = kernel f ++ cokernel f</code></pre>
 <p>
     The answer is expressed in terms of the <tt>subquotient</tt> function, which
     produces subquotient modules.  Each subquotient module is accompanied
     by its matrix of generators and its matrix of relations.  These matrices
     can be recovered with <tt>generators</tt> and <tt>relations</tt>.
 </p>
-<p><code>generators N</code></p>
-<p><code>relations N</code></p>
+<pre><code>generators N</code></pre>
+<pre><code>relations N</code></pre>
 <p>
     The function <tt>prune</tt> can be used to convert a subquotient
     module to a quotient module.
 </p>
-<p><code>prune N</code></p>
+<pre><code>prune N</code></pre>
 <p>
     We can use <tt>resolution</tt> to compute a projective resolution of the 
     cokernel of \(f\).
 </p>
-<p><code>C = resolution cokernel f</code></p>
+<pre><code>C = resolution cokernel f</code></pre>
 <p>
     To examine in more detail the differentials we can use <tt>C.dd</tt>:
 </p>
-<p><code>C.dd</code></p>
+<pre><code>C.dd</code></pre>
 <p>
     We can verify that \(C\) is a complex by squaring the differential map.
 </p>
-<p><code>C.dd^2 == 0</code></p>
+<pre><code>C.dd^2 == 0</code></pre>
 <p>
     We can use <tt>betti</tt> to see the degrees of the components of \(C\).
 </p>
-<p><code>betti C</code></p>
+<pre><code>betti C</code></pre>
 <p>
     Let's try a harder example.  We can use <tt>vars</tt> to create a sequence
     of variables:
 </p>
-<p><code>R = ZZ/101[a .. r];</code></p>
+<pre><code>R = ZZ/101[a .. r];</code></pre>
 <p>
     We use <tt>genericMatrix</tt> to make a 3 by 6 generic matrix whose
     entries are drawn from the variables of the ring \(R\):
 </p>
-<p><code>g = genericMatrix(R,a,3,6)</code></p>
+<pre><code>g = genericMatrix(R,a,3,6)</code></pre>
 <p>
     Then we construct its cokernel with <tt>cokernel</tt>.
 </p>
-<p><code>M = cokernel g</code></p>
+<pre><code>M = cokernel g</code></pre>
 <p>
     We may use <tt>resolution</tt> to produce a projective resolution of it, and
     <tt>time</tt>, to report the time required.
 </p>
-<p><code>time C = resolution M</code></p>
+<pre><code>time C = resolution M</code></pre>
 <p>
     As before, we may examine the degrees of its components, or display it:
 </p>
-<p><code>betti C</code></p>
+<pre><code>betti C</code></pre>
 <p>
     We can make a polynomial ring with 18 "IndexedVariable"s.
 </p>
-<p><code>S = ZZ/101[t_1 .. t_9, u_1 .. u_9];</code></p>
+<pre><code>S = ZZ/101[t_1 .. t_9, u_1 .. u_9];</code></pre>
 <p>
     We can use <tt>genericMatrix</tt> to pack the variables into 
     3-by-3 matrices:
 </p>
-<p><code>m = genericMatrix(S, t_1, 3, 3)</code></p>
-<p><code>n = genericMatrix(S, u_1, 3, 3)</code></p>
+<pre><code>m = genericMatrix(S, t_1, 3, 3)</code></pre>
+<pre><code>n = genericMatrix(S, u_1, 3, 3)</code></pre>
 <p>
     We may look at the matrix product:
 </p>
-<p><code>m*n</code></p>
+<pre><code>m*n</code></pre>
 <p>
     Let's produce the equations generated by the equations that assert
     that $m$ and $n$ commute with each other:
 </p>
-<p><code>j = ideal(m*n - n*m)</code></p>
+<pre><code>j = ideal(m*n - n*m)</code></pre>
 <p>
     Let's compute a Groebner basis for the image of \(j\) with <tt>groebnerBasis</tt>:
 </p>
-<p><code>gbj = groebnerBasis j;</code></p>
+<pre><code>gbj = groebnerBasis j;</code></pre>
 <p>
     The semicolon prevents the matrix of generators from appearing on the 
     screen, but the class of the matrix appears -- we see that there are 26
@@ -308,13 +308,13 @@
 <p>
     We can use <tt>betti</tt> to see the degrees involved in the Groebner basis.
 </p>
-<p><code>betti gbj</code></p>
+<pre><code>betti gbj</code></pre>
 <p>
     \(\mac\) has many more mathematical functions, and many user defined packages.
     Try out other tutorials to see some possibilities, or peruse the documentation
     at
 </p>
-<p><code>viewHelp "Macaulay2Doc"</code></p>
+<pre><code>viewHelp "Macaulay2Doc"</code></pre>
     </section>
   </body>
 </html>
