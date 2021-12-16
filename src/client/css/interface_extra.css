@@ -246,15 +246,15 @@ button.rotated .material-icons {
 }
 
 
-.accordionTitle:hover {
+.accordionTitleBar:hover {
     background-color: #8080FF;
 }
 
-.menuTitle {
+.accordionTitle {
     text-align: left;
 }
 
-.menuTitle:hover {
+.accordionTitle:hover {
     background-color: #9070FF;
 }
 
@@ -348,10 +348,11 @@ nav {
     display: block;
 }
 
-.menuTitle h1, .accordionMenu h2 { /* titles should have normal font in accordion menu */
-    font-size: inherit;
+.accordionTitle h1, .accordionMenu h2 { /* titles should have normal font in accordion menu */
+    font: inherit;
     margin: inherit;
-    font-size: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
 }
 
 #lesson hr {

@@ -8,12 +8,12 @@ const cssClasses = {
   // titleSymbolInactive: "arrow_drop_down",
   titleSymbolInactive: "arrow_right",
   title:
-    "accordionTitle mdl-button mdl-js-button mdl-button--raised mdl-list__item",
+    "accordionTitleBar mdl-button mdl-js-button mdl-button--raised mdl-list__item",
   titleHover: "mdl-button--colored",
   titleToggleClass: "rotated",
   content: "mdl-list__item-text-body mdl-list__item",
   innerList: "accordionMenu",
-  titleHref: "menuTitle mdl-button mdl-js-button mdl-button-raised",
+  titleHref: "accordionTitle mdl-button mdl-js-button mdl-button-raised",
 };
 
 const initAccordion = function (index) {
