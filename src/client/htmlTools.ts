@@ -284,6 +284,13 @@ const addMarkerEl = function (el, pos) {
   return nodeOffset ? addMarker(nodeOffset[0], nodeOffset[1]) : addMarker();
 };
 
+const stripId = function (el) {
+  // remove "id" from *children* of el. useful for cloned elements
+  Array.from(el.querySelectorAll("[id]")).forEach((x) =>
+    (x as HTMLElement).removeAttribute("id")
+  );
+};
+
 export {
   scrollDownLeft,
   scrollDown,
@@ -303,4 +310,5 @@ export {
   selectRowColumn,
   addMarker,
   addMarkerEl,
+  stripId,
 };

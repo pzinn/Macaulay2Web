@@ -1,4 +1,5 @@
 import { Tutorial, removeTutorial } from "./tutorials.ts";
+import { stripId } from "./htmlTools.ts";
 
 const cssClasses = {
   titleSymbolClass: "material-icons titleSymbol",
@@ -76,6 +77,7 @@ const appendTutorialToAccordion = function (
   }
   const title = tutorial.body.querySelector("title,header");
   titlea.innerHTML = title ? title.innerHTML : index; // use index as default title
+  stripId(titlea);
   titlespan.append(icon, titlea);
   titlespan.style.cursor = "pointer";
 
@@ -127,6 +129,7 @@ const appendTutorialToAccordion = function (
       li = document.createElement("li");
       a = document.createElement("a");
       a.innerHTML = lessonTitle.innerHTML;
+      stripId(a);
       a.href = "#tutorial-" + index + "-" + (j + 1);
       a.target = "_self";
       li.appendChild(a);
