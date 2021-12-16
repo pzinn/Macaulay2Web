@@ -226,7 +226,7 @@ body {
     padding-bottom: 1px;
 }
 
-.unstyled {
+.accordionMenu {
     list-style: none;
     margin: 0px;
 }
@@ -340,24 +340,18 @@ nav {
     margin: 0px;
 }
 
-#lesson header { /* similar to h1 */
-    font-size: 2.5em;
-    margin: 0.7em 0em;
-    line-height: 1.2;
-}
-
-#lesson section header { /* similar to h2 */
-    font-size: 2em;
-    margin: 0.5em 0em;
-    line-height: 1.2;
-}
-
 #lesson section {
     display: none;
 }
 
 #lesson section.current-lesson {
     display: block;
+}
+
+.menuTitle h1, .accordionMenu h2 { /* titles should have normal font in accordion menu */
+    font-size: inherit;
+    margin: inherit;
+    font-size: inherit;
 }
 
 #lesson hr {

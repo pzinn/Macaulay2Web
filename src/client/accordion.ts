@@ -12,7 +12,7 @@ const cssClasses = {
   titleHover: "mdl-button--colored",
   titleToggleClass: "rotated",
   content: "mdl-list__item-text-body mdl-list__item",
-  innerList: "unstyled",
+  innerList: "accordionMenu",
   titleHref: "menuTitle mdl-button mdl-js-button mdl-button-raised",
 };
 
