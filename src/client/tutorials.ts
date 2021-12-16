@@ -3,11 +3,6 @@ import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 import Prism from "prismjs";
 
-interface Lesson {
-  title: HTMLElement; // <h2> element
-  html: HTMLElement;
-}
-
 interface Tutorial {
   body: HTMLElement;
   lessons: HTMLCollection;
@@ -129,7 +124,6 @@ const uploadTutorial = function () {
     req.send(formData);
 
     const newTutorial = processTutorial(txt);
-    //    if (!newTutorial.title) return; // if no title, cancel
     tutorials[fileName] = newTutorial;
     if (tutorialIndex == fileName) tutorialIndex = null; // force reload
     initAccordion(fileName);
