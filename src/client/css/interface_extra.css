@@ -348,7 +348,7 @@ nav {
     display: block;
 }
 
-.accordionTitle h1, .accordionMenu h2 { /* titles should have normal font in accordion menu */
+.accordionTitle > *, .accordionMenuTitle > * { /* titles should have normal font in accordion menu */
     font: inherit;
     margin: inherit;
     line-height: inherit;

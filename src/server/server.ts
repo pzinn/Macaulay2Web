@@ -123,6 +123,7 @@ const spawnMathProgram = function (client: Client, next) {
       "Error when connecting. " + err + "; Retrying with new instance",
       client
     );
+    connection.end(); // we don't want more errors produced
     next(false);
   });
   connection

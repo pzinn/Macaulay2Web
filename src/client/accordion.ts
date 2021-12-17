@@ -14,6 +14,7 @@ const cssClasses = {
   titleToggleClass: "rotated",
   content: "mdl-list__item-text-body mdl-list__item",
   innerList: "accordionMenu",
+  menuItem: "accordionMenuTitle",
   titleHref: "accordionTitle mdl-button mdl-js-button mdl-button-raised",
 };
 
@@ -132,6 +133,7 @@ const appendTutorialToAccordion = function (
       stripId(a);
       a.href = "#tutorial-" + index + "-" + (j + 1);
       a.target = "_self";
+      a.className = cssClasses.menuItem;
       li.appendChild(a);
       ul.appendChild(li);
     }
