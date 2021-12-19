@@ -675,15 +675,17 @@ const extra2 = function () {
   };
 
   const editorPaste = function (e) {
-    // prevent annoying extra \n of chrome when pasting stuff with HTML tags
-    const returnNext = nextChar() == "\n";
     e.preventDefault();
-    const c =
-      e.clipboardData.getData("text/html") ||
-      e.clipboardData.getData("text/plain");
-    document.execCommand("insertHTML", false, c); // slightly unusual behavior: it will paste text/plain as HTML... e.g. <b>YO</b>
-    if (!returnNext && nextChar() == "\n")
-      document.execCommand("forwardDelete");
+    const c1 = e.clipboardData.getData("text/html");
+    if (c1) {
+      const returnNext = nextChar() == "\n";
+      document.execCommand("insertHTML", false, c1);
+      if (!returnNext && nextChar() == "\n")
+        document.execCommand("forwardDelete"); // prevent annoying extra \n of chrome when pasting stuff with HTML tags
+    } else {
+      const c2 = e.clipboardData.getData("text/plain");
+      if (c2) document.execCommand("insertText", false, c2);
+    }
   };
 
   editor.onkeydown = editorKeyDown;
