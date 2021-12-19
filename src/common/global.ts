@@ -3,7 +3,7 @@ const options = {
   cookieName: "Macaulay2Web",
   cookieAliasName: "Macaulay2Web_alias",
   cookieFileName: "Macaulay2Web_file",
-  cookieDuration: 1000 * 60 * 60 * 24 * 31, // one month
+  cookieDuration: 1000 * 60 * 60 * 24 * 183, // 6 months
   defaultAlias: "Anonymous",
   adminAlias: "Admin",
   systemAlias: "System",

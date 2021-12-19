@@ -21,7 +21,7 @@ const cut = (s, x) => mdReplace(s.substring(x.index + x[0].length));
 // prettier-ignore
 const mdSubst = [ // ["!\\[([^\\]]*)]\\(([^(]+)\\)",'<img alt="$1" src="$2">'],
     { pattern: "\\[([^\\]]+)]\\(([^(]+?)\\)", subst: "<a href='$2'>$1</a>"}, // [a link](https://github.com)
-    { pattern: "`([^`]*)`", subst: "<code class='inline'>$1</code>"}, // `R=QQ[x]`
+    { pattern: "`([^`]*)`", subst: "<code>$1</code>"}, // `R=QQ[x]`
     { pattern: "(?<!\\S)\\*\\*(?=\\S)([^\\r]*?\\S)(?<!\\\\)\\*\\*", subst: "<strong>$1</strong>"}, // **really important**
     { pattern: "\\b__(?=\\S)([^\\r]*?\\S)(?<!\\\\)__", // we can use \\b because _ is considered part of the word
       subst: "<u><strong>$1</strong></u>"}, // __really important__
@@ -68,7 +68,7 @@ const patterns = [
   },
   {
     pattern: "(?<![^\\s>]+\\s*)```", // really, this should be ```m2 and previous one should be ```
-    tag: "code",
+    tag: "code class='block'",
     linetag: null,
     proc: (s, x) => (x === null ? s + "\n" : ""),
   },

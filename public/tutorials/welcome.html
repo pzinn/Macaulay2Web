@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
   <body>
-    <header>Welcome Tutorial</header>
+    <header><h1>Welcome Tutorial</h1></header>
     <section>
-      <header>Getting started</header>
+      <header><h2>Getting started</h2></header>
 
       <p>In this tutorial, we will show how to use this web site effectively.</p>
 
@@ -17,9 +17,9 @@
       <p>
 	For example, click on this yellow code to compute the factors of the
 	given polynomial.
-	<code>R = QQ[x,y,z]</code>
-	<code>F = (x-1)^3 - (y-1)^3</code>
-	<code>factor F</code>
+	<pre><code>R = QQ[x,y,z]</code></pre>
+	<pre><code>F = (x-1)^3 - (y-1)^3</code></pre>
+	<pre><code>factor F</code></pre>
       </p>
 
       <p>
@@ -36,19 +36,19 @@
     </section>
 
     <section>
-      <header>Getting Macaulay2 help on a topic</header>
+      <header><h2>Getting Macaulay2 help on a topic</h2></header>
 
       <p>There are two main ways of getting help on a topic in \(\mac\).  The first method gives you
 	text help in the \(\mac\) output window.  For example,
-      <code>help determinant</code>
-      This displays in the \(\mac\) output window how to use the function "determinant".
+	<pre><code>help determinant</code></pre>
+	This displays in the \(\mac\) output window how to use the function "determinant".
 	<b>Note!</b> In many browsers, you will have scroll bars to go back, but in some, notably most versions
 	of Safari, the scrollbars are there but hidden!
       </p>
 
       <p>Alternatively, and more usefully, you may obtain the web version by using:
-      <code>viewHelp determinant</code>
-      This opens the documentation page in the <b>Browse</b> tab.  You can surf through the links
+	<pre><code>viewHelp determinant</code></pre>
+	This opens the documentation page in the <b>Browse</b> tab.  You can surf through the links
 	there to see other \(\mac\) documentation. When you are ready to come back to the tutorial, click or tap on the
 	<b>Tutorial</b> button at the top of the page.  You will end up right here! </p>
 
@@ -57,7 +57,7 @@
     </section>
 
     <section>
-      <header>Using the Terminal</header>
+      <header><h2>Using the Terminal</h2></header>
       <p>
 	The right half of the screen is the <b>Terminal</b>, where the \(\mac\) action takes place!
 	(You can expand/shrink it by dragging the blue separator between the two halves of the screen)</p>
@@ -78,7 +78,7 @@
 	You can also use the <b>Tab</b> key for \(\mac\) keyword auto-completion.</p>
     </section>
     <section>
-      <header>Using the Editor</header>
+      <header><h2>Using the Editor</h2></header>
       <p>When you write M2 functions or long loops, it is often more convenient to write your code
 	in a separate window and execute the code after you wrote it. This allows you to easily modify previous code and
 	move the cursor around freely.</p>
@@ -102,7 +102,7 @@
       </p>
     </section>
     <section>
-      <header>Macaulay2 sessions and the Reset button</header>
+      <header><h2>Macaulay2 sessions and the Reset button</h2></header>
 
       <p> When your browser starts, once you press the <b>Start</b> button, a \(\mac\) process is started on the server.
 	All of your input, either typed and evaluated, or run by pressing buttons,
@@ -131,7 +131,7 @@
 
     </section>
     <section>
-      <header>Advanced editing features</header>
+      <header><h2>Advanced editing features</h2></header>
       <p>In both <b>Terminal</b> and <b>Editor</b> tabs, various advanced features are available:
 	<ul>
 	  <li>You can input greek letters and other unicode symbols with <b>Escape</b>[start of name]<b>Escape</b>
@@ -148,16 +148,16 @@
     </section>
 
     <section>
-      <header>Advanced file handling</header>
+      <header><h2>Advanced file handling</h2></header>
       <h3>Uploading files</h3>
       <p>Use the <b>Upload File</b> button to upload files to the \(\mac\) server that can then be loaded into your \(\mac\) session. Suppose that you have uploaded a file named \(\verb|foo.m2|\) which contains \(\mac\) code.
 	You may then load this file into \(\mac\) using either:
       </p>
-      <p><code>load "foo.m2"</code></p>
+      <pre><code>load "foo.m2"</code></pre>
       <p>
 	or, if you wish to see all of the lines executed one by one:
       </p>
-      <p><code>input "foo.m2"</code></p>
+      <pre><code>input "foo.m2"</code></pre>
       <p><b>Note</b>: these lines will likely give errors now, as the file
 	\(\verb|foo.m2|\) probably doesn't exist on the server!</p>
       <p>For your convenience, the content of the <b>Editor</b> tab is automatically uploaded as well. The default name
@@ -166,25 +166,25 @@
       <h3>Running shell commands in your Macaulay2 session</h3>
       <p>It is possible to run shell commands from within \(\mac\), although many operations are restricted.
 	For example, to see what files you have in your home directory on the server, try:</p>
-      <p><code>run "ls -a"</code></p>
+      <pre><code>run "ls -a"</code></pre>
       Alternatively, if you want to obtain the output as a string, use
-      <p><code>get "!ls -a"</code></p>
+      <pre><code>get "!ls -a"</code></pre>
 
       <h3>Macaulay2 and temporary files</h3>
       <p>Sometimes \(\mac\) or one of its packages generate temporary files.
 	For example, the graph function below creates dot and svg files.
       </p>
-      <p><code>needsPackage "Graphs"</code></p>
-      <p><code>A = graph({{a,b},{b,c},{b,d},{d,e}})</code></p>
+      <pre><code>needsPackage "Graphs"</code></pre>
+      <pre><code>A = graph({{a,b},{b,c},{b,d},{d,e}})</code></pre>
 
       <h3>Getting files back to your machine</h3>
       <p>
 	Sometimes your \(\mac\) code will create a file as output.  How to download
 	this onto your machine?  Here is one way.  This first line creates a file for
 	the purpose of this example.
-	<code>"important-results.txt" &lt;&lt; "very important results" &lt;&lt; close</code>
+	<pre><code>"important-results.txt" &lt;&lt; "very important results" &lt;&lt; close</code></pre>
 	The next line will open the file in your <b>Browse</b> tab.
-	<code>show URL "important-results.txt"</code>
+	<pre><code>show URL "important-results.txt"</code></pre>
 	Alternatively, you can download it in the <b>Editor</b> tab: select with your mouse the file name (anywhere in your browser window) and press the <b>Alt</b> key (you can also go to the editor tab and manually type the file name in the bottom right corner). Try it with <tt>important-results.txt</tt> or the temporary files above!
       </p>
 
@@ -202,7 +202,7 @@
       </p>
     </section>
     <section>
-      <header>Other advanced features</header>
+      <header><h2>Other advanced features</h2></header>
       <ul>
 	<li>There is a chatroom (click on the <b>Chat</b> tab button. Supports some markdown (` for code, lists, tables, etc), (La)TeX. Default sends to everyone, with private messaging turned on default sends to your user id, or to the specified comma-separated list of recipients, where each recipient is of the form [alias] or [userid]/ or [userid]/[alias]).</li>
 	<li>You can find your user id by clicking on the word cookie in the <b>Home</b> tab, or looking at the welcome message in chat.

@@ -34,7 +34,7 @@ class LocalContainerManager implements InstanceManager {
     next();
   }
 
-  public removeInstanceFromId(clientId: string) {
+  public removeInstanceFromId() {
     // not needed
   }
 }

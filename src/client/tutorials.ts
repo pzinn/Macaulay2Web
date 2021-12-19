@@ -3,11 +3,6 @@ import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 import Prism from "prismjs";
 
-interface Lesson {
-  title: HTMLElement; // <h2> element
-  html: HTMLElement;
-}
-
 interface Tutorial {
   body: HTMLElement;
   lessons: HTMLCollection;
@@ -129,7 +124,6 @@ const uploadTutorial = function () {
     req.send(formData);
 
     const newTutorial = processTutorial(txt);
-    //    if (!newTutorial.title) return; // if no title, cancel
     tutorials[fileName] = newTutorial;
     if (tutorialIndex == fileName) tutorialIndex = null; // force reload
     initAccordion(fileName);
@@ -224,10 +218,10 @@ const markdownToHTML = function (markdownText) {
   return (
     "<!DOCTYPE html>\n<html>\n<body>\n" +
     txt
-      .replace(/<h1>/, "<header>")
-      .replace(/<h2>/, "<section><header>")
-      .replace(/<h2>/g, "</section><section><header>")
-      .replace(/<\/h2>|<\/h1>/g, "</header>") +
+      .replace(/<h1>/, "<header><h1>")
+      .replace(/<h2>/, "<section><header><h2>")
+      .replace(/<h2>/g, "</section><section><header><h2>")
+      .replace(/(<\/h2>|<\/h1>)/g, "$1</header>") +
     "</section>" +
     "\n</body>\n</html>\n"
   ); //eww
@@ -267,7 +261,10 @@ const initTutorials = function () {
 
   document.getElementById("runAll").onclick = function () {
     if (tutorials[tutorialIndex]) {
-      const lesson = tutorials[tutorialIndex].lessons[lessonNr - 1];
+      const lesson =
+        lessonNr > 0
+          ? tutorials[tutorialIndex].lessons[lessonNr - 1]
+          : tutorials[tutorialIndex].body;
       if (lesson)
         Array.from(lesson.getElementsByTagName("code")).forEach((code) =>
           (code as HTMLElement).click()

@@ -1,4 +1,5 @@
 import { Tutorial, removeTutorial } from "./tutorials.ts";
+import { stripId } from "./htmlTools.ts";
 
 const cssClasses = {
   titleSymbolClass: "material-icons titleSymbol",
@@ -7,12 +8,14 @@ const cssClasses = {
   //  titleSymbolInactive: "expand_less",
   // titleSymbolInactive: "arrow_drop_down",
   titleSymbolInactive: "arrow_right",
-  title: "title mdl-button mdl-js-button mdl-button--raised mdl-list__item",
+  title:
+    "accordionTitleBar mdl-button mdl-js-button mdl-button--raised mdl-list__item",
   titleHover: "mdl-button--colored",
   titleToggleClass: "rotated",
   content: "mdl-list__item-text-body mdl-list__item",
-  innerList: "unstyled",
-  titleHref: "menuTitle mdl-button mdl-js-button mdl-button-raised",
+  innerList: "accordionMenu",
+  menuItem: "accordionMenuTitle",
+  titleHref: "accordionTitle mdl-button mdl-js-button mdl-button-raised",
 };
 
 const initAccordion = function (index) {
@@ -75,6 +78,7 @@ const appendTutorialToAccordion = function (
   }
   const title = tutorial.body.querySelector("title,header");
   titlea.innerHTML = title ? title.innerHTML : index; // use index as default title
+  stripId(titlea);
   titlespan.append(icon, titlea);
   titlespan.style.cursor = "pointer";
 
@@ -126,8 +130,10 @@ const appendTutorialToAccordion = function (
       li = document.createElement("li");
       a = document.createElement("a");
       a.innerHTML = lessonTitle.innerHTML;
+      stripId(a);
       a.href = "#tutorial-" + index + "-" + (j + 1);
       a.target = "_self";
+      a.className = cssClasses.menuItem;
       li.appendChild(a);
       ul.appendChild(li);
     }

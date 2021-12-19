@@ -453,7 +453,7 @@ const Shell = function (
               addMarker(nodeOffset[0], nodeOffset[1]).classList.add(
                 "error-marker"
               );
-              if (txt.match(/error: (syntax error|missing|expected)/)) {
+              if (txt.match(/error: (syntax error|missing|expected ")/)) {
                 // TEMP, obviously
                 const ind = nodeOffset[2].innerText.indexOf(
                   "\n",

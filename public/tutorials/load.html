@@ -6,7 +6,7 @@
       <p>
 	You can write your own tutorial, and then load it on this website
 	(or, give it to your students, and let them load it). Download the
-	file <a href="/tutorial-template.md" target="_blank">tutorial-template.md</a>
+	file <a href="/template-tutorial.md" target="_blank">tutorial-template.md</a>
 	which is both a template for your own tutorial, and a guide for how to write one.
 	Or click on the lessons below to see the result.
       </p>
@@ -15,7 +15,7 @@
   <body>
     <h1>My great tutorial (D. Hilbert)</h1>
     <section>
-      <header>Example lesson title</header>
+      <header><h2>Example lesson title</h2></header>
       <p>
 	The simplest way to produce a tutorial is by writing it in markdown.
 	This tutorial was written in a simple markdown format (the source
@@ -36,27 +36,27 @@
       </p>
     </section>
     <section>
-      <header>Code</header>
+      <header><h2>Code</h2></header>
       <p>
 	Macaulay2 commands (which will be displayed as clickable buttons) are
 	enclosed in triple backquotes (as is standard in many markdown
 	languages). Here we have blank lines between them, but that is not
 	required.
       </p>
-      <code>R = QQ[x]</code>
-      <code>x^3-x-1</code>
+      <code class='block'>R = QQ[x]</code>
+      <code class='block'>x^3-x-1</code>
       <p>
-	or inline: <code class='inline'>factor(x^2-1)</code>.
+	or inline: <code>factor(x^2-1)</code>.
       </p>
       <p>
 	Multiple lines can be placed in one button too.
       </p>
-      <code>f = x -&gt; (
+      <code class='block'>f = x -&gt; (
 	x^3-x-1
 	)</code>
     </section>
     <section>
-      <header>KaTeX</header>
+      <header><h2>KaTeX</h2></header>
       <p>
 	We use KaTeX, which means that you can include math, in the following way:
 	using <strong>\(</strong> <strong>\)</strong> for inline: \(f(x) = x^3-\sin x + 1\), or in display form via
@@ -65,7 +65,7 @@
       </p>
     </section>
     <section>
-      <header>More markdown</header>
+      <header><h2>More markdown</h2></header>
       <p>Other recognized markdown includes:
 	<ul>
 	  <li>lists</li>
@@ -80,7 +80,7 @@
       </p>
     </section>
     <section>
-      <header>Other accepted formats</header>
+      <header><h2>Other accepted formats</h2></header>
       <h3>HTML lessons</h3>
       <p>All tutorials are ultimately converted to HTML (see <a href="tutorials/load.html" target="_blank">this tutorial</a>).
 	You can also upload lessons directly in HTML (file name with a .html extension).
