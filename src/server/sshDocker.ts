@@ -103,6 +103,10 @@ class SshDockerContainersInstanceManager implements InstanceManager {
 	*/
   }
 
+  public checkInstance = function (instance: Instance, next) {
+    // TODO
+    next(false);
+  };
   private getDockerStartCmd(instance: Instance) {
     let result = this.hostConfig.dockerRunCmd;
     result += " " + instance.containerName;
