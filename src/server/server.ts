@@ -89,6 +89,14 @@ const emitViaClientSockets = function (client: Client, type: string, data) {
 
 const getInstance = function (client: Client, next) {
   if (client.instance) {
+    instanceManager.checkInstance(client.instance, function (error) {
+      if (error) {
+        systemChat(
+          client,
+          "A new version of Macaulay2 is available. Type /kill in chat to upgrade."
+        );
+      }
+    });
     next();
   } else {
     try {

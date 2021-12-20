@@ -15,6 +15,7 @@ interface InstanceManager {
   getNewInstance(clientId: string, next: any);
   recoverInstances(next: any);
   removeInstanceFromId(clientId: string);
+  checkInstance(instance: Instance, next: any);
 }
 
 export { Instance, InstanceManager };

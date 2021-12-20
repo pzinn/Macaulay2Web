@@ -84,7 +84,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
   public getNewInstance(clientId, next) {
     const self = this;
-    while (self.currentContainers.length >= self.hostConfig.maxContainerNumber)
+    if (self.currentContainers.length >= self.hostConfig.maxContainerNumber)
       self.killOldestContainers(
         1 + self.currentContainers.length - self.hostConfig.maxContainerNumber
       ); // no waiting for it
@@ -158,6 +158,15 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       }
     );
   }
+
+  public checkInstance = function (instance: Instance, next) {
+    exec(
+      "diff <(sudo docker inspect m2container --format='{{.Id}}') <(sudo docker inspect " +
+        instance.containerName +
+        " --format='{{.Image}}')",
+      next
+    );
+  };
 
   private removeInstanceFromArray = function (instance: Instance) {
     const position = this.currentContainers.indexOf(instance);

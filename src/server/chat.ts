@@ -114,18 +114,18 @@ const socketChatAction = function (socket: Socket, client: Client) {
   };
   const chatAdmin = function (chat: Chat) {
     chat.recipients = null;
-    if (chat.message.startsWith("/kill")) {
+    if (chat.message.startsWith("/killall")) {
+      for (const id in clients) {
+        if (id != options.adminName) instanceManager.removeInstanceFromId(id);
+      }
+    } else if (chat.message.startsWith("/kill")) {
       const i = chat.message.indexOf(" ");
-      if (i < 0) {
-        for (const id in clients) {
-          if (id != options.adminName) instanceManager.removeInstanceFromId(id);
-        }
-      } else {
+      if (i > 0) {
         chat.message
           .substring(i + 1)
           .split(" ")
           .forEach((id) => instanceManager.removeInstanceFromId(id));
-      }
+      } else instanceManager.removeInstanceFromId(client.id);
     } else if (chat.message.startsWith("/block")) {
       const i = chat.message.indexOf(" ");
       if (i < 0) {
@@ -229,7 +229,14 @@ const socketChatAction = function (socket: Socket, client: Client) {
         } else if (chat.type === "restore") chatRestore(chat);
         else if (chat.type === "message") {
           if (chat.message[0] == "!") chatRun(chat);
-          else chatMessage(chat);
+          else if (chat.message.startsWith("/kill")) {
+            instanceManager.removeInstanceFromId(client.id); // can only self-kill
+
+            systemChat(
+              client,
+              "Instance killed. Press Reset to start a new one."
+            );
+          } else chatMessage(chat);
         }
       }
     : function (chat: Chat) {

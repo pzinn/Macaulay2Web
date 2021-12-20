@@ -1,5 +1,5 @@
 # fedora + Macaulay2
-FROM registry.fedoraproject.org/fedora-minimal:33
+FROM registry.fedoraproject.org/fedora-minimal:35
 MAINTAINER Paul Zinn-Justin <pzinn@unimelb.edu.au>
 RUN microdnf -y install sudo wget tar openssh openssh-server graphviz lapack cddlib gc glpk gmp-c++ openblas-serial openblas-threads libnauty libatomic_ops givaro mathic mathicgb-libs memtailor boost-stacktrace boost-regex procps mpfr normaliz gfan which factory flint flexiblas-netlib ntl && microdnf clean all
 # have to manually do this cause no systemd
