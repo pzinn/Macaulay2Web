@@ -164,6 +164,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       "diff <(sudo docker inspect m2container --format='{{.Id}}') <(sudo docker inspect " +
         instance.containerName +
         " --format='{{.Image}}')",
+      { shell: "/bin/bash" },
       next
     );
   };
