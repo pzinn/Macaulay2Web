@@ -219,7 +219,7 @@ const markdownToHTML = function (markdownText) {
     "<!DOCTYPE html>\n<html>\n<body>\n" +
     txt
       .replace(/<h1>/, "<header><h1>")
-      .replace(/<h2>/, "<section><header><h2>")
+      .replace(/<h2>/, "<section><header><h2 >")
       .replace(/<h2>/g, "</section><section><header><h2>")
       .replace(/(<\/h2>|<\/h1>)/g, "$1</header>") +
     "</section>" +
