@@ -68,7 +68,7 @@
     "local": "npm run build && npm start local",
     "debug": "npm run build:debug && npm start local",
     "ssh": "npm run build && npm start ssh",
-    "stop": "kill `ps a | grep 'node dist/server/index.js' | grep -v grep | awk '{print $1}'`",
+    "stop": "kill `ps ax | grep 'node dist/server/index.js' | grep -v grep | awk '{print $1}'`",
     "lint": "eslint src/*/*.ts --fix",
     "format": "prettier --write src/*/*.ts",
     "build:renderhelp": "webpack --config webpack-renderhelp.config.js",

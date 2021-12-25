@@ -231,7 +231,7 @@ const socketChatAction = function (socket: Socket, client: Client) {
           if (chat.message[0] == "!") chatRun(chat);
           else if (chat.message.startsWith("/kill")) {
             instanceManager.removeInstanceFromId(client.id); // can only self-kill
-
+            logger.info("Killing instance", client);
             systemChat(
               client,
               "Instance killed. Press Reset to start a new one."
@@ -241,7 +241,7 @@ const socketChatAction = function (socket: Socket, client: Client) {
       }
     : function (chat: Chat) {
         // admin
-        logger.info("chat of type " + chat.type, client);
+        logger.info("Chat of type " + chat.type, client);
         if (chat.type == "delete") {
           const i = chatList.findIndex((x) => x.index === chat.index); // sigh
           if (i < 0) return; // false alarm
