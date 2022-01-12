@@ -4,6 +4,7 @@ import { socket, url, myshell, clientId } from "./main";
 import {
   scrollDown,
   setCaret,
+  getCaret,
   getCaret2,
   caretIsAtEnd,
   nextChar,
@@ -419,6 +420,7 @@ const extra2 = function () {
         sel.modify("move", "backward", "lineboundary");
         sel.modify("extend", "forward", "lineboundary");
 	*/
+        /*
         sel.modify("move", "forward", "lineboundary"); // semi-fix for annoying move/backward/lineboundary bug when line empty
         sel.modify("extend", "backward", "lineboundary");
 
@@ -426,6 +428,17 @@ const extra2 = function () {
         // sel.modify("move", "forward", "line"); // doesn't work in firefox
         sel.collapseToEnd();
         sel.modify("move", "forward", "character");
+	*/
+        // giving up on using .modify since chromium devs can't be bothered fixing a trivial bug https://bugs.chromium.org/p/chromium/issues/detail?id=1221539#c3
+        const caret = getCaret(editor);
+        const txt = editor.textContent;
+        let start = caret - 1,
+          end = caret;
+        while (end < txt.length && txt[end] != "\n") end++;
+        while (start >= 0 && txt[start] != "\n") start--;
+        s = txt.substring(start + 1, end);
+        if (end < txt.length) end++;
+        setCaret(editor, end);
       } else s = sel.toString(); // fragInnerText(sel.getRangeAt(0).cloneContents()); // toString used to fail because ignored BR / DIV which firefox creates
       myshell.postMessage(s, false, false); // important not to move the pointer so can move to next line
       // s.split("\n").forEach((line) => myshell.postMessage(line, false, false)); // should work fine now that echo mode is on but not needed
