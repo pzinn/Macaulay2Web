@@ -52,6 +52,8 @@ const keydownAction = function (e) {
     newEditorFileMaybe(sel, false);
   } else if (e.target.classList.contains("M2CellBar"))
     barKey(e, e.target.parentElement);
+  else if (e.key == "Enter" && e.shiftKey)
+    myshell.postMessage(window.getSelection().toString(), false, false);
 };
 
 const socketDisconnect = function (msg) {
