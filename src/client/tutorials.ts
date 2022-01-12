@@ -167,7 +167,7 @@ const loadTutorial = function (newTutorialIndex, newLessonNr) {
   xhr.send(null);
 };
 
-const renderLessonMaybe = function (newTutorialIndex?, newLessonNr?): void {
+const renderLessonMaybe = function (newTutorialIndex?, newLessonNr?) {
   if (newTutorialIndex === undefined)
     newTutorialIndex = tutorialIndex ? tutorialIndex : startingTutorials[0];
   newLessonNr =
@@ -176,12 +176,15 @@ const renderLessonMaybe = function (newTutorialIndex?, newLessonNr?): void {
         ? lessonNr
         : 1
       : +newLessonNr;
-  if (tutorialIndex === newTutorialIndex && lessonNr === newLessonNr) return;
-  if (!tutorials[newTutorialIndex]) loadTutorial(newTutorialIndex, newLessonNr);
-  else if (tutorials[newTutorialIndex].lessonNr !== undefined)
-    // being loaded
-    tutorials[newTutorialIndex].lessonNr = newLessonNr;
-  else renderLesson(newTutorialIndex, newLessonNr);
+  if (tutorialIndex !== newTutorialIndex || lessonNr !== newLessonNr) {
+    if (!tutorials[newTutorialIndex])
+      loadTutorial(newTutorialIndex, newLessonNr);
+    else if (tutorials[newTutorialIndex].lessonNr !== undefined)
+      // being loaded
+      tutorials[newTutorialIndex].lessonNr = newLessonNr;
+    else renderLesson(newTutorialIndex, newLessonNr);
+  }
+  return [newTutorialIndex, newLessonNr];
 };
 
 const renderLesson = function (newTutorialIndex, newLessonNr): void {

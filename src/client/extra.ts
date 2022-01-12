@@ -283,20 +283,21 @@ const extra1 = function () {
 
   // supersedes mdl's internal tab handling
   const openTab = function () {
+    window.removeEventListener("hashchange", openTab);
     let loc = document.location.hash.substring(1);
     // new syntax for navigating tutorial
     const m = /^tutorial(?:-(\w+))?(?:-(\d+))?$/.exec(loc);
     if (m) {
       loc = "tutorial";
-      renderLessonMaybe(m[1], m[2]);
+      const r = renderLessonMaybe(m[1], m[2]);
+      document.location.hash = "#tutorial-" + r[0] + "-" + r[1]; // add the tuto name / # to URL
     }
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);
     if (e) {
       // do something *if* session started
       if (socket && socket.connected) newEditorFileMaybe(decodeURI(e[1]), true);
-      document.location.hash = "#editor"; // this will start over openTab
-      return;
+      document.location.hash = "#editor"; // drop the filename from the URL
     }
     const panel = document.getElementById(loc);
     if (panel) {
@@ -316,6 +317,7 @@ const extra1 = function () {
         }
       }
     }
+    window.addEventListener("hashchange", openTab);
   };
 
   let ignoreFirstLoad = true;
@@ -604,6 +606,7 @@ const extra2 = function () {
     enterPressed = e.key == "Enter" && !e.shiftKey; // for editorKeyUp
     if (e.key == "Enter" && e.shiftKey) {
       if (!caretIsAtEnd()) e.preventDefault();
+      e.stopPropagation();
       editorEvaluate();
     } else if (e.key == "Escape") escapeKeyHandling();
     else if (e.key == "Tab" && !e.shiftKey && !tabPressed) {
