@@ -9,6 +9,7 @@ const webAppTagCodes = [
   ["Prompt", 14, "M2Text M2Prompt"],
   ["Error", 15, "M2Text M2Error"],
   ["ErrorEnd", 16, "M2ErrorEnd"],
+  ["Position", 21, "M2Position"],
 ];
 const webAppTags = {} as any;
 const webAppClasses = {} as any;
