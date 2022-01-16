@@ -1,50 +1,51 @@
-3.8.0 09/2021
+3.8 09/2021
+    * code positioning meta-data
     * more coloring/interpreting output: prompts, errors
     * upgrade to socket.io 4, better socket disconnect handling
     * save/restore of files when a docker is destroyed/created
     * better error handling of server
 
-3.7.0 04/2021
+3.7 04/2021
     * tutorial system revamped
     * docker creation fixes
     * readline dumped
 
-3.6.0 02/2021
+3.6 02/2021
     * cookie / id system revamped, and assorted server improvements
     * editor revamped
 
-3.5.0 01/2021
+3.5 01/2021
     * new chat function
     * previous session output memorized for restoring after client reload
 
-3.4.0 11/2020
+3.4 11/2020
     * revert to $ for tex code
     * division of output into cells
     * prerendering help to be served by server
 
-3.3.0 08/2020
+3.3 08/2020
     * https branch
     * overhaul of server / docker interaction
     * better bundling, KaTeX integrated as a submodule
 
-3.2.0 07/2020
+3.2 07/2020
     * name change
     * file restructure
     * minimal interface minimal.html
     * server serves help
 
-3.1.0 04/2020
+3.1 04/2020
     * client rewrite
     * browse tab
 
-3.0.0 03/2018
+3.0 03/2018
     * katex fork
 
-2.0.0 6/23/2017
+2.0 6/23/2017
     * Markdown format for writing tutorials
     * Internally: use TypeScript
 
-1.1.0 4/13/2015
+1.1 4/13/2015
     * Multi-line code tags
     * Docker containers instead of schroots
     * Vagrantfile for users who want to host interactive shell
@@ -54,7 +55,7 @@
     * Users can upload tutorials
     * Singular support
 
-1.0.0 3/31/2013
+1.0 3/31/2013
 Stable version running since March 2013
     * shell-like right hand side
     * upload and download of files
