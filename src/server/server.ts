@@ -39,7 +39,6 @@ let serverConfig = {
   resumeString: undefined,
   port: undefined,
   port2: undefined,
-  CONTAINERS: undefined,
 };
 let options;
 const staticFolder = path.join(__dirname, "../../public/");
@@ -409,7 +408,7 @@ const initializeServer = function () {
   app.use(favicon(staticFolder + "favicon.ico"));
   app.post("/upload/", upload.array("files[]"), fileUpload);
   app.use("/usr/share/", serveStatic("/usr/share"), serveIndex("/usr/share")); // optionally, serve documentation locally and allow browsing
-  app.use(serveStatic(staticFolder));
+  app.use(serveStatic(staticFolder, { dotfiles: "allow" }));
   app.use(fileDownload);
   app.use(unhandled);
 };
@@ -632,21 +631,16 @@ const mathServer = function (o) {
   options = o;
   serverConfig = options.serverConfig;
 
-  if (!serverConfig.CONTAINERS) {
+  if (!options.manager) {
     logger.error("error, no container management given");
     throw new Error("No CONTAINERS!");
   }
 
   getClientId = getClientIdAuth(options.authentication);
   const resources = options.perContainerResources;
-  const guestInstance = options.startInstance;
   const hostConfig = options.hostConfig;
-  guestInstance.port = hostConfig.instancePort;
-  instanceManager = serverConfig.CONTAINERS(
-    resources,
-    hostConfig,
-    guestInstance
-  );
+  const guestInstance = options.startInstance;
+  instanceManager = new options.manager(resources, hostConfig, guestInstance);
 
   instanceManager.recoverInstances(function () {
     logger.info("Start init");

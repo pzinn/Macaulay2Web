@@ -1,3 +1,4 @@
+// CAUTION: this file may be outdated
 import { Instance, InstanceManager } from "./instance";
 import ssh2 = require("ssh2");
 import fs = require("fs");
@@ -248,13 +249,6 @@ const options = {
   serverConfig: {
     MATH_PROGRAM_COMMAND:
       "stty -echo; LD_PRELOAD=/usr/lib64/libtagstderr.so M2MODE=sshDocker M2 --webapp",
-    CONTAINERS(resources, hostConfig, guestInstance): InstanceManager {
-      return new SshDockerContainersInstanceManager(
-        resources,
-        hostConfig,
-        guestInstance
-      );
-    },
   },
   startInstance: {
     host: "192.168.2.42",
@@ -262,6 +256,7 @@ const options = {
     port: "5000",
     sshKey: process.env.HOME + "/keys/docker_key",
   },
+  manager: SshDockerContainersInstanceManager,
 };
 
 export { options };

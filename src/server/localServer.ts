@@ -1,32 +1,23 @@
-import { InstanceManager } from "./instance";
+import { InstanceManager, Instance } from "./instance";
 import childProcess = require("child_process");
 const exec = childProcess.exec;
 
 class LocalContainerManager implements InstanceManager {
-  private options: any;
+  private currentInstance: any;
 
-  constructor() {
-    const options = {
-      credentials: {
-        host: "127.0.0.1",
-        port: 22,
-        username: undefined,
-        sshKey: undefined,
-      },
-    };
+  constructor(resources: any, hostConfig: any, currentInstance: Instance) {
+    this.currentInstance = currentInstance;
     exec("whoami", function (error, username) {
-      options.credentials.username = username.trim();
+      currentInstance.username = username.trim();
     });
 
     exec("echo $HOME", function (error, homedir) {
-      options.credentials.sshKey = homedir.trim() + "/.ssh/id_rsa";
+      currentInstance.sshKey = homedir.trim() + "/.ssh/id_rsa";
     });
-
-    this.options = options;
   }
 
   public getNewInstance = function (clientId: string, next: any) {
-    next({ ...this.options.credentials, lastActiveTime: Date.now() });
+    next({ ...this.currentInstance, lastActiveTime: Date.now() });
   };
 
   public recoverInstances(next) {
@@ -54,10 +45,16 @@ const options = {
       "; cd " +
       baseDirectory +
       "; stty -echo; LD_PRELOAD=/usr/lib64/libtagstderr.so M2MODE=localServer M2 --webapp",
-    CONTAINERS(): InstanceManager {
-      return new LocalContainerManager();
-    },
   },
+  startInstance: {
+    host: "127.0.0.1",
+    port: 22,
+    username: undefined,
+    sshKey: undefined,
+    lastActiveTime: 0,
+    numInputs: 0,
+  },
+  manager: LocalContainerManager,
 };
 
 export { options };

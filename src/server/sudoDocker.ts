@@ -16,9 +16,9 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   private currentInstance: any;
   private currentContainers: any[];
 
-  constructor(resources: any, options: any, currentInstance: Instance) {
+  constructor(resources: any, hostConfig: any, currentInstance: Instance) {
     this.resources = resources;
-    this.hostConfig = options;
+    this.hostConfig = hostConfig;
     this.currentInstance = currentInstance;
     const currentContainers = [];
     this.currentContainers = currentContainers;
@@ -82,7 +82,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     });
   }
 
-  public getNewInstance(clientId, next) {
+  public getNewInstance(clientId: string, next) {
     const self = this;
     if (self.currentContainers.length >= self.hostConfig.maxContainerNumber)
       self.killOldestContainers(
@@ -311,14 +311,8 @@ const options = {
   serverConfig: {
     MATH_PROGRAM_COMMAND:
       "stty -echo; LD_PRELOAD=/usr/lib64/libtagstderr.so M2MODE=sudoDocker M2 --webapp",
-    CONTAINERS(resources, hostConfig, guestInstance): InstanceManager {
-      return new SudoDockerContainersInstanceManager(
-        resources,
-        hostConfig,
-        guestInstance
-      );
-    },
   },
+  manager: SudoDockerContainersInstanceManager,
 };
 
 export { options };

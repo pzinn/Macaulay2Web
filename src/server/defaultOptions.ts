@@ -27,6 +27,7 @@ const options = {
     containerName: "",
     lastActiveTime: 0,
     numInputs: 0,
+    port: 1000,
   },
   hostConfig: {
     minContainerAge: 10,
@@ -36,7 +37,6 @@ const options = {
     dockerCmdPrefix: "sudo ",
     host: "192.168.2.42",
     username: "vagrant",
-    instancePort: 1000,
     port: 22,
     sshKey: process.env.HOME + "/keys/host_key",
   },
