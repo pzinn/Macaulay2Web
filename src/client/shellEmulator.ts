@@ -425,17 +425,20 @@ const Shell = function (
       }
     } else if (
       htmlSec.classList.contains("M2Position") &&
-      htmlSec.parentElement.parentElement.parentElement == shell
+      htmlSec.parentElement.parentElement.parentElement == shell &&
+      !debugPrompt
     ) {
       // eww lame way of testing this isn't e.g. an example
       const spl = htmlSec.dataset.code.split(":");
-      if (spl.length == 2 && +spl[0] == 1 && +spl[1] == 0) {
+      if (spl.length == 2 && +spl[0] == 1 && +spl[1] == 0)
         // is that a good criterion?
         // remove all past line numbers
         Array.from(
           shell.querySelectorAll(".M2PastInput[data-positions]")
         ).forEach((x) => x.removeAttribute("data-positions"));
-      }
+      if (!htmlSec.parentElement.dataset.positions)
+        htmlSec.parentElement.dataset.positions = " ";
+      htmlSec.parentElement.dataset.positions += htmlSec.dataset.code + " ";
     } else if (
       htmlSec.classList.contains("M2Error") &&
       (htmlSec.parentElement == shell ||
@@ -490,14 +493,6 @@ const Shell = function (
           // rare case where input is broken -- e.g.  I=ideal 0; x=(\n   1)
           cmdHistory[cmdHistory.length - 1] += "\n" + txt;
         else cmdHistory.index = cmdHistory.push(txt);
-        if (!debugPrompt) {
-          // number and record individual lines
-          let s = " ";
-          Array.from(htmlSec.querySelectorAll(".M2Position")).forEach(
-            (x) => (s = s + (x as HTMLElement).dataset.code + " ")
-          );
-          if (s != " ") htmlSec.dataset.positions = s;
-        }
         txt.split("\n").forEach((line) => {
           line = line.trim();
           if (line.length > 0) cmdHistory.sorted.sortedPush(line);
@@ -550,8 +545,7 @@ const Shell = function (
         htmlSec.removeAttribute("data-id-list");
       }
     }
-    if (!htmlSec.classList.contains("M2Position"))
-      htmlSec.removeAttribute("data-code");
+    htmlSec.removeAttribute("data-code");
     if (anc.classList.contains("M2Html") && anc.dataset.code != "") {
       // stack
       // in case it's inside TeX, we compute dimensions
