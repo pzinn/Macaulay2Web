@@ -36,7 +36,6 @@ let serverConfig = {
   MATH_PROGRAM_COMMAND: undefined,
   resumeString: undefined,
   port: undefined,
-  CONTAINERS: undefined,
 };
 let options;
 const staticFolder = path.join(__dirname, "../../public/");
@@ -609,21 +608,16 @@ const mathServer = function (o) {
   options = o;
   serverConfig = options.serverConfig;
 
-  if (!serverConfig.CONTAINERS) {
+  if (!options.manager) {
     logger.error("error, no container management given");
     throw new Error("No CONTAINERS!");
   }
 
   getClientId = getClientIdAuth(options.authentication);
   const resources = options.perContainerResources;
-  const guestInstance = options.startInstance;
   const hostConfig = options.hostConfig;
-  guestInstance.port = hostConfig.instancePort;
-  instanceManager = serverConfig.CONTAINERS(
-    resources,
-    hostConfig,
-    guestInstance
-  );
+  const guestInstance = options.startInstance;
+  instanceManager = new options.manager(resources, hostConfig, guestInstance);
 
   instanceManager.recoverInstances(function () {
     logger.info("Start init");

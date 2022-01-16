@@ -699,7 +699,7 @@ const Shell = function (
       i++;
     const m1 = m[i];
     const txt = pastInputs[i].innerText;
-    let offset = locateRowColumn(
+    const offset = locateRowColumn(
       txt,
       row - +m1[1] + 1,
       row == +m1[1] ? column - +m1[2] : column
