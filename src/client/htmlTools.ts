@@ -272,7 +272,13 @@ const addMarker = function (node?, offset?) {
   // markers are used for scrolling or highlighting
   const marker = document.createElement("span");
   marker.classList.add("marker");
-  if (node) node.parentElement.insertBefore(marker, node.splitText(offset)); // !!
+  if (node) {
+    if (node.nodeType === 3)
+      // should always be the case but there are edge cases
+      node.parentElement.insertBefore(marker, node.splitText(offset));
+    // !!
+    else node.appendChild(marker); // fall-back behavior (?)
+  }
   setTimeout(function () {
     marker.remove();
   }, 1500);
