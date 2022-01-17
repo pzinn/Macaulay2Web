@@ -89,11 +89,10 @@ const emitViaClientSockets = function (client: Client, type: string, data) {
   client.sockets.forEach((socket) => safeEmit(socket, type, data));
 };
 
-const getInstance = function (client: Client, next) {
+const getInstance = function (client: Client, next): void {
   if (client.instance) {
     instanceManager.checkInstance(client.instance, function (error) {
       if (error) {
-        logger.warn("instance error: " + error, client); // TEMP
         systemChat(
           client,
           "A new version of Macaulay2 is available. Type /kill in chat to upgrade."
@@ -104,11 +103,11 @@ const getInstance = function (client: Client, next) {
   } else {
     try {
       logger.info("No instance", client);
-      client.channel = null; // TEMP. investigate why closing the connection (which happens when channel ends) doesn't actually do anything
+      client.channel = null; // investigate why closing the connection (which happens when channel ends) doesn't actually do anything
       instanceManager.getNewInstance(client.id, function (instance: Instance) {
         client.instance = instance;
         client.instance.killNotify = killNotify(client); // what is this for???
-        next();
+        getInstance(client, next);
       });
     } catch (error) {
       logger.error(

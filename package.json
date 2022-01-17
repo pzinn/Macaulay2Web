@@ -56,16 +56,15 @@
   },
   "scripts": {
     "postinstall": "./postinstall",
-    "build": "npm run lint && npm run format && npm run build:server && npm run build:client && npm run build:minimal && npm run css",
-    "build:server": "tsc",
-    "build:client": "webpack --env production",
-    "build:minimal": "webpack --env minimal",
-    "build:debug": "webpack --env debug",
-    "build:debug-minimal": "webpack --env debug --env minimal",
+    "build": "npm run lint && npm run format && npm run server && npm run client && npm run minimal && npm run css",
+    "server": "tsc",
+    "client": "webpack --env production",
+    "minimal": "webpack --env minimal",
+    "debug": "webpack --env debug",
+    "debug-minimal": "webpack --env debug --env minimal",
     "css": "cd src/client/css; lessc ../../../KaTeX/src/katex.less katex.css; cat katex.css VectorGraphics.css interface_common.css interface_minimal.css prism-M2.css | postcss -o ../../../public/minimal.css && cat material.indigo-deep_orange.min.css katex.css VectorGraphics.css interface_common.css interface_extra.css prism-M2.css | postcss -o ../../../public/index.css",
     "start": "node dist/server/index.js",
     "docker": "npm run build && npm start docker",
-    "docker-recreate": "npm run build && npm start docker-recreate",
     "local": "npm run build && npm start local",
     "debug": "npm run build:debug && npm start local",
     "ssh": "npm run build && npm start ssh",
@@ -73,7 +72,7 @@
     "lint": "eslint src/*/*.ts --fix",
     "format": "prettier --write src/*/*.ts",
     "build:renderhelp": "webpack --config webpack-renderhelp.config.js",
-    "renderhelp": "node src/renderhelp/index.js"
+    "start:renderhelp": "node src/renderhelp/index.js"
   },
   "repository": {
     "type": "git",
