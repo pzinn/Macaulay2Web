@@ -125,7 +125,11 @@ const socketChatAction = function (socket: Socket, client: Client) {
           .substring(i + 1)
           .split(" ")
           .forEach((id) => instanceManager.removeInstanceFromId(id));
-      } else instanceManager.removeInstanceFromId(client.id);
+      } else {
+        instanceManager.removeInstanceFromId(client.id); // self-kill
+        logger.info("Killing instance", client);
+        systemChat(client, "Instance killed. Press Reset to start a new one.");
+      }
     } else if (chat.message.startsWith("/block")) {
       const i = chat.message.indexOf(" ");
       if (i < 0) {
