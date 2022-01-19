@@ -65,7 +65,6 @@
     "start": "node dist/server/index.js",
     "docker": "npm run build && npm start docker",
     "local": "npm run build && npm start local",
-    "debug": "npm run build:debug && npm start local",
     "ssh": "npm run build && npm start ssh",
     "stop": "kill `ps ax | grep 'node dist/server/index.js' | grep -v grep | awk '{print $1}'`",
     "lint": "eslint src/*/*.ts --fix",
