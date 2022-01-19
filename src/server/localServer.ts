@@ -1,5 +1,6 @@
 import { InstanceManager, Instance } from "./instance";
 import childProcess = require("child_process");
+import fs = require("fs");
 const exec = childProcess.exec;
 
 class LocalContainerManager implements InstanceManager {
@@ -39,12 +40,10 @@ const baseDirectory = "m2/";
 const options = {
   serverConfig: {
     baseDirectory: baseDirectory,
-    MATH_PROGRAM_COMMAND:
-      "mkdir -p " +
-      baseDirectory +
-      "; cd " +
-      baseDirectory +
-      "; stty -echo; LD_PRELOAD=/usr/lib64/libtagstderr.so M2MODE=localServer M2 --webapp",
+    m2Prefixes: {
+      // before other prefixes
+      0: "mkdir -p " + baseDirectory + "; cd " + baseDirectory + ";",
+    },
   },
   startInstance: {
     host: "127.0.0.1",
@@ -56,5 +55,9 @@ const options = {
   },
   manager: LocalContainerManager,
 };
+
+// check for libtagstderr
+if (!fs.existsSync("/usr/lib64/libtagstderr.so"))
+  options.serverConfig.m2Prefixes["tagstderr"] = ""; // and disable if not found
 
 export { options };

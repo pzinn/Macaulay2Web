@@ -307,10 +307,6 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 }
 
 const options = {
-  serverConfig: {
-    MATH_PROGRAM_COMMAND:
-      "stty -echo; LD_PRELOAD=/usr/lib64/libtagstderr.so M2MODE=sudoDocker M2 --webapp",
-  },
   manager: SudoDockerContainersInstanceManager,
 };
 

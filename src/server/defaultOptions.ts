@@ -13,11 +13,14 @@ const options = {
     maxOutputStat: 1000, // # outputs before error thrown
   },
   serverConfig: {
-    MATH_PROGRAM: "Macaulay2",
-    MATH_PROGRAM_COMMAND:
-      "stty -echo; LD_PRELOAD=/usr/lib64/libtagstderr.so M2 --webapp",
+    m2Prefixes: {
+      stty: "stty -echo;",
+      tagstderr: "LD_PRELOAD=/usr/lib64/libtagstderr.so ", // should be last
+    },
+    m2Command: "M2 --webapp",
     port: 8002,
     baseDirectory: "", // to change the directory in which M2 is started & files are up/downloaded
+    mode: undefined,
   },
   startInstance: {
     host: "127.0.0.1",
