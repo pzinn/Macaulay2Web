@@ -47,6 +47,7 @@ if (mode === "local") {
 }
 
 overrideDefaultOptions(overrideOptions.options, options);
+options.serverConfig.mode = mode;
 
 if (n > 3) {
   logger.info("http  port " + args[3] + " requested");

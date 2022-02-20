@@ -32,14 +32,7 @@ const greenlock = require("greenlock-express");
 
 import path = require("path");
 let getClientId;
-let serverConfig = {
-  MATH_PROGRAM: undefined,
-  CMD_LOG_FOLDER: undefined,
-  MATH_PROGRAM_COMMAND: undefined,
-  resumeString: undefined,
-  port: undefined,
-  port2: undefined,
-};
+let serverConfig;
 let options;
 const staticFolder = path.join(__dirname, "../../public/");
 
@@ -125,6 +118,16 @@ const killNotify = function (client: Client) {
   };
 };
 
+const constructM2Command = function (): string {
+  return (
+    Object.values(serverConfig.m2Prefixes).join("") +
+    " M2MODE=" +
+    serverConfig.mode +
+    " " +
+    serverConfig.m2Command
+  );
+};
+
 const spawnMathProgram = function (client: Client, next) {
   logger.info("Spawning new MathProgram process", client);
   const connection: ssh2.Client = new ssh2.Client();
@@ -139,7 +142,7 @@ const spawnMathProgram = function (client: Client, next) {
   connection
     .on("ready", function () {
       connection.exec(
-        serverConfig.MATH_PROGRAM_COMMAND,
+        constructM2Command(),
         { pty: { term: "dumb" } },
         function (err, channel: ssh2.ClientChannel) {
           if (err) {

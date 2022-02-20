@@ -59,32 +59,6 @@ the results will be ready for you. There are mechanism to restrict ressources al
 
 ## Installation
 
-### With virtualization
-
-We have a Vagrant file that configures a virtual machine with everything you need to run your own Server with Macaulay2.
-You do not need to install Macaulay2 locally.
-
-Make sure [VirtualBox](https://www.virtualbox.org/) and [Vagrant](https://www.vagrantup.com/) are installed. On Windows,
-we recommend to run
-Vagrant from within [Git BASH](https://msysgit.github.io/). Do the following inside a terminal or Git BASH:
-
-```bash
-git clone https://github.com/pzinn/Macaulay2Web.git
-cd Macaulay2Web/setups/basic
-vagrant up
-```
-
-The web app is running at [http://localhost:8002](http://localhost:8002). Every Macaulay2 instance runs in a
-separate Docker container with limited resources and does not have access to your
-filesystem. Users can only access files inside their Docker container. You can manipulate the memory limits
-of the server in the Vagrantfile and for the single users in the file {Macaulay2Web/src/server/startupConfigs/default.ts}.
-
-If vagrant cannot mount due to a vboxfs not found error, do
-
-```bash
-vagrant plugin install vagrant-vbguest
-```
-
 ### Without virtualisation
 
 If you do not want to run the web app within a virtual machine, you can run it locally. You need
@@ -112,7 +86,7 @@ npm install
 Then download and build the container:
 ```bash
 docker pull pzinn/m2container
-docker built -d m2container .
+docker build -t m2container .
 ```
 (depending on your system, you may have to precede this with `sudo`).
 
@@ -139,6 +113,32 @@ That means users can access and modify your private data through Macaulay2's `ge
 allow web access to your machine to other users on the same network, i.e., make sure your laptop's firewall is on.
 The port may be different, check the console output where you started the server for
  `Server running on [port]`.
+
+### With virtualization
+
+We have a Vagrant file that configures a virtual machine with everything you need to run your own Server with Macaulay2.
+You do not need to install Macaulay2 locally.
+
+Make sure [VirtualBox](https://www.virtualbox.org/) and [Vagrant](https://www.vagrantup.com/) are installed. On Windows,
+we recommend to run
+Vagrant from within [Git BASH](https://msysgit.github.io/). Do the following inside a terminal or Git BASH:
+
+```bash
+git clone https://github.com/pzinn/Macaulay2Web.git
+cd Macaulay2Web/setups/basic
+vagrant up
+```
+
+The web app is running at [http://localhost:8002](http://localhost:8002). Every Macaulay2 instance runs in a
+separate Docker container with limited resources and does not have access to your
+filesystem. Users can only access files inside their Docker container. You can manipulate the memory limits
+of the server in the Vagrantfile and for the single users in the file {Macaulay2Web/src/server/startupConfigs/default.ts}.
+
+If vagrant cannot mount due to a vboxfs not found error, do
+
+```bash
+vagrant plugin install vagrant-vbguest
+```
 
 ### HTTPS
 Macaulay2Web has another branch, https, which allows for communication to the server via the HTTPS protocol.
@@ -172,15 +172,6 @@ You can manipulate the resource limits of the virtual machine in the Vagrantfile
 Macaulay2Web/src/server/defaultOptions.ts
 ```
 contains several default values for the ressource limits of the single container.
-
-If you manipulate these files and want to manually restart, enter the directory of the setup you are using and
-```bash
-vagrant ssh
-killall node
-cd Macaulay2Web
-npm run basic
-```
-
 
 ### Linting
 We use Eslint

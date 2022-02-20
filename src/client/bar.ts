@@ -28,7 +28,7 @@ let target;
 const runEl = (el) => {
   if (el.classList.contains("M2Cell")) Array.from(el.children).forEach(runEl);
   else if (el.classList.contains("M2PastInput")) {
-    myshell.postMessage(el.textContent, true, true);
+    myshell.postMessage(el.textContent, false, true);
     el.classList.add("codetrigger");
     setTimeout(() => {
       el.classList.remove("codetrigger");
