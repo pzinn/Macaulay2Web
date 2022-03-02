@@ -90,6 +90,16 @@ const fixAnchor = function (t: HTMLAnchorElement) {
   if (url.startsWith("file://")) t.href = url.substring(7); // no local files
 };
 
+const language = function (e) {
+  // tries to determine language of code. not great...
+  for (let i = 0; i < 3; i++)
+    if (e != null) {
+      if (e.dataset.language) return e.dataset.language;
+      e = e.parentElement;
+    }
+  return "Macaulay2"; // by default we assume code is M2
+};
+
 const clickAction = function (e) {
   if (e.button != 0) return;
   hideContextMenu();
@@ -101,7 +111,8 @@ const clickAction = function (e) {
       return;
     }
     if (
-      (t.tagName == "CODE" || t.classList.contains("M2PastInput")) &&
+      ((t.tagName == "CODE" && language(t) == "Macaulay2") ||
+        t.classList.contains("M2PastInput")) &&
       t.ownerDocument.getSelection().isCollapsed
     ) {
       e.stopPropagation();
