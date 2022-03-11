@@ -5,7 +5,7 @@ import Prism from "prismjs";
 
 interface Tutorial {
   body: HTMLElement;
-  lessons: HTMLCollection;
+  lessons: NodeList;
   clickAction?: any;
 }
 
@@ -56,7 +56,7 @@ const processTutorial = function (theHtml: string) {
 
   const tutorial: Tutorial = {
     body: el,
-    lessons: el.getElementsByTagName("section"), // should do a better search so only direct descendants
+    lessons: el.querySelectorAll("section:not(section section)"),
   };
   return tutorial;
 };

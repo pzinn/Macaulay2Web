@@ -340,7 +340,7 @@ nav {
     margin: 0px;
 }
 
-#lesson section {
+#lesson section:not(section section) {
     display: none;
 }
 
