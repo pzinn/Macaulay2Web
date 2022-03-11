@@ -565,18 +565,15 @@
     for example, let's compute the homology of a
     Koszul complex that is not a resolution:
     $$ \mathbf{K}(x^2, x y^2):\ \  0 \rightarrow{} S(-5) \rightarrow{} S(-2)\oplus S(-3) \rightarrow{} S \rightarrow 0 $$
-    The free module $S(-2) \oplus{} S(-3)$ can be defined with this
-    syntax:
 </p>
-<pre><code>S^{-2,-3} </code></pre>
 <p>
-    Here is how we can define the maps in the Koszul complex:
-</p>
-<pre><code>S = kk[x,y]</code></pre>
-<pre><code>phi1 = map(S^1, S^{-2,-3}, matrix"x2,xy2")</code></pre>
-<pre><code>phi2 = map(S^{-2,-3}, S^{-5}, matrix"xy2;-x2")</code></pre>
-<p>
-    Let's check that this is will really make a complex:
+  The free module $S(-2) \oplus{} S(-3)$ can be defined with this syntax:
+  <pre><code>S = kk[x,y]</code></pre>
+  <pre><code>S^{-2,-3} </code></pre>
+  Here is how we can define the maps in the Koszul complex:
+  <pre><code>phi1 = map(S^1, S^{-2,-3}, matrix"x2,xy2")</code></pre>
+  <pre><code>phi2 = map(S^{-2,-3}, S^{-5}, matrix"xy2;-x2")</code></pre>
+  Let's check that this is will really make a complex:
 </p>
 <pre><code>phi1*phi2</code></pre>
 <p>
