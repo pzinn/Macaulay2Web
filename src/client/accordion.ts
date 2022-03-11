@@ -125,7 +125,9 @@ const appendTutorialToAccordion = function (
 
   let li, a;
   for (let j = 0; j < tutorial.lessons.length; j++) {
-    const lessonTitle = tutorial.lessons[j].querySelector("header");
+    const lessonTitle = (tutorial.lessons[j] as HTMLElement).querySelector(
+      "header"
+    );
     if (lessonTitle) {
       li = document.createElement("li");
       a = document.createElement("a");
