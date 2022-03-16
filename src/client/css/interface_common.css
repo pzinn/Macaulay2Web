@@ -275,14 +275,6 @@ code {
     margin: 0;
 }
 
-/* two annoying cases */
-code.mathematica { /* mathematica code */
-    background-color:initial;
-    cursor: initial;
-    box-shadow: initial;
-    border-radius: 0px;
-}
-
 .element code[class*=language] { /* Usage in doc (temp?) */
     background-color:initial;
     cursor: initial;
