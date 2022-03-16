@@ -43,4 +43,4 @@ gList(d1,d2,ViewPort=>{vector{-400,-400},vector{400,400}},Size=>40,"stroke-width
 
 -- or (more serious)
 R=RR[x,y]; P=y^2-(x+1)*(x-1)*(x-2);
-plot(P,{-2,3},"stroke-width"=>0.05,Size=>35,"stroke"=>"red")
+plot2d(P,{-2,3},"stroke-width"=>0.05,Size=>35,"stroke"=>"red",Axes=>true)
