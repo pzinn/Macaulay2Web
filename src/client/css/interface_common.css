@@ -300,6 +300,10 @@ code.block {
     margin-bottom: 10px;
 }
 
+[data-m2code] {
+    cursor: pointer;
+    z-index: 1; /* to avoid links disappearing under other stuff e.g. KaTeX */
+}
 
 .M2PastInput {
     transition: background-color 200ms;
