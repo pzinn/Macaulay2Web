@@ -273,9 +273,11 @@ code {
     border-radius: 7px;
     display: inline;
     margin: 0;
+    position: relative;
+    z-index: 1; /* to avoid links disappearing under other stuff e.g. KaTeX */
 }
 
-.element code[class*=language] { /* Usage in doc (temp?) */
+.element code[class*=language] { /* Usage in doc (TEMP) */
     background-color:initial;
     cursor: initial;
     box-shadow: initial;
