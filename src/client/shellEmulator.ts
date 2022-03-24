@@ -139,8 +139,8 @@ const Shell = function (
     t.classList.add("codetrigger");
     if (t.tagName == "CODE") obj.postMessage(t.innerText, false, false);
     else {
-      // past input: almost the same but not quite: code not sent, just replaces input
-      let str = t.textContent;
+      // past input / manual code: almost the same but not quite: code not sent, just replaces input
+	let str = t.dataset.m2code ? t.dataset.m2code : t.textContent;
       if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
       // inputSpan.textContent = str;
       // setCaretAtEndMaybe(inputSpan);
