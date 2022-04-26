@@ -140,7 +140,7 @@ const Shell = function (
     if (t.tagName == "CODE") obj.postMessage(t.innerText, false, false);
     else {
       // past input / manual code: almost the same but not quite: code not sent, just replaces input
-	let str = t.dataset.m2code ? t.dataset.m2code : t.textContent;
+      let str = t.dataset.m2code ? t.dataset.m2code : t.textContent;
       if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
       // inputSpan.textContent = str;
       // setCaretAtEndMaybe(inputSpan);
@@ -230,7 +230,7 @@ const Shell = function (
 
   shell.onclick = function (e) {
     if (!inputSpan || !window.getSelection().isCollapsed) return;
-    let t = e.target as HTMLElement;
+    /*    let t = e.target as HTMLElement;
     while (t != shell) {
       if (
         t.classList.contains("M2CellBar") ||
@@ -239,10 +239,23 @@ const Shell = function (
       )
         return;
       t = t.parentElement;
-    }
-    setCaretAtEndMaybe(inputSpan, true);
-    scrollDown(shell);
+    }*/
+    inputSpan.focus({ preventScroll: true });
   };
+
+  const scrollBtn = document.getElementById("terminalScroll");
+  if (scrollBtn) {
+    scrollBtn.onclick = function () {
+      setCaretAtEndMaybe(inputSpan, true);
+      scrollDown(shell);
+    };
+    shell.onscroll = function () {
+      scrollBtn.style.visibility =
+        shell.scrollTop + shell.clientHeight >= shell.scrollHeight
+          ? "hidden"
+          : "visible";
+    };
+  }
 
   shell.onkeydown = function (e: KeyboardEvent) {
     if (!inputSpan) return;

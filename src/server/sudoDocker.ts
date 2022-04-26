@@ -288,6 +288,10 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       function (error, stdout, stderr) {
         if (error) {
           logger.error("Error while waiting for sshd: " + error);
+          setTimeout(function () {
+            self.getNewInstance(instance.clientId, next); // what if instance is still running?
+          }, 3000);
+          return;
         }
         const runningSshDaemons = stdout;
 
