@@ -230,7 +230,7 @@ const Shell = function (
 
   shell.onclick = function (e) {
     if (!inputSpan || !window.getSelection().isCollapsed) return;
-    let t = e.target as HTMLElement;
+    /*    let t = e.target as HTMLElement;
     while (t != shell) {
       if (
         t.classList.contains("M2CellBar") ||
@@ -239,10 +239,23 @@ const Shell = function (
       )
         return;
       t = t.parentElement;
-    }
-    setCaretAtEndMaybe(inputSpan, true);
-    scrollDown(shell);
+    }*/
+    inputSpan.focus({ preventScroll: true });
   };
+
+  const scrollBtn = document.getElementById("terminalScroll");
+  if (scrollBtn) {
+    scrollBtn.onclick = function () {
+      setCaretAtEndMaybe(inputSpan, true);
+      scrollDown(shell);
+    };
+    shell.onscroll = function () {
+      scrollBtn.style.visibility =
+        shell.scrollTop + shell.clientHeight >= shell.scrollHeight
+          ? "hidden"
+          : "visible";
+    };
+  }
 
   shell.onkeydown = function (e: KeyboardEvent) {
     if (!inputSpan) return;

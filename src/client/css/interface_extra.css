@@ -186,6 +186,14 @@ body {
     top: -4px;
     right: 50px;
 }
+
+#terminalScroll {
+    z-index: 2;
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+}
+
 #maximizeOutput, #downsizeOutput {
     z-index: 2;
     position: absolute;
