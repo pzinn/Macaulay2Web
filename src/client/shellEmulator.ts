@@ -140,7 +140,7 @@ const Shell = function (
     if (t.tagName == "CODE") obj.postMessage(t.innerText, false, false);
     else {
       // past input / manual code: almost the same but not quite: code not sent, just replaces input
-	let str = t.dataset.m2code ? t.dataset.m2code : t.textContent;
+      let str = t.dataset.m2code ? t.dataset.m2code : t.textContent;
       if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
       // inputSpan.textContent = str;
       // setCaretAtEndMaybe(inputSpan);
