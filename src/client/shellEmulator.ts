@@ -230,7 +230,7 @@ const Shell = function (
 
   shell.onclick = function (e) {
     if (!inputSpan || !window.getSelection().isCollapsed) return;
-    /*    let t = e.target as HTMLElement;
+    let t = e.target as HTMLElement;
     while (t != shell) {
       if (
         t.classList.contains("M2CellBar") ||
@@ -239,7 +239,7 @@ const Shell = function (
       )
         return;
       t = t.parentElement;
-    }*/
+    }
     inputSpan.focus({ preventScroll: true });
   };
 
