@@ -194,6 +194,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   };
 
   private killOldestContainers = function (num: number) {
+    logger.info("Too many containers (" + num + ")");
     this.sortInstancesByAge();
     for (let i = 0; i < num && this.currentContainers.length > 0; i++) {
       const instance = this.currentContainers[0];
