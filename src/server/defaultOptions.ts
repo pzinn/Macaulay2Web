@@ -33,7 +33,7 @@ const options = {
     port: 1000,
   },
   hostConfig: {
-    minContainerAge: 10,
+    minContainerAge: 10 * 1000 * 60, // 10 mins
     maxContainerNumber: 400,
     containerType: "m2container",
     sshdCmd: "/usr/sbin/sshd -D",

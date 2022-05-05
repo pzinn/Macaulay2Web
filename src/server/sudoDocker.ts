@@ -185,9 +185,9 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
   private sortInstancesByAge = function () {
     this.currentContainers.sort((a, b) =>
-      a.numInputs == 0 && b.numInputs > 0
+      a.numInputs == 0 && this.isLegal(a) && b.numInputs > 0
         ? -1
-        : b.numInputs == 0 && a.numInputs > 0
+        : b.numInputs == 0 && this.isLegal(b) && a.numInputs > 0
         ? 1
         : a.lastActiveTime - b.lastActiveTime
     );
