@@ -8,6 +8,7 @@ import {
   forwardCaret,
   addMarkerEl,
 } from "./htmlTools";
+import { webAppRegex } from "../common/tags";
 import Prism from "prismjs";
 
 // partial support for unicode symbols
@@ -29,13 +30,14 @@ const UCsymbols = {
 };
 
 const UCsymbolKeys = Object.keys(UCsymbols).sort();
-const UCsymbolValues = Object.values(UCsymbols)
-  .map((i) => String.fromCharCode(i))
-  .join("");
-const sanitizeRegEx = new RegExp("[^ -~" + UCsymbolValues + "]", "g"); // a bit too restrictive?
+//const UCsymbolValues = Object.values(UCsymbols)
+//  .map((i) => String.fromCharCode(i))
+//  .join("");
+//const sanitizeRegEx = new RegExp("[^ -~" + UCsymbolValues + "]", "g"); // a bit too restrictive?
 const sanitizeInput = function (msg: string) {
   // sanitize input
-  return msg.replace(sanitizeRegEx, "").replace(/\n+$/, "");
+  //  return msg.replace(sanitizeRegEx, "").replace(/\n+$/, "");
+  return msg.replace(webAppRegex, "").replace(/\n+$/, "");
 };
 
 const escapeKeyHandling = function () {
