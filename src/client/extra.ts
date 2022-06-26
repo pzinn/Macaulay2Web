@@ -413,7 +413,8 @@ const extra2 = function () {
 
   const editorEvaluate = function () {
     // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
-    const sel = window.getSelection() as any; // modify is still "experimental"
+    //    const sel = window.getSelection() as any; // modify is still "experimental"
+    const sel = window.getSelection();
     if (editor.contains(sel.focusNode)) {
       // only if we're inside the editor
       let s;
@@ -440,7 +441,10 @@ const extra2 = function () {
         while (start >= 0 && txt[start] != "\n") start--;
         s = txt.substring(start + 1, end);
         if (end < txt.length) end++;
-        setCaret(editor, end);
+        setCaret(editor, end, end, true).scrollIntoView({
+          block: "nearest",
+          inline: "nearest",
+        });
       } else s = sel.toString(); // fragInnerText(sel.getRangeAt(0).cloneContents()); // toString used to fail because ignored BR / DIV which firefox creates
       myshell.postMessage(s, false, false); // important not to move the pointer so can move to next line
       // s.split("\n").forEach((line) => myshell.postMessage(line, false, false)); // should work fine now that echo mode is on but not needed

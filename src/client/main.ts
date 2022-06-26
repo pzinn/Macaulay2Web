@@ -53,7 +53,12 @@ const keydownAction = function (e) {
   } else if (e.target.classList.contains("M2CellBar"))
     barKey(e, e.target.parentElement);
   else if (e.key == "Enter" && e.shiftKey)
-    myshell.postMessage(window.getSelection().toString(), false, false);
+    // shift-Enter works on selection even outside editor
+    myshell.postMessage(
+      e.currentTarget.ownerDocument.getSelection().toString(),
+      false,
+      false
+    );
 };
 
 const socketDisconnect = function (msg) {
