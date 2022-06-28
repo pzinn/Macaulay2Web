@@ -15,6 +15,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   private hostConfig: any;
   private currentInstance: any;
   private currentContainers: any[];
+  private startPort: number;
 
   constructor(resources: any, hostConfig: any, currentInstance: Instance) {
     this.resources = resources;
@@ -22,12 +23,13 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     this.currentInstance = currentInstance;
     const currentContainers = [];
     this.currentContainers = currentContainers;
+    this.startPort = currentInstance.port;
   }
 
   private incrementPort() {
     this.currentInstance.port =
       this.currentInstance.port == 65535
-        ? this.hostConfig.instancePort
+        ? this.startPort
         : this.currentInstance.port + 1;
   }
 
