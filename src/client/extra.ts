@@ -625,7 +625,8 @@ const extra2 = function () {
       const sel = window.getSelection() as any;
       sel.collapse(sel.focusNode, sel.focusOffset); // there has to be a simpler way...
       sel.modify("extend", "forward", "lineboundary");
-      document.execCommand("cut", false);
+      if (!sel.isCollapsed) document.execCommand("cut", false);
+      else document.execCommand("forwardDelete", false);
       e.preventDefault();
     } else if (e.key == "s" && e.ctrlKey) {
       // emacs binding

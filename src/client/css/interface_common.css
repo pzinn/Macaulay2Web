@@ -1,3 +1,14 @@
+@font-face {
+    font-family:"Iosevka";
+    font-weight:400;
+    src: url("iosevka-fixed-extended.woff2") format("woff2");
+}
+@font-face {
+    font-family:"Iosevka";
+    font-weight:500;
+    src: url("iosevka-fixed-extendedmedium.woff2") format("woff2");
+}
+
 body {
     font-family: "Epilogue";
 }
@@ -47,7 +58,7 @@ body {
 
 .M2Text {
     white-space: pre;
-    font-family: "Roboto Mono", monospace;
+    font-family: "Iosevka", monospace;
     font-weight: normal;
 }
 
@@ -200,7 +211,7 @@ does not contain the whole contents (and is possibly empty) */
 .KatexError {
     color: #C07060;
     white-space: pre;
-    font-family: "Roboto Mono", monospace;
+    font-family: "Iosevka", monospace;
     font-weight: normal;
 }
 
@@ -261,7 +272,7 @@ does not contain the whole contents (and is possibly empty) */
 
 code {
     white-space: pre;
-    font-family: 'Roboto Mono';
+    font-family: 'Iosevka';
     font-weight: normal;
     line-height: 1.5;
     background-color: lightyellow;
@@ -282,7 +293,7 @@ code {
     cursor: initial;
     box-shadow: initial;
     border-radius: 0px;
-    font-family: "Roboto Mono", monospace;
+    font-family: "Iosevka", monospace;
     font-weight: 500;
     font-size: inherit;
 }
@@ -323,7 +334,7 @@ code.block {
 }
 
 pre, tt, blockquote {
-    font-family: "Roboto Mono", monospace;
+    font-family: "Iosevka", monospace;
     font-weight: 500;
     font-size: inherit;
 }
@@ -363,7 +374,7 @@ ul.menu {
     position: absolute;
     right: 0px;
     top: 0px;*/
-    font-family: "Roboto Mono", monospace;
+    font-family: "Iosevka", monospace;
     font-size:0.5em;
     content: ":" attr(data-type);
 }
