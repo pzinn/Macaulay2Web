@@ -1,3 +1,14 @@
+@font-face {
+    font-family:"Iosevka";
+    font-weight:400;
+    src: url("iosevka-fixed-extended.woff2") format("woff2");
+}
+@font-face {
+    font-family:"Iosevka";
+    font-weight:500;
+    src: url("iosevka-fixed-extendedmedium.woff2") format("woff2");
+}
+
 body {
     font-family: "Epilogue";
 }
