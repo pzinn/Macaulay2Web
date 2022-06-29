@@ -497,6 +497,20 @@ const extra2 = function () {
     fileNameEl.focus();
   };
 
+  const copyFileNameBtn = document.getElementById("copyFileNameBtn");
+  copyFileNameBtn.onclick = function () {
+    const fileNameEl = document.getElementById(
+      "editorFileName"
+    ) as HTMLInputElement;
+    const curInput = document.getElementsByClassName(
+      "M2CurrentInput"
+    )[0] as HTMLElement;
+    if (curInput) {
+      curInput.focus();
+      document.execCommand("insertText", false, fileNameEl.value);
+    }
+  };
+
   const showUploadDialog = function (event) {
     console.log("file upload returned status code " + event.target.status);
     const response = event.target.responseText;
