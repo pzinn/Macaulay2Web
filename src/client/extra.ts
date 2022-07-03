@@ -658,7 +658,9 @@ const extra2 = function () {
   let searchSuccess = 0; // how many characters of the searchString we managed to find
   const editorKeyDownSearch = function (e) {
     //    console.log("search: " + searchString + " + " + e.key);
-    let pos = getCaret2(editor)[0];
+    let pos0 = getCaret2(editor);
+    if (pos0 === null) return false;
+    let pos = pos0[0];
     if (e.key == "s" && e.ctrlKey) {
       if (searchString == "") searchString = prevSearchString;
       else if (searchSuccess == 0) pos = 0;
