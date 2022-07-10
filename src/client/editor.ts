@@ -125,7 +125,9 @@ const autoCompleteHandling = function (el, dictionary?) {
     i = pos - 1;
     while (
       i >= 0 &&
-      ((msg[i] >= "A" && msg[i] <= "Z") || (msg[i] >= "a" && msg[i] <= "z"))
+      ((msg[i] >= "A" && msg[i] <= "Z") ||
+        (msg[i] >= "a" && msg[i] <= "z") ||
+        (msg[i] >= "0" && msg[i] <= "9"))
     )
       i--; // would be faster with regex
   }
