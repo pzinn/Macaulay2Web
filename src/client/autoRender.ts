@@ -180,7 +180,7 @@ const autoRender = function (elem) {
       ) {
         i++;
         childNode = elem.childNodes[i];
-        str += childNode.textContent; // in case text nodes get split because of max length
+        str += childNode.textContent; // in case text nodes get split because of max length. see similar implementation in https://github.com/KaTeX/KaTeX/pull/3422
       }
       const frag = renderMathInText(str);
       if (frag) {
