@@ -162,20 +162,16 @@ const socketChatAction = function (socket: Socket, client: Client) {
     chat.recipients = null; // message not destined to be broadcast or recorded
     chat.index = chatCounter++; // it still has its number for client purposes
     const ind = chat.alias.indexOf(" ");
-    const cmd =
-      ind < 0 ? chat.alias.substring(1) : chat.alias.substring(1, ind);
+    let cmd = ind < 0 ? chat.alias.substring(1) : chat.alias.substring(1, ind);
+    if (cmd == "") cmd = "help";
     const args = ind < 0 ? "" : chat.alias.substring(ind + 1);
-    if (cmd == "killall" && admin) {
-      for (const id in clients) {
-        if (id != options.adminName) instanceManager.removeInstanceFromId(id);
-      }
-    } else if (cmd == "stop" && admin) {
+    if ("stop".startsWith(cmd) && admin) {
       systemChat(null, "The server is stopping.");
       setTimeout(function () {
         logger.info("Exiting");
         process.exit(0);
       }, 5000);
-    } else if (cmd == "block" && admin) {
+    } else if ("block".startsWith(cmd) && admin) {
       if (ind < 0) {
         // toggle full block
         chatBlock = !chatBlock;
@@ -191,18 +187,29 @@ const socketChatAction = function (socket: Socket, client: Client) {
             chat.message += name + " (false) ";
           }
         });
-    } else if (cmd == "list") chatListUsers(chat, ind < 0);
+    } else if ("list".startsWith(cmd)) chatListUsers(chat, ind < 0);
     // a bit primitive -- TODO parse args at least for admin
     else if (cmd != "run" && cmd != "kill") {
-      chat.message =
-        "List of / commands:<ul><li><b>/list</b> – list all users with your id</li><li><b>/run [command]</b> – run a linux command</li><li><b>/kill</b> – kill your Macaulay2 session and container</li></ul>";
+      chat.message = "List of / commands:<ul>";
+      if (admin)
+        chat.message +=
+          "<li><b>/list [short]</b> – list all users</li><li><b>/run [command]</b> – run a linux command</li><li><b>/kill [id]</b> – kill your (or someone else's) Macaulay2 session and container</li><li><b>/block [id,ip]</b> – block all or some users from chat</li><li><b>/stop</b> – stop the server";
+      else
+        chat.message +=
+          "<li><b>/list</b> – list all users with your id</li><li><b>/run [command]</b> – run a linux command</li><li><b>/kill</b> – kill your Macaulay2 session and container</li>";
+      chat.message += "</ul>";
     }
-    if (cmd == "run") chatRun(chat, args);
+    if ("run".startsWith(cmd)) chatRun(chat, args);
     else safeEmit(socket, "chat", chat); // only sent to sender. "run" has delayed output
-    if (cmd == "kill") {
-      if (ind > 0) {
-        if (admin)
-          // kill others
+    if ("kill".startsWith(cmd)) {
+      if (ind > 0 && admin) {
+        // kill others
+        if (args == "all")
+          for (const id in clients) {
+            if (id != options.adminName)
+              instanceManager.removeInstanceFromId(id);
+          }
+        else
           args
             .split(" ")
             .forEach((id) => instanceManager.removeInstanceFromId(id));
