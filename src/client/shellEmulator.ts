@@ -160,20 +160,18 @@ const Shell = function (
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
     let clean = sanitizeInput(msg);
-    if (clean.length > 0) {
-      if (procInputSpan === null) {
-        // it'd be nicer to use ::before on inputSpan but sadly caret issues... cf https://stackoverflow.com/questions/60843694/cursor-position-in-an-editable-div-with-a-before-pseudo-element
-        procInputSpan = document.createElement("div");
-        inputSpan.parentElement.insertBefore(procInputSpan, inputSpan);
-      }
-      procInputSpan.textContent += clean + returnSymbol + "\n";
-      inputSpan.textContent = "";
-      scrollDownLeft(shell);
-      if (flag2) setCaret(inputSpan, 0);
-      clean = clean + "\n";
-      if (flag1) obj.addToEditor(clean);
-      emitInput(clean);
+    if (procInputSpan === null) {
+      // it'd be nicer to use ::before on inputSpan but sadly caret issues... cf https://stackoverflow.com/questions/60843694/cursor-position-in-an-editable-div-with-a-before-pseudo-element
+      procInputSpan = document.createElement("div");
+      inputSpan.parentElement.insertBefore(procInputSpan, inputSpan);
     }
+    procInputSpan.textContent += clean + returnSymbol + "\n";
+    inputSpan.textContent = "";
+    scrollDownLeft(shell);
+    if (flag2) setCaret(inputSpan, 0);
+    clean = clean + "\n";
+    if (flag1) obj.addToEditor(clean);
+    emitInput(clean);
   };
 
   obj.addToEditor = function (msg) {
@@ -261,13 +259,14 @@ const Shell = function (
     if (!inputSpan) return;
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
     if ((e.target as HTMLElement).classList.contains("M2CellBar")) return;
-    if (e.key == "Enter" && !e.shiftKey) {
+    if (e.key == "Enter") {
       obj.postMessage(
         inputSpan.textContent,
         editorToggle && editorToggle.checked,
         true
       );
       e.preventDefault(); // no crappy <div></div> added
+      e.stopPropagation(); // in case of shift-enter, don't want it to kick in
       return;
     }
 

@@ -48,6 +48,13 @@ const cutEl = (el) => {
   removeEl(el);
 };
 
+let inputText = "";
+const inputEl = (el) => {
+  if (el.classList.contains("M2Cell")) Array.from(el.children).forEach(inputEl);
+  else if (el.classList.contains("M2PastInput")) inputText += el.textContent;
+};
+
+// TODO: restructure with init, final actions
 const barActions = {
   delete: ["Del", "Delete", removeEl],
   backspace: ["", "", removeEl], // not mentioned in menu
@@ -58,6 +65,7 @@ const barActions = {
   "ctrl-x": ["Ctrl-X", "Cut", cutEl],
   "ctrl-c": ["Ctrl-C", "Copy", copyEl],
   "ctrl-v": ["Ctrl-V", "Paste", removeEl], // delete then paste
+  i: ["&nbsp;I&nbsp;", "Input", inputEl], // copy input to clipboard
 };
 
 const barAction = function (action: string, target0: HTMLElement) {
@@ -69,6 +77,7 @@ const barAction = function (action: string, target0: HTMLElement) {
   );
 
   if (action == "ctrl-x" || action == "ctrl-c") cutList.length = 0;
+  else if (action == "i") inputText = "";
   else if (action == "g") {
     // special
     if (list.length > 1) {
@@ -101,6 +110,8 @@ const barAction = function (action: string, target0: HTMLElement) {
       el2.classList.remove("M2CellSelected");
       target.before(el2);
     });
+  } else if (action == "i") {
+    navigator.clipboard.writeText(inputText);
   }
   return true;
 };
