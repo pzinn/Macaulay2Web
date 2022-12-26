@@ -260,12 +260,14 @@ const Shell = function (
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
     if ((e.target as HTMLElement).classList.contains("M2CellBar")) return;
     if (e.key == "Enter") {
-      obj.postMessage(
-        inputSpan.textContent,
-        editorToggle && editorToggle.checked,
-        true
-      );
-      e.preventDefault(); // no crappy <div></div> added
+      if (!e.shiftKey) {
+        obj.postMessage(
+          inputSpan.textContent,
+          editorToggle && editorToggle.checked,
+          true
+        );
+        e.preventDefault(); // no crappy <div></div> added
+      }
       e.stopPropagation(); // in case of shift-enter, don't want it to kick in
       return;
     }
