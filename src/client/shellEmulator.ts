@@ -491,7 +491,7 @@ const Shell = function (
                     block: "center",
                     inline: "end",
                   });
-                }, 0);
+                }, 100); // seems 0 doesn't always trigger
               }
             }
           }
