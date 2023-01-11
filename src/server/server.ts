@@ -216,7 +216,6 @@ const sendDataToClient = function (client: Client) {
       systemChat(client, "Output rate exceeded. Killing M2.");
       logger.warn("Output rate exceeded", client);
       client.outputStat = -1; // signal to avoid repeat message
-      //      emitViaClientSockets(client, "output", webAppTags.CellEnd + "\n"); // to make it look nicer
       return;
     }
     client.savedOutput += data;
@@ -441,7 +440,7 @@ const sanitizeClient = function (client: Client, next?) {
     if (!client.channel || !client.channel.writable) {
       spawnMathProgram(client, function (success: boolean) {
         if (success) {
-          emitViaClientSockets(client, "output", webAppTags.CellEnd + "\n"); // to make it look nicer
+          //          emitViaClientSockets(client, "output", webAppTags.CellEnd + "\n"); // to make it look nicer
           client.savedOutput = "";
           client.outputStat = 0;
           client.saneState = true;

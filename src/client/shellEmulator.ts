@@ -84,18 +84,31 @@ const Shell = function (
   // value < 0 means disabled
   let debugPrompt = false; // whether M2 is in debugging mode, determined by prompt (ii*)
 
+  const isEmptyCell = function (el) {
+    // tests if a cell is empty
+    if (!el.classList.contains("M2Cell")) return false;
+    const c = el.childNodes;
+    for (let i = 0; i < c.length; i++)
+      if (c[i].nodeType != 1 || !c[i].classList.contains("M2CellBar"))
+        return false;
+    return true;
+  };
+
   const createHtml = function (className) {
     const cell = className.indexOf("M2Cell") >= 0; // a bit special
     const anc = htmlSec;
     htmlSec = document.createElement(cell ? "div" : "span");
     htmlSec.className = className;
     if (cell) {
-      // insert separator above
-      const ss = document.createElement("span");
-      ss.className = "M2CellBar M2Separator";
-      ss.tabIndex = 0;
-      htmlSec.appendChild(ss);
-      // insert bar at left
+      if (!isEmptyCell(anc)) {
+        // avoid 2 separators in a row
+        // insert separator above
+        const ss = document.createElement("span");
+        ss.className = "M2CellBar M2Separator";
+        ss.tabIndex = 0;
+        htmlSec.appendChild(ss);
+      }
+      // insert bar at left -- NB: left bar must be after separator for css to work
       const s = document.createElement("span");
       s.className = "M2CellBar M2Left";
       s.tabIndex = 0;
@@ -124,7 +137,8 @@ const Shell = function (
 
     htmlSec = shell;
     //    if (editor) htmlSec.appendChild(document.createElement("br")); // a bit of extra space doesn't hurt
-    // createHtml(webAppClasses[webAppTags.Cell]);
+    createHtml(webAppClasses[webAppTags.Cell]); // we create a first cell for the whole session
+    createHtml(webAppClasses[webAppTags.Cell]); // and one for the starting text (Macaulay2 version... or whatever comes out of M2 first)
     htmlSec.appendChild(inputSpan);
 
     inputSpan.focus();
@@ -418,10 +432,7 @@ const Shell = function (
     if (htmlSec.contains(inputSpan)) attachElement(inputSpan, anc);
     // move back input element to outside htmlSec
 
-    if (
-      htmlSec.classList.contains("M2Cell") &&
-      htmlSec.childNodes.length == 2
-    ) {
+    if (isEmptyCell(htmlSec)) {
       // reject empty cells
       htmlSec.remove();
       htmlSec = anc;
@@ -685,7 +696,6 @@ const Shell = function (
     console.log("Reset");
     removeAutoComplete(false, false); // remove autocomplete menu if open
     createInputEl(); // recreate the input area
-
     //    htmlSec.parentElement.insertBefore(document.createElement("hr"), htmlSec); // insert an additional horizontal line to distinguish successive M2  runs
   };
 

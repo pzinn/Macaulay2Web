@@ -139,7 +139,7 @@ const mousedownAction = function (e) {
 };
 
 const rightclickAction = function (e) {
-  if (e.target.classList.contains("M2CellBar")) barRightClick(e);
+  if (e.target.classList.contains("M2CellBar") && !e.shiftKey) barRightClick(e);
 };
 
 let socketOutput;
