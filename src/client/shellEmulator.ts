@@ -441,7 +441,7 @@ const Shell = function (
 
     if (
       htmlSec.classList.contains("M2Prompt") &&
-      htmlSec.parentElement.parentElement == shell
+      htmlSec.parentElement.parentElement.parentElement == shell
     ) {
       // eww lame way of testing this isn't e.g. an example
       const txt = htmlSec.textContent;
@@ -450,7 +450,7 @@ const Shell = function (
       }
     } else if (
       htmlSec.classList.contains("M2Position") &&
-      htmlSec.parentElement.parentElement.parentElement == shell &&
+      htmlSec.parentElement.parentElement.parentElement.parentElement == shell &&
       !debugPrompt
     ) {
       // eww lame way of testing this isn't e.g. an example
@@ -467,9 +467,10 @@ const Shell = function (
     } else if (
       htmlSec.classList.contains("M2Error") &&
       (htmlSec.parentElement == shell ||
+        htmlSec.parentElement.parentElement.parentElement == shell ||
         htmlSec.parentElement.parentElement == shell)
     ) {
-      // eww (why is it different than others?) TODO clarify
+      // eww (why is it different than others? grouping) TODO clarify and fix
       const txt = htmlSec.textContent;
       const m = txt.match(
         /^([^:]+):(\d+):(\d+)/ // cf similar pattern in extra.ts
@@ -509,7 +510,7 @@ const Shell = function (
         }
       }
     } else if (htmlSec.classList.contains("M2Input")) {
-      if (htmlSec.parentElement.parentElement == shell) {
+      if (htmlSec.parentElement.parentElement.parentElement == shell) {
         // eww lame way of testing this isn't e.g. an example
         // add input to history
         let txt = htmlSec.textContent;
