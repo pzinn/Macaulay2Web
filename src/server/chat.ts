@@ -187,8 +187,7 @@ const socketChatAction = function (socket: Socket, client: Client) {
             chat.message += name + " (false) ";
           }
         });
-    } else if ("list".startsWith(cmd)) chatListUsers(chat, ind < 0);
-    // a bit primitive -- TODO parse args at least for admin
+    } else if ("list".startsWith(cmd)) chatListUsers(chat, args == "short");
     else if (cmd != "run" && cmd != "kill") {
       chat.message = "List of / commands:<ul>";
       if (admin)
