@@ -423,6 +423,14 @@ const Shell = function (
     return false;
   };
 
+  const isTrueInput = function () {
+    // test if input is from user or from e.g. examples
+    let el = htmlSec;
+    while (el && el != shell && !el.classList.contains("M2Html"))
+      el = el.parentElement; // TODO better
+    return el == shell;
+  };
+
   const closeHtml = function () {
     const anc = htmlSec.parentElement;
 
@@ -439,21 +447,16 @@ const Shell = function (
       return;
     }
 
-    if (
-      htmlSec.classList.contains("M2Prompt") &&
-      htmlSec.parentElement.parentElement.parentElement == shell
-    ) {
-      // eww lame way of testing this isn't e.g. an example
+    if (htmlSec.classList.contains("M2Prompt") && isTrueInput()) {
       const txt = htmlSec.textContent;
       if (txt.startsWith("i")) {
         debugPrompt = txt.startsWith("ii");
       }
     } else if (
       htmlSec.classList.contains("M2Position") &&
-      htmlSec.parentElement.parentElement.parentElement.parentElement == shell &&
+      isTrueInput() &&
       !debugPrompt
     ) {
-      // eww lame way of testing this isn't e.g. an example
       const spl = htmlSec.dataset.code.split(":");
       if (spl.length == 2 && +spl[0] == 1 && +spl[1] == 0)
         // is that a good criterion?
@@ -464,13 +467,7 @@ const Shell = function (
       if (!htmlSec.parentElement.dataset.positions)
         htmlSec.parentElement.dataset.positions = " ";
       htmlSec.parentElement.dataset.positions += htmlSec.dataset.code + " ";
-    } else if (
-      htmlSec.classList.contains("M2Error") &&
-      (htmlSec.parentElement == shell ||
-        htmlSec.parentElement.parentElement.parentElement == shell ||
-        htmlSec.parentElement.parentElement == shell)
-    ) {
-      // eww (why is it different than others? grouping) TODO clarify and fix
+    } else if (htmlSec.classList.contains("M2Error") && isTrueInput()) {
       const txt = htmlSec.textContent;
       const m = txt.match(
         /^([^:]+):(\d+):(\d+)/ // cf similar pattern in extra.ts
@@ -510,8 +507,7 @@ const Shell = function (
         }
       }
     } else if (htmlSec.classList.contains("M2Input")) {
-      if (htmlSec.parentElement.parentElement.parentElement == shell) {
-        // eww lame way of testing this isn't e.g. an example
+      if (isTrueInput()) {
         // add input to history
         let txt = htmlSec.textContent;
         if (txt[txt.length - 1] == "\n") txt = txt.substring(0, txt.length - 1); // should be true
