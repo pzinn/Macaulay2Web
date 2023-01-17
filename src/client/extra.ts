@@ -848,7 +848,8 @@ const extra2 = function () {
       }
     };
 
-    chatInput.onkeypress = function (e) {
+    chatInput.onkeydown = function (e) {
+      if (e.key == "Enter" && e.shiftKey) e.stopPropagation(); // shift-enter, don't want it to kick in run-in-editor behavior
       if (e.key == "Enter" && !e.shiftKey) {
         e.preventDefault();
         const txt = chatInput.innerHTML;
