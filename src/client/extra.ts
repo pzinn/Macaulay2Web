@@ -536,6 +536,7 @@ const extra2 = function () {
       req.open("POST", "/upload");
       req.send(formData);
     }
+    fileUploadInput.value = ""; // to allow reuploading
   };
 
   const fileUploadInput = document.createElement("input");
