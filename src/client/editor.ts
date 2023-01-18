@@ -17,8 +17,10 @@ import Prism from "prismjs";
 const UCsymbols = {
     "Alpha": 0x391, "Beta": 0x392, "Chi": 0x3a7, "Delta": 0x394, "Epsilon": 0x395, "Eta": 0x397, "Gamma": 0x393, "Iota": 0x399, "Kappa": 0x39a, "Lambda": 0x39b, "Mu": 0x39c, "Nu": 0x39d, "Omega": 0x3a9, "Omicron": 0x39f, "Phi": 0x3a6, "Pi": 0x3a0, "Psi": 0x3a8, "Rho": 0x3a1, "Sigma": 0x3a3, "Tau": 0x3a4, "Theta": 0x398, "Upsilon": 0x3a5, "Xi": 0x39e, "Zeta": 0x396, "alpha": 0x3b1, "beta": 0x3b2, "chi": 0x3c7, "delta": 0x3b4, "epsilon": 0x3f5, "eta": 0x3b7, "gamma": 0x3b3, "iota": 0x3b9, "kappa": 0x3ba, "lambda": 0x3bb, "mu": 0x3bc, "nu": 0x3bd, "omega": 0x3c9, "omicron": 0x3bf, "phi": 0x3d5, "pi": 0x3c0, "psi": 0x3c8, "rho": 0x3c1, "sigma": 0x3c3, "tau": 0x3c4, "theta": 0x3b8, "upsilon": 0x3c5, "varepsilon": 0x3b5, "varphi": 0x3c6, "varpi": 0x3d6, "varrho": 0x3f1, "varsigma": 0x3c2, "vartheta": 0x3d1, "xi": 0x3be, "zeta": 0x3b6,
     "CC": 0x2102, "HH": 0x210d, "NN": 0x2115, "PP": 0x2119, "QQ": 0x211a, "RR": 0x211d,  "ZZ": 0x2124,
-    "tensor": 0x2297, "leftarrow": 0x2190, "rightarrow": 0x2192, "doublerightarrow": 0x21D2, "notequal": 0x2260, "directsum": 0x2295, "muchless": 0x226A, "muchmore": 0x226B, "all": 0x2200, "any": 0x2203, "member": 0x2208, "sum": 0x2211, "product": 0x220F, "sqrt": 0x221A, "infinity": 0x221e, "and": 0x2227, "or": 0x2228, "integral": 0x222B, "lessorequal": 0x2264, "greaterorequal": 0x2265, "righttack": 0x22A2,
+    "tensor": 0x2297, "**": 0x2297, "leftarrow": 0x2190, "<-": 0x2190, "rightarrow": 0x2192, "->": 0x2192, "doublerightarrow": 0x21D2, "=>": 0x21D2, "notequal": 0x2260, "!=": 0x2260, "directsum": 0x2295, "++": 0x2295, "muchless": 0x226A, "<<": 0x226A, "muchmore": 0x226B, ">>": 0x226B, "all": 0x2200, "any": 0x2203, "member": 0x2208, "sum": 0x2211, "product": 0x220F, "sqrt": 0x221A, "infinity": 0x221e, "and": 0x2227, "or": 0x2228, "integral": 0x222B, "lessorequal": 0x2264, "<=": 0x2264, "greaterorequal": 0x2265, ">=": 0x2265, "righttack": 0x22A2,
     "Im": 0x2111, "Re": 0x211c, "nabla": 0x2207, "wp": 0x2118,
+    "afrak": 120094, "bfrak": 120095, "cfrak": 120096, "dfrak": 120097, "efrak": 120098, "ffrak": 120099, "gfrak": 120100, "hfrak": 120101, "ifrak": 120102, "jfrak": 120103, "kfrak": 120104, "lfrak": 120105, "mfrak": 120106, "nfrak": 120107, "ofrak": 120108, "pfrak": 120109, "qfrak": 120110, "rfrak": 120111, "sfrak": 120112, "tfrak": 120113, "ufrak": 120114, "vfrak": 120115, "wfrak": 120116, "xfrak": 120117, "yfrak": 120118, "zfrak": 120119,
+    "Afrak": 120068, "Bfrak": 120069, "Cfrak": 120070, "Dfrak": 120071, "Efrak": 120072, "Ffrak": 120073, "Gfrak": 120074, "Hfrak": 120075, "Ifrak": 120076, "Jfrak": 120077, "Kfrak": 120078, "Lfrak": 120079, "Mfrak": 120080, "Nfrak": 120081, "Ofrak": 120082, "Pfrak": 120083, "Qfrak": 120084, "Rfrak": 120085, "Sfrak": 120086, "Tfrak": 120087, "Ufrak": 120088, "Vfrak": 120089, "Wfrak": 120090, "Xfrak": 120091, "Yfrak": 120092, "Zfrak": 120093, // this is slightly wrong because C, H, I, R don't exist
     "ell": 0x2113, "hbar": 0x210f,
     "aleph": 0x2135, "beth": 0x2136, "gimel": 0x2137, "daleth": 0x2138,
     "'a": 0x00e1, "'A": 0x00c1, "'e": 0x00e9, "'E": 0x00c9, "'i": 0x00ed, "'I": 0x00cd, "'o": 0x00f3, "'O": 0x00d3, "'u": 0x00fa, "'U": 0x00da, "'y": 0x00fd, "'Y": 0x00dd,
@@ -31,7 +33,7 @@ const UCsymbols = {
 
 const UCsymbolKeys = Object.keys(UCsymbols).sort();
 //const UCsymbolValues = Object.values(UCsymbols)
-//  .map((i) => String.fromCharCode(i))
+//  .map((i) => String.fromCodePoint(i))
 //  .join("");
 //const sanitizeRegEx = new RegExp("[^ -~" + UCsymbolValues + "]", "g"); // a bit too restrictive?
 const sanitizeInput = function (msg: string) {
@@ -80,7 +82,7 @@ const escapeKeyHandling = function () {
     if (s.length > 0)
       for (const ss in UCsymbols) {
         if (ss.startsWith(s)) {
-          sss = String.fromCharCode(UCsymbols[ss]);
+          sss = String.fromCodePoint(UCsymbols[ss]);
           break;
         }
       }
