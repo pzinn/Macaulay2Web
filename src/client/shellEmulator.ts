@@ -309,9 +309,11 @@ const Shell = function (
     ) {
       // do not move caret on Ctrl/Command combos, PageUp/Down, etc
       if (e.key == "PageUp" && document.activeElement == inputSpan)
-        shell.focus();
-      // this prevents the annoying behavior of page up going to start of inputSpan
-      // requires shell ("terminal") to have tabIndex=0
+        setCaret(inputSpan, 0);
+      // this prevents the annoying behavior of page up going to start of inputSpan => weird horiz scrolling
+      if (e.key == "PageDown" && document.activeElement == inputSpan)
+        setCaret(inputSpan, inputSpan.innerText.length);
+      // this prevents the annoying behavior of page down going to end of inputSpan => weird horiz scrolling
       return;
     }
 
