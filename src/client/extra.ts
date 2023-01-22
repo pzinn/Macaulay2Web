@@ -453,8 +453,12 @@ const extra2 = function () {
   };
 
   const clearOut = function () {
-    while (terminal.childElementCount > 1)
-      terminal.removeChild(terminal.firstChild);
+    const curInput = document.getElementsByClassName(
+      "M2CurrentInput"
+    )[0] as HTMLElement;
+    Array.from(terminal.querySelectorAll(".M2Cell")).forEach((x) => {
+      if (!x.contains(curInput)) x.remove();
+    });
   };
 
   const fileNameEl = document.getElementById(
