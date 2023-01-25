@@ -333,9 +333,20 @@ code.block {
     background-color: red !important;
 }
 
-pre, tt, blockquote {
+tt {
+    /*
+    font-family: "KaTeX_Typewriter", monospace;
+    font-size: 1.2em;
+   */
     font-family: "Iosevka", monospace;
     font-weight: 500;
+    font-size: inherit;
+}
+
+pre, blockquote {
+    font-family: "Iosevka", monospace;
+    /*    font-weight: 500; */
+    font-weight: 400;
     font-size: inherit;
 }
 
