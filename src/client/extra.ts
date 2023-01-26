@@ -105,7 +105,7 @@ const updateFileName = function (newName: string) {
 
 let autoSaveTimeout = 0;
 let autoSaveHash;
-const autoSave = function () {
+const autoSave = function (rush?) {
   if (autoSaveTimeout) {
     window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = 0;
@@ -127,11 +127,12 @@ const autoSave = function () {
     formData.append("noreply", "true");
     autoSaveHash = newHash;
     formData.append("hash", autoSaveHash);
-    /*    const req = new XMLHttpRequest();
-	      req.open("POST", "/upload");
-	      //req.onloadend = showUploadDialog;
-	      req.send(formData);*/
-    navigator.sendBeacon("/upload", formData);
+    if (rush !== true) {
+      const req = new XMLHttpRequest();
+      req.open("POST", "/upload");
+      //req.onloadend = showUploadDialog;
+      req.send(formData);
+    } else navigator.sendBeacon("/upload", formData);
   }
 };
 
@@ -918,7 +919,7 @@ const extra2 = function () {
   attachClick("uploadBtn", uploadFile);
 
   window.addEventListener("beforeunload", function () {
-    autoSave();
+    autoSave(true);
   });
 
   const cookieQuery = document.getElementById("cookieQuery");
