@@ -119,6 +119,7 @@ const autoSave = function () {
   const content = document.getElementById("editorDiv").innerText as string;
   const newHash = hashCode(content);
   if (newHash != autoSaveHash) {
+    console.log("Saving " + fileName);
     const file = new File([content], fileName);
     const formData = new FormData();
     formData.append("files[]", file);
@@ -209,7 +210,7 @@ const listDirToEditor = function (dirName: string, fileName: string) {
 };
 
 const newEditorFileMaybe = function (arg: string, missing: any) {
-  // missing = what to do if file missing : false = nothing, true = create new, string = load this instead
+  // missing = what to do if file missing : false = nothing, true = switch to new, string = load this instead
   // get rid of leading "./"
   if (arg.length > 2 && arg.startsWith("./")) arg = arg.substring(2);
   // parse newName for positioning
@@ -264,7 +265,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
         return;
       } else if (missing === false) return;
       response = missing;
-    }
+    } else console.log(response + " succesfully loaded");
     if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
     autoSave();
     updateFileName(newName);
