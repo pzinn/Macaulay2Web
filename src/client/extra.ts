@@ -283,6 +283,7 @@ const extra1 = function () {
   let tab = url.hash;
   initTutorials();
 
+  let oldTab = "";
   // supersedes mdl's internal tab handling
   const openTab = function () {
     window.removeEventListener("hashchange", openTab);
@@ -299,10 +300,14 @@ const extra1 = function () {
     if (e) {
       // do something *if* session started
       if (socket && socket.connected) newEditorFileMaybe(decodeURI(e[1]), true);
-      document.location.hash = "#editor"; // drop the filename from the URL
+      if (e[1].startsWith("stdio"))
+        document.location.hash = "#" + oldTab; // a bit hacky
+      else document.location.hash = "#editor"; // drop the filename from the URL
+      // in either case will cycle thru openTab another time
     }
     const panel = document.getElementById(loc);
     if (panel) {
+      oldTab = loc;
       const tab = document.getElementById(loc + "Title");
       if (tab) {
         if (tabs.MaterialTabs) {
