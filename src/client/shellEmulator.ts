@@ -749,11 +749,13 @@ const Shell = function (
     const marker = addMarker(nodeOffset2[0], nodeOffset2[1]);
     if (rowcols[0] == rowcols[2] && rowcols[1] == rowcols[3])
       marker.classList.add("caret-marker");
-    marker.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-      inline: "end",
-    });
+    setTimeout(function () {
+      marker.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "end",
+      });
+    }, 100);
   };
 
   if (inputSpan)
