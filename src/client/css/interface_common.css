@@ -129,7 +129,10 @@ table.examples pre {
     margin: 0pt;
     padding: 0pt;
 }
-
+div.indent {
+    border-left:3px solid;
+    padding:10px;
+}
 
 h1,h2,h3,h4,h5,h6 {
     font-family: "Epilogue";
