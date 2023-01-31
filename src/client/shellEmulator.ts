@@ -547,7 +547,21 @@ const Shell = function (
       }
     } else if (htmlSec.classList.contains("M2Html")) {
       htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code);
+      // KaTeX rendering
       autoRender(htmlSec);
+      // syntax highlighting code
+      const c = Array.from(
+        htmlSec.querySelectorAll(
+          "code.language-macaulay2"
+        ) as NodeListOf<HTMLElement>
+      ).forEach(
+        (x) =>
+          (x.innerHTML = Prism.highlight(
+            x.textContent,
+            Prism.languages.macaulay2
+          ))
+      );
+      // putting pieces back together
       if (htmlSec.dataset.idList) {
         htmlSec.dataset.idList.split(" ").forEach(function (id) {
           const el = document.getElementById("sub" + id);
