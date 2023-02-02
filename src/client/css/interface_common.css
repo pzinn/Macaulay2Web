@@ -291,6 +291,11 @@ code {
     z-index: 1; /* to avoid links disappearing under other stuff e.g. KaTeX */
 }
 
+#terminal code {
+    background-color: initial;
+    cursor: initial;
+}
+
 .element code[class*=language] { /* Usage in doc (TEMP) */
     background-color:initial;
     cursor: initial;
