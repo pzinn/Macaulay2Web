@@ -275,13 +275,10 @@ does not contain the whole contents (and is possibly empty) */
 
 code {
     white-space: pre;
-    font-family: 'Iosevka';
+    font-family: 'Iosevka', monospace;
     font-weight: normal;
     line-height: 1.5;
-    background-color: lightyellow;
     text-decoration: none;
-    cursor: pointer;
-    transition: background-color 200ms;
     box-shadow: 1px 1px 2px 0px black;
     padding: 2px 4px;
     border-radius: 7px;
@@ -291,19 +288,10 @@ code {
     z-index: 1; /* to avoid links disappearing under other stuff e.g. KaTeX */
 }
 
-#terminal code {
-    background-color: initial;
-    cursor: initial;
-}
-
-.element code[class*=language] { /* Usage in doc (TEMP) */
-    background-color:initial;
-    cursor: initial;
-    box-shadow: initial;
-    border-radius: 0px;
-    font-family: "Iosevka", monospace;
-    font-weight: 500;
-    font-size: inherit;
+#tutorial code, #chat code { /* only this code is clickable */
+    background-color: lightyellow;
+    cursor: pointer;
+    transition: background-color 200ms;
 }
 
 pre > code, code.block { /* code block */
