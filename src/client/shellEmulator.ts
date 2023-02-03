@@ -250,11 +250,6 @@ const Shell = function (
         t.classList.contains("M2PastInput")
       )
         return;
-      if (t.tagName == "CODE") {
-        // no clicking on code in terminal
-        e.stopPropagation();
-        return;
-      }
       t = t.parentElement;
     }
     inputSpan.focus({ preventScroll: true });
