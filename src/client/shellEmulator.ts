@@ -537,8 +537,6 @@ const Shell = function (
       )
         window.open(url, "M2 browse");
       else if (url.startsWith("#")) document.location.hash = url;
-      else if (url.startsWith("/#"))
-        document.location.hash = url.substring(1); // annoying
       else {
         const url1 = new URL(url, "file://");
         if (!url1.searchParams.get("user"))

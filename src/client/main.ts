@@ -89,11 +89,9 @@ const fixAnchor = function (t: HTMLAnchorElement) {
   const url = t.href;
   if (!t.target) {
     if (MINIMAL || (t.host && t.host != window.location.host))
-      t.target = "_blank"; // external links in new tab or window
-    else if (!t.hash) t.target = "browse"; // internal links in iframe
-    else if (t.ownerDocument != document && t.pathname == "/")
-      t.target = "_parent"; // except /# which should be sent to parent if in iframe
-  }
+      t.target = "_blank";
+    else if (!t.hash) t.target = "browse";
+  } // external links in new tab, internal in frame (except # which should stay default)
   if (url.startsWith("file://")) t.href = url.substring(7); // no local files
 };
 
