@@ -261,12 +261,6 @@ const Shell = function (
       setCaretAtEndMaybe(inputSpan, true);
       scrollDown(shell);
     };
-    shell.onscroll = function () {
-      scrollBtn.style.visibility =
-        shell.scrollTop + shell.clientHeight >= shell.scrollHeight
-          ? "hidden"
-          : "visible";
-    };
   }
 
   shell.onkeydown = function (e: KeyboardEvent) {

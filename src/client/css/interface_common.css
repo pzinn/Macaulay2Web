@@ -185,7 +185,7 @@ does not contain the whole contents (and is possibly empty) */
     display: inline;
 }
 
-.M2Text.M2Wrapped, .M2Wrapped .M2Text, .M2Wrapped pre, .M2Wrapped tt, .M2Wrapped .KatexError {
+.M2Text.M2Wrapped, .M2Wrapped .M2Text, .M2Wrapped pre, .M2Wrapped tt, .M2Wrapped .KatexError, .M2Wrapped .token.string {
     white-space: pre-wrap;
     word-break: break-all;
 }
@@ -339,7 +339,8 @@ tt {
     font-size: inherit;
 }
 
-pre, blockquote {
+pre, blockquote, .token.string {
+    white-space: pre;
     font-family: "Iosevka", monospace;
     /*    font-weight: 500; */
     font-weight: 400;
