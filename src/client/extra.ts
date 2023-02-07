@@ -773,6 +773,17 @@ const extra2 = function () {
     alert(msg);
   };
 
+  // scroll button
+  const scrollBtn = document.getElementById("terminalScroll");
+  const checkScrollButton = function () {
+    scrollBtn.style.visibility =
+      terminal.scrollTop + terminal.clientHeight >= terminal.scrollHeight
+        ? "hidden"
+        : "visible";
+  };
+  terminal.onscroll = checkScrollButton;
+  terminal.addEventListener("load", checkScrollButton, true); // load does not bubble => we make it capturing
+
   // zoom
   function sanitizeFactor(factor) {
     let result = factor;
@@ -807,6 +818,7 @@ const extra2 = function () {
     function applySize() {
       const sizePercent = Math.round(sizes.currentSize * 100);
       textarea.style.fontSize = sizePercent.toString() + "%";
+      checkScrollButton();
     }
 
     const zoomin = function () {
