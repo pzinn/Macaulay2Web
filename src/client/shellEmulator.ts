@@ -62,7 +62,7 @@ Array.prototype.sortedPush = function (el: any) {
 };
 
 const Shell = function (
-  shell: HTMLElement,
+  terminal: HTMLElement,
   emitInput: (msg: string) => void,
   editor: HTMLElement,
   editorToggle: HTMLInputElement,
@@ -73,15 +73,14 @@ const Shell = function (
   // we're using arguments as private variables, cf
   // https://stackoverflow.com/questions/18099129/javascript-using-arguments-for-closure-bad-or-good
   const obj = this; // for nested functions with their own 'this'. or one could use bind, or => functions, but simpler this way
-  let htmlSec; // the current place in shell where new stuff gets written
-  let inputSpan = null; // the input HTML element at the bottom of the shell. note that inputSpan should always have *one text node*
-  const cmdHistory: any = []; // History of commands for shell-like arrow navigation
+  let htmlSec; // the current place in terminal where new stuff gets written
+  let inputSpan = null; // the input HTML element at the bottom of the terminal. note that inputSpan should always have *one text node*
+  const cmdHistory: any = []; // History of commands for terminal-like arrow navigation
   cmdHistory.index = 0;
   cmdHistory.sorted = []; // a sorted version
   // input is a bit messy...
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input (for aesthetics only)
-  // value < 0 means disabled
   let debugPrompt = false; // whether M2 is in debugging mode, determined by prompt (ii*)
 
   const isEmptyCell = function (el) {
@@ -135,7 +134,7 @@ const Shell = function (
     inputSpan.classList.add("M2CurrentInput");
     inputSpan.classList.add("M2Text");
 
-    htmlSec = shell;
+    htmlSec = terminal;
     //    if (editor) htmlSec.appendChild(document.createElement("br")); // a bit of extra space doesn't hurt
     createHtml(webAppClasses[webAppTags.Cell]); // we create a first cell for the whole session
     createHtml(webAppClasses[webAppTags.Cell]); // and one for the starting text (Macaulay2 version... or whatever comes out of M2 first)
@@ -147,7 +146,7 @@ const Shell = function (
   };
 
   if (createInputSpan) createInputEl();
-  else htmlSec = shell;
+  else htmlSec = terminal;
 
   obj.codeInputAction = function (t) {
     t.classList.add("codetrigger");
@@ -161,7 +160,7 @@ const Shell = function (
       inputSpan.focus();
       document.execCommand("selectAll");
       document.execCommand("insertText", false, str);
-      scrollDown(shell);
+      scrollDown(terminal);
     }
     setTimeout(() => {
       t.classList.remove("codetrigger");
@@ -181,7 +180,7 @@ const Shell = function (
     }
     procInputSpan.textContent += clean + returnSymbol + "\n";
     inputSpan.textContent = "";
-    scrollDownLeft(shell);
+    scrollDownLeft(terminal);
     if (flag2) setCaret(inputSpan, 0);
     clean = clean + "\n";
     if (flag1) obj.addToEditor(clean);
@@ -230,20 +229,20 @@ const Shell = function (
     } else return false;
   };
 
-  shell.onpaste = function (e) {
+  terminal.onpaste = function (e) {
     if (!inputSpan) return;
     setCaretAtEndMaybe(inputSpan, true);
     e.preventDefault();
     const txt = e.clipboardData.getData("text/plain").replace(/\t/g, "    "); // chrome doesn't like \t
     // paste w/o formatting
     document.execCommand("insertText", false, txt);
-    scrollDown(shell);
+    scrollDown(terminal);
   };
 
-  shell.onclick = function (e) {
+  terminal.onclick = function (e) {
     if (!inputSpan || !window.getSelection().isCollapsed) return;
     let t = e.target as HTMLElement;
-    while (t != shell) {
+    while (t != terminal) {
       if (
         t.classList.contains("M2CellBar") ||
         t.tagName == "A" ||
@@ -259,11 +258,11 @@ const Shell = function (
   if (scrollBtn) {
     scrollBtn.onclick = function () {
       setCaretAtEndMaybe(inputSpan, true);
-      scrollDown(shell);
+      scrollDown(terminal);
     };
   }
 
-  shell.onkeydown = function (e: KeyboardEvent) {
+  terminal.onkeydown = function (e: KeyboardEvent) {
     if (!inputSpan) return;
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
     if ((e.target as HTMLElement).classList.contains("M2CellBar")) return;
@@ -286,7 +285,7 @@ const Shell = function (
       ) {
         e.preventDefault();
         setCaretAtEndMaybe(inputSpan);
-        scrollDown(shell);
+        scrollDown(terminal);
         //
         return;
       }
@@ -313,13 +312,13 @@ const Shell = function (
 
     if (e.key == "Home") {
       setCaret(inputSpan, 0); // the default would sometimes use this for vertical scrolling
-      scrollDownLeft(shell);
+      scrollDownLeft(terminal);
       return;
     }
 
     if (e.key == "End") {
       setCaretAtEndMaybe(inputSpan); // the default would sometimes use this for vertical scrolling
-      scrollDown(shell);
+      scrollDown(terminal);
       return;
     }
 
@@ -331,7 +330,7 @@ const Shell = function (
         !e.shiftKey &&
         autoCompleteHandling(null)
       ) {
-        scrollDown(shell);
+        scrollDown(terminal);
         e.preventDefault();
       }
       return;
@@ -346,7 +345,7 @@ const Shell = function (
         pos == inputSpan.textContent.length &&
         autoCompleteHandling(null, cmdHistory.sorted)
       ) {
-        scrollDown(shell);
+        scrollDown(terminal);
         e.preventDefault();
         return;
       }
@@ -354,10 +353,10 @@ const Shell = function (
 
     setCaretAtEndMaybe(inputSpan, true);
     const pos = window.getSelection().focusOffset;
-    if (pos == 0) scrollLeft(shell);
+    if (pos == 0) scrollLeft(terminal);
 
     if (e.key == "Escape") {
-      scrollDown(shell);
+      scrollDown(terminal);
       escapeKeyHandling();
       e.preventDefault();
       return;
@@ -377,7 +376,7 @@ const Shell = function (
   };
 */
 
-  shell.oninput = function () {
+  terminal.oninput = function () {
     if (!inputSpan) return;
     if (
       inputSpan.parentElement == htmlSec &&
@@ -391,7 +390,7 @@ const Shell = function (
       document.activeElement == inputSpan &&
       window.getSelection().focusOffset == 0
     )
-      scrollLeft(shell);
+      scrollLeft(terminal);
   };
 
   const subList = [];
@@ -422,9 +421,9 @@ const Shell = function (
   const isTrueInput = function () {
     // test if input is from user or from e.g. examples
     let el = htmlSec;
-    while (el && el != shell && !el.classList.contains("M2Html"))
+    while (el && el != terminal && !el.classList.contains("M2Html"))
       el = el.parentElement; // TODO better
-    return el == shell;
+    return el == terminal;
   };
 
   const closeHtml = function () {
@@ -458,7 +457,7 @@ const Shell = function (
         // is that a good criterion?
         // remove all past line numbers
         Array.from(
-          shell.querySelectorAll(".M2PastInput[data-positions]")
+          terminal.querySelectorAll(".M2PastInput[data-positions]")
         ).forEach((x) => x.removeAttribute("data-positions"));
       if (!htmlSec.parentElement.dataset.positions)
         htmlSec.parentElement.dataset.positions = " ";
@@ -634,8 +633,8 @@ const Shell = function (
           tag == webAppTags.CellEnd ||
           tag == webAppTags.ErrorEnd
         ) {
-          if (htmlSec != shell || !createInputSpan) {
-            // htmlSec == shell should only happen at very start
+          if (htmlSec != terminal || !createInputSpan) {
+            // htmlSec == terminal should only happen at very start
             // or at the very end for rendering help -- then it's OK
             while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
             // but in rare circumstances (interrupt) it may be missing its \n
@@ -689,7 +688,7 @@ const Shell = function (
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
       }
     }
-    scrollDownLeft(shell);
+    scrollDownLeft(terminal);
   };
 
   const displayText = function (msg) {
@@ -717,7 +716,7 @@ const Shell = function (
     // find relevant input from stdio:row:column
     const query = '.M2PastInput[data-positions*=" ' + row + ':"]';
     const pastInputs = Array.from(
-      shell.querySelectorAll(query) as NodeListOf<HTMLElement>
+      terminal.querySelectorAll(query) as NodeListOf<HTMLElement>
     );
     if (pastInputs.length == 0) return null;
 
