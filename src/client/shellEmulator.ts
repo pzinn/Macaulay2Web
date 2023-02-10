@@ -724,7 +724,7 @@ const Shell = function (
     let i = 0;
     while (
       i + 1 < pastInputs.length &&
-      (+m[i + 1][1] < row || (+m[i + 1][1] == row && +m[i + 1][2] < column))
+      (+m[i + 1][1] < row || (+m[i + 1][1] == row && +m[i + 1][2] <= column))
     )
       i++;
     const m1 = m[i];
