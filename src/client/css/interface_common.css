@@ -65,7 +65,8 @@ body {
 .M2Html {
     display: inline-table; /* to make sure size is as big as content. inline-block is the more obvious choice */
     white-space: nowrap;
-    line-height: 0; /* necessary for exotic stuff. for all standard HTML elements need to redefine it to something more sensible */
+    /* line-height: 0; */ /* necessary for exotic stuff. for all standard HTML elements need to redefine it to something more sensible */
+    line-height: 1.2;
     font-family: "Epilogue";
     font-weight: normal;
     position: relative;
@@ -75,10 +76,11 @@ body {
     white-space: normal;
 }
 
-
+/*
 .M2Html > * {
     line-height: 1.2;
 }
+*/
 
 /*
 .M2Html ul {
@@ -94,6 +96,12 @@ body {
 ul, ol, p { /* slowly destroying all of mdl's css... */
     font-size: inherit;
     line-height: 1.4;
+}
+
+ul,ol {
+    padding-left: 20px;
+    display: inline-table; /* debatable. ~ inline, vertical-align=top */
+    margin: 0px;
 }
 
 table {
