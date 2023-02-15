@@ -244,6 +244,7 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
     if (rowcols) myshell.selectPastInput(rowcols);
     return;
   }
+  if (newName == "currentString") return;
   if (fileName == newName || !newName) {
     // file already open in editor
     updateFileName(newName); // in case of positioning data
@@ -300,7 +301,7 @@ const extra1 = function () {
     if (e) {
       // do something *if* session started
       if (socket && socket.connected) newEditorFileMaybe(decodeURI(e[1]), true);
-      if (e[1].startsWith("stdio"))
+      if (e[1].startsWith("stdio") || e[1].startsWith("currentString"))
         document.location.hash = "#" + oldTab; // a bit hacky
       else document.location.hash = "#editor"; // drop the filename from the URL
       // in either case will cycle thru openTab another time
