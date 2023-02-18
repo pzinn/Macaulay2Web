@@ -172,7 +172,7 @@ const localFileToEditor = function (fileName: string, rowcols?) {
   xhr.onload = function () {
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
     autoSaveHash = hashCode(xhr.responseText);
-    if (rowcols) selectRowColumn(document.getElementById("editorDiv"), rowcols);
+    if (rowcols) selectRowColumn(editor, rowcols);
   };
   autoSaveHash = undefined; // no autosaving while loading
   xhr.send(null);
@@ -285,26 +285,35 @@ const extra1 = function () {
   initTutorials();
 
   let oldTab = "";
+  let editorFocus = false;
   // supersedes mdl's internal tab handling
   const openTab = function () {
-    window.removeEventListener("hashchange", openTab);
     let loc = document.location.hash.substring(1);
+    if (editorFocus) {
+      if (loc == "editor") document.getElementById("editorDiv").focus(); // hacky -- editor keeps losing focus
+      editorFocus = false;
+      return;
+    }
     // new syntax for navigating tutorial
     const m = /^tutorial(?:-(\w+))?(?:-(\d+))?$/.exec(loc);
     if (m) {
-      loc = "tutorial";
       const r = renderLessonMaybe(m[1], m[2]);
       document.location.hash = "#tutorial-" + r[0] + "-" + r[1]; // add the tuto name / # to URL
+      loc = "tutorial";
     }
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);
     if (e) {
       // do something *if* session started
       if (socket && socket.connected) newEditorFileMaybe(decodeURI(e[1]), true);
-      if (e[1].startsWith("stdio") || e[1].startsWith("currentString"))
-        document.location.hash = "#" + oldTab; // a bit hacky
-      else document.location.hash = "#editor"; // drop the filename from the URL
-      // in either case will cycle thru openTab another time
+      if (e[1].startsWith("stdio") || e[1].startsWith("currentString")) {
+        document.location.hash = "#" + oldTab;
+        loc = "";
+      } else {
+        document.location.hash = "#editor"; // drop the filename from the URL (needed for subsequent clicks)
+        loc = "editor";
+        editorFocus = true; // ... but changing hash blurs editor
+      }
     }
     const panel = document.getElementById(loc);
     if (panel) {
@@ -325,7 +334,6 @@ const extra1 = function () {
         }
       }
     }
-    window.addEventListener("hashchange", openTab);
   };
 
   let ignoreFirstLoad = true;
