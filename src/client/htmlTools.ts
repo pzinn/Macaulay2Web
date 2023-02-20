@@ -96,7 +96,7 @@ const locateRowColumn = function (txt: string, row: number, col: number) {
     { index: txt.length },
   ]; // a bit clumsy TODO don't scan the whole text
   // what to do if beyond column? for now just truncate to length
-  if (row > matches.length) return null;
+  if (row<1||row > matches.length) return null;
   const offset = matches[row - 1].index + col + 1;
   return offset < matches[row].index ? offset : matches[row].index;
 };

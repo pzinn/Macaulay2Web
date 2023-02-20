@@ -123,7 +123,8 @@ pre[class*="language-"] {
     color: #0000ff;
 }
 .token.class-name {
-    color: #228b22;
+    /*    color: #228b22; */
+    color: #1c701c;
 }
 
 .token.regex,

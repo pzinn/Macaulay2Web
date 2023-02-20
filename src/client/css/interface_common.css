@@ -100,7 +100,6 @@ ul, ol, p { /* slowly destroying all of mdl's css... */
 
 .M2Html ul,.M2Html ol {
     padding-left: 20px;
-    display: inline-table; /* debatable. ~ inline, vertical-align=top */
     margin: 0px;
 }
 
