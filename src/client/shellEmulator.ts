@@ -462,46 +462,6 @@ const Shell = function (
       if (!htmlSec.parentElement.dataset.positions)
         htmlSec.parentElement.dataset.positions = " ";
       htmlSec.parentElement.dataset.positions += htmlSec.dataset.code + " ";
-    } else if (htmlSec.classList.contains("M2Error") && isTrueInput()) {
-      // TODO retire
-      const txt = htmlSec.textContent;
-      const m = txt.match(
-        /^([^:]+):(\d+):(\d+)/ // cf similar pattern in extra.ts
-      );
-      if (m) {
-        // highlight error
-        if (m[1] == "stdio" && !debugPrompt) {
-          const nodeOffset = obj.locateStdio(+m[2], +m[3]);
-          if (nodeOffset) {
-            addMarker(nodeOffset[0], nodeOffset[1]).classList.add(
-              "error-marker"
-            );
-          }
-        } else if (editor) {
-          // check if by any chance file is open in editor
-          const fileNameEl = document.getElementById(
-            "editorFileName"
-          ) as HTMLInputElement;
-          if (fileNameEl.value == m[1]) {
-            // should this keep track of path somehow? needs more testing
-            const pos = locateRowColumn(editor.innerText, +m[2], +m[3]);
-            if (pos !== null) {
-              const nodeOffset = locateOffset(editor, pos);
-              if (nodeOffset) {
-                const marker = addMarker(nodeOffset[0], nodeOffset[1]);
-                marker.classList.add("error-marker");
-                setTimeout(function () {
-                  marker.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                    inline: "end",
-                  });
-                }, 100); // seems 0 doesn't always trigger
-              }
-            }
-          }
-        }
-      }
     } else if (htmlSec.classList.contains("M2Input")) {
       if (isTrueInput()) {
         // add input to history

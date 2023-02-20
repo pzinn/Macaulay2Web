@@ -248,7 +248,6 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
   if (fileName == newName || !newName) {
     // file already open in editor
     updateFileName(newName); // in case of positioning data
-    if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
     if (rowcols) selectRowColumn(el, rowcols);
     return;
   }
@@ -268,7 +267,6 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
       } else if (missing === false) return;
       response = missing;
     } else console.log(response + " succesfully loaded");
-    if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
     autoSave();
     updateFileName(newName);
     if (response.search("directory@") >= 0) listDirToEditor(newName, response);
