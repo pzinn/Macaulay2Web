@@ -87,6 +87,7 @@ const getCaret2 = function (el) {
   }
 };
 
+const utf8 = new TextEncoder(); // M2 uses utf8, counts locations in bytes :/
 const locateRowColumn = function (txt: string, row: number, col: number) {
   // finds the offset of a row/col location in a text element
   // TODO: treat row<1 case (fail or return 0???)
@@ -96,9 +97,13 @@ const locateRowColumn = function (txt: string, row: number, col: number) {
     { index: txt.length },
   ]; // a bit clumsy TODO don't scan the whole text
   // what to do if beyond column? for now just truncate to length
-  if (row<1||row > matches.length) return null;
-  const offset = matches[row - 1].index + col + 1;
-  return offset < matches[row].index ? offset : matches[row].index;
+  if (row < 1 || row > matches.length) return null;
+  let offset = matches[row - 1].index + 1;
+  while (col > 0 && offset < matches[row].index) {
+    col = col - utf8.encode(txt.charAt(offset)).length;
+    offset = offset + 1;
+  }
+  return offset;
 };
 
 const locateOffsetInternal = function (el, cur, pos: number) {
