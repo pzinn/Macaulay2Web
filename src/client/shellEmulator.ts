@@ -426,6 +426,15 @@ const Shell = function (
     return el == terminal;
   };
 
+  const cell = function (el: HTMLElement) {
+    let cel = null;
+    while (el && el != terminal) {
+      if (el.classList.contains("M2Cell")) cel = el;
+      el = el.parentElement;
+    }
+    return cel;
+  };
+
   const closeHtml = function () {
     const anc = htmlSec.parentElement;
 
@@ -453,12 +462,6 @@ const Shell = function (
       !debugPrompt
     ) {
       const spl = htmlSec.dataset.code.split(":");
-      if (spl.length == 2 && +spl[0] == 1 && +spl[1] == 0)
-        // is that a good criterion?
-        // remove all past line numbers
-        Array.from(
-          terminal.querySelectorAll(".M2PastInput[data-positions]")
-        ).forEach((x) => x.removeAttribute("data-positions"));
       if (!htmlSec.parentElement.dataset.positions)
         htmlSec.parentElement.dataset.positions = " ";
       htmlSec.parentElement.dataset.positions += htmlSec.dataset.code + " ";
@@ -528,7 +531,7 @@ const Shell = function (
         if (m) {
           // highlight error
           if (m[1] == "stdio" && !debugPrompt) {
-            const nodeOffset = obj.locateStdio(+m[2], +m[3]);
+            const nodeOffset = obj.locateStdio(cell(htmlSec), +m[2], +m[3]);
             if (nodeOffset) {
               addMarker(nodeOffset[0], nodeOffset[1]).classList.add(
                 "error-marker"
@@ -718,11 +721,11 @@ const Shell = function (
     setCaretAtEndMaybe(inputSpan);
   };
 
-  obj.locateStdio = function (row: number, column: number) {
+  obj.locateStdio = function (cel: HTMLElement, row: number, column: number) {
     // find relevant input from stdio:row:column
     const query = '.M2PastInput[data-positions*=" ' + row + ':"]';
     const pastInputs = Array.from(
-      terminal.querySelectorAll(query) as NodeListOf<HTMLElement>
+      cel.querySelectorAll(query) as NodeListOf<HTMLElement>
     );
     if (pastInputs.length == 0) return null;
 
@@ -747,10 +750,11 @@ const Shell = function (
       return [nodeOffset[0], nodeOffset[1], pastInputs[i], offset]; // node, offset in node, element, offset in element
   };
 
-  obj.selectPastInput = function (rowcols) {
-    const nodeOffset1 = obj.locateStdio(rowcols[0], rowcols[1]);
+  obj.selectPastInput = function (el: HTMLElement, rowcols) {
+    const cel = cell(el);
+    const nodeOffset1 = obj.locateStdio(cel, rowcols[0], rowcols[1]);
     if (!nodeOffset1) return;
-    const nodeOffset2 = obj.locateStdio(rowcols[2], rowcols[3]);
+    const nodeOffset2 = obj.locateStdio(cel, rowcols[2], rowcols[3]);
     if (!nodeOffset2 || nodeOffset2[2] != nodeOffset1[2]) return;
     const sel = window.getSelection();
     sel.setBaseAndExtent(
