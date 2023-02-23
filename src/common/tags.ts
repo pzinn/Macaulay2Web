@@ -7,8 +7,6 @@ const webAppTagCodes = [
   ["InputContd", 29, "M2Text M2Input M2InputContd"], // text, continuation of input
   ["Url", 30, "M2Url"], // url
   ["Prompt", 14, "M2Text M2Prompt"],
-  ["Error", 15, "M2Text M2Error"], // TODO retire at the same time as tagstderr
-  ["ErrorEnd", 16, "M2ErrorEnd"],
   ["Position", 21, "M2Position"],
 ];
 const webAppTags = {} as any;
