@@ -346,12 +346,15 @@ tt {
     font-size: inherit;
 }
 
-pre, blockquote, .token.string {
+pre, blockquote, .token.string, .token.net {
     white-space: pre;
     font-family: "Iosevka", monospace;
     /*    font-weight: 500; */
     font-weight: 400;
     font-size: inherit;
+}
+.token.net {
+    display: inline-block; /* inline-table would've been simpler for vertical alignment, except it gobbles space despite white-space:pre */
 }
 
 /* menu stuff */

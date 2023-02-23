@@ -210,8 +210,7 @@ const listDirToEditor = function (dirName: string, fileName: string) {
   xhr.send(null);
 };
 
-const newEditorFileMaybe = function (arg: string, missing: any) {
-  // missing = what to do if file missing : false = nothing, true = switch to new, string = load this instead
+const parseLocation = function (arg: string) {
   // get rid of leading "./"
   if (arg.length > 2 && arg.startsWith("./")) arg = arg.substring(2);
   // parse newName for positioning
@@ -220,42 +219,36 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
     //    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
     /^([^:]+):(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)/
   ) as any; // e.g. test.m2:3:5-5:7
-  const newName = m ? m[1] : arg;
+  if (!m) return [arg, null];
+  let rowcols = [];
+  // parse m
+  rowcols[0] = +m[2];
+  if (rowcols[0] < 1) rowcols[0] = 1;
+  rowcols[1] = m[3] ? +m[3] : 1;
+  if (rowcols[1] < 0) rowcols[1] = 0;
+  rowcols[2] = m[5] ? +m[4] : rowcols[0];
+  if (rowcols[2] < rowcols[0]) rowcols[2] = rowcols[0];
+  rowcols[3] = m[5] ? +m[5] : m[4] ? +m[4] : rowcols[1];
+  if (rowcols[2] == rowcols[0] && rowcols[3] < rowcols[1])
+    rowcols[3] = rowcols[1];
+  return [m[1], rowcols];
+};
+
+const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
+  // missing = what to do if file missing : null = switch to new, string = load this instead
   const el = document.getElementById("editorDiv");
+  if (!rowcols) el.focus({ preventScroll: true });
 
-  let rowcols;
-  if (!m) el.focus({ preventScroll: true });
-  else {
-    rowcols = [];
-    // parse m
-    rowcols[0] = +m[2];
-    if (rowcols[0] < 1) rowcols[0] = 1;
-    rowcols[1] = m[3] ? +m[3] : 1;
-    if (rowcols[1] < 0) rowcols[1] = 0;
-    rowcols[2] = m[5] ? +m[4] : rowcols[0];
-    if (rowcols[2] < rowcols[0]) rowcols[2] = rowcols[0];
-    rowcols[3] = m[5] ? +m[5] : m[4] ? +m[4] : rowcols[1];
-    if (rowcols[2] == rowcols[0] && rowcols[3] < rowcols[1])
-      rowcols[3] = rowcols[1];
-  }
-
-  if (newName == "stdio") {
-    // special case
-    if (rowcols) myshell.selectPastInput(rowcols);
-    return;
-  }
-  if (newName == "currentString") return;
   if (fileName == newName || !newName) {
     // file already open in editor
     updateFileName(newName); // in case of positioning data
-    if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
     if (rowcols) selectRowColumn(el, rowcols);
     return;
   }
 
   socket.emit("fileexists", newName, function (response) {
     if (!response) {
-      if (missing === true) {
+      if (!missing) {
         updateFileName(newName);
         if (el.contentEditable != "true") {
           el.contentEditable = "true";
@@ -264,11 +257,8 @@ const newEditorFileMaybe = function (arg: string, missing: any) {
         if (rowcols) selectRowColumn(el, rowcols);
         autoSaveHash = null; // force save
         autoSave();
-        return;
-      } else if (missing === false) return;
-      response = missing;
+      } else response = missing;
     } else console.log(response + " succesfully loaded");
-    if (missing === false) document.location.hash = "#editor"; // HACK: for "Alt" key press TODO better
     autoSave();
     updateFileName(newName);
     if (response.search("directory@") >= 0) listDirToEditor(newName, response);
@@ -287,7 +277,7 @@ const extra1 = function () {
   let oldTab = "";
   let editorFocus = false;
   // supersedes mdl's internal tab handling
-  const openTab = function () {
+  const openTab = function (evt) {
     let loc = document.location.hash.substring(1);
     if (editorFocus) {
       if (loc == "editor") document.getElementById("editorDiv").focus(); // hacky -- editor keeps losing focus
@@ -304,12 +294,14 @@ const extra1 = function () {
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);
     if (e) {
-      // do something *if* session started
-      if (socket && socket.connected) newEditorFileMaybe(decodeURI(e[1]), true);
-      if (e[1].startsWith("stdio") || e[1].startsWith("currentString")) {
+      const [newName, rowcols] = parseLocation(decodeURI(e[1]));
+      if (newName == "stdio" || newName == "currentString") {
+        if (newName == "stdio" && rowcols && socket && socket.connected)
+          myshell.selectPastInput(document.activeElement, rowcols); // !
         document.location.hash = "#" + oldTab;
         loc = "";
       } else {
+        if (socket && socket.connected) newEditorFileMaybe(newName, rowcols); // do something *if* session started
         document.location.hash = "#editor"; // drop the filename from the URL (needed for subsequent clicks)
         loc = "editor";
         editorFocus = true; // ... but changing hash blurs editor
@@ -358,7 +350,7 @@ const extra1 = function () {
 
   if (tab === "") tab = "#home";
   window.addEventListener("hashchange", openTab);
-  if (tab === document.location.hash) openTab();
+  if (tab === document.location.hash) openTab(null);
   // force open tab anyway
   else document.location.hash = tab;
 
@@ -488,8 +480,9 @@ const extra2 = function () {
     }, 0);
   };
   fileNameEl.onchange = function () {
-    const newName = fileNameEl.value.trim();
-    newEditorFileMaybe(newName, true);
+    const val = fileNameEl.value.trim();
+    const [newName, rowcols] = parseLocation(val);
+    newEditorFileMaybe(newName, rowcols);
   };
   const pastFileNames = document.getElementById(
     "pastFileNames"
@@ -499,13 +492,13 @@ const extra2 = function () {
   }; // dirty trick found on the internet...
   pastFileNames.onchange = function () {
     const newName = pastFileNames.options[pastFileNames.selectedIndex].text;
-    newEditorFileMaybe(newName, true);
+    newEditorFileMaybe(newName);
   };
 
   const homeEditorBtn = document.getElementById("homeEditorBtn");
   homeEditorBtn.onclick = function () {
     autoSave();
-    newEditorFileMaybe("./", false);
+    newEditorFileMaybe("./");
   };
 
   const clearEditorBtn = document.getElementById("clearEditorBtn");
@@ -615,12 +608,15 @@ const extra2 = function () {
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
 
-  // starting text in editor
+  // starting text in editor TODO fix
   const e = /^#editor:(.+)$/.exec(url.hash);
-  const newName = e ? e[1] : getCookie(options.cookieFileName, "default.m2");
+  const [newName, rowcols] = e
+    ? parseLocation(decodeURI(e[1]))
+    : [getCookie(options.cookieFileName, "default.m2"), null];
   newEditorFileMaybe(
     newName,
-    newName == "default.m2" ? "default.orig.m2" : true
+    rowcols,
+    newName == "default.m2" ? "default.orig.m2" : null
   ); // possibly get the default file from the server
 
   let tabPressed = false,

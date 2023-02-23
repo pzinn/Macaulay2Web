@@ -41,15 +41,6 @@ const keydownAction = function (e) {
     const sel = e.currentTarget.ownerDocument.getSelection().toString().trim(); // works in iframe too
     if (sel == "") return;
     socket.emit("input", 'viewHelp "' + sel + '"\n');
-  } else if (!MINIMAL && e.key == "Alt") {
-    // one of the few keys that don't kill selection outside contentEditable
-    e.preventDefault();
-    e.stopPropagation();
-    let sel = e.currentTarget.ownerDocument.getSelection().toString().trim(); // works in iframe too
-    const ind = sel.indexOf("\n");
-    if (ind >= 0) sel = sel.substring(0, ind); // just cleaning up a bit more
-    if (sel == "") return;
-    newEditorFileMaybe(sel, false);
   } else if (e.target.classList.contains("M2CellBar"))
     barKey(e, e.target.parentElement);
   else if (e.key == "Enter" && e.shiftKey)
