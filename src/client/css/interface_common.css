@@ -72,7 +72,7 @@ body {
     position: relative;
 }
 
-.M2Html div:not(.M2Cell) { /* not great. for e.g. help */
+.M2Html p { /* not great. for e.g. help */
     white-space: normal;
 }
 
