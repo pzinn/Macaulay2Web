@@ -293,6 +293,7 @@ code {
     margin: 0;
     position: relative;
     z-index: 1; /* to avoid links disappearing under other stuff e.g. KaTeX */
+    color: initial;
 }
 
 #tutorial code, #chat code { /* only this code is clickable */
@@ -401,22 +402,6 @@ ul.menu {
     border: 1px solid gray;
     margin:1px;
     padding:1px;
-}
-
-.katex .M2Html svg path { /* because of KaTeX annoying def */
-    stroke: inherit;
-}
-/*
-.katex .M2Html svg text {
-    stroke: none;
-}
-*/
-
-.katex .M2Html svg { /* because of KaTeX annoying def */
-    display: inherit;
-    position: inherit;
-    width: inherit;
-    height: inherit;
 }
 
 a {
