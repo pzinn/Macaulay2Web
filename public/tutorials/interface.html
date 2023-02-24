@@ -103,7 +103,7 @@
       </p>
     </section>
     <section>
-      <header><h2>Other packages</h2></header>
+      <header><h2>Direct HTML output</h2></header>
       <p>
 	For your package to work with this interface,
 	it needs to have either a <tt>texMath</tt> or <tt>html</tt> method for all defined types. (By default,
@@ -112,8 +112,15 @@
       <p>Say your type is
 	<pre><code>MyType = new Type of BasicList</code></pre>
 	For types corresponding to mathematical objects, you should define as explained before a <tt>texMath</tt> method.
-	Let us try instead the <tt>html</tt> method for our type: (we could define it via <tt>expression</tt> as we did earlier for other modes of output, but for simplicity we define it directly here)
-	<pre><code>needsPackage "Text"; html MyType := x -> html ( UL toList x )</code></pre>
+	Let us try instead the <tt>html</tt> method for our type; we break it into steps for convenience, first converting to a <tt>Hypertext</tt> type using
+	the <tt>hypertext</tt> method, then converting the <tt>Hypertext</tt> to HTML using <tt>html</tt>:
+	<pre><code>needsPackage "Text";</code></pre>
+	<pre><code>
+	    hypertext MyType := x -> style(UL toList x,
+	    "background"=>"orange",
+	    "border"=>"1px solid",
+	    "padding" =>"20px 25px 20px 40px")</code></pre>
+	<pre><code>html MyType := html @@ hypertext</code></pre>
 	Let us test it:
 	<pre><code>new MyType from {"ha",1/2,1-ii,QQ[x]}</code></pre>
       </p>

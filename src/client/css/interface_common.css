@@ -24,7 +24,7 @@ body {
     position: relative;
     outline: none;
     line-height: 1.14286;
-    padding-bottom: 0.2em;
+    padding-bottom: 0.7em;
 }
 
 /* various sections inside #terminal */
@@ -72,7 +72,7 @@ body {
     position: relative;
 }
 
-.M2Html div:not(.M2Cell) { /* not great. for e.g. help */
+.M2Html p { /* not great. for e.g. help */
     white-space: normal;
 }
 
@@ -192,7 +192,7 @@ does not contain the whole contents (and is possibly empty) */
     display: inline;
 }
 
-.M2Text.M2Wrapped, .M2Wrapped .M2Text, .M2Wrapped pre, .M2Wrapped tt, .M2Wrapped .KatexError, .M2Wrapped .token.string {
+.M2Text.M2Wrapped, .M2Wrapped .M2Text, .M2Wrapped pre, .M2Wrapped tt, .M2Wrapped .KatexError, .M2Wrapped .token.string, .M2Wrapped .token.net {
     white-space: pre-wrap;
     word-break: break-all;
 }

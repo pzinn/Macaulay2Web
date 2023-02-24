@@ -15,7 +15,7 @@ const options = {
   serverConfig: {
     m2Prefixes: {
       stty: "stty -echo;",
-      tagstderr: "LD_PRELOAD=/usr/lib64/libtagstderr.so ", // should be last
+//      tagstderr: "LD_PRELOAD=/usr/lib64/libtagstderr.so ", // should be last
     },
     m2Command: "M2 --webapp",
     port: 80,

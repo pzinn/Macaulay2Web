@@ -56,8 +56,10 @@ const options = {
   manager: LocalContainerManager,
 };
 
+/*
 // check for libtagstderr
 if (!fs.existsSync("/usr/lib64/libtagstderr.so"))
   options.serverConfig.m2Prefixes["tagstderr"] = ""; // and disable if not found
+*/
 
 export { options };
