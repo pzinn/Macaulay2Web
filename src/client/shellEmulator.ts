@@ -246,6 +246,8 @@ const Shell = function (
       if (
         t.classList.contains("M2CellBar") ||
         t.tagName == "A" ||
+        t.tagName == "INPUT" ||
+        t.tagName == "BUTTON" ||
         t.classList.contains("M2PastInput")
       )
         return;
@@ -265,7 +267,11 @@ const Shell = function (
   terminal.onkeydown = function (e: KeyboardEvent) {
     if (!inputSpan) return;
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
-    if ((e.target as HTMLElement).classList.contains("M2CellBar")) return;
+    if (
+      (e.target as HTMLElement).classList.contains("M2CellBar") ||
+      (e.target as HTMLElement).tagName == "INPUT"
+    )
+      return;
     if (e.key == "Enter") {
       if (!e.shiftKey) {
         obj.postMessage(
@@ -637,16 +643,13 @@ const Shell = function (
       }
       if (i > 0) {
         const tag = txt[i - 1];
-        if (
-          tag == webAppTags.End ||
-          tag == webAppTags.CellEnd
-        ) {
+        if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
           if (htmlSec != terminal || !createInputSpan) {
             // htmlSec == terminal should only happen at very start
             // or at the very end for rendering help -- then it's OK
             while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
-              // but in rare circumstances (interrupt) it may be missing its \n
-	      closeHtml();
+            // but in rare circumstances (interrupt) it may be missing its \n
+            closeHtml();
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {
           // continuation of input section
