@@ -451,4 +451,5 @@ a {
 
 .M2Error {
     color: #A00000;
+    white-space: pre-line; /* rethink */
 }
