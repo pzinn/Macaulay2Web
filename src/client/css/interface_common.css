@@ -308,9 +308,6 @@ pre > code, code.block { /* code block */
     /* needed for multi-line code. used to be table but has buggy spacing in chrome. fit-content works instead: */
     width: fit-content;
     width: -moz-fit-content;
-}
-
-code.block {
     margin-top: 10px;
     margin-bottom: 10px;
 }
@@ -451,5 +448,6 @@ a {
 
 .M2Error {
     color: #A00000;
-    white-space: pre-line; /* rethink */
+    white-space: pre; /* rethink */
+    font-family: "Iosevka", monospace;
 }
