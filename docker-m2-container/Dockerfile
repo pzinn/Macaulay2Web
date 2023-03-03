@@ -1,7 +1,7 @@
 # fedora + Macaulay2
 FROM registry.fedoraproject.org/fedora-minimal:35
 MAINTAINER Paul Zinn-Justin <pzinn@unimelb.edu.au>
-RUN microdnf -y install sudo wget tar openssh openssh-server graphviz lapack cddlib gc glpk gmp-c++ openblas-serial openblas-threads libnauty libatomic_ops givaro mathic mathicgb-libs memtailor boost-stacktrace boost-regex procps mpfr normaliz gfan which factory flint flexiblas-netlib ntl mpfi libffi && microdnf clean all
+RUN microdnf -y install sudo wget tar openssh openssl openssh-server graphviz lapack cddlib gc glpk gmp-c++ openblas-serial openblas-threads libnauty libatomic_ops givaro mathic mathicgb-libs memtailor boost-stacktrace boost-regex procps mpfr normaliz gfan which factory flint flexiblas-netlib ntl mpfi libffi nauty && microdnf clean all
 # have to manually do this cause no systemd
 RUN ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ''
 RUN ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ''
