@@ -293,7 +293,7 @@ code {
     margin: 0;
     position: relative;
     z-index: 1; /* to avoid links disappearing under other stuff e.g. KaTeX */
-    color: initial;
+/*    color: initial; */
 }
 
 #tutorial code, #chat code { /* only this code is clickable */
@@ -446,8 +446,16 @@ a {
     text-decoration: underline;
 }
 
-.M2Error {
-    color: #A00000;
-    white-space: pre; /* rethink */
-    font-family: "Iosevka", monospace;
+@keyframes error-color {
+  to {
+    color: #FF0000;
+  }
 }
+
+.M2Error, .M2Error .token {
+    animation: error-color 2s -1s linear forwards paused;
+    /* color: color-mix(currentColor,#FF0000); */ /* not yet implemented by many browsers */
+/*    white-space: pre;
+    font-family: "Iosevka", monospace; */
+}
+
