@@ -81,7 +81,7 @@ const Shell = function (
   // input is a bit messy...
   let inputEndFlag = false;
   let procInputSpan = null; // temporary span containing currently processed input (for aesthetics only)
-  let debugPrompt = false; // whether M2 is in debugging mode, determined by prompt (ii*)
+  let interpreterDepth = 1;
 
   const isEmptyCell = function (el) {
     // tests if a cell is empty
@@ -136,7 +136,7 @@ const Shell = function (
 
     htmlSec = terminal;
     //    if (editor) htmlSec.appendChild(document.createElement("br")); // a bit of extra space doesn't hurt
-    createHtml(webAppClasses[webAppTags.Cell]); // we create a first cell for the whole session
+    createHtml("M2Cell"); // we create a first cell for the whole session
     createHtml(webAppClasses[webAppTags.Cell]); // and one for the starting text (Macaulay2 version... or whatever comes out of M2 first)
     htmlSec.appendChild(inputSpan);
 
@@ -433,16 +433,15 @@ const Shell = function (
   };
 
   const cell = function (el: HTMLElement) {
-    let cel = null;
     while (el && el != terminal) {
-      if (el.classList.contains("M2Cell")) cel = el;
+      if (el.classList.contains("M2Cell") && !el.classList.contains("M2Text"))
+        return el;
       el = el.parentElement;
     }
-    return cel;
   };
 
   const closeHtml = function () {
-    const anc = htmlSec.parentElement;
+    let anc = htmlSec.parentElement;
 
     if (htmlSec.classList.contains("M2Input"))
       anc.appendChild(document.createElement("br")); // this first for spacing purposes
@@ -456,17 +455,27 @@ const Shell = function (
       htmlSec = anc;
       return;
     }
-
     if (htmlSec.classList.contains("M2Prompt") && isTrueInput()) {
       const txt = htmlSec.textContent;
-      if (txt.startsWith("i")) {
-        debugPrompt = txt.startsWith("ii");
+      const newInterpreterDepth = /^i*/.exec(txt)[0].length;
+      if (newInterpreterDepth > 0) {
+        while (interpreterDepth != newInterpreterDepth) {
+          const saveHtmlSec = htmlSec;
+          const saveAnc = anc;
+          htmlSec = anc.parentElement;
+          if (interpreterDepth > newInterpreterDepth) {
+            interpreterDepth--;
+            closeHtml();
+          } else {
+            interpreterDepth++;
+            createHtml("M2Cell");
+          }
+          htmlSec.appendChild(saveAnc);
+          htmlSec = saveHtmlSec;
+          anc = saveAnc;
+        }
       }
-    } else if (
-      htmlSec.classList.contains("M2Position") &&
-      isTrueInput() &&
-      !debugPrompt
-    ) {
+    } else if (htmlSec.classList.contains("M2Position") && isTrueInput()) {
       const spl = htmlSec.dataset.code.split(":");
       if (!htmlSec.parentElement.dataset.positions)
         htmlSec.parentElement.dataset.positions = " ";
@@ -536,7 +545,7 @@ const Shell = function (
         );
         if (m) {
           // highlight error
-          if (m[1] == "stdio" && !debugPrompt) {
+          if (m[1] == "stdio") {
             const nodeOffset = obj.locateStdio(cell(htmlSec), +m[2], +m[3]);
             if (nodeOffset) {
               addMarker(nodeOffset[0], nodeOffset[1]).classList.add(
@@ -702,7 +711,7 @@ const Shell = function (
     console.log("Reset");
     removeAutoComplete(false, false); // remove autocomplete menu if open
     createInputEl(); // recreate the input area
-    //    htmlSec.parentElement.insertBefore(document.createElement("hr"), htmlSec); // insert an additional horizontal line to distinguish successive M2  runs
+    interpreterDepth = 1;
   };
 
   obj.interrupt = function () {
@@ -714,7 +723,8 @@ const Shell = function (
 
   obj.locateStdio = function (cel: HTMLElement, row: number, column: number) {
     // find relevant input from stdio:row:column
-    const query = '.M2PastInput[data-positions*=" ' + row + ':"]';
+    const query =
+      ':scope > .M2Cell > .M2PastInput[data-positions*=" ' + row + ':"]';
     const pastInputs = Array.from(
       cel.querySelectorAll(query) as NodeListOf<HTMLElement>
     );
