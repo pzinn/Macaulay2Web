@@ -191,7 +191,7 @@ const socketErrorAction = function (client: Client) {
   };
 };
 
-const vdots = " " + webAppTags.Error + "\u22EE" + webAppTags.ErrorEnd + "\n";
+const vdots = " " + "\u22EE" + "\n";
 
 const sendDataToClient = function (client: Client) {
   return function (dataObject) {
