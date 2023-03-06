@@ -13,7 +13,7 @@ class LocalContainerManager implements InstanceManager {
     });
 
     exec("echo $HOME", function (error, homedir) {
-      currentInstance.sshKey = homedir.trim() + "/.ssh/id_rsa";
+      currentInstance.sshKey = homedir.trim() + "/.ssh/id_ecdsa";
     });
   }
 

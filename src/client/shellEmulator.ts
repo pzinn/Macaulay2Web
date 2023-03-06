@@ -136,7 +136,7 @@ const Shell = function (
 
     htmlSec = terminal;
     //    if (editor) htmlSec.appendChild(document.createElement("br")); // a bit of extra space doesn't hurt
-    createHtml("M2Cell"); // we create a first cell for the whole session
+    createHtml(webAppClasses[webAppTags.Cell]); // we create a first cell for the whole session
     createHtml(webAppClasses[webAppTags.Cell]); // and one for the starting text (Macaulay2 version... or whatever comes out of M2 first)
     htmlSec.appendChild(inputSpan);
 
@@ -433,9 +433,11 @@ const Shell = function (
   };
 
   const cell = function (el: HTMLElement) {
+    let flag = true;
     while (el && el != terminal) {
-      if (el.classList.contains("M2Cell") && !el.classList.contains("M2Text"))
-        return el;
+      if (el.classList.contains("M2Cell"))
+        if (flag) flag = false;
+        else return el;
       el = el.parentElement;
     }
   };
@@ -468,7 +470,7 @@ const Shell = function (
             closeHtml();
           } else {
             interpreterDepth++;
-            createHtml("M2Cell");
+            createHtml(webAppClasses[webAppTags.Cell]);
           }
           htmlSec.appendChild(saveAnc);
           htmlSec = saveHtmlSec;

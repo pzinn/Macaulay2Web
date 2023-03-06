@@ -166,11 +166,13 @@ const socketChatAction = function (socket: Socket, client: Client) {
     if (cmd == "") cmd = "help";
     const args = ind < 0 ? "" : chat.alias.substring(ind + 1);
     if ("stop".startsWith(cmd) && admin) {
-      systemChat(null, "The server is stopping.");
-      setTimeout(function () {
-        logger.info("Exiting");
-        process.exit(0);
-      }, 5000);
+      if (cmd == "stop") {
+        systemChat(null, "The server is stopping.");
+        setTimeout(function () {
+          logger.info("Exiting");
+          process.exit(0);
+        }, 5000);
+      } else chat.message = "Please type 'stop' in full";
     } else if ("block".startsWith(cmd) && admin) {
       if (ind < 0) {
         // toggle full block
