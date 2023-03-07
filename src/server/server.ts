@@ -239,7 +239,7 @@ const sendDataToClient = function (client: Client) {
           client.savedOutput.substring(m.index + m[0].length);
       }
     } else {
-      const i = client.savedOutput.lastIndexOf(webAppTags.Cell);
+      const i = client.savedOutput.lastIndexOf(webAppTags.CellEnd);
       client.savedOutput =
         i < 0 ||
         client.savedOutput.length - (vdots.length + i) >
