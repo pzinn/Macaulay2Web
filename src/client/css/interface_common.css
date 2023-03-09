@@ -113,6 +113,7 @@ td, th {
     padding-left: 0.5em;
     padding-right: 0.5em;
     text-align: left;
+    vertical-align: text-top;
 }
 
 /* from doc.css */
