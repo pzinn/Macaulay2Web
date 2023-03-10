@@ -71,6 +71,7 @@ const barActions = {
 const barAction = function (action: string, target0: HTMLElement) {
   target = target0;
   const doc = target.ownerDocument;
+  const curInput = doc.getElementsByClassName("M2CurrentInput")[0]; // OK if undefined
 
   const list: HTMLElement[] = Array.from(
     doc.getElementsByClassName("M2CellSelected")
@@ -102,7 +103,9 @@ const barAction = function (action: string, target0: HTMLElement) {
 
   if (!barActions[action]) return false;
   const fn = barActions[action][2];
-  list.forEach(fn);
+  list.forEach((x) => {
+    if (!x.contains(curInput) || fn == inputEl || fn == runEl) fn(x);
+  });
 
   if (action == "ctrl-v") {
     cutList.forEach((el) => {
@@ -129,32 +132,32 @@ const barKey = function (e, target) {
 
 const barMouseDown = function (e) {
   const left = e.target.classList.contains("M2Left");
-  const t = e.target.parentElement;
+  const t = e.target.parentElement; // clicked cell
   const doc = e.currentTarget.ownerDocument;
-  const curInput = doc.getElementsByClassName("M2CurrentInput")[0]; // OK if undefined
   if (e.shiftKey && doc.activeElement.classList.contains("M2CellBar")) {
-    const t2 = doc.activeElement.parentElement;
-    const left2 = doc.activeElement.classList.contains("M2Left");
-    const lst = doc.getElementsByClassName("M2Cell");
-    let i = 0;
-    let flag = 0;
-    while (i < lst.length && flag < 2) {
-      if (lst[i] == t) flag++;
-      if (lst[i] == t2) flag++;
-      if (
-        (flag == 1 ||
+    const t2 = doc.activeElement.parentElement; // old selected cell
+    const anc = t.parentElement; // ancestor element
+    if (t2.parentElement == anc) {
+      // should be at same level
+      const left2 = doc.activeElement.classList.contains("M2Left");
+      const lst = anc.querySelectorAll(":scope > .M2Cell");
+      let i = 0;
+      let flag = 0;
+      while (i < lst.length && flag < 2) {
+        if (lst[i] == t) flag++;
+        if (lst[i] == t2) flag++;
+        if (
+          flag == 1 ||
           (lst[i] == t && (left || flag == 0)) ||
-          (lst[i] == t2 && (left2 || flag == 0))) &&
-        !lst[i].contains(curInput) // we refuse to touch input
-      )
-        lst[i].classList.add("M2CellSelected");
-      i++;
+          (lst[i] == t2 && (left2 || flag == 0))
+        )
+          lst[i].classList.add("M2CellSelected");
+        i++;
+      }
     }
   } else {
     if (!e.ctrlKey) unselectCells(doc);
-    if (!t.contains(curInput) && left)
-      // we refuse to touch input
-      t.classList.toggle("M2CellSelected");
+    if (left) t.classList.toggle("M2CellSelected");
   }
   e.preventDefault();
   e.target.focus();
@@ -184,11 +187,8 @@ const barRightClick = function (e) {
   contextMenu.style.top = e.pageY + "px";
   doc.body.appendChild(contextMenu);
 
-  if (doc.getElementsByClassName("M2CellSelected").length == 0) {
-    const curInput = doc.getElementsByClassName("M2CurrentInput")[0]; // OK if undefined
-    const el = e.target.parentElement;
-    if (!el.contains(curInput)) el.classList.add("M2CellSelected"); // if nothing selected, select current
-  }
+  if (doc.getElementsByClassName("M2CellSelected").length == 0)
+    e.target.parentElement.classList.add("M2CellSelected"); // if nothing selected, select current
   setupMenu(
     contextMenu,
     (sel) => {

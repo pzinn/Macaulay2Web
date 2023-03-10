@@ -478,7 +478,6 @@ const Shell = function (
         }
       }
     } else if (htmlSec.classList.contains("M2Position") && isTrueInput()) {
-      const spl = htmlSec.dataset.code.split(":");
       if (!htmlSec.parentElement.dataset.positions)
         htmlSec.parentElement.dataset.positions = " ";
       htmlSec.parentElement.dataset.positions += htmlSec.dataset.code + " ";
@@ -524,7 +523,7 @@ const Shell = function (
       // KaTeX rendering
       autoRender(htmlSec);
       // syntax highlighting code
-      const c = Array.from(
+      Array.from(
         htmlSec.querySelectorAll(
           "code.language-macaulay2"
         ) as NodeListOf<HTMLElement>
