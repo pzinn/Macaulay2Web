@@ -220,7 +220,7 @@ const parseLocation = function (arg: string) {
     /^([^:]+):(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)/
   ) as any; // e.g. test.m2:3:5-5:7
   if (!m) return [arg, null];
-  let rowcols = [];
+  const rowcols = [];
   // parse m
   rowcols[0] = +m[2];
   if (rowcols[0] < 1) rowcols[0] = 1;
@@ -277,7 +277,7 @@ const extra1 = function () {
   let oldTab = "";
   let editorFocus = false;
   // supersedes mdl's internal tab handling
-  const openTab = function (evt) {
+  const openTab = function () {
     let loc = document.location.hash.substring(1);
     if (editorFocus) {
       if (loc == "editor") document.getElementById("editorDiv").focus(); // hacky -- editor keeps losing focus
@@ -350,7 +350,7 @@ const extra1 = function () {
 
   if (tab === "") tab = "#home";
   window.addEventListener("hashchange", openTab);
-  if (tab === document.location.hash) openTab(null);
+  if (tab === document.location.hash) openTab();
   // force open tab anyway
   else document.location.hash = tab;
 

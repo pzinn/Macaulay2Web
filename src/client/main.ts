@@ -4,13 +4,7 @@ declare const MINIMAL;
 
 import { Socket as Socket0, io } from "socket.io-client";
 
-import {
-  extra1,
-  extra2,
-  getCookieId,
-  setCookieId,
-  newEditorFileMaybe,
-} from "./extra";
+import { extra1, extra2, getCookieId, setCookieId } from "./extra";
 import { syncChat } from "./chat";
 
 type Socket = Socket0 & { oldEmit?: any };
