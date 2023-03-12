@@ -385,18 +385,21 @@ const Shell = function (
   terminal.oninput = function () {
     if (!inputSpan) return;
     if (
+      document.activeElement == inputSpan &&
+      window.getSelection().focusOffset == 0
+    )
+      scrollLeft(terminal);
+  };
+
+  terminal.onkeyup = function () {
+    if (!inputSpan) return;
+    if (
       inputSpan.parentElement == htmlSec &&
       htmlSec.classList.contains("M2Input")
     )
       delimiterHandling(htmlSec);
     // the negation of the first only happens in transitional state; of the second if we turned off webapp mode
     // in both cases it's simpler to deactivate highlighting
-
-    if (
-      document.activeElement == inputSpan &&
-      window.getSelection().focusOffset == 0
-    )
-      scrollLeft(terminal);
   };
 
   const subList = [];
