@@ -596,14 +596,6 @@ const extra2 = function () {
   };
 
   const editorInput = function () {
-    delimiterHandling(editor);
-    if (highlightTimeout) window.clearTimeout(highlightTimeout);
-    if (fileName.endsWith(".m2")) {
-      highlightTimeout = window.setTimeout(function () {
-        highlightTimeout = 0;
-        syntaxHighlight(editor);
-      }, 1500);
-    }
     if (autoSaveTimeout) window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
@@ -721,6 +713,14 @@ const extra2 = function () {
   const editorKeyUp = function (e) {
     if (e.key == "Enter" && !e.shiftKey && enterPressed) autoIndent(editor);
     enterPressed = false;
+    delimiterHandling(editor);
+    if (highlightTimeout) window.clearTimeout(highlightTimeout);
+    if (fileName.endsWith(".m2")) {
+      highlightTimeout = window.setTimeout(function () {
+        highlightTimeout = 0;
+        syntaxHighlight(editor);
+      }, 1500);
+    }
   };
 
   const editorFocus = function () {
