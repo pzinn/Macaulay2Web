@@ -103,10 +103,8 @@ ul, ol, p { /* slowly destroying all of mdl's css... */
     margin: 0px;
 }
 
-ul > li::marker {
-    color: #400080;
-    content: " ⏺ ";
-    font-size: 0.8em;
+.M2Html ul {
+    list-style:  " ⏺ ";
 }
 
 table {
