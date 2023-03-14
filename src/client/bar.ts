@@ -151,23 +151,30 @@ const barMouseDown = function (e) {
   const doc = e.currentTarget.ownerDocument;
   if (e.shiftKey && doc.activeElement.classList.contains("M2CellBar")) {
     const t2 = doc.activeElement.parentElement; // old selected cell
-    const anc = t.parentElement; // ancestor element
-    if (t2.parentElement == anc) {
-      // should be at same level
+    let anc = t; // ancestor element
+    while (anc && !anc.contains(t2)) anc = anc.parentElement;
+    if (anc && anc != t && anc != t2) {
       const left2 = doc.activeElement.classList.contains("M2Left");
-      const lst = anc.querySelectorAll(":scope > .M2Cell");
-      let i = 0;
+      let el = anc.firstElementChild;
       let flag = 0;
-      while (i < lst.length && flag < 2) {
-        if (lst[i] == t) flag++;
-        if (lst[i] == t2) flag++;
-        if (
-          flag == 1 ||
-          (lst[i] == t && (left || flag == 0)) ||
-          (lst[i] == t2 && (left2 || flag == 0))
-        )
-          lst[i].classList.add("M2CellSelected");
-        i++;
+      while (flag < 2) {
+        if (el.classList.contains("M2Cell")) {
+          if (el == t || el == t2) flag++;
+          if (
+            (flag == 1 && !el.contains(t) && !el.contains(t2)) ||
+            (el == t && (left || flag == 1)) ||
+            (el == t2 && (left2 || flag == 1))
+          )
+            el.classList.add("M2CellSelected");
+        }
+        if (!el.classList.contains("M2CellSelected") && el.firstElementChild)
+          el = el.firstElementChild;
+        else {
+          while (!el.nextElementSibling && el != anc)
+            el = el.parentElement;
+          if (el == anc) break;
+          el = el.nextElementSibling;
+        }
       }
     }
   } else {
