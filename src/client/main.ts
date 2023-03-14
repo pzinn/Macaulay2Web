@@ -254,7 +254,7 @@ const init2 = function () {
 
       if (!MINIMAL) extra2();
       const exec = url.searchParams.get("exec");
-      if (exec) myshell.postMessage(exec, false);
+      if (exec) myshell.postMessage(exec);
     }
   });
 

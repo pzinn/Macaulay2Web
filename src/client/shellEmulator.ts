@@ -149,7 +149,7 @@ const Shell = function (
 
   obj.codeInputAction = function (t) {
     t.classList.add("codetrigger");
-    if (t.tagName == "CODE") obj.postMessage(t.innerText, false);
+    if (t.tagName == "CODE") obj.postMessage(t.innerText);
     else {
       // past input / manual code: almost the same but not quite: code not sent, just replaces input
       let str = t.dataset.m2code ? t.dataset.m2code : t.textContent;
@@ -168,7 +168,7 @@ const Shell = function (
 
   const returnSymbol = "\u21B5";
 
-  obj.postMessage = function (msg, flag) {
+  obj.postMessage = function (msg) {
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
     const clean = sanitizeInput(msg);
@@ -180,8 +180,7 @@ const Shell = function (
     procInputSpan.textContent += clean + returnSymbol + "\n";
     inputSpan.textContent = "";
     scrollDownLeft(terminal);
-    if (flag) setCaret(inputSpan, 0);
-    emitInput(clean+"\n");
+    emitInput(clean + "\n");
   };
 
   obj.addToEditor = function (msg) {
@@ -271,7 +270,8 @@ const Shell = function (
       return;
     if (e.key == "Enter") {
       if (!e.shiftKey) {
-        obj.postMessage(inputSpan.textContent, true);
+        obj.postMessage(inputSpan.textContent);
+        setCaret(inputSpan, 0);
         e.preventDefault(); // no crappy <div></div> added
       }
       e.stopPropagation(); // in case of shift-enter, don't want it to kick in

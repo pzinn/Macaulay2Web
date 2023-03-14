@@ -37,7 +37,6 @@ body {
 }
 
 .M2CurrentInput {
-    position: relative;
     outline: none;
     /* what's below is for textarea */
 /*    background: none;

@@ -1,6 +1,6 @@
 // cell bar handling
 import { setupMenu } from "./menu";
-
+import { setCaret } from "./htmlTools";
 import { myshell } from "./main";
 
 const unselectCells = function (doc: Document) {
@@ -28,7 +28,7 @@ let target;
 const runEl = (el) => {
   if (el.classList.contains("M2Cell")) Array.from(el.children).forEach(runEl);
   else if (el.classList.contains("M2PastInput")) {
-    myshell.postMessage(el.textContent, true);
+    myshell.postMessage(el.textContent);
     el.classList.add("codetrigger");
     setTimeout(() => {
       el.classList.remove("codetrigger");
@@ -54,21 +54,66 @@ const inputEl = (el) => {
   else if (el.classList.contains("M2PastInput")) inputText += el.textContent;
 };
 
-// TODO: restructure with init, final actions
+const initCopy = () => {
+  cutList.length = 0;
+};
+const initInput = () => {
+  inputText = "";
+};
+const initGroup = (list) => {
+  const doc = target.ownerDocument;
+  if (list.length > 1) {
+    group = doc.createElement("div");
+    group.classList.add("M2Cell");
+    // insert bar at left
+    const s = document.createElement("span");
+    s.className = "M2CellBar M2Left";
+    s.tabIndex = 0;
+    group.appendChild(s);
+    target.before(group);
+  } else if (list.length == 1) {
+    let flag = true;
+    Array.from(list[0].children).forEach((el2: HTMLElement) => {
+      if (el2.classList.contains("M2Cell")) target.before(el2);
+      else flag = false;
+    });
+    if (flag) list[0].remove();
+    return true;
+  }
+};
+
+const finalRun = (curInput) => {
+  if (curInput) setCaret(curInput, 0);
+};
+const finalPaste = () => {
+  cutList.forEach((el) => {
+    const el2 = el.cloneNode(true);
+    el2.classList.remove("M2CellSelected");
+    target.before(el2);
+  });
+};
+const finalInput = () => {
+  navigator.clipboard.writeText(inputText);
+};
+
+// key: [displayed key,action,init action,final action]
 const barActions = {
-  delete: ["Del", "Delete", removeEl],
+  delete: ["Del", "Delete", removeEl, null, null],
   backspace: ["", "", removeEl], // not mentioned in menu
-  enter: ["&nbsp;&#9166;&nbsp;", "Run", runEl],
-  w: ["&nbsp;W&nbsp;", "Wrap", wrapEl],
-  " ": ["Spc", "Shrink", closeEl],
-  g: ["&nbsp;G&nbsp;", "Group", groupEl],
-  "ctrl-x": ["Ctrl-X", "Cut", cutEl],
-  "ctrl-c": ["Ctrl-C", "Copy", copyEl],
-  "ctrl-v": ["Ctrl-V", "Paste", removeEl], // delete then paste
-  i: ["&nbsp;I&nbsp;", "Input", inputEl], // copy input to clipboard
+  enter: ["&nbsp;&#9166;&nbsp;", "Run", runEl, null, finalRun],
+  w: ["&nbsp;W&nbsp;", "Wrap", wrapEl, null, null],
+  " ": ["Spc", "Shrink", closeEl, null, null],
+  g: ["&nbsp;G&nbsp;", "Group", groupEl, initGroup, null],
+  "ctrl-x": ["Ctrl-X", "Cut", cutEl, initCopy, null],
+  "ctrl-c": ["Ctrl-C", "Copy", copyEl, initCopy, null],
+  "ctrl-v": ["Ctrl-V", "Paste", removeEl, null, finalPaste], // delete then paste
+  i: ["&nbsp;I&nbsp;", "Input", inputEl, initInput, finalInput], // copy input to clipboard
 };
 
 const barAction = function (action: string, target0: HTMLElement) {
+  const acts = barActions[action];
+  if (!acts) return false;
+
   target = target0;
   const doc = target.ownerDocument;
   const curInput = doc.getElementsByClassName("M2CurrentInput")[0]; // OK if undefined
@@ -76,46 +121,16 @@ const barAction = function (action: string, target0: HTMLElement) {
   const list: HTMLElement[] = Array.from(
     doc.getElementsByClassName("M2CellSelected")
   );
+  const init = acts[3];
+  if (init) if (init(list)) return true;
 
-  if (action == "ctrl-x" || action == "ctrl-c") cutList.length = 0;
-  else if (action == "i") inputText = "";
-  else if (action == "g") {
-    // special
-    if (list.length > 1) {
-      group = doc.createElement("div");
-      group.classList.add("M2Cell");
-      // insert bar at left
-      const s = document.createElement("span");
-      s.className = "M2CellBar M2Left";
-      s.tabIndex = 0;
-      group.appendChild(s);
-      target.before(group);
-    } else if (list.length == 1) {
-      let flag = true;
-      Array.from(list[0].children).forEach((el2: HTMLElement) => {
-        if (el2.classList.contains("M2Cell")) target.before(el2);
-        else flag = false;
-      });
-      if (flag) list[0].remove();
-      return true;
-    }
-  }
-
-  if (!barActions[action]) return false;
-  const fn = barActions[action][2];
+  const fn = acts[2];
   list.forEach((x) => {
     if (!x.contains(curInput) || fn == inputEl || fn == runEl) fn(x);
   });
 
-  if (action == "ctrl-v") {
-    cutList.forEach((el) => {
-      const el2 = el.cloneNode(true);
-      el2.classList.remove("M2CellSelected");
-      target.before(el2);
-    });
-  } else if (action == "i") {
-    navigator.clipboard.writeText(inputText);
-  }
+  const final = acts[4];
+  if (final) final(curInput);
   return true;
 };
 
