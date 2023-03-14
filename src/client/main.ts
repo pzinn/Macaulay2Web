@@ -254,7 +254,7 @@ const init2 = function () {
 
       if (!MINIMAL) extra2();
       const exec = url.searchParams.get("exec");
-      if (exec) myshell.postMessage(exec, false, false);
+      if (exec) myshell.postMessage(exec);
     }
   });
 
@@ -283,7 +283,6 @@ const init2 = function () {
     document.getElementById("terminal"),
     (msg) => socket.emit("input", msg),
     document.getElementById("editorDiv"),
-    document.getElementById("editorToggle") as HTMLInputElement,
     document.getElementById("browseFrame") as HTMLFrameElement,
     true
   );

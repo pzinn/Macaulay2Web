@@ -180,13 +180,6 @@ body {
     box-sizing: border-box;
 }
 
-#terminalCopyToggle {
-    z-index: 2;
-    position: absolute;
-    top: -4px;
-    right: 50px;
-}
-
 #terminalScroll {
     z-index: 2;
     position: absolute;

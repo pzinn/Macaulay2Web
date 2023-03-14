@@ -65,7 +65,6 @@ const Shell = function (
   terminal: HTMLElement,
   emitInput: (msg: string) => void,
   editor: HTMLElement,
-  editorToggle: HTMLInputElement,
   iFrame: HTMLFrameElement,
   createInputSpan: boolean
 ) {
@@ -150,7 +149,7 @@ const Shell = function (
 
   obj.codeInputAction = function (t) {
     t.classList.add("codetrigger");
-    if (t.tagName == "CODE") obj.postMessage(t.innerText, false, false);
+    if (t.tagName == "CODE") obj.postMessage(t.innerText);
     else {
       // past input / manual code: almost the same but not quite: code not sent, just replaces input
       let str = t.dataset.m2code ? t.dataset.m2code : t.textContent;
@@ -169,10 +168,10 @@ const Shell = function (
 
   const returnSymbol = "\u21B5";
 
-  obj.postMessage = function (msg, flag1, flag2) {
+  obj.postMessage = function (msg) {
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
-    let clean = sanitizeInput(msg);
+    const clean = sanitizeInput(msg);
     if (procInputSpan === null) {
       // it'd be nicer to use ::before on inputSpan but sadly caret issues... cf https://stackoverflow.com/questions/60843694/cursor-position-in-an-editable-div-with-a-before-pseudo-element
       procInputSpan = document.createElement("div");
@@ -181,10 +180,7 @@ const Shell = function (
     procInputSpan.textContent += clean + returnSymbol + "\n";
     inputSpan.textContent = "";
     scrollDownLeft(terminal);
-    if (flag2) setCaret(inputSpan, 0);
-    clean = clean + "\n";
-    if (flag1) obj.addToEditor(clean);
-    emitInput(clean);
+    emitInput(clean + "\n");
   };
 
   obj.addToEditor = function (msg) {
@@ -274,11 +270,8 @@ const Shell = function (
       return;
     if (e.key == "Enter") {
       if (!e.shiftKey) {
-        obj.postMessage(
-          inputSpan.textContent,
-          editorToggle && editorToggle.checked,
-          true
-        );
+        obj.postMessage(inputSpan.textContent);
+        setCaret(inputSpan, 0);
         e.preventDefault(); // no crappy <div></div> added
       }
       e.stopPropagation(); // in case of shift-enter, don't want it to kick in
