@@ -466,7 +466,10 @@ const syntaxHighlight = function (el: HTMLElement) {
   if (sel.isCollapsed) {
     // to simplify (TEMP?) no hiliting while selecting
     const caret = getCaret(el);
-    const newHTML = Prism.highlight(el.innerText, Prism.languages.macaulay2);
+    const newHTML = Prism.highlight(
+      htmlToM2(el).innerText,
+      Prism.languages.macaulay2
+    );
     if (el.innerHTML != newHTML) {
       // avoid changing things if not necessary
       el.innerHTML = newHTML;
@@ -489,9 +492,8 @@ const updateAndHighlightMaybe = function (
   else el.textContent = txt;
 };
 
-const htmlToM2 = function (el0: HTMLElement) {
+const htmlToM2 = function (el: HTMLElement) {
   // minimal conversion: tables turn into matrices, maybe sub/superscripts...
-  const el = el0.cloneNode(true) as HTMLElement;
   Array.from(el.querySelectorAll("table")).forEach((x: HTMLElement) => {
     // not get element by class name because it creates live lists
     x.replaceWith(
@@ -509,7 +511,7 @@ const htmlToM2 = function (el0: HTMLElement) {
         "}"
     );
   });
-  return el.textContent;
+  return el;
 };
 
 export {
