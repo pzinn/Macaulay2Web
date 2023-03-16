@@ -21,6 +21,7 @@ import {
   removeAutoComplete,
   sanitizeInput,
   delimiterHandling,
+  htmlToM2,
 } from "./editor";
 
 import Prism from "prismjs";
@@ -183,20 +184,14 @@ const Shell = function (
     emitInput(clean + "\n");
   };
 
-  obj.addToEditor = function (msg) {
-    // add command to editor area
-    if (typeof msg !== "undefined") {
-      if (editor !== null && editor.contentEditable == "true") {
-        const span = document.createElement("span");
-        span.innerHTML = Prism.highlight(msg, Prism.languages.macaulay2);
-        editor.appendChild(span);
-        scrollDownLeft(editor);
-      }
-    }
+  const focusElement = function () {
+    const foc = window.getSelection().focusNode;
+    return foc.nodeType == 3 ? foc.parentElement : foc;
   };
 
   const downArrowKeyHandling = function () {
     if (
+      focusElement() == inputSpan &&
       inputSpan.textContent.substring(getCaret(inputSpan) || 0).indexOf("\n") <
         0 &&
       cmdHistory.index < cmdHistory.length
@@ -212,13 +207,14 @@ const Shell = function (
 
   const upArrowKeyHandling = function () {
     if (
+      focusElement() == inputSpan &&
       inputSpan.textContent
         .substring(0, getCaret(inputSpan) || 0)
         .indexOf("\n") < 0 &&
       cmdHistory.index > 0
     ) {
       if (cmdHistory.index === cmdHistory.length)
-        cmdHistory.current = inputSpan.textContent;
+        cmdHistory.current = htmlToM2(inputSpan);
       cmdHistory.index--;
       inputSpan.textContent = cmdHistory[cmdHistory.index];
       return true;
@@ -270,7 +266,7 @@ const Shell = function (
       return;
     if (e.key == "Enter") {
       if (!e.shiftKey) {
-        obj.postMessage(inputSpan.textContent);
+        obj.postMessage(htmlToM2(inputSpan));
         setCaret(inputSpan, 0);
         e.preventDefault(); // no crappy <div></div> added
       }
@@ -355,8 +351,8 @@ const Shell = function (
     if (pos == 0) scrollLeft(terminal);
 
     if (e.key == "Escape") {
-      scrollDown(terminal);
       escapeKeyHandling();
+      scrollDown(terminal);
       e.preventDefault();
       return;
     }

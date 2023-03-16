@@ -77,15 +77,27 @@ const escapeKeyHandling = function () {
         esc--;
       }
     }
+    if (s.length == 0) return;
+    // special: matrix
+    const m = s.match(/^(\d)(\d)$/);
+    if (m) {
+      let row = "<tr>";
+      for (let i = 0; i < +m[2]; i++) row += "<td>0</td>";
+      row += "</tr>";
+      let table = "<table class='inputMatrix'><tbody>";
+      for (let i = 0; i < +m[1]; i++) table += row;
+      table += "</table></tbody>";
+      document.execCommand("insertHTML", false, table);
+      return;
+    }
 
     let sss = "";
-    if (s.length > 0)
-      for (const ss in UCsymbols) {
-        if (ss.startsWith(s)) {
-          sss = String.fromCodePoint(UCsymbols[ss]);
-          break;
-        }
+    for (const ss in UCsymbols) {
+      if (ss.startsWith(s)) {
+        sss = String.fromCodePoint(UCsymbols[ss]);
+        break;
       }
+    }
     document.execCommand("insertText", false, sss);
   }
 };
@@ -477,6 +489,29 @@ const updateAndHighlightMaybe = function (
   else el.textContent = txt;
 };
 
+const htmlToM2 = function (el0: HTMLElement) {
+  // minimal conversion: tables turn into matrices, maybe sub/superscripts...
+  const el = el0.cloneNode(true) as HTMLElement;
+  Array.from(el.querySelectorAll("table")).forEach((x: HTMLElement) => {
+    // not get element by class name because it creates live lists
+    x.replaceWith(
+      "matrix{" +
+        Array.from(x.querySelectorAll("tr"))
+          .map(
+            (y: HTMLElement) =>
+              "{" +
+              Array.from(y.querySelectorAll("td,th"))
+                .map((z: HTMLElement) => z.textContent)
+                .join() +
+              "}"
+          )
+          .join() +
+        "}"
+    );
+  });
+  return el.textContent;
+};
+
 export {
   escapeKeyHandling,
   autoCompleteHandling,
@@ -486,4 +521,5 @@ export {
   syntaxHighlight,
   updateAndHighlightMaybe,
   autoIndent,
+  htmlToM2,
 };
