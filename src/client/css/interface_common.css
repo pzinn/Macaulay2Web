@@ -464,3 +464,14 @@ a {
     border-width: 0px 1px 0px 1px;
     border-style: solid;
 }
+
+/* the next 2 is another workaround for chrome's inability to focus on empty elements */
+
+.inputSu {
+    display: inline-block;
+}
+
+.inputSu::after {
+    content: '\200A'; /* the obvious choice \200B doesn't work */
+}
+

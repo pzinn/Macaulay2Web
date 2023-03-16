@@ -84,13 +84,13 @@ const updateFileName = function (newName: string) {
   fileNameEl.value = newName;
   fileNameEl.scrollLeft = fileNameEl.scrollWidth;
   // update list of past names
-  if (newName == fileName) return;
+  if (fileName && newName == fileName) return;
   const pastFileNames = document.getElementById(
     "pastFileNames"
   ) as HTMLSelectElement;
   let flag = true;
   Array.from(pastFileNames.options).forEach(function (opt: HTMLOptionElement) {
-    if (opt.textContent == fileName) flag = false;
+    if (fileName && opt.textContent == fileName) flag = false;
     else if (opt.textContent == newName) pastFileNames.removeChild(opt);
   });
   if (fileName && flag) {
@@ -139,7 +139,8 @@ const autoSave = function (rush?) {
 let highlightTimeout = 0;
 
 const fileChangedCheck = function (data) {
-  if (data.fileName != fileName || data.hash == autoSaveHash) return;
+  if (!fileName || data.fileName != fileName || data.hash == autoSaveHash)
+    return;
   const dialog = document.getElementById("editorFileChanged") as any; //HTMLDialogElement;
   if (dialog.open)
     // already open -- we're in trouble
@@ -239,7 +240,7 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
   const el = document.getElementById("editorDiv");
   if (!rowcols) el.focus({ preventScroll: true });
 
-  if (fileName == newName || !newName) {
+  if ((fileName && fileName == newName) || !newName) {
     // file already open in editor
     updateFileName(newName); // in case of positioning data
     if (rowcols) selectRowColumn(el, rowcols);
@@ -716,7 +717,7 @@ const extra2 = function () {
     enterPressed = false;
     delimiterHandling(editor);
     if (highlightTimeout) window.clearTimeout(highlightTimeout);
-    if (fileName.endsWith(".m2")) {
+    if (fileName && fileName.endsWith(".m2")) {
       highlightTimeout = window.setTimeout(function () {
         highlightTimeout = 0;
         syntaxHighlight(editor);

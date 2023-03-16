@@ -90,15 +90,40 @@ const escapeKeyHandling = function () {
       document.execCommand("insertHTML", false, table);
       return;
     }
+    if (s == "_") {
+      document.execCommand(
+        "insertHTML",
+        false,
+        "<sub id='tmp' class='inputSu'></sub>"
+      );
+      const el = document.getElementById("tmp");
+      setCaret(el, 0);
+      el.removeAttribute("id");
+      return;
+    }
+    if (s == "^") {
+      document.execCommand(
+        "insertHTML",
+        false,
+        "<sup id='tmp' class='inputSu'></sup>"
+      );
+      const el = document.getElementById("tmp");
+      setCaret(el, 0);
+      el.removeAttribute("id");
+      return;
+    }
 
     let sss = "";
     for (const ss in UCsymbols) {
       if (ss.startsWith(s)) {
-        sss = String.fromCodePoint(UCsymbols[ss]);
-        break;
+        document.execCommand(
+          "insertText",
+          false,
+          String.fromCodePoint(UCsymbols[ss])
+        );
+        return;
       }
     }
-    document.execCommand("insertText", false, sss);
   }
 };
 
@@ -511,6 +536,12 @@ const htmlToM2 = function (el: HTMLElement) {
         "}"
     );
   });
+  Array.from(el.querySelectorAll("sub")).forEach((x: HTMLElement) =>
+    x.replaceWith("_(" + x.textContent + ")")
+  );
+  Array.from(el.querySelectorAll("sup")).forEach((x: HTMLElement) =>
+    x.replaceWith("^(" + x.textContent + ")")
+  );
   return el;
 };
 

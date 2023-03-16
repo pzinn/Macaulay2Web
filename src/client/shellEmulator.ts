@@ -345,7 +345,6 @@ const Shell = function (
         return;
       }
     }
-
     setCaretAtEndMaybe(inputSpan, true);
     const pos = window.getSelection().focusOffset;
     if (pos == 0) scrollLeft(terminal);
