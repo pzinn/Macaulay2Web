@@ -170,8 +170,7 @@ const barMouseDown = function (e) {
         if (!el.classList.contains("M2CellSelected") && el.firstElementChild)
           el = el.firstElementChild;
         else {
-          while (!el.nextElementSibling && el != anc)
-            el = el.parentElement;
+          while (!el.nextElementSibling && el != anc) el = el.parentElement;
           if (el == anc) break;
           el = el.nextElementSibling;
         }

@@ -463,3 +463,8 @@ a {
     font-family: "Iosevka", monospace; */
 }
 
+.inputMatrix {
+    display: inline-table;
+    border-width: 0px 1px 0px 1px;
+    border-style: solid;
+}
