@@ -196,7 +196,7 @@ does not contain the whole contents (and is possibly empty) */
     display: inline;
 }
 
-.M2Text.M2Wrapped, .M2Wrapped .M2Text, .M2Wrapped pre, .M2Wrapped tt, .M2Wrapped .KatexError, .M2Wrapped .token.string, .M2Wrapped .token.net {
+.M2Text.M2Wrapped, .M2Wrapped .M2Text, .M2Wrapped pre, .M2Wrapped samp, .M2Wrapped kbd, .M2Wrapped tt, .M2Wrapped .KatexError, .M2Wrapped .token.string, .M2Wrapped .token.net {
     white-space: pre-wrap;
     word-break: break-all;
 }
@@ -338,7 +338,7 @@ pre > code, code.block { /* code block */
     background-color: red !important;
 }
 
-tt {
+tt, samp, kbd {
     /*
     font-family: "KaTeX_Typewriter", monospace;
     font-size: 1.2em;
@@ -468,3 +468,14 @@ a {
     border-width: 0px 1px 0px 1px;
     border-style: solid;
 }
+
+/* the next 2 is another workaround for chrome's inability to focus on empty elements */
+
+.inputSu {
+    display: inline-block;
+}
+
+.inputSu::after {
+    content: '\200A'; /* the obvious choice \200B doesn't work */
+}
+

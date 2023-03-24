@@ -214,7 +214,7 @@ const Shell = function (
       cmdHistory.index > 0
     ) {
       if (cmdHistory.index === cmdHistory.length)
-        cmdHistory.current = htmlToM2(inputSpan);
+        cmdHistory.current = htmlToM2(inputSpan).textContent;
       cmdHistory.index--;
       inputSpan.textContent = cmdHistory[cmdHistory.index];
       return true;
@@ -266,7 +266,7 @@ const Shell = function (
       return;
     if (e.key == "Enter") {
       if (!e.shiftKey) {
-        obj.postMessage(htmlToM2(inputSpan));
+        obj.postMessage(htmlToM2(inputSpan).textContent);
         setCaret(inputSpan, 0);
         e.preventDefault(); // no crappy <div></div> added
       }
@@ -345,7 +345,6 @@ const Shell = function (
         return;
       }
     }
-
     setCaretAtEndMaybe(inputSpan, true);
     const pos = window.getSelection().focusOffset;
     if (pos == 0) scrollLeft(terminal);

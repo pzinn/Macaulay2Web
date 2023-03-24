@@ -90,15 +90,40 @@ const escapeKeyHandling = function () {
       document.execCommand("insertHTML", false, table);
       return;
     }
+    if (s == "_") {
+      document.execCommand(
+        "insertHTML",
+        false,
+        "<sub id='tmp' class='inputSu'></sub>"
+      );
+      const el = document.getElementById("tmp");
+      setCaret(el, 0);
+      el.removeAttribute("id");
+      return;
+    }
+    if (s == "^") {
+      document.execCommand(
+        "insertHTML",
+        false,
+        "<sup id='tmp' class='inputSu'></sup>"
+      );
+      const el = document.getElementById("tmp");
+      setCaret(el, 0);
+      el.removeAttribute("id");
+      return;
+    }
 
     let sss = "";
     for (const ss in UCsymbols) {
       if (ss.startsWith(s)) {
-        sss = String.fromCodePoint(UCsymbols[ss]);
-        break;
+        document.execCommand(
+          "insertText",
+          false,
+          String.fromCodePoint(UCsymbols[ss])
+        );
+        return;
       }
     }
-    document.execCommand("insertText", false, sss);
   }
 };
 
@@ -466,7 +491,10 @@ const syntaxHighlight = function (el: HTMLElement) {
   if (sel.isCollapsed) {
     // to simplify (TEMP?) no hiliting while selecting
     const caret = getCaret(el);
-    const newHTML = Prism.highlight(el.innerText, Prism.languages.macaulay2);
+    const newHTML = Prism.highlight(
+      htmlToM2(el).innerText,
+      Prism.languages.macaulay2
+    );
     if (el.innerHTML != newHTML) {
       // avoid changing things if not necessary
       el.innerHTML = newHTML;
@@ -489,9 +517,8 @@ const updateAndHighlightMaybe = function (
   else el.textContent = txt;
 };
 
-const htmlToM2 = function (el0: HTMLElement) {
+const htmlToM2 = function (el: HTMLElement) {
   // minimal conversion: tables turn into matrices, maybe sub/superscripts...
-  const el = el0.cloneNode(true) as HTMLElement;
   Array.from(el.querySelectorAll("table")).forEach((x: HTMLElement) => {
     // not get element by class name because it creates live lists
     x.replaceWith(
@@ -509,7 +536,13 @@ const htmlToM2 = function (el0: HTMLElement) {
         "}"
     );
   });
-  return el.textContent;
+  Array.from(el.querySelectorAll("sub")).forEach((x: HTMLElement) =>
+    x.replaceWith("_(" + x.textContent + ")")
+  );
+  Array.from(el.querySelectorAll("sup")).forEach((x: HTMLElement) =>
+    x.replaceWith("^(" + x.textContent + ")")
+  );
+  return el;
 };
 
 export {
