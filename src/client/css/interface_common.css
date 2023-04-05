@@ -102,10 +102,6 @@ ul, ol, p { /* slowly destroying all of mdl's css... */
     margin: 0px;
 }
 
-.M2Html ul {
-    list-style:  " ⏺ ";
-}
-
 table {
     border-spacing: 0.2em;
     line-height: 1.2;
