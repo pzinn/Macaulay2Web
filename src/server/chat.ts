@@ -155,13 +155,12 @@ const socketChatAction = function (socket: Socket, client: Client) {
         .join("");
   };
   const chatSlash = function (chat: Chat) {
-    chat.alias = decode(
-      chat.message.replace("<br>", "\n").replace(/<[^>]*>?/gm, "")
-    ); // ! a form of echo. primitive html stripping
+    chat.alias = chat.text; // ! a form of echo. primitive html stripping
     chat.message = "";
     chat.recipients = null; // message not destined to be broadcast or recorded
     chat.index = chatCounter++; // it still has its number for client purposes
-    const ind = chat.alias.indexOf(" ");
+    //    const ind = chat.alias.indexOf(" ");
+    const ind = chat.alias.search(/\s/);
     let cmd = ind < 0 ? chat.alias.substring(1) : chat.alias.substring(1, ind);
     if (cmd == "") cmd = "help";
     const args = ind < 0 ? "" : chat.alias.substring(ind + 1);
@@ -249,7 +248,7 @@ const socketChatAction = function (socket: Socket, client: Client) {
       chatDelete(chat, i);
     } else if (chat.type === "restore") chatRestore(chat);
     else if (chat.type === "message") {
-      if (chat.message[0] == "/") chatSlash(chat);
+      if (chat.text[0] == "/") chatSlash(chat);
       else chatMessage(chat);
     }
   };
