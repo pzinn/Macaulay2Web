@@ -1,6 +1,7 @@
 import { initAccordion, appendTutorialToAccordion } from "./accordion";
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
+import { language } from "./htmlTools";
 import Prism from "prismjs";
 
 interface Tutorial {
@@ -14,21 +15,22 @@ const processTutorial = function (theHtml: string) {
   el.innerHTML = theHtml;
   // minor improvement: because <code> use white-space: pre, we remove extra spacing
   const codes = Array.from(el.getElementsByTagName("code"));
-  for (const code of codes) {
-    const lines = code.innerText.split(/\r?\n/);
-    while (lines.length > 0 && lines[0].trim() == "") lines.shift();
-    while (lines.length > 0 && lines[lines.length - 1].trim() == "")
-      lines.pop();
-    let minIndent = 1000;
-    lines.forEach((l) => {
-      const indent = l.match(/^\s*/)[0].length;
-      if (indent != l.length && indent < minIndent) minIndent = indent;
-    });
-    code.innerHTML = Prism.highlight(
-      lines.map((l) => l.substring(minIndent)).join("\n"),
-      Prism.languages.macaulay2
-    );
-  }
+  for (const code of codes)
+    if (language(code) == "Macaulay2") {
+      const lines = code.innerText.split(/\r?\n/);
+      while (lines.length > 0 && lines[0].trim() == "") lines.shift();
+      while (lines.length > 0 && lines[lines.length - 1].trim() == "")
+        lines.pop();
+      let minIndent = 1000;
+      lines.forEach((l) => {
+        const indent = l.match(/^\s*/)[0].length;
+        if (indent != l.length && indent < minIndent) minIndent = indent;
+      });
+      code.innerHTML = Prism.highlight(
+        lines.map((l) => l.substring(minIndent)).join("\n"),
+        Prism.languages.macaulay2
+      );
+    }
   autoRender(el); // convert all the LaTeX at once
   // add breaks
   const breaks = Array.from(el.getElementsByTagName("hr"));
