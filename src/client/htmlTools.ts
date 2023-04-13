@@ -302,6 +302,16 @@ const stripId = function (el) {
   );
 };
 
+const language = function (e) {
+  // tries to determine language of code. not great...
+  for (let i = 0; i < 3; i++)
+    if (e != null) {
+      if (e.dataset.language) return e.dataset.language;
+      e = e.parentElement;
+    }
+  return "Macaulay2"; // by default we assume code is M2
+};
+
 export {
   scrollDownLeft,
   scrollDown,
@@ -322,4 +332,5 @@ export {
   addMarker,
   addMarkerEl,
   stripId,
+  language,
 };

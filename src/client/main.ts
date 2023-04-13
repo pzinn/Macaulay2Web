@@ -23,6 +23,8 @@ import {
 
 import { options } from "../common/global";
 
+import { language } from "./htmlTools";
+
 let myshell = null; // the terminal
 let clientId = MINIMAL ? "public" : getCookieId(); // client's id. it's public / in the cookie,
 // but can be overwritten by url or chosen by server if no cookie
@@ -78,16 +80,6 @@ const fixAnchor = function (t: HTMLAnchorElement) {
     else if (!t.hash) t.target = "browse";
   } // external links in new tab, internal in frame (except # which should stay default)
   if (url.startsWith("file://")) t.href = url.substring(7); // no local files
-};
-
-const language = function (e) {
-  // tries to determine language of code. not great...
-  for (let i = 0; i < 3; i++)
-    if (e != null) {
-      if (e.dataset.language) return e.dataset.language;
-      e = e.parentElement;
-    }
-  return "Macaulay2"; // by default we assume code is M2
 };
 
 const clickAction = function (e) {

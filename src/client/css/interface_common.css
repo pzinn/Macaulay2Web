@@ -474,4 +474,3 @@ a {
 .inputSu::after {
     content: '\200A'; /* the obvious choice \200B doesn't work */
 }
-

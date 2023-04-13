@@ -882,12 +882,13 @@ const extra2 = function () {
       if (e.key == "Enter" && e.shiftKey) e.stopPropagation(); // shift-enter, don't want it to kick in run-in-editor behavior
       if (e.key == "Enter" && !e.shiftKey) {
         e.preventDefault();
-        const txt = chatInput.innerHTML;
+        const txt = chatInput.textContent.trim();
         if (txt != "") {
           const msg: Chat = {
             type: "message",
             alias: chatAlias.value,
-            message: txt,
+            message: chatInput.innerHTML,
+            text: txt,
             time: Date.now(),
           };
           if (
