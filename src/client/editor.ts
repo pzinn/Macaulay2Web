@@ -113,7 +113,6 @@ const escapeKeyHandling = function () {
       return;
     }
 
-    let sss = "";
     for (const ss in UCsymbols) {
       if (ss.startsWith(s)) {
         document.execCommand(

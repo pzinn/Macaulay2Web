@@ -264,7 +264,7 @@ const initTutorials = function () {
 
   for (const tute of startingTutorials) loadTutorial(tute, 0); // zero means don't render
 
-  document.getElementById("runAll").onclick = function () {
+  document.getElementById("runAllTute").onclick = function () {
     if (tutorials[tutorialIndex]) {
       const lesson =
         lessonNr > 0
