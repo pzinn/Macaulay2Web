@@ -58,7 +58,13 @@ const socketChatAction = function (socket: Socket, client: Client) {
     if (chat0.index < 0)
       systemChat(
         client,
-        "Welcome " + chat0.alias + " (id " + client.id + ") !"
+        "Welcome " +
+          chat0.alias +
+          (options.premiumList.indexOf(client.id) >= 0
+            ? " (premium user id "
+            : " (user id ") +
+          client.id +
+          ") !"
       ); // welcome only if first time
   };
   const chatMessage = function (chat: Chat) {
@@ -164,7 +170,15 @@ const socketChatAction = function (socket: Socket, client: Client) {
     let cmd = ind < 0 ? chat.alias.substring(1) : chat.alias.substring(1, ind);
     if (cmd == "") cmd = "help";
     const args = ind < 0 ? "" : chat.alias.substring(ind + 1);
-    if ("stop".startsWith(cmd) && admin) {
+    if ("premium".startsWith(cmd) && admin) {
+      args.split(" ").forEach((id) => {
+        const i = options.premiumList.indexOf(id);
+        const flag = i === -1;
+        if (flag) options.premiumList.push(id);
+        else options.premiumList.splice(i, 1);
+        chat.message += id + " (" + flag + ") ";
+      });
+    } else if ("stop".startsWith(cmd) && admin) {
       if (cmd == "stop") {
         systemChat(null, "The server is stopping.");
         setTimeout(function () {
@@ -193,7 +207,7 @@ const socketChatAction = function (socket: Socket, client: Client) {
       chat.message = "List of / commands:<ul>";
       if (admin)
         chat.message +=
-          "<li><b>/list [short]</b> – list all users</li><li><b>/run [command]</b> – run a linux command</li><li><b>/kill [id]</b> – kill your (or someone else's) Macaulay2 session and container</li><li><b>/block [id,ip]</b> – block all or some users from chat</li><li><b>/stop</b> – stop the server";
+          "<li><b>/list [short]</b> – list all users</li><li><b>/run [command]</b> – run a linux command</li><li><b>/kill [id]</b> – kill your (or someone else's) Macaulay2 session and container</li><li><b>/block [id,ip]</b> – block all or some users from chat</li><li><b>/stop</b> – stop the server</li><li><b>/premium [id]</b> toggle premium status";
       else
         chat.message +=
           "<li><b>/list</b> – list all users with your id</li><li><b>/run [command]</b> – run a linux command</li><li><b>/kill</b> – kill your Macaulay2 session and container</li>";
