@@ -5,7 +5,7 @@ import childProcess = require("child_process");
 const exec = childProcess.exec;
 
 import { Client, userSpecificPath } from "./client";
-import { clients, staticFolder } from "./server";
+import { clients, staticFolder, options as serverOptions } from "./server";
 import { logger } from "./logger";
 
 const save = "save.tar.gz";
@@ -266,10 +266,15 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   }
 
   private constructDockerRunCommand(resources, newInstance: Instance) {
+    const premium =
+      serverOptions.premiumList.indexOf(newInstance.clientId) >= 0;
     let dockerRunCmd =
       "sudo docker run  --security-opt seccomp=seccomp.json -d";
     dockerRunCmd += ' --cpus="' + resources.cpuShares + '"';
-    dockerRunCmd += ' --memory="' + resources.memory + 'm"';
+    dockerRunCmd +=
+      ' --memory="' +
+      (premium ? 2 * resources.memory : resources.memory) +
+      'm"';
     dockerRunCmd += " --name " + newInstance.containerName;
     dockerRunCmd += " -p " + newInstance.port + ":22";
     dockerRunCmd += " -l " + "clientId=" + newInstance.clientId;

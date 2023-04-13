@@ -1,8 +1,11 @@
 import { options as globalOptions } from "../common/global";
 
+const adminName = ""; // to be set live only
+
 const options = {
   ...globalOptions,
-  adminName: "", // to be set live only
+  adminName,
+  premiumList: [adminName], // possibly more users having extra privileges
   authentication: false, // overridden anyway depending on existence of public/users.htpasswd
   recreate: false, // try to recreate existing dockers
   perContainerResources: {
