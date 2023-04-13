@@ -9,6 +9,7 @@ import {
   caretIsAtEnd,
   nextChar,
   selectRowColumn,
+  addMarkerEl,
 } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import { initTutorials, renderLessonMaybe } from "./tutorials";
@@ -420,6 +421,30 @@ const extra2 = function () {
   const editor = document.getElementById("editorDiv");
   const chatForm = document.getElementById("chatForm");
 
+  let evaluateMarker = null;
+
+  const editorEvaluateHover = function () {
+    if (evaluateMarker) {
+      evaluateMarker.remove();
+      evaluateMarker = null;
+    }
+    const sel = window.getSelection();
+    if (sel.isCollapsed) {
+      const caret = getCaret(editor);
+      if (caret === null) return;
+      const txt = editor.textContent;
+      let start = caret - 1,
+        end = caret;
+      while (end < txt.length && txt[end] != "\n") end++;
+      while (start >= 0 && txt[start] != "\n") start--;
+      evaluateMarker = addMarkerEl(editor, start + 1);
+      evaluateMarker.classList.add("valid-marker");
+      let s = "";
+      for (let i = start; i < end; i++) s += "▒";
+      evaluateMarker.dataset.content = s;
+    }
+  };
+
   const editorEvaluate = function () {
     // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
     //    const sel = window.getSelection() as any; // modify is still "experimental"
@@ -442,6 +467,7 @@ const extra2 = function () {
         sel.modify("move", "forward", "character");
 	*/
         // giving up on using .modify since chromium devs can't be bothered fixing a trivial bug https://bugs.chromium.org/p/chromium/issues/detail?id=1221539#c3
+        // actually, has been fixed, apparently -- TODO reinstate
         const caret = getCaret(editor);
         const txt = editor.textContent;
         let start = caret - 1,
@@ -458,8 +484,14 @@ const extra2 = function () {
       myshell.postMessage(s);
       // important not to move the pointer so can move to next line
       // s.split("\n").forEach((line) => myshell.postMessage(line)); // should work fine now that echo mode is on but not needed
+      editorEvaluateHover();
       editor.focus(); // in chrome, this.blur() would be enough, but not in firefox
     }
+  };
+
+  const editorEvaluateAll = function () {
+    myshell.postMessage(editor.innerText);
+    editor.focus();
   };
 
   const clearOut = function () {
@@ -752,14 +784,15 @@ const extra2 = function () {
   editor.onpaste = editorPaste;
 
   const attachCtrlBtnActions = function () {
-    attachClick("sendBtn", editorEvaluate);
+    attachClick("runBtn", editorEvaluate);
+    attachClick("runAllEditor", editorEvaluateAll);
     attachClick("resetBtn", emitReset);
     attachClick("interruptBtn", myshell.interrupt);
     attachClick("saveBtn", saveFile);
     attachClick("loadBtn", loadFile);
-    //    attachClick("highlightBtn", highlight);
     attachClick("clearBtn", clearOut);
-    //  attachClick("wrapBtn", toggleWrap);
+    const el = document.getElementById("runBtn");
+    if (el) el.onmouseover = editorEvaluateHover;
   };
 
   const attachCloseDialogBtns = function () {
