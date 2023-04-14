@@ -13,7 +13,7 @@ import {
   attachElement,
   locateRowColumn,
   locateOffset,
-  addMarker,
+  addMarkerPos,
 } from "./htmlTools";
 import {
   escapeKeyHandling,
@@ -540,7 +540,7 @@ const Shell = function (
           if (m[1] == "stdio") {
             const nodeOffset = obj.locateStdio(cell(htmlSec), +m[2], +m[3]);
             if (nodeOffset) {
-              addMarker(nodeOffset[0], nodeOffset[1]).classList.add(
+              addMarkerPos(nodeOffset[0], nodeOffset[1]).classList.add(
                 "error-marker"
               );
             }
@@ -555,7 +555,7 @@ const Shell = function (
               if (pos !== null) {
                 const nodeOffset = locateOffset(editor, pos);
                 if (nodeOffset) {
-                  const marker = addMarker(nodeOffset[0], nodeOffset[1]);
+                  const marker = addMarkerPos(nodeOffset[0], nodeOffset[1]);
                   marker.classList.add("error-marker");
                   setTimeout(function () {
                     marker.scrollIntoView({
@@ -756,7 +756,7 @@ const Shell = function (
       nodeOffset2[0],
       nodeOffset2[1]
     );
-    const marker = addMarker(nodeOffset2[0], nodeOffset2[1]);
+    const marker = addMarkerPos(nodeOffset2[0], nodeOffset2[1]);
     if (rowcols[0] == rowcols[2] && rowcols[1] == rowcols[3])
       marker.classList.add("caret-marker");
     setTimeout(function () {

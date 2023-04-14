@@ -165,7 +165,7 @@ const setCaret = function (el, pos1: number, pos2?: number, mark?: boolean) {
       nodeOffsets[2],
       nodeOffsets[3]
     );
-    if (mark) return addMarker(nodeOffsets[2], nodeOffsets[3]);
+    if (mark) return addMarkerPos(nodeOffsets[2], nodeOffsets[3]);
   }
 };
 
@@ -258,7 +258,7 @@ const selectRowColumn = function (el, rowcols) {
     nodesOffsets[3]
   );
 
-  const marker = addMarker(nodesOffsets[2], nodesOffsets[3]);
+  const marker = addMarkerPos(nodesOffsets[2], nodesOffsets[3]);
 
   if (pos1 == pos2) marker.classList.add("caret-marker");
   setTimeout(function () {
@@ -273,26 +273,33 @@ const selectRowColumn = function (el, rowcols) {
   return true;
 };
 
-const addMarker = function (node?, offset?) {
+const addMarker = function (perma?) {
+  // perma means don't remove it after 1.5s
   // markers are used for scrolling or highlighting
   const marker = document.createElement("span");
   marker.classList.add("marker");
-  if (node) {
-    if (node.nodeType === 3)
-      // should always be the case but there are edge cases
-      node.parentElement.insertBefore(marker, node.splitText(offset));
-    // !!
-    else node.appendChild(marker); // fall-back behavior (?)
-  }
-  setTimeout(function () {
-    marker.remove();
-  }, 1500);
+  if (!perma)
+    setTimeout(function () {
+      marker.remove();
+    }, 1500);
   return marker;
 };
 
-const addMarkerEl = function (el, pos) {
+const addMarkerPos = function (node, offset, perma?) {
+  const marker = addMarker(perma);
+  if (node.nodeType === 3)
+    // should always be the case but there are edge cases
+    node.parentElement.insertBefore(marker, node.splitText(offset));
+  // !!
+  else node.appendChild(marker); // fall-back behavior (?)
+  return marker;
+};
+
+const addMarkerEl = function (el, pos, perma?) {
   const nodeOffset = locateOffset(el, pos);
-  return nodeOffset ? addMarker(nodeOffset[0], nodeOffset[1]) : addMarker();
+  return nodeOffset
+    ? addMarkerPos(nodeOffset[0], nodeOffset[1], perma)
+    : addMarker(perma);
 };
 
 const stripId = function (el) {
@@ -331,6 +338,7 @@ export {
   selectRowColumn,
   addMarker,
   addMarkerEl,
+  addMarkerPos,
   stripId,
   language,
 };
