@@ -3,7 +3,7 @@
 -- and have them evaluated by the server.
 
 -- Evaluate a line or selection by typing Shift+Enter
--- or by clicking on Evaluate.
+-- or by clicking on ▶.
 
 -- What follows is a set of examples.
 

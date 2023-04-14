@@ -423,11 +423,15 @@ const extra2 = function () {
 
   let evaluateMarker = null;
 
-  const editorEvaluateHover = function () {
+  const editorEvaluateOut = function () {
     if (evaluateMarker) {
       evaluateMarker.remove();
       evaluateMarker = null;
     }
+  };
+
+  const editorEvaluateHover = function () {
+    editorEvaluateOut();
     const sel = window.getSelection();
     if (sel.isCollapsed) {
       const caret = getCaret(editor);
@@ -437,7 +441,7 @@ const extra2 = function () {
         end = caret;
       while (end < txt.length && txt[end] != "\n") end++;
       while (start >= 0 && txt[start] != "\n") start--;
-      evaluateMarker = addMarkerEl(editor, start + 1);
+      evaluateMarker = addMarkerEl(editor, start + 1, true);
       evaluateMarker.classList.add("valid-marker");
       let s = "";
       for (let i = start; i < end; i++) s += "▒";
@@ -445,7 +449,7 @@ const extra2 = function () {
     }
   };
 
-  const editorEvaluate = function () {
+  const editorEvaluate = function (e?) {
     // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
     //    const sel = window.getSelection() as any; // modify is still "experimental"
     const sel = window.getSelection();
@@ -484,7 +488,7 @@ const extra2 = function () {
       myshell.postMessage(s);
       // important not to move the pointer so can move to next line
       // s.split("\n").forEach((line) => myshell.postMessage(line)); // should work fine now that echo mode is on but not needed
-      editorEvaluateHover();
+      if (e) editorEvaluateHover();
       editor.focus(); // in chrome, this.blur() would be enough, but not in firefox
     }
   };
@@ -792,7 +796,10 @@ const extra2 = function () {
     attachClick("loadBtn", loadFile);
     attachClick("clearBtn", clearOut);
     const el = document.getElementById("runBtn");
-    if (el) el.onmouseover = editorEvaluateHover;
+    if (el) {
+      el.onmouseover = editorEvaluateHover;
+      el.onmouseout = editorEvaluateOut;
+    }
   };
 
   const attachCloseDialogBtns = function () {
