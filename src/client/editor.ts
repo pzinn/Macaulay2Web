@@ -219,6 +219,28 @@ const autoCompleteHandling = function (el, dictionary?) {
               ? lst[l] + " "
               : lst[l]
             : String.fromCharCode(UCsymbols[lst[l]]);
+          if (dictionary) {
+            const icon = document.createElement("i");
+            icon.classList.add("material-icons");
+            icon.textContent = "close";
+            icon.style.fontSize = "0.8em";
+            icon.style.float = "right";
+            icon.onclick = function (e) {
+              // can't use l, may have shifted
+              let m = j;
+              while (
+                m < dictionary.length &&
+                dictionary[m] != opt.dataset.fullword
+              )
+                m++;
+              if (m < dictionary.length) dictionary.splice(m, 1);
+              opt.remove();
+              e.stopPropagation();
+              if (tabMenu.childElementCount == 0)
+                removeAutoComplete(false, true); // no choice => back to normal typing
+            };
+            opt.appendChild(icon);
+          }
           tabMenu.appendChild(opt);
         }
         autoComplete.appendChild(tabMenu);
