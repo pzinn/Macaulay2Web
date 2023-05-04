@@ -259,6 +259,7 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
         if (rowcols) selectRowColumn(el, rowcols);
         autoSaveHash = null; // force save
         autoSave();
+        return;
       } else response = missing;
     } else console.log(response + " succesfully loaded");
     autoSave();
