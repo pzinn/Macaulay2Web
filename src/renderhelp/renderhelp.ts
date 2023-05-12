@@ -38,7 +38,6 @@ window.renderhelp = function (text) {
     null,
     null,
     null,
-    null,
     false // no input span
   );
   document.body.classList.add("M2Html");
