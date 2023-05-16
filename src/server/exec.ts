@@ -27,6 +27,11 @@ const execInInstance = function (client: Client, cmd: string, next) {
         });
     });
   });
+  sshConnection.on("error", function (error) {
+    logger.error("ssh2 connection failed: " + error, client);
+    sshConnection.end(); // we don't want more errors produced
+    next();
+  });
   sshConnection.connect(sshCredentials(client.instance));
 };
 
