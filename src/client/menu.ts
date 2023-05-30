@@ -59,6 +59,7 @@ const setupMenu = function (menuElement, menuFunction, keyFunction?) {
     if (keyFunction) keyFunction(e);
   };
   menuElement.focus();
+  menuSelection.scrollIntoView();
   menuElement.onblur = function () {
     wrapMenuFunction(false, false);
   };

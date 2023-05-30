@@ -245,7 +245,10 @@ const Shell = function (
         return;
       t = t.parentElement;
     }
-    inputSpan.focus({ preventScroll: true });
+    if (document.activeElement != inputSpan) {
+      inputSpan.focus({ preventScroll: true });
+      setCaret(inputSpan, inputSpan.innerText.length);
+    }
   };
 
   const scrollBtn = document.getElementById("terminalScroll");
@@ -325,7 +328,7 @@ const Shell = function (
         !e.shiftKey &&
         autoCompleteHandling(null)
       ) {
-        scrollDown(terminal);
+        //        scrollDown(terminal);
         e.preventDefault();
       }
       return;
