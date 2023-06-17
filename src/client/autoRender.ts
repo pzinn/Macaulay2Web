@@ -43,7 +43,7 @@ const katexOptions = {
     "samp",
     "kbd",
   ].map((x) => x.toUpperCase()),
-  ignoredClasses: ["M2Text"],
+  ignoredClasses: ["M2Text", "tt"],
   errorCallback: console.error,
 };
 

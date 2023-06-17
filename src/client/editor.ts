@@ -228,12 +228,9 @@ const autoCompleteHandling = function (el, dictionary?) {
             icon.onclick = function (e) {
               // can't use l, may have shifted
               let m = j;
-              while (
-                m < dictionary.length &&
-                dictionary[m] != opt.dataset.fullword
-              )
-                m++;
-              if (m < dictionary.length) dictionary.splice(m, 1);
+              if (k > dictionary.length) k = dictionary.length;
+              while (m < k && dictionary[m] != opt.dataset.fullword) m++;
+              if (m < k) dictionary.splice(m, 1);
               opt.remove();
               e.stopPropagation();
               if (tabMenu.childElementCount == 0)

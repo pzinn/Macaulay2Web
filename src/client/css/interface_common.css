@@ -192,7 +192,7 @@ does not contain the whole contents (and is possibly empty) */
     display: inline;
 }
 
-.M2Text.M2Wrapped, .M2Wrapped .M2Text, .M2Wrapped pre, .M2Wrapped samp, .M2Wrapped kbd, .M2Wrapped tt, .M2Wrapped .KatexError, .M2Wrapped .token.string, .M2Wrapped .token.net {
+.M2Text.M2Wrapped, .M2Wrapped .M2Text, .M2Wrapped pre, .M2Wrapped samp, .M2Wrapped kbd, .M2Wrapped tt, .M2Wrapped span.tt, .M2Wrapped .KatexError, .M2Wrapped .token.string, .M2Wrapped .token.net {
     white-space: pre-wrap;
     word-break: break-all;
 }
@@ -334,7 +334,7 @@ pre > code, code.block { /* code block */
     background-color: red !important;
 }
 
-tt, samp, kbd {
+tt, samp, kbd, span.tt {
     /*
     font-family: "KaTeX_Typewriter", monospace;
     font-size: 1.2em;
@@ -404,7 +404,7 @@ ul.menu {
 a {
     cursor: pointer;
     text-decoration:none;
-    color: rgb(200,50,0);
+    color: rgb(200,100,0);
 }
 
 .M2Html a {
