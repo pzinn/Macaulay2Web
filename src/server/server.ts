@@ -204,7 +204,7 @@ const sendDataToClient = function (client: Client) {
     // new: prevent flooding
     client.outputStat +=
       1 +
-      0.002 * data.length +
+      0.001 * data.length +
       options.perContainerResources.maxOutputRate *
         (client.instance.lastActiveTime - Date.now());
     client.instance.lastActiveTime = Date.now();
