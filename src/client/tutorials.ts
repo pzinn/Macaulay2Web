@@ -1,4 +1,8 @@
-import { initAccordion, appendTutorialToAccordion } from "./accordion";
+import {
+  initAccordion,
+  appendTutorialToAccordion,
+  cssClasses,
+} from "./accordion";
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 import { language } from "./htmlTools";
@@ -32,6 +36,18 @@ const processTutorial = function (theHtml: string) {
       );
     }
   autoRender(el); // convert all the LaTeX at once
+  // add accordions
+  const accs = Array.from(el.querySelectorAll(".accordion"));
+  for (const acc of accs) {
+    const icon = document.createElement("i");
+    icon.innerHTML = cssClasses.titleSymbolActive;
+    icon.className = cssClasses.titleSymbolClass;
+    acc.insertBefore(icon, acc.firstChild);
+    icon.onclick = function () {
+      acc.classList.toggle(cssClasses.titleToggleClass);
+    };
+  }
+
   // add breaks
   const breaks = Array.from(el.getElementsByTagName("hr"));
   for (const hr of breaks) {

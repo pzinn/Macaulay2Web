@@ -246,6 +246,9 @@ button.rotated .material-icons {
     transform: rotate(90deg);
 }
 
+.accordionArrow, .accordionTitleBar {
+    cursor: pointer;
+}
 
 .accordionTitleBar:hover {
     background-color: #8080FF;
@@ -377,4 +380,15 @@ nav {
 
 #lesson hr.closed::after {
   content: "expand_more";
+}
+
+#lesson .accordion {
+    max-height: 1.4em;
+    transition: max-height 0s; /* this max-height stuff doesn't really work when closing */
+    overflow: hidden;
+}
+
+#lesson .accordion.rotated {
+    max-height: 100vh;
+    transition: max-height 0.5s;
 }
