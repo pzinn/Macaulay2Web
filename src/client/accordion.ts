@@ -2,12 +2,8 @@ import { Tutorial, removeTutorial } from "./tutorials.ts";
 import { stripId } from "./htmlTools.ts";
 
 const cssClasses = {
-  titleSymbolClass: "material-icons titleSymbol",
-  //  titleSymbolActive: "expand_more",
+  titleSymbolClass: "material-icons accordionArrow",
   titleSymbolActive: "arrow_right",
-  //  titleSymbolInactive: "expand_less",
-  // titleSymbolInactive: "arrow_drop_down",
-  titleSymbolInactive: "arrow_right",
   title:
     "accordionTitleBar mdl-button mdl-js-button mdl-button--raised mdl-list__item",
   titleHover: "mdl-button--colored",
@@ -80,7 +76,6 @@ const appendTutorialToAccordion = function (
   titlea.innerHTML = title ? title.innerHTML : index; // use index as default title
   stripId(titlea);
   titlespan.append(icon, titlea);
-  titlespan.style.cursor = "pointer";
 
   const deleteButton = document.createElement("i");
   deleteButton.className = "material-icons";
@@ -145,4 +140,4 @@ const appendTutorialToAccordion = function (
   div.appendChild(nav);
 };
 
-export { initAccordion, appendTutorialToAccordion };
+export { initAccordion, appendTutorialToAccordion, cssClasses };
