@@ -1,7 +1,7 @@
 import {
   initAccordion,
   appendTutorialToAccordion,
-  cssClasses,
+  addAccordionButton,
 } from "./accordion";
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
@@ -39,13 +39,7 @@ const processTutorial = function (theHtml: string) {
   // add accordions
   const accs = Array.from(el.querySelectorAll(".accordion"));
   for (const acc of accs) {
-    const icon = document.createElement("i");
-    icon.innerHTML = cssClasses.titleSymbolActive;
-    icon.className = cssClasses.titleSymbolClass;
-    acc.insertBefore(icon, acc.firstChild);
-    icon.onclick = function () {
-      acc.classList.toggle(cssClasses.titleToggleClass);
-    };
+    addAccordionButton(acc as HTMLElement);
   }
 
   // add breaks

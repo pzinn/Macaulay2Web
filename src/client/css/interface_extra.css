@@ -227,6 +227,20 @@ body {
     padding-bottom: 1px;
 }
 
+.accordion {
+  overflow: hidden;
+  transition: height 0.5s;
+  padding-bottom: 5px;
+}
+
+.accordion > :not(:first-child) {
+    display: none;
+}
+
+.accordion.accordionOpen  > :not(:first-child), .accordion.accordionDelayed > :not(:first-child) {
+    display: block;
+}
+
 .accordionMenu {
     list-style: none;
     margin: 0px;
@@ -238,15 +252,15 @@ body {
 }
 
 /*
-button.rotated .material-icons {
+button.accordionOpen .material-icons {
     transform: translate(-12px,-12px) rotate(90deg);
 }
 */
-.rotated .material-icons {
+.accordionOpen .material-icons {
     transform: rotate(90deg);
 }
 
-.accordionArrow, .accordionTitleBar {
+.accordionTitleBar {
     cursor: pointer;
 }
 
@@ -382,13 +396,3 @@ nav {
   content: "expand_more";
 }
 
-#lesson .accordion {
-    max-height: 1.4em;
-    transition: max-height 0s; /* this max-height stuff doesn't really work when closing */
-    overflow: hidden;
-}
-
-#lesson .accordion.rotated {
-    max-height: 100vh;
-    transition: max-height 0.5s;
-}

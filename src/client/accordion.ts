@@ -2,12 +2,14 @@ import { Tutorial, removeTutorial } from "./tutorials.ts";
 import { stripId } from "./htmlTools.ts";
 
 const cssClasses = {
+  accordionItem: "accordion",
   titleSymbolClass: "material-icons accordionArrow",
   titleSymbolActive: "arrow_right",
-  title:
-    "accordionTitleBar mdl-button mdl-js-button mdl-button--raised mdl-list__item",
+  title: "accordionTitleBar",
+  titleMdl: "mdl-button mdl-js-button mdl-button--raised mdl-list__item",
   titleHover: "mdl-button--colored",
-  titleToggleClass: "rotated",
+  toggleClass: "accordionOpen",
+  delayedToggleClass: "accordionDelayed",
   content: "mdl-list__item-text-body mdl-list__item",
   innerList: "accordionMenu",
   menuItem: "accordionMenuTitle",
@@ -22,9 +24,8 @@ const initAccordion = function (index) {
   document.getElementById("accordion").appendChild(div);
 };
 
-/*
-
-function totalHeight(element) { // height including margins
+function totalHeight(element) {
+  // height including margins
   const height = element.offsetHeight,
     style = window.getComputedStyle(element);
 
@@ -33,14 +34,59 @@ function totalHeight(element) { // height including margins
     .reduce((total, side) => total + side, height);
 }
 
+function innerHeight(element) {
+  // height excluding padding
+  const height = element.offsetHeight,
+    style = window.getComputedStyle(element);
+  return (
+    height - (parseFloat(style.paddingTop) + parseFloat(style.paddingBottom))
+  );
+}
+
+/*
 const childrenTotalHeight = function (element) {
   let height = 0;
   for (let i = 0; i < element.children.length; i++)
     height += totalHeight(element.children[i]);
   return height;
 };
-
 */
+
+const addAccordionButton = function (div: HTMLElement) {
+  const titlespan = div.firstElementChild as HTMLElement;
+  titlespan.classList.add(cssClasses.title);
+  const icon = document.createElement("i");
+  icon.innerHTML = cssClasses.titleSymbolActive;
+  icon.className = cssClasses.titleSymbolClass;
+  let heightClosed = -1,
+    heightOpen;
+  titlespan.insertBefore(icon, titlespan.firstChild);
+  titlespan.onclick = function () {
+    if (div.classList.contains(cssClasses.toggleClass)) {
+      // open -> closed
+      div.classList.remove(cssClasses.toggleClass);
+      div.style.height = heightClosed + "px";
+      div.classList.add(cssClasses.delayedToggleClass);
+      setTimeout(function () {
+        div.classList.remove(cssClasses.delayedToggleClass);
+      }, 500);
+    } else {
+      // closed -> open
+      if (heightClosed < 0) {
+        heightClosed = innerHeight(div); // the first time
+        div.classList.add(cssClasses.toggleClass);
+        heightOpen = innerHeight(div);
+        div.style.height = heightClosed + "px"; // for transition to kick in
+        setTimeout(function () {
+          div.style.height = heightOpen + "px";
+        }, 1);
+      } else {
+        div.classList.add(cssClasses.toggleClass);
+        div.style.height = heightOpen + "px";
+      }
+    }
+  };
+};
 
 const appendTutorialToAccordion = function (
   tutorial: Tutorial,
@@ -50,16 +96,10 @@ const appendTutorialToAccordion = function (
   const id = "accordion-" + index;
   const div = document.getElementById(id);
   div.innerHTML = "";
-  div.style.overflow = "hidden";
-  div.style.transition = "height 0.5s";
-  div.style.paddingBottom = "5px";
-  div.style.height = "";
+  div.classList.add(cssClasses.accordionItem);
 
   const titlespan = document.createElement("span"); //title.cloneNode(false);
-  titlespan.className = cssClasses.title;
-  const icon = document.createElement("i");
-  icon.innerHTML = cssClasses.titleSymbolActive;
-  icon.className = cssClasses.titleSymbolClass;
+  titlespan.className = cssClasses.titleMdl;
   const titlea = document.createElement("a");
   titlea.className = cssClasses.titleHref;
   if (!clickAction) {
@@ -75,7 +115,7 @@ const appendTutorialToAccordion = function (
   const title = tutorial.body.querySelector("title,header");
   titlea.innerHTML = title ? title.innerHTML : index; // use index as default title
   stripId(titlea);
-  titlespan.append(icon, titlea);
+  titlespan.append(titlea);
 
   const deleteButton = document.createElement("i");
   deleteButton.className = "material-icons";
@@ -91,32 +131,6 @@ const appendTutorialToAccordion = function (
 
   const ul = document.createElement("ul");
   ul.className = cssClasses.innerList;
-
-  let heightClosed = -1,
-    heightOpen;
-  titlespan.onclick = function () {
-    if (titlespan.classList.contains(cssClasses.titleToggleClass)) {
-      // open -> closed
-      titlespan.classList.remove(cssClasses.titleToggleClass);
-      div.style.height = heightClosed + "px";
-      setTimeout(function () {
-        if (!titlespan.classList.contains(cssClasses.titleToggleClass))
-          nav.style.display = "none"; // minor: prevents tabbing to closed menu items
-      }, 500);
-    } else {
-      // closed -> open
-      titlespan.classList.add(cssClasses.titleToggleClass);
-      nav.style.display = "block";
-      if (heightClosed < 0) {
-        heightClosed = titlespan.offsetHeight; // the first time
-        div.style.height = heightClosed + "px";
-        setTimeout(function () {
-          heightOpen = titlespan.offsetHeight + nav.offsetHeight; // okay as long as no margins
-          div.style.height = heightOpen + "px";
-        }, 1);
-      } else div.style.height = heightOpen + "px";
-    }
-  };
 
   let li, a;
   for (let j = 0; j < tutorial.lessons.length; j++) {
@@ -135,9 +149,9 @@ const appendTutorialToAccordion = function (
       ul.appendChild(li);
     }
   }
-  nav.style.display = "none";
   nav.appendChild(ul);
   div.appendChild(nav);
+  addAccordionButton(div);
 };
 
-export { initAccordion, appendTutorialToAccordion, cssClasses };
+export { initAccordion, appendTutorialToAccordion, addAccordionButton };
