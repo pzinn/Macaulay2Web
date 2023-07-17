@@ -21,7 +21,29 @@
       </p>
       <p>All built-in mathematical types have a method <tt>texMath</tt> (or at least they should!). If you define your own type, say,
 	<pre><code>MyType = new Type of BasicList</code></pre>
-	then it is a good idea to define your own method <tt>texMath</tt>. One way to do that is to write
+	then it is a good idea to define your own method <tt>texMath</tt>. For example, you could write
+	<pre><code>
+            texMath MyType := x -> concatenate(
+                                     ///\begin{bmatrix}///,
+                                     demark(///\\///,texMath\toList x),
+                                     ///\end{bmatrix}///
+                                   );
+	</pre></code>
+	et voilà:
+	<pre><code>
+	    A = new MyType from {2,3,5,7}
+	</code></pre>
+	Note however that the `net` output (the one you would get in a terminal or in emacs) is unaffected and needs to
+	be redefined separately:
+	<pre><code>
+	    net A
+	</code></pre>
+      </p>
+    </section>
+    <section>
+      <header><h2>Using <tt>expression</tt></h2></header>
+      <p>As a slight digression, a more efficient way to define output routines may be to use <code>expression</code>.
+	Here's how it works:
 	<pre><code>texMath MyType := x -> texMath expression x;</code></pre>
 	and then for example
 	<pre><code>expression MyType := x -> (
@@ -32,12 +54,10 @@
 	The advantage is that several forms of output can then be written at once; e.g., you can also have
 	<pre><code>net MyType := x -> net expression x; toString MyType := x -> toString expression x;</code></pre>
 	Let us try:
-	<pre><code>A = new MyType from a_0..a_5</code></pre>
-	<pre><code>net A</code></pre>
-	<pre><code>toString A</code></pre>
+	<pre><code>F = new MyType from a_0..a_5</code></pre>
+	<pre><code>net F</code></pre>
+	<pre><code>toString F</code></pre>
       </p>
-      <!--      <p><small><i>Remark:</i> In future versions of \(\mac\), it may not even be needed to write <tt>texMath MyType := x -> texMath expression x</tt>
-		and similarly for other outputs. Stay tuned!</small></p> -->
     </section>
     <section>
       <header><h2>HTML and Hypertext</h2></header>

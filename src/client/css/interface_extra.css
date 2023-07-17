@@ -238,7 +238,7 @@ body {
 }
 
 .accordion.accordionOpen  > :not(:first-child), .accordion.accordionDelayed > :not(:first-child) {
-    display: block;
+    display: initial;
 }
 
 .accordionMenu {
