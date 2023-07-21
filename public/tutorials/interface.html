@@ -9,7 +9,7 @@
       <p>NB: this tutorial is for advanced users / developers only. For basics of the Macaulay2Web interface, see the <a href="#tutorial-welcome">welcome tutorial</a>.
       </p>
       <p>
-	There are various new features of this interface. Here we focus on the underlying \(\mac\) code: in order to work and produce LaTeX/HTML output, this web interface uses <code>topLevelMode=WebApp</code>, a special output mode of \(\mac\).
+	There are various new features of this Macaulay2web interface (compared to the traditional terminal/emacs interface). Here we focus on the underlying \(\mac\) code: in order to work and produce LaTeX/HTML output, this web interface uses <code>topLevelMode=WebApp</code>, a special output mode of \(\mac\).
 	(If you're nostalgic, you can always revert to <code>topLevelMode=Standard</code> for your usual terminal/ascii output.)
       </p>
       <p>The next few pages are meant for package developers or advanced users who wish to understand how to make the output of their programs look nice in WebApp mode. For more background information one may also consult my <a href="#tutorial-M2internals">M2internals presentation</a>.</p>
@@ -96,6 +96,29 @@
       </p>
     </section>
     <section>
+      <header><h2>Direct HTML output</h2></header>
+      <p>
+	For your package to work with this interface,
+	it needs to have either a <tt>texMath</tt> or <tt>html</tt> method for all defined types. (By default,
+	these methods will be inherited from ancestor types, which may or may not be to your liking.)
+      </p>
+      <p>Say your type is
+	<pre><code>MyType = new Type of BasicList</code></pre>
+	For types corresponding to mathematical objects, you should define as explained above a <tt>texMath</tt> method.
+	Let us try instead the <tt>html</tt> method for our type; we break it into steps for convenience, first converting to a <tt>Hypertext</tt> type using
+	the <tt>hypertext</tt> method, then converting the <tt>Hypertext</tt> to HTML using <tt>html</tt>:
+	<pre><code>needsPackage "Text";</code></pre>
+	<pre><code>
+	    hypertext MyType := x -> style(UL toList x,
+	    "background"=>"orange",
+	    "border"=>"1px solid",
+	    "padding" =>"20px 25px 20px 40px")</code></pre>
+	<pre><code>html MyType := html @@ hypertext</code></pre>
+	Let us test it:
+	<pre><code>new MyType from {"ha",1/2,1-ii,QQ[x]}</code></pre>
+      </p>
+    </section>
+    <section>
       <header><h2>VectorGraphics</h2></header>
       <p>
 	Another type of HTML item is available: <tt>SVG</tt> (scalable vector graphics). It can be accessed via the package <tt>VectorGraphics</tt>.
@@ -122,29 +145,14 @@
       </p>
     </section>
     <section>
-      <header><h2>Direct HTML output</h2></header>
+    <header><h2>Existing packages</h2></header>
       <p>
-	For your package to work with this interface,
-	it needs to have either a <tt>texMath</tt> or <tt>html</tt> method for all defined types. (By default,
-	these methods will be inherited from ancestor types, which may or may not be to your liking.)
-      </p>
-      <p>Say your type is
-	<pre><code>MyType = new Type of BasicList</code></pre>
-	For types corresponding to mathematical objects, you should define as explained before a <tt>texMath</tt> method.
-	Let us try instead the <tt>html</tt> method for our type; we break it into steps for convenience, first converting to a <tt>Hypertext</tt> type using
-	the <tt>hypertext</tt> method, then converting the <tt>Hypertext</tt> to HTML using <tt>html</tt>:
-	<pre><code>needsPackage "Text";</code></pre>
-	<pre><code>
-	    hypertext MyType := x -> style(UL toList x,
-	    "background"=>"orange",
-	    "border"=>"1px solid",
-	    "padding" =>"20px 25px 20px 40px")</code></pre>
-	<pre><code>html MyType := html @@ hypertext</code></pre>
-	Let us test it:
-	<pre><code>new MyType from {"ha",1/2,1-ii,QQ[x]}</code></pre>
+        If you find a package whose output in the web interface looks weird, try to apply the instructions above
+	(i.e., define <tt>texMath</tt> or <tt>html</tt> methods) and see if it improves the output. If successful,
+	consider submitting a PR!
       </p>
       <p>
-	Here we show how an existing package which already has support for HTML output can be easily converted to the new interface:
+	Some packages already have support for HTML output; this makes it easy to adapt them to the web interface, for example:
 	<pre><code>needsPackage "Graphs"</code></pre>
 	Now check out:
 	<pre><code>help graph</code></pre>
