@@ -825,72 +825,58 @@ const extra2 = function () {
   const scrollBtn = document.getElementById("terminalScroll");
   const checkScrollButton = function () {
     scrollBtn.style.visibility =
-      terminal.scrollTop + terminal.clientHeight >= terminal.scrollHeight
-        ? "hidden"
-        : "visible";
+      terminal.scrollTop + terminal.clientHeight < terminal.scrollHeight
+        ? "visible"
+        : "hidden";
   };
   terminal.onscroll = checkScrollButton;
   terminal.addEventListener("load", checkScrollButton, true); // load does not bubble => we make it capturing
 
   // zoom
-  function sanitizeFactor(factor) {
-    let result = factor;
-    if (result < 0) {
-      result *= -1;
-    }
-    if (result === 0) {
-      result += 1.1;
-    }
-    if (result < 1) {
-      result = 1 / result;
-    }
-    return result;
-  }
-
   const attachZoomButtons = function (
-    textareaID,
     zoominID,
     resetID,
     zoomoutID,
     inputFactorOrDefault?
   ) {
     const inputFactor =
-      typeof inputFactorOrDefault === "undefined"
-        ? 1.1
-        : sanitizeFactor(inputFactorOrDefault);
-    const sizes = {
-      factor: inputFactor,
-      currentSize: 1.0,
-    };
-    const textarea = document.getElementById(textareaID);
-    function applySize() {
-      const sizePercent = Math.round(sizes.currentSize * 100);
-      textarea.style.fontSize = sizePercent.toString() + "%";
-      checkScrollButton();
+      typeof inputFactorOrDefault === "undefined" ? 1.1 : inputFactorOrDefault;
+    let currentSize = 1.0;
+    function applySize(factor) {
+      currentSize *= factor;
+      console.log("zoom: " + currentSize);
+      const sizePercent = Math.round(currentSize * 100);
+      terminal.onscroll = null;
+      const scrollMiddle = terminal.scrollTop + terminal.clientHeight / 2;
+      const scrollBtnVisibility =
+        terminal.scrollTop + terminal.clientHeight < terminal.scrollHeight; // rather than call checkScrollButton, more accurate
+      terminal.style.fontSize = sizePercent.toString() + "%";
+      terminal.scrollTop = scrollBtnVisibility
+        ? factor * scrollMiddle - terminal.clientHeight / 2 // keep middle fixed
+        : terminal.scrollHeight - terminal.clientHeight + 1; // +1 to allow for annoying rounding errors
+      setTimeout(function () {
+        terminal.onscroll = checkScrollButton;
+      }, 0);
     }
 
     const zoomin = function () {
-      sizes.currentSize *= sizes.factor;
-      console.log("zoom: " + sizes.currentSize);
-      applySize();
+      applySize(inputFactor);
     };
 
     const zoomout = function () {
-      sizes.currentSize /= sizes.factor;
-      console.log("zoom: " + sizes.currentSize);
-      applySize();
+      applySize(1 / inputFactor);
     };
 
     const reset = function () {
-      sizes.currentSize = 1.0;
-      console.log("zoom: " + sizes.currentSize);
-      applySize();
+      applySize(1 / currentSize);
     };
 
     attachClick(zoominID, zoomin);
     attachClick(zoomoutID, zoomout);
     attachClick(resetID, reset);
   };
+
+  attachZoomButtons("terminalZoomIn", "terminalResetZoom", "terminalZoomOut");
 
   socket.on("chat", socketChat);
 
@@ -965,13 +951,6 @@ const extra2 = function () {
     syncChat();
     //    });
   }
-
-  attachZoomButtons(
-    "terminal",
-    "terminalZoomIn",
-    "terminalResetZoom",
-    "terminalZoomOut"
-  );
 
   // chat pm
   attachClick("pmtoggle", function () {
