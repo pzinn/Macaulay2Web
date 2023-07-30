@@ -788,6 +788,19 @@ const extra2 = function () {
   editor.onfocus = editorFocus;
   editor.onpaste = editorPaste;
 
+  let activeEl;
+  const saveActive = function () {
+    activeEl = document.activeElement;
+  };
+  const restoreActive = function () {
+    activeEl.focus();
+  };
+  const preserveActive = function (id) {
+    const el = document.getElementById(id);
+    el.onmousedown = saveActive;
+    el.onmouseup = restoreActive;
+  };
+
   const attachCtrlBtnActions = function () {
     attachClick("runBtn", editorEvaluate);
     attachClick("runAllEditor", editorEvaluateAll);
@@ -796,6 +809,7 @@ const extra2 = function () {
     attachClick("saveBtn", saveFile);
     attachClick("loadBtn", loadFile);
     attachClick("clearBtn", clearOut);
+    preserveActive("clearBtn");
     const el = document.getElementById("runBtn");
     if (el) {
       el.onmouseover = editorEvaluateHover;
@@ -822,7 +836,10 @@ const extra2 = function () {
   };
 
   // scroll button
-  const scrollBtn = document.getElementById("terminalScroll");
+  attachClick("scrollBtn", function () {
+    scrollDown(terminal);
+  });
+  const scrollBtn = document.getElementById("scrollBtn");
   const checkScrollButton = function () {
     scrollBtn.style.visibility =
       terminal.scrollTop + terminal.clientHeight < terminal.scrollHeight
@@ -831,12 +848,13 @@ const extra2 = function () {
   };
   terminal.onscroll = checkScrollButton;
   terminal.addEventListener("load", checkScrollButton, true); // load does not bubble => we make it capturing
+  preserveActive("scrollBtn");
 
   // zoom
   const attachZoomButtons = function (
-    zoominID,
-    resetID,
-    zoomoutID,
+    zoominId,
+    resetId,
+    zoomoutId,
     inputFactorOrDefault?
   ) {
     const inputFactor =
@@ -871,12 +889,13 @@ const extra2 = function () {
       applySize(1 / currentSize);
     };
 
-    attachClick(zoominID, zoomin);
-    attachClick(zoomoutID, zoomout);
-    attachClick(resetID, reset);
+    attachClick(zoominId, zoomin);
+    attachClick(zoomoutId, zoomout);
+    attachClick(resetId, reset);
+    [zoominId, zoomoutId, resetId].forEach(preserveActive);
   };
 
-  attachZoomButtons("terminalZoomIn", "terminalResetZoom", "terminalZoomOut");
+  attachZoomButtons("zoomInBtn", "resetZoomBtn", "zoomOutBtn");
 
   socket.on("chat", socketChat);
 

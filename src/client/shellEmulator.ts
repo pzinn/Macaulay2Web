@@ -251,14 +251,6 @@ const Shell = function (
     }
   };
 
-  const scrollBtn = document.getElementById("terminalScroll");
-  if (scrollBtn) {
-    scrollBtn.onclick = function () {
-      setCaretAtEndMaybe(inputSpan, true);
-      scrollDown(terminal);
-    };
-  }
-
   terminal.onkeydown = function (e: KeyboardEvent) {
     if (!inputSpan) return;
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after

@@ -180,7 +180,7 @@ body {
     box-sizing: border-box;
 }
 
-#terminalScroll {
+#scrollBtn {
     z-index: 2;
     position: absolute;
     bottom: 16px;
