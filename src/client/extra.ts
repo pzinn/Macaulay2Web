@@ -442,11 +442,11 @@ const extra2 = function () {
         end = caret;
       while (end < txt.length && txt[end] != "\n") end++;
       while (start >= 0 && txt[start] != "\n") start--;
-      evaluateMarker = addMarkerEl(editor, start + 1, true);
+      start++;
+      evaluateMarker = addMarkerEl(editor, start, true);
       evaluateMarker.classList.add("valid-marker");
-      let s = "";
-      for (let i = start; i < end; i++) s += "▒";
-      evaluateMarker.dataset.content = s;
+      evaluateMarker.dataset.content =
+        start == end ? "▒" : txt.substring(start, end).replace(/[\S ]/g, "▒");
     }
   };
 
