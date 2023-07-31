@@ -273,10 +273,24 @@
 	</menu>
       </form>
     </dialog>
-    <dialog id="uploadSuccessDialog" class="mdl-dialog" style="max-height:250px;min-width:300px;display:none">
-      <button id="uploadSuccessDialogClose" class="saveDialogButton mdl-button mdl-js-button mdl-button--icon">
+    <dialog id="uploadDialog" class="mdl-dialog" style="max-height:350px;min-width:350px;display:none">
+      <button id="uploadDialogClose" class="mdl-button mdl-js-button mdl-button--icon">
         <i class="material-icons">close</i>
       </button>
+      <label class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+	<input type="file" class="" multiple="true" id="localUpload" style="display:none"/>
+	Local file upload
+      </label>
+      <br/><br/>
+      <div style="border: 1px solid blue; padding: 3px;">
+	<label for="githubUser">Organisation</label>
+	<input type="text" id="githubUser" name="githubuser" value=""><br/>
+	<label for="githubProject">Project:</label>
+	<input type="text" id="githubProject" name="githubproject" value=""><br/>
+	<label for="githuBbranch">Branch or commit:</label>
+	<input type="text" id="githubBranch" name="githubbranch" value="main"><br/>
+	<button id="githubUpload" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">GitHub upload</button>
+      </div>
       <div class="mdl-dialog__content" id="uploadSuccessText">
       </div>
     </dialog>

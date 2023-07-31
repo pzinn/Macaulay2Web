@@ -22,25 +22,53 @@ const uploadToInstance = function (
           client
         );
         sshConnection.end();
-        return next(err);
+        return next("", err);
       }
       logger.info("Uploading " + fileName, client);
       sftp.fastPut(filePath, fileName, function (sftpError) {
         unlink(filePath);
-        if (sftpError)
+        if (sftpError) {
           logger.error(
             "Error while uploading file: " + fileName + ", ERROR: " + sftpError,
             client
           );
-        sshConnection.end();
-        next(sftpError);
+          sshConnection.end();
+          next("", sftpError);
+        } else if (fileName.endsWith(".tar.gz")) {
+          // TODO: .tar and .gz separately?
+          const cmd =
+            "tar zxf " +
+            fileName +
+            " -C `dirname " +
+            fileName +
+            "`; rm " +
+            fileName;
+          sshConnection.exec(cmd, function (err, stream) {
+            if (err) {
+              logger.error("failed to execute " + cmd, client);
+              sshConnection.end();
+              return next("", err);
+            }
+            stream
+              .on("close", () => {
+                logger.info("successfully executed " + cmd, client);
+                sshConnection.end();
+                next(fileName + " (extracted)<br/>");
+              })
+              .on("data", (data) => {})
+              .stderr.on("data", (data) => {});
+          });
+        } else {
+          sshConnection.end();
+          next(fileName + "<br/>");
+        }
       });
     });
   });
   sshConnection.on("error", function (error) {
     logger.error("ssh2 connection failed: " + error, client);
     sshConnection.end(); // we don't want more errors produced
-    next();
+    next("", error);
   });
   sshConnection.connect(credentials);
 };

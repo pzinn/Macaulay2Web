@@ -10,6 +10,7 @@ const execInInstance = function (client: Client, cmd: string, next) {
     sshConnection.exec(cmd, function (err, stream) {
       if (err) {
         logger.error("failed to execute " + cmd, client);
+        sshConnection.end();
         return next();
       }
       let out = "";

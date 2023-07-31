@@ -567,14 +567,26 @@ const extra2 = function () {
     console.log("file upload returned status code " + event.target.status);
     const response = event.target.responseText;
     if (response) {
-      const dialog = document.getElementById("uploadSuccessDialog") as any; //HTMLDialogElement;
+      const dialog = document.getElementById("uploadDialog") as any; //HTMLDialogElement;
       if (dialog.showModal) {
-        dialog.style.display = ""; // turned off for safari etc that don't support Dialog
         document.getElementById("uploadSuccessText").innerHTML = response;
-        dialog.showModal();
+        dialog.style.display = ""; // turned off for safari etc that don't support Dialog
+        //        dialog.showModal();
       }
     }
   };
+
+  const uploadFile = function () {
+    const dialog = document.getElementById("uploadDialog") as any; //HTMLDialogElement;
+    if (dialog.showModal) {
+      dialog.style.display = ""; // turned off for safari etc that don't support Dialog
+      dialog.showModal();
+    }
+  };
+
+  const fileUploadInput = document.getElementById(
+    "localUpload"
+  ) as HTMLInputElement;
 
   const uploadFileProcess = function (event) {
     const files = event.target.files;
@@ -591,13 +603,29 @@ const extra2 = function () {
     fileUploadInput.value = ""; // to allow reuploading
   };
 
-  const fileUploadInput = document.createElement("input");
-  fileUploadInput.setAttribute("type", "file");
-  fileUploadInput.setAttribute("multiple", "true");
   fileUploadInput.addEventListener("change", uploadFileProcess, false);
 
-  const uploadFile = function () {
-    fileUploadInput.click();
+  const githubUpload = document.getElementById("githubUpload") as HTMLElement;
+  const githubUser = document.getElementById("githubUser") as HTMLInputElement;
+  const githubProject = document.getElementById(
+    "githubProject"
+  ) as HTMLInputElement;
+  const githubBranch = document.getElementById(
+    "githubBranch"
+  ) as HTMLInputElement;
+  githubUpload.onclick = function () {
+    if (!githubUser.value) return;
+    if (!githubProject.value) return;
+    if (!githubBranch.value) return; // default?
+    const req = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append("githubUser", githubUser.value);
+    formData.append("githubProject", githubProject.value);
+    formData.append("githubBranch", githubBranch.value);
+    formData.append("id", clientId);
+    req.onloadend = showUploadDialog;
+    req.open("POST", "/upload");
+    req.send(formData);
   };
 
   const loadFileProcess = function (event) {
@@ -818,8 +846,8 @@ const extra2 = function () {
   };
 
   const attachCloseDialogBtns = function () {
-    attachClick("uploadSuccessDialogClose", function () {
-      (document.getElementById("uploadSuccessDialog") as any).close();
+    attachClick("uploadDialogClose", function () {
+      (document.getElementById("uploadDialog") as any).close();
     });
     /*    attachClick("showFileDialogClose", function () {
       (document.getElementById("showFileDialog") as any).close();
