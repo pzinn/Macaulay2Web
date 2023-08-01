@@ -104,7 +104,7 @@ const getInstance = function (client: Client, next): void {
       });
     } catch (error) {
       logger.error(
-        "Could not get new instance. Should not drop in here",
+        "Could not get new instance. Should not drop in here: " + error,
         client
       );
     }
