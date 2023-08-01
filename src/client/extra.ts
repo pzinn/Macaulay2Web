@@ -442,11 +442,11 @@ const extra2 = function () {
         end = caret;
       while (end < txt.length && txt[end] != "\n") end++;
       while (start >= 0 && txt[start] != "\n") start--;
-      evaluateMarker = addMarkerEl(editor, start + 1, true);
+      start++;
+      evaluateMarker = addMarkerEl(editor, start, true);
       evaluateMarker.classList.add("valid-marker");
-      let s = "";
-      for (let i = start; i < end; i++) s += "▒";
-      evaluateMarker.dataset.content = s;
+      evaluateMarker.dataset.content =
+        start == end ? "▒" : txt.substring(start, end).replace(/[\S ]/g, "▒");
     }
   };
 
@@ -567,14 +567,26 @@ const extra2 = function () {
     console.log("file upload returned status code " + event.target.status);
     const response = event.target.responseText;
     if (response) {
-      const dialog = document.getElementById("uploadSuccessDialog") as any; //HTMLDialogElement;
+      const dialog = document.getElementById("uploadDialog") as any; //HTMLDialogElement;
       if (dialog.showModal) {
-        dialog.style.display = ""; // turned off for safari etc that don't support Dialog
         document.getElementById("uploadSuccessText").innerHTML = response;
-        dialog.showModal();
+        dialog.style.display = ""; // turned off for safari etc that don't support Dialog
+        //        dialog.showModal();
       }
     }
   };
+
+  const uploadFile = function () {
+    const dialog = document.getElementById("uploadDialog") as any; //HTMLDialogElement;
+    if (dialog.showModal) {
+      dialog.style.display = ""; // turned off for safari etc that don't support Dialog
+      dialog.showModal();
+    }
+  };
+
+  const fileUploadInput = document.getElementById(
+    "localUpload"
+  ) as HTMLInputElement;
 
   const uploadFileProcess = function (event) {
     const files = event.target.files;
@@ -591,13 +603,29 @@ const extra2 = function () {
     fileUploadInput.value = ""; // to allow reuploading
   };
 
-  const fileUploadInput = document.createElement("input");
-  fileUploadInput.setAttribute("type", "file");
-  fileUploadInput.setAttribute("multiple", "true");
   fileUploadInput.addEventListener("change", uploadFileProcess, false);
 
-  const uploadFile = function () {
-    fileUploadInput.click();
+  const githubUpload = document.getElementById("githubUpload") as HTMLElement;
+  const githubUser = document.getElementById("githubUser") as HTMLInputElement;
+  const githubProject = document.getElementById(
+    "githubProject"
+  ) as HTMLInputElement;
+  const githubBranch = document.getElementById(
+    "githubBranch"
+  ) as HTMLInputElement;
+  githubUpload.onclick = function () {
+    if (!githubUser.value) return;
+    if (!githubProject.value) return;
+    if (!githubBranch.value) return; // default?
+    const req = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append("githubUser", githubUser.value);
+    formData.append("githubProject", githubProject.value);
+    formData.append("githubBranch", githubBranch.value);
+    formData.append("id", clientId);
+    req.onloadend = showUploadDialog;
+    req.open("POST", "/upload");
+    req.send(formData);
   };
 
   const loadFileProcess = function (event) {
@@ -788,6 +816,19 @@ const extra2 = function () {
   editor.onfocus = editorFocus;
   editor.onpaste = editorPaste;
 
+  let activeEl;
+  const saveActive = function () {
+    activeEl = document.activeElement;
+  };
+  const restoreActive = function () {
+    activeEl.focus();
+  };
+  const preserveActive = function (id) {
+    const el = document.getElementById(id);
+    el.onmousedown = saveActive;
+    el.onmouseup = restoreActive;
+  };
+
   const attachCtrlBtnActions = function () {
     attachClick("runBtn", editorEvaluate);
     attachClick("runAllEditor", editorEvaluateAll);
@@ -796,6 +837,7 @@ const extra2 = function () {
     attachClick("saveBtn", saveFile);
     attachClick("loadBtn", loadFile);
     attachClick("clearBtn", clearOut);
+    preserveActive("clearBtn");
     const el = document.getElementById("runBtn");
     if (el) {
       el.onmouseover = editorEvaluateHover;
@@ -804,8 +846,8 @@ const extra2 = function () {
   };
 
   const attachCloseDialogBtns = function () {
-    attachClick("uploadSuccessDialogClose", function () {
-      (document.getElementById("uploadSuccessDialog") as any).close();
+    attachClick("uploadDialogClose", function () {
+      (document.getElementById("uploadDialog") as any).close();
     });
     /*    attachClick("showFileDialogClose", function () {
       (document.getElementById("showFileDialog") as any).close();
@@ -822,7 +864,10 @@ const extra2 = function () {
   };
 
   // scroll button
-  const scrollBtn = document.getElementById("terminalScroll");
+  attachClick("scrollBtn", function () {
+    scrollDown(terminal);
+  });
+  const scrollBtn = document.getElementById("scrollBtn");
   const checkScrollButton = function () {
     scrollBtn.style.visibility =
       terminal.scrollTop + terminal.clientHeight < terminal.scrollHeight
@@ -831,12 +876,13 @@ const extra2 = function () {
   };
   terminal.onscroll = checkScrollButton;
   terminal.addEventListener("load", checkScrollButton, true); // load does not bubble => we make it capturing
+  preserveActive("scrollBtn");
 
   // zoom
   const attachZoomButtons = function (
-    zoominID,
-    resetID,
-    zoomoutID,
+    zoominId,
+    resetId,
+    zoomoutId,
     inputFactorOrDefault?
   ) {
     const inputFactor =
@@ -871,12 +917,13 @@ const extra2 = function () {
       applySize(1 / currentSize);
     };
 
-    attachClick(zoominID, zoomin);
-    attachClick(zoomoutID, zoomout);
-    attachClick(resetID, reset);
+    attachClick(zoominId, zoomin);
+    attachClick(zoomoutId, zoomout);
+    attachClick(resetId, reset);
+    [zoominId, zoomoutId, resetId].forEach(preserveActive);
   };
 
-  attachZoomButtons("terminalZoomIn", "terminalResetZoom", "terminalZoomOut");
+  attachZoomButtons("zoomInBtn", "resetZoomBtn", "zoomOutBtn");
 
   socket.on("chat", socketChat);
 

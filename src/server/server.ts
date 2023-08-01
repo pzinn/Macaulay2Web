@@ -14,10 +14,10 @@ import Cookie = require("cookie");
 
 import express = require("express");
 const app = express();
-//import httpModule = require("http");
-//const http = httpModule.createServer(app);
+import https = require("https");
 import fs = require("fs");
 import multer = require("multer");
+import url = require("url");
 const upload = multer({
   dest: "/tmp/",
   preservePath: true,
@@ -311,11 +311,61 @@ const unlink = function (completePath: string) {
 };
 
 const fileUpload = function (request, response) {
-  const fileList = request.files;
-  if (!fileList) return;
+  if (request.body.githubUser) {
+    const URL =
+      "https://github.com/" +
+      request.body.githubUser +
+      "/" +
+      request.body.githubProject +
+      "/tarball/" +
+      request.body.githubBranch;
+    const fileName =
+      request.body.githubUser +
+      "_" +
+      request.body.githubProject +
+      "_" +
+      request.body.githubBranch +
+      ".tar.gz"; // doesn't really matter
+    const filePath = "/tmp/" + fileName;
+    const file = fs.createWriteStream(filePath);
+    file
+      .on("finish", function () {
+        // update request files[]
+        request.files = [{ path: filePath, originalname: fileName }];
+        fileUpload2(request, response);
+      })
+      .on("error", function (err) {
+        // Handle errors
+        unlink(filePath); // Delete the file async. (But we don't check the result)
+        // TODO
+      });
+    const writeToFile = function (res) {
+      res.pipe(file);
+    };
+
+    https.get(URL, function (res) {
+      if (
+        res.statusCode > 300 &&
+        res.statusCode < 400 &&
+        res.headers.location
+      ) {
+        if (url.parse(res.headers.location).hostname) {
+          https.get(res.headers.location, writeToFile);
+        } else {
+          https.get(
+            url.resolve(url.parse(URL).hostname, res.headers.location),
+            writeToFile
+          );
+        }
+      } else {
+        writeToFile(res);
+      }
+    });
+    return;
+  }
+  if (!request.files || request.files.length == 0) return;
   if (request.body.tutorial) {
-    if (fileList.length == 0) return;
-    const file = fileList[0];
+    const file = request.files[0];
     logger.info("Tutorial upload " + file.originalname);
     // move to tutorial directory
     fs.copyFile(
@@ -335,7 +385,10 @@ const fileUpload = function (request, response) {
     );
     return;
   }
-
+  fileUpload2(request, response);
+};
+const fileUpload2 = function (request, response) {
+  const fileList = request.files;
   const id = request.body.id;
   const client = id && clients[id] && clients[id].instance ? clients[id] : null;
   if (client) logger.info("File upload", client);
@@ -351,10 +404,10 @@ const fileUpload = function (request, response) {
             client,
             file.path,
             file.originalname,
-            function (err) {
+            function (msg, err) {
               if (err) errorFlag = true;
               else {
-                str += file.originalname + "<br/>";
+                str += msg;
                 emitViaClientSockets(client, "filechanged", {
                   fileName: file.originalname,
                   hash: request.body.hash,

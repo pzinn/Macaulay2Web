@@ -180,7 +180,7 @@ body {
     box-sizing: border-box;
 }
 
-#terminalScroll {
+#scrollBtn {
     z-index: 2;
     position: absolute;
     bottom: 16px;
@@ -395,4 +395,3 @@ nav {
 #lesson hr.closed::after {
   content: "expand_more";
 }
-
