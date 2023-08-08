@@ -576,17 +576,20 @@ const extra2 = function () {
     }
   };
 
+  const fileUploadInput = document.getElementById(
+    "localUpload"
+  ) as HTMLInputElement;
+
   const uploadFile = function () {
     const dialog = document.getElementById("uploadDialog") as any; //HTMLDialogElement;
     if (dialog.showModal) {
       dialog.style.display = ""; // turned off for safari etc that don't support Dialog
       dialog.showModal();
+    } else {
+      // for browsers that don't support dialog, just revert to local upload
+      fileUploadInput.click();
     }
   };
-
-  const fileUploadInput = document.getElementById(
-    "localUpload"
-  ) as HTMLInputElement;
 
   const uploadFileProcess = function (event) {
     const files = event.target.files;
