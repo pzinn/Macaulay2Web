@@ -1,3 +1,8 @@
+3.9 04/2023
+    * premium users
+    * various interface improvements
+    * github upload
+
 3.8 09/2021
     * code positioning meta-data
     * more coloring/interpreting output: prompts, errors

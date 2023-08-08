@@ -66,7 +66,8 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               if (self.currentInstance.port < port)
                 self.currentInstance.port = port;
               newInstance.clientId = clientId;
-              newInstance.lastActiveTime = Date.now();
+              newInstance.lastActiveTime =
+                Date.now() - this.hostConfig.minContainerAge; // now Date.now() to avoid nasty bug where new users can't be created for 10 mins after reboot
               newInstance.numInputs = 0;
               newInstance.containerName = "m2Port" + newInstance.port;
               if (clients[clientId]) {
