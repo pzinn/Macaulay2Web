@@ -270,6 +270,8 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
   });
 };
 
+let checkScrollButton = function () {}; // will be defined later
+
 const extra1 = function () {
   const tabs = document.getElementById("tabs") as any;
   const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
@@ -382,6 +384,7 @@ const extra1 = function () {
     // 24 is left-padding+left-margin+right-margin
     else resizeMouseEnd();
   };
+
   const resizeMouseEnd = () => {
     ismdwn = 0;
     document.body.removeEventListener("mousemove", resizeMouseMove);
@@ -393,8 +396,11 @@ const extra1 = function () {
         resizeMouseMove
       );
     document.body.style.userSelect = "";
+    checkScrollButton();
   };
+
   resize.onmousedown = resizeMouseDown;
+
   const resizeTouchStart = () => {
     document.body.addEventListener("touchmove", resizeTouchMove);
     document.body.addEventListener("touchend", resizeTouchEnd);
@@ -407,12 +413,15 @@ const extra1 = function () {
       event.changedTouches[0].clientX - 24 + "px";
     // 24 is left-padding+left-margin+right-margin
   };
+
   const resizeTouchEnd = () => {
     document.body.removeEventListener("touchmove", resizeTouchMove);
     document.body.removeEventListener("touchend", resizeTouchEnd);
     document.body.removeEventListener("touchcancel", resizeTouchEnd);
     document.body.style.userSelect = "";
+    checkScrollButton();
   };
+
   resize.ontouchstart = resizeTouchStart;
 };
 
@@ -871,7 +880,7 @@ const extra2 = function () {
     scrollDown(terminal);
   });
   const scrollBtn = document.getElementById("scrollBtn");
-  const checkScrollButton = function () {
+  checkScrollButton = function () {
     scrollBtn.style.visibility =
       terminal.scrollTop + terminal.clientHeight < terminal.scrollHeight
         ? "visible"
@@ -1030,4 +1039,5 @@ export {
   getCookieId,
   setCookieId,
   newEditorFileMaybe,
+  checkScrollButton,
 };
