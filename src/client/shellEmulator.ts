@@ -251,6 +251,7 @@ const Shell = function (
     }
   };
 
+  let savepos = null;
   terminal.onkeydown = function (e: KeyboardEvent) {
     if (!inputSpan) return;
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
@@ -291,12 +292,15 @@ const Shell = function (
       e.key == "F1"
     ) {
       // do not move caret on Ctrl/Command combos, PageUp/Down, etc
-      if (e.key == "PageUp" && document.activeElement == inputSpan)
+      if (e.key == "PageUp" && document.activeElement == inputSpan) {
+        savepos = window.getSelection().focusOffset;
+        // this prevents the annoying behavior of page up going to start of inputSpan => weird horiz scrolling
         setCaret(inputSpan, 0);
-      // this prevents the annoying behavior of page up going to start of inputSpan => weird horiz scrolling
-      if (e.key == "PageDown" && document.activeElement == inputSpan)
+      }
+      if (e.key == "PageDown" && document.activeElement == inputSpan) {
+        // this prevents the annoying behavior of page down going to end of inputSpan => weird horiz scrolling
         setCaret(inputSpan, inputSpan.innerText.length);
-      // this prevents the annoying behavior of page down going to end of inputSpan => weird horiz scrolling
+      }
       return;
     }
 
@@ -376,6 +380,10 @@ const Shell = function (
 
   terminal.onkeyup = function () {
     if (!inputSpan) return;
+    if (savepos !== null) {
+      setCaret(inputSpan, savepos);
+      savepos = null;
+    }
     if (
       inputSpan.parentElement == htmlSec &&
       htmlSec.classList.contains("M2Input")

@@ -1,7 +1,9 @@
+declare const MINIMAL;
 // cell bar handling
 import { setupMenu } from "./menu";
 import { setCaret } from "./htmlTools";
 import { myshell } from "./main";
+import { checkScrollButton } from "./extra";
 
 const unselectCells = function (doc: Document) {
   const lst = Array.from(doc.getElementsByClassName("M2CellSelected"));
@@ -131,6 +133,7 @@ const barAction = function (action: string, target0: HTMLElement) {
 
   const final = acts[4];
   if (final) final(curInput);
+  if (!MINIMAL) checkScrollButton();
   return true;
 };
 
@@ -205,7 +208,9 @@ const barRightClick = function (e) {
     }
 
   contextMenu.style.left = e.pageX + "px";
-  contextMenu.style.top = e.pageY + "px";
+  if (e.pageY < window.innerHeight / 2) contextMenu.style.top = e.pageY + "px";
+  else contextMenu.style.bottom = window.innerHeight - e.pageY + "px";
+
   doc.body.appendChild(contextMenu);
 
   if (doc.getElementsByClassName("M2CellSelected").length == 0)
