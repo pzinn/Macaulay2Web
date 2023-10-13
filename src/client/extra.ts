@@ -751,7 +751,7 @@ const extra2 = function () {
     let pos = pos0[0];
     if (e.key == "s" && e.ctrlKey) {
       if (searchString == "") searchString = prevSearchString;
-      else if (searchSuccess == 0) pos = 0;
+      else if (searchSuccess < searchString.length) pos = 0;
       else pos += searchString.length;
     } else if (e.key == "Backspace") {
       if (searchString.length == 0) {
