@@ -5,7 +5,7 @@ import {
 } from "./accordion";
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
-import { language } from "./htmlTools";
+import { language, scrollDown } from "./htmlTools";
 import { processCellChange, lastClickedCode } from "./main";
 import Prism from "prismjs";
 
@@ -301,7 +301,8 @@ const initTutorials = function () {
       let first = cell.firstChild;
       while (first !== null) {
         cell.removeChild(first);
-        if (first.nodeName == "BR") return insertSpot.after(cell);
+        if (first.nodeName == "BR" && cell.childNodes.length > 0)
+          return insertSpot.after(cell);
         first = cell.firstChild;
       }
     }
@@ -312,6 +313,11 @@ const initTutorials = function () {
     processCellChange(
       document.fullscreenElement == tutorial ? copyCellToTute : null
     );
+    if (document.fullscreenElement === null) {
+      scrollDown(document.getElementById("terminal"));
+      const inp = document.getElementsByClassName("M2CurrentInput");
+      if (inp.length > 0) (inp[0] as HTMLElement).focus();
+    }
   };
   document.getElementById("fullscreenTute").onclick = function () {
     tutorial.requestFullscreen();
