@@ -286,6 +286,10 @@ const initTutorials = function () {
         );
     }
   };
+  document.getElementById("fullscreenTute").onclick = function () {
+    const tutorial = document.getElementById("tutorial");
+    tutorial.requestFullscreen();
+  };
 };
 
 const removeTutorial = function (index) {

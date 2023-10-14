@@ -1022,6 +1022,10 @@ const extra2 = function () {
 
   attachClick("uploadBtn", uploadFile);
 
+  attachClick("fullscreenTerminal", function () {
+    terminal.requestFullscreen();
+  });
+
   window.addEventListener("beforeunload", function () {
     autoSave(true);
   });
