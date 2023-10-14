@@ -295,7 +295,7 @@ const extra1 = function () {
       const r = renderLessonMaybe(m[1], m[2]);
       document.location.hash = "#tutorial-" + r[0] + "-" + r[1]; // add the tuto name / # to URL
       loc = "tutorial";
-    } else document.exitFullscreen();
+    } else if (document.fullscreenElement !== null) document.exitFullscreen();
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);
     if (e) {

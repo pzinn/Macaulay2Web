@@ -653,10 +653,10 @@ const Shell = function (
             // or at the very end for rendering help -- then it's OK
             while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
             // but in rare circumstances (interrupt) it may be missing its \n
-            if (processCell !== null && tag == webAppTags.CellEnd) {
-              processCell(htmlSec);
-            }
+            const oldHtmlSec = htmlSec;
             closeHtml();
+            if (processCell !== null && tag == webAppTags.CellEnd)
+              processCell(oldHtmlSec);
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {
           // continuation of input section

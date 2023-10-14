@@ -401,3 +401,8 @@ nav {
     padding: 20px;
     overflow: hidden;
 }
+
+#tutorial:fullscreen .M2Cell {
+    margin-top: -10px; /* bit of a hack */
+    margin-bottom: 10px;
+}
