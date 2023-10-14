@@ -6,6 +6,7 @@ import {
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 import { language } from "./htmlTools";
+import { processCellChange, lastClickedCode } from "./main";
 import Prism from "prismjs";
 
 interface Tutorial {
@@ -285,6 +286,35 @@ const initTutorials = function () {
           (code as HTMLElement).click()
         );
     }
+  };
+  const copyCellToTute = function (cell: Node) {
+    if (lastClickedCode !== null) {
+      let insertSpot = lastClickedCode;
+      while (
+        insertSpot.nextElementSibling !== null &&
+        insertSpot.nextElementSibling.classList.contains("M2Cell")
+      )
+        //      insertSpot.nextElementSibling.remove();       // empty current output: disabled for now
+
+        insertSpot = insertSpot.nextElementSibling;
+      cell = cell.cloneNode(true);
+      let first = cell.firstChild;
+      while (first !== null) {
+        cell.removeChild(first);
+        if (first.nodeName == "BR") return insertSpot.after(cell);
+        first = cell.firstChild;
+      }
+    }
+  };
+
+  const tutorial = document.getElementById("tutorial");
+  document.onfullscreenchange = function () {
+    processCellChange(
+      document.fullscreenElement == tutorial ? copyCellToTute : null
+    );
+  };
+  document.getElementById("fullscreenTute").onclick = function () {
+    tutorial.requestFullscreen();
   };
 };
 

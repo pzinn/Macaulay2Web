@@ -395,3 +395,9 @@ nav {
 #lesson hr.closed::after {
   content: "expand_more";
 }
+
+:fullscreen {
+    background-color: #d2dce9;
+    padding: 20px;
+    overflow: hidden;
+}

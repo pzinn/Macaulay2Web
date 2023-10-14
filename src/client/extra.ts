@@ -295,7 +295,7 @@ const extra1 = function () {
       const r = renderLessonMaybe(m[1], m[2]);
       document.location.hash = "#tutorial-" + r[0] + "-" + r[1]; // add the tuto name / # to URL
       loc = "tutorial";
-    }
+    } else document.exitFullscreen();
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);
     if (e) {
@@ -751,7 +751,7 @@ const extra2 = function () {
     let pos = pos0[0];
     if (e.key == "s" && e.ctrlKey) {
       if (searchString == "") searchString = prevSearchString;
-      else if (searchSuccess == 0) pos = 0;
+      else if (searchSuccess < searchString.length) pos = 0;
       else pos += searchString.length;
     } else if (e.key == "Backspace") {
       if (searchString.length == 0) {
@@ -1021,6 +1021,10 @@ const extra2 = function () {
   attachCloseDialogBtns();
 
   attachClick("uploadBtn", uploadFile);
+
+  attachClick("fullscreenTerminal", function () {
+    terminal.requestFullscreen();
+  });
 
   window.addEventListener("beforeunload", function () {
     autoSave(true);

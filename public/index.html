@@ -107,7 +107,7 @@
                 <p>Learn and use Macaulay2.
                   Get started by pressing the <b>START</b> button. To use
                   this site effectively,
-                  try the <b>Welcome tutorial</b>. Have fun!
+                  try the <a href="#tutorial-welcome">welcome tutorial</a>. Have fun!
                 </p>
 
                 <p><a href='http://macaulay2.com'>Macaulay2</a>
@@ -156,6 +156,12 @@
 		  </div>
 		  <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored"
                           id="runAllTute"><i class="material-icons">playlist_play</i>
+		  </button>
+		  <div class="mdl-tooltip" for="fullscreenTute">
+		    Full screen tutorial
+		  </div>
+		  <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored"
+                          id="fullscreenTute"><i class="material-icons">open_in_full</i>
 		  </button>
                 </div>
               </div>
@@ -251,10 +257,18 @@
 	      <span id="oldUserIdReminder"></span>
 	    </div>
 	    <div id="terminalDiv" style="display:none">
+	      <div id="terminalFullscreen" style="position:absolute;top:0px;right:20px;z-index:2">
+		<div class="mdl-tooltip" for="fullscreenTerminal">
+		  Full screen terminal
+		</div>
+		<button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored"
+                        id="fullscreenTerminal"><i class="material-icons">open_in_full</i>
+		</button>
+	      </div>
               <div id="terminal" class="M2Text"></div>
               <div id="scrollBtn" style="visibility:hidden">
-                  <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--fab">
-                          <i class="material-icons">arrow_drop_down</i>
+                <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--fab">
+                  <i class="material-icons">arrow_drop_down</i>
 		  </button>
 	      </div>
             </div>
