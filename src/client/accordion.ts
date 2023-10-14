@@ -64,9 +64,13 @@ const addAccordionButton = function (div: HTMLElement) {
   titlespan.onclick = function () {
     if (div.classList.contains(cssClasses.toggleClass)) {
       // open -> closed
+      heightOpen = innerHeight(div); // just in case it changed
+      div.style.height = heightOpen + "px"; // for transition to kick in
       div.classList.remove(cssClasses.toggleClass);
-      div.style.height = heightClosed + "px";
       div.classList.add(cssClasses.delayedToggleClass);
+      setTimeout(function () {
+        div.style.height = heightClosed + "px";
+      }, 1);
       setTimeout(function () {
         div.classList.remove(cssClasses.delayedToggleClass);
       }, 500);
@@ -84,6 +88,9 @@ const addAccordionButton = function (div: HTMLElement) {
         div.classList.add(cssClasses.toggleClass);
         div.style.height = heightOpen + "px";
       }
+      setTimeout(function () {
+        div.style.height = ""; // just in case it changes dynamically
+      }, 500);
     }
   };
 };

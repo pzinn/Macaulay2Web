@@ -428,6 +428,7 @@ const extra1 = function () {
 // 2nd part: once session active
 const extra2 = function () {
   const terminal = document.getElementById("terminal");
+  const terminalDiv = document.getElementById("terminalDiv");
   const editor = document.getElementById("editorDiv");
   const chatForm = document.getElementById("chatForm");
 
@@ -1023,7 +1024,9 @@ const extra2 = function () {
   attachClick("uploadBtn", uploadFile);
 
   attachClick("fullscreenTerminal", function () {
-    terminal.requestFullscreen();
+    if (document.fullscreenElement !== terminalDiv)
+      terminalDiv.requestFullscreen();
+    else document.exitFullscreen();
   });
 
   window.addEventListener("beforeunload", function () {
