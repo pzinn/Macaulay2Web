@@ -287,7 +287,7 @@ const initTutorials = function () {
         );
     }
   };
-  const copyCellToTute = function (cell: Node) {
+  const copyCellToTute = function (cell: HTMLElement) {
     if (lastClickedCode !== null) {
       let insertSpot = lastClickedCode;
       while (
@@ -297,14 +297,25 @@ const initTutorials = function () {
         //      insertSpot.nextElementSibling.remove();       // empty current output: disabled for now
 
         insertSpot = insertSpot.nextElementSibling;
-      cell = cell.cloneNode(true);
+      cell = cell.cloneNode(true) as HTMLElement;
       let first = cell.firstChild;
       while (first !== null) {
         cell.removeChild(first);
-        if (first.nodeName == "BR" && cell.childNodes.length > 0)
-          return insertSpot.after(cell);
+        if (first.nodeName == "BR" && cell.childNodes.length > 0) {
+          insertSpot.after(cell);
+          window.setTimeout(
+            () => cell.scrollIntoView({ behavior: "smooth", block: "center" }),
+            0
+          );
+          return;
+        }
         first = cell.firstChild;
       }
+      window.setTimeout(
+        () =>
+          insertSpot.scrollIntoView({ behavior: "smooth", block: "center" }),
+        0
+      );
     }
   };
 
