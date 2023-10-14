@@ -1,4 +1,4 @@
-import { clientId } from "./main";
+import { clientId, processCell } from "./main";
 
 import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "../common/tags";
@@ -653,6 +653,9 @@ const Shell = function (
             // or at the very end for rendering help -- then it's OK
             while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
             // but in rare circumstances (interrupt) it may be missing its \n
+            if (processCell !== null && tag == webAppTags.CellEnd) {
+              processCell(htmlSec);
+            }
             closeHtml();
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {
