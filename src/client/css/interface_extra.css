@@ -228,7 +228,7 @@ body {
 }
 
 .accordion {
-  overflow: hidden;
+  overflow-y: hidden;
   transition: height 0.5s;
   padding-bottom: 5px;
 }
@@ -407,6 +407,5 @@ nav {
 }
 
 #tutorial .M2Cell {
-    margin-top: -10px; /* bit of a hack */
-    margin-bottom: 10px;
+    line-height: 1.14286;
 }

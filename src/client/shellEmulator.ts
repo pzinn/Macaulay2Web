@@ -751,6 +751,7 @@ const Shell = function (
 
   obj.selectPastInput = function (el: HTMLElement, rowcols) {
     const cel = cell(el);
+    if (!cel) return;
     const nodeOffset1 = obj.locateStdio(cel, rowcols[0], rowcols[1]);
     if (!nodeOffset1) return;
     const nodeOffset2 = obj.locateStdio(cel, rowcols[2], rowcols[3]);

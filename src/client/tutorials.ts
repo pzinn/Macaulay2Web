@@ -302,6 +302,12 @@ const initTutorials = function () {
       while (first !== null) {
         cell.removeChild(first);
         if (first.nodeName == "BR" && cell.childNodes.length > 0) {
+          if (
+            cell.firstChild.nodeType === 3 &&
+            cell.firstChild.textContent === "\n"
+          )
+            cell.removeChild(cell.firstChild);
+          // not great
           insertSpot.after(cell);
           window.setTimeout(
             () => cell.scrollIntoView({ behavior: "smooth", block: "center" }),
@@ -331,7 +337,8 @@ const initTutorials = function () {
     }
   };
   document.getElementById("fullscreenTute").onclick = function () {
-    tutorial.requestFullscreen();
+    if (document.fullscreenElement !== tutorial) tutorial.requestFullscreen();
+    else document.exitFullscreen();
   };
 };
 
