@@ -298,6 +298,11 @@ const initTutorials = function () {
 
         insertSpot = insertSpot.nextElementSibling;
       cell = cell.cloneNode(true) as HTMLElement;
+      if (
+        !lastClickedCode.classList.contains("block") &&
+        lastClickedCode.parentElement.nodeName != "PRE"
+      )
+        cell.classList.add("M2Inline");
       let first = cell.firstChild;
       while (first !== null) {
         cell.removeChild(first);

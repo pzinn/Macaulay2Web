@@ -408,4 +408,12 @@ nav {
 
 #tutorial .M2Cell {
     line-height: 1.14286;
+    margin-bottom: 0.6em;
+    margin-top: 0.6em;
+}
+
+#tutorial .M2Cell.M2Inline {
+    display: inline-block;
+    line-height: initial;
+    margin: 0px;
 }
