@@ -547,12 +547,14 @@ const extra2 = function () {
   const homeEditorBtn = document.getElementById("homeEditorBtn");
   homeEditorBtn.onclick = function () {
     autoSave();
+    turnOffSearchMode();
     newEditorFileMaybe("./");
   };
 
   const clearEditorBtn = document.getElementById("clearEditorBtn");
   clearEditorBtn.onclick = function () {
     autoSave();
+    turnOffSearchMode();
     editor.innerHTML = "";
     editor.contentEditable = "true";
     updateFileName("");
@@ -657,6 +659,7 @@ const extra2 = function () {
   };
 
   const loadFile = function () {
+    turnOffSearchMode();
     const input = document.createElement("input");
     input.setAttribute("type", "file");
     input.addEventListener("change", loadFileProcess, false);
@@ -697,6 +700,11 @@ const extra2 = function () {
   let searchString = "",
     prevSearchString = "";
 
+  const turnOffSearchMode = function () {
+    searchMode = false;
+    document.getElementById("searchSpan").style.display = "none";
+  };
+
   const editorKeyDown = function (e) {
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
     //removeDelimiterHighlight(editor);
@@ -705,8 +713,7 @@ const extra2 = function () {
         e.preventDefault();
         return;
       }
-      searchMode = false;
-      document.getElementById("searchSpan").style.display = "none";
+      turnOffSearchMode();
       const sel = window.getSelection() as any;
       sel.collapseToEnd();
     }
@@ -810,6 +817,7 @@ const extra2 = function () {
 
   const editorPaste = function (e) {
     e.preventDefault();
+    turnOffSearchMode();
     const c1 = e.clipboardData.getData("text/html");
     if (c1) {
       const returnNext = nextChar() == "\n";
