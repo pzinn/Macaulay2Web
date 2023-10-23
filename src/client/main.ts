@@ -33,7 +33,6 @@ let processCell = null;
 const processCellChange = function (f) {
   processCell = f;
 };
-let lastClickedCode = null;
 
 const keydownAction = function (e) {
   if (e.key == "F1") {
@@ -107,7 +106,6 @@ const clickAction = function (e) {
       t.ownerDocument.getSelection().isCollapsed
     ) {
       e.stopPropagation();
-      lastClickedCode = t;
       myshell.codeInputAction(t);
       break;
     } else if (t.tagName == "A") {
@@ -289,13 +287,4 @@ const init2 = function () {
   socket.connect();
 };
 
-export {
-  init,
-  myshell,
-  socket,
-  url,
-  clientId,
-  processCell,
-  processCellChange,
-  lastClickedCode,
-};
+export { init, myshell, socket, url, clientId, processCell, processCellChange };

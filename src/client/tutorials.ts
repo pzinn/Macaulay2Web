@@ -6,7 +6,7 @@ import {
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 import { language, scrollDown } from "./htmlTools";
-import { processCellChange, lastClickedCode } from "./main";
+import { processCellChange, myshell } from "./main";
 import Prism from "prismjs";
 
 interface Tutorial {
@@ -15,10 +15,56 @@ interface Tutorial {
   clickAction?: any;
 }
 
+const fsCodeStack = []; // stack of past code run full screen
+let clickedCode = null;
+const copyCellToTute = function (cell: HTMLElement) {
+  cell = cell.cloneNode(true) as HTMLElement;
+  let first = cell.firstChild;
+  while (first !== null) {
+    cell.removeChild(first);
+    if (first.textContent.trimStart().startsWith("-- auto\n"))
+      clickedCode = fsCodeStack.shift();
+    else if (first.nodeName == "BR" && cell.childNodes.length > 0) {
+      if (
+        cell.firstChild.nodeType === 3 &&
+        cell.firstChild.textContent === "\n"
+      )
+        // not great
+        cell.removeChild(cell.firstChild);
+      if (clickedCode) {
+        // found code whose output just came out
+        if (
+          !clickedCode.classList.contains("block") &&
+          clickedCode.parentElement.nodeName != "PRE"
+        )
+          cell.classList.add("M2Inline");
+        let insertSpot = clickedCode;
+        while (
+          insertSpot.nextElementSibling &&
+          insertSpot.nextElementSibling.classList.contains("M2Cell")
+        )
+          insertSpot = insertSpot.nextElementSibling;
+        insertSpot.after(cell);
+        window.setTimeout(
+          () => cell.scrollIntoView({ behavior: "smooth", block: "center" }),
+          0
+        );
+      } else {
+        const tute = document.getElementById("tutorial");
+        if (tute) tute.onclick = null; // shouldn't happen in full screen
+      }
+      return;
+    }
+    first = cell.firstChild;
+  }
+};
+
 const processTutorial = function (theHtml: string) {
   const el = document.createElement("div");
   el.innerHTML = theHtml;
-  // minor improvement: because <code> use white-space: pre, we remove extra spacing
+  // deal with code first: auto run
+  // and minor improvement: because <code> use white-space: pre, we remove extra spacing
+  let autocode = "";
   const codes = Array.from(el.getElementsByTagName("code"));
   for (const code of codes)
     if (language(code) == "Macaulay2") {
@@ -31,11 +77,26 @@ const processTutorial = function (theHtml: string) {
         const indent = l.match(/^\s*/)[0].length;
         if (indent != l.length && indent < minIndent) minIndent = indent;
       });
+      if (
+        code.innerText.trimStart().startsWith("-- auto\n") ||
+        (code.dataset.m2code && code.dataset.m2code.startsWith("-- auto"))
+      ) {
+        fsCodeStack.push(code);
+        autocode +=
+          (code.dataset.m2code ? code.dataset.m2code + "\n" : "") +
+          code.innerText +
+          "\n";
+      }
       code.innerHTML = Prism.highlight(
         lines.map((l) => l.substring(minIndent)).join("\n"),
         Prism.languages.macaulay2
       );
     }
+  if (autocode.length > 0) {
+    processCellChange(copyCellToTute);
+    setTimeout(() => myshell.postMessage(autocode + "-- auto\n"), 1);
+  }
+
   autoRender(el); // convert all the LaTeX at once
   // add accordions
   const accs = Array.from(el.querySelectorAll(".accordion"));
@@ -287,49 +348,36 @@ const initTutorials = function () {
         );
     }
   };
-  const copyCellToTute = function (cell: HTMLElement) {
-    if (lastClickedCode !== null) {
-      let insertSpot = lastClickedCode;
-      while (
-        insertSpot.nextElementSibling !== null &&
-        insertSpot.nextElementSibling.classList.contains("M2Cell")
-      )
-        //      insertSpot.nextElementSibling.remove();       // empty current output: disabled for now
 
-        insertSpot = insertSpot.nextElementSibling;
-      cell = cell.cloneNode(true) as HTMLElement;
-      let first = cell.firstChild;
-      while (first !== null) {
-        cell.removeChild(first);
-        if (first.nodeName == "BR" && cell.childNodes.length > 0) {
-          if (
-            cell.firstChild.nodeType === 3 &&
-            cell.firstChild.textContent === "\n"
-          )
-            cell.removeChild(cell.firstChild);
-          // not great
-          insertSpot.after(cell);
-          window.setTimeout(
-            () => cell.scrollIntoView({ behavior: "smooth", block: "center" }),
-            0
-          );
-          return;
-        }
-        first = cell.firstChild;
+  const prepareCode = function (e) {
+    // adds a comment tag so input/output can be matched
+    if (e.button != 0) return;
+    let t = e.target as HTMLElement;
+    while (t && t != e.currentTarget) {
+      if (
+        t.tagName == "CODE" &&
+        language(t) == "Macaulay2" &&
+        getComputedStyle(t).getPropertyValue("cursor") == "pointer" &&
+        t.ownerDocument.getSelection().isCollapsed
+      ) {
+        if (!t.innerText.startsWith("-- auto\n"))
+          // can be set manually
+          t.dataset.m2code = "-- auto";
+        fsCodeStack.push(t);
+        break;
       }
-      window.setTimeout(
-        () =>
-          insertSpot.scrollIntoView({ behavior: "smooth", block: "center" }),
-        0
-      );
+      t = t.parentElement;
     }
   };
 
   const tutorial = document.getElementById("tutorial");
   document.onfullscreenchange = function () {
+    // move elsewhere? and rewrite better
     processCellChange(
       document.fullscreenElement == tutorial ? copyCellToTute : null
     );
+    tutorial.onclick =
+      document.fullscreenElement == tutorial ? prepareCode : null;
     if (document.fullscreenElement === null) {
       scrollDown(document.getElementById("terminal"));
       const inp = document.getElementsByClassName("M2CurrentInput");

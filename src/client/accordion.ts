@@ -85,6 +85,7 @@ const addAccordionButton = function (div: HTMLElement) {
           div.style.height = heightOpen + "px";
         }, 1);
       } else {
+        heightClosed = innerHeight(div); // for weird situations
         div.classList.add(cssClasses.toggleClass);
         div.style.height = heightOpen + "px";
       }
