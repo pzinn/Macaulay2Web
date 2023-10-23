@@ -6,7 +6,7 @@ import {
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 import { language, scrollDown } from "./htmlTools";
-import { processCellChange, lastClickedCode } from "./main";
+import { processCellChange } from "./main";
 import Prism from "prismjs";
 
 interface Tutorial {
@@ -287,54 +287,74 @@ const initTutorials = function () {
         );
     }
   };
-  const copyCellToTute = function (cell: HTMLElement) {
-    if (lastClickedCode !== null) {
-      let insertSpot = lastClickedCode;
-      while (
-        insertSpot.nextElementSibling !== null &&
-        insertSpot.nextElementSibling.classList.contains("M2Cell")
-      )
-        //      insertSpot.nextElementSibling.remove();       // empty current output: disabled for now
 
-        insertSpot = insertSpot.nextElementSibling;
-      cell = cell.cloneNode(true) as HTMLElement;
+  const fsCodeStack = [null]; // stack of past code run full screen
+  const copyCellToTute = function (cell: HTMLElement) {
+    cell = cell.cloneNode(true) as HTMLElement;
+    let first = cell.firstChild;
+    while (first !== null) {
+      cell.removeChild(first);
       if (
-        !lastClickedCode.classList.contains("block") &&
-        lastClickedCode.parentElement.nodeName != "PRE"
+        first.nodeType === 1 &&
+        (first as HTMLElement).classList.contains("M2PastInput") &&
+        (first as HTMLElement).innerText.startsWith("-- auto\n")
       )
-        cell.classList.add("M2Inline");
-      let first = cell.firstChild;
-      while (first !== null) {
-        cell.removeChild(first);
-        if (first.nodeName == "BR" && cell.childNodes.length > 0) {
-          if (
-            cell.firstChild.nodeType === 3 &&
-            cell.firstChild.textContent === "\n"
-          )
-            cell.removeChild(cell.firstChild);
+        fsCodeStack.shift();
+      else if (first.nodeName == "BR" && cell.childNodes.length > 0) {
+        if (
+          cell.firstChild.nodeType === 3 &&
+          cell.firstChild.textContent === "\n"
+        )
           // not great
-          insertSpot.after(cell);
+          cell.removeChild(cell.firstChild);
+        if (fsCodeStack.length > 0 && fsCodeStack[0]) {
+          const c = fsCodeStack[0]; // found code whose output just came out
+          if (
+            !c.classList.contains("block") &&
+            c.parentElement.nodeName != "PRE"
+          )
+            cell.classList.add("M2Inline");
+          c.after(cell);
           window.setTimeout(
             () => cell.scrollIntoView({ behavior: "smooth", block: "center" }),
             0
           );
-          return;
         }
-        first = cell.firstChild;
+        return;
       }
-      window.setTimeout(
-        () =>
-          insertSpot.scrollIntoView({ behavior: "smooth", block: "center" }),
-        0
-      );
+      first = cell.firstChild;
+    }
+  };
+
+  const prepareCode = function (e) {
+    // adds a comment tag so input/output can be matched
+    if (e.button != 0) return;
+    let t = e.target as HTMLElement;
+    while (t && t != e.currentTarget) {
+      if (
+        t.tagName == "CODE" &&
+        language(t) == "Macaulay2" &&
+        getComputedStyle(t).getPropertyValue("cursor") == "pointer" &&
+        t.ownerDocument.getSelection().isCollapsed
+      ) {
+        if (!t.innerText.startsWith("-- auto\n"))
+          // can be set manually
+          t.dataset.m2code = "-- auto\n";
+        fsCodeStack.push(t);
+        break;
+      }
+      t = t.parentElement;
     }
   };
 
   const tutorial = document.getElementById("tutorial");
   document.onfullscreenchange = function () {
+    // move elsewhere? and rewrite better
     processCellChange(
       document.fullscreenElement == tutorial ? copyCellToTute : null
     );
+    tutorial.onclick =
+      document.fullscreenElement == tutorial ? prepareCode : null;
     if (document.fullscreenElement === null) {
       scrollDown(document.getElementById("terminal"));
       const inp = document.getElementsByClassName("M2CurrentInput");
