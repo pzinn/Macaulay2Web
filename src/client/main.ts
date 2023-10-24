@@ -29,9 +29,18 @@ let myshell = null; // the terminal
 let clientId = MINIMAL ? "public" : getCookieId(); // client's id. it's public / in the cookie,
 // but can be overwritten by url or chosen by server if no cookie
 
+const url = new URL(document.location.href);
+
+// TODO get rid of
 let processCell = null;
 const processCellChange = function (f) {
   processCell = f;
+};
+
+let autocode = url.searchParams.get("exec");
+if (!autocode) autocode = "";
+let autocodeAdd = function (s) {
+  autocode += s;
 };
 
 const keydownAction = function (e) {
@@ -160,8 +169,6 @@ if (MINIMAL) {
   };
 }
 
-const url = new URL(document.location.href);
-
 const init = function () {
   if (!MINIMAL && !navigator.cookieEnabled) {
     alert("This site requires cookies to be enabled.");
@@ -250,8 +257,11 @@ const init2 = function () {
       //  });
 
       if (!MINIMAL) extra2();
-      const exec = url.searchParams.get("exec");
-      if (exec) myshell.postMessage(exec);
+      if (autocode) myshell.postMessage(autocode);
+      autocodeAdd = function (s) {
+        // from now on, post directly
+        myshell.postMessage(s);
+      };
     }
   });
 
@@ -287,4 +297,13 @@ const init2 = function () {
   socket.connect();
 };
 
-export { init, myshell, socket, url, clientId, processCell, processCellChange };
+export {
+  init,
+  myshell,
+  socket,
+  url,
+  clientId,
+  processCell,
+  processCellChange,
+  autocodeAdd,
+};

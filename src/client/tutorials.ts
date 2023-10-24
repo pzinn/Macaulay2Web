@@ -6,7 +6,7 @@ import {
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 import { language, scrollDown } from "./htmlTools";
-import { processCellChange, myshell } from "./main";
+import { processCellChange, autocodeAdd } from "./main";
 import Prism from "prismjs";
 
 interface Tutorial {
@@ -49,9 +49,6 @@ const copyCellToTute = function (cell: HTMLElement) {
           () => cell.scrollIntoView({ behavior: "smooth", block: "center" }),
           0
         );
-      } else {
-        const tute = document.getElementById("tutorial");
-        if (tute) tute.onclick = null; // shouldn't happen in full screen
       }
       return;
     }
@@ -77,6 +74,7 @@ const processTutorial = function (theHtml: string) {
         const indent = l.match(/^\s*/)[0].length;
         if (indent != l.length && indent < minIndent) minIndent = indent;
       });
+      const codeStr = lines.map((l) => l.substring(minIndent)).join("\n");
       if (
         code.innerText.trimStart().startsWith("-- auto\n") ||
         (code.dataset.m2code && code.dataset.m2code.startsWith("-- auto"))
@@ -84,17 +82,13 @@ const processTutorial = function (theHtml: string) {
         fsCodeStack.push(code);
         autocode +=
           (code.dataset.m2code ? code.dataset.m2code + "\n" : "") +
-          code.innerText +
+          codeStr +
           "\n";
       }
-      code.innerHTML = Prism.highlight(
-        lines.map((l) => l.substring(minIndent)).join("\n"),
-        Prism.languages.macaulay2
-      );
+      code.innerHTML = Prism.highlight(codeStr, Prism.languages.macaulay2);
     }
   if (autocode.length > 0) {
-    processCellChange(copyCellToTute);
-    setTimeout(() => myshell.postMessage(autocode + "-- auto\n"), 1);
+    autocodeAdd(autocode + "-- auto\n");
   }
 
   autoRender(el); // convert all the LaTeX at once
@@ -334,6 +328,8 @@ const initTutorials = function () {
   tutorialIndex = null;
   lessonNr = 1;
 
+  processCellChange(copyCellToTute); // TODO move somewhere else
+
   for (const tute of startingTutorials) loadTutorial(tute, 0); // zero means don't render
 
   document.getElementById("runAllTute").onclick = function () {
@@ -372,10 +368,8 @@ const initTutorials = function () {
 
   const tutorial = document.getElementById("tutorial");
   document.onfullscreenchange = function () {
-    // move elsewhere? and rewrite better
-    processCellChange(
-      document.fullscreenElement == tutorial ? copyCellToTute : null
-    );
+    fsCodeStack.length = 0;
+    clickedCode = null;
     tutorial.onclick =
       document.fullscreenElement == tutorial ? prepareCode : null;
     if (document.fullscreenElement === null) {
