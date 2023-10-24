@@ -33,11 +33,12 @@ const copyCellToTute = function (cell: HTMLElement) {
         )
           // not great
           cell.removeChild(cell.firstChild);
-        if (
-          !clickedCode.classList.contains("block") &&
-          clickedCode.parentElement.nodeName != "PRE"
-        )
-          cell.classList.add("M2Inline");
+        cell.classList.add(
+          clickedCode.classList.contains("block") ||
+            clickedCode.parentElement.nodeName == "PRE"
+            ? "M2Block"
+            : "M2Inline"
+        );
         let insertSpot = clickedCode;
         while (
           insertSpot.nextElementSibling &&
