@@ -15,7 +15,7 @@ interface Tutorial {
   clickAction?: any;
 }
 
-const fsCodeStack = []; // stack of past code run full screen
+const codeStack = []; // stack of past code run full screen
 let clickedCode = null;
 const copyCellToTute = function (cell: HTMLElement) {
   cell = cell.cloneNode(true) as HTMLElement;
@@ -23,16 +23,16 @@ const copyCellToTute = function (cell: HTMLElement) {
   while (first !== null) {
     cell.removeChild(first);
     if (first.textContent.trimStart().startsWith("-- auto\n"))
-      clickedCode = fsCodeStack.shift();
+      clickedCode = codeStack.shift();
     else if (first.nodeName == "BR" && cell.childNodes.length > 0) {
-      if (
-        cell.firstChild.nodeType === 3 &&
-        cell.firstChild.textContent === "\n"
-      )
-        // not great
-        cell.removeChild(cell.firstChild);
       if (clickedCode) {
         // found code whose output just came out
+        if (
+          cell.firstChild.nodeType === 3 &&
+          cell.firstChild.textContent === "\n"
+        )
+          // not great
+          cell.removeChild(cell.firstChild);
         if (
           !clickedCode.classList.contains("block") &&
           clickedCode.parentElement.nodeName != "PRE"
@@ -43,7 +43,7 @@ const copyCellToTute = function (cell: HTMLElement) {
           insertSpot.nextElementSibling &&
           insertSpot.nextElementSibling.classList.contains("M2Cell")
         )
-          insertSpot = insertSpot.nextElementSibling;
+          insertSpot = insertSpot.nextElementSibling; // may change that: overwrite existing somehow?
         insertSpot.after(cell);
         window.setTimeout(
           () => cell.scrollIntoView({ behavior: "smooth", block: "center" }),
@@ -79,7 +79,8 @@ const processTutorial = function (theHtml: string) {
         code.innerText.trimStart().startsWith("-- auto\n") ||
         (code.dataset.m2code && code.dataset.m2code.startsWith("-- auto"))
       ) {
-        fsCodeStack.push(code);
+        codeStack.push(code);
+        code.classList.add("clicked");
         autocode +=
           (code.dataset.m2code ? code.dataset.m2code + "\n" : "") +
           codeStr +
@@ -359,7 +360,7 @@ const initTutorials = function () {
         if (!t.innerText.startsWith("-- auto\n"))
           // can be set manually
           t.dataset.m2code = "-- auto";
-        fsCodeStack.push(t);
+        codeStack.push(t);
         break;
       }
       t = t.parentElement;
@@ -368,7 +369,7 @@ const initTutorials = function () {
 
   const tutorial = document.getElementById("tutorial");
   document.onfullscreenchange = function () {
-    fsCodeStack.length = 0;
+    codeStack.length = 0;
     clickedCode = null;
     tutorial.onclick =
       document.fullscreenElement == tutorial ? prepareCode : null;
