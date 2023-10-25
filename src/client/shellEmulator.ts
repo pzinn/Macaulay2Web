@@ -1,4 +1,6 @@
-import { clientId, processCell } from "./main";
+declare const MINIMAL;
+import { clientId } from "./main";
+import { processCell } from "./tutorials"; // extra processing of output for tutorial
 
 import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "../common/tags";
@@ -150,12 +152,12 @@ const Shell = function (
 
   obj.codeInputAction = function (t) {
     t.classList.add("codetrigger");
-    if (t.tagName == "CODE")
+    if (t.tagName == "CODE") {
+      t.classList.add("clicked");
       obj.postMessage(
         (t.dataset.m2code ? t.dataset.m2code + "\n" : "") + t.innerText
-      );
-    // dataset.m2code can be used as secret extra input
-    else {
+      ); // dataset.m2code can be used as secret extra input
+    } else {
       // past input / manual code: almost the same but not quite: code not sent, just replaces input
       let str = t.dataset.m2code ? t.dataset.m2code : t.textContent;
       if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
@@ -659,7 +661,7 @@ const Shell = function (
             // but in rare circumstances (interrupt) it may be missing its \n
             const oldHtmlSec = htmlSec;
             closeHtml();
-            if (processCell !== null && tag == webAppTags.CellEnd)
+            if (!MINIMAL && tag == webAppTags.CellEnd && isTrueInput())
               processCell(oldHtmlSec);
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {

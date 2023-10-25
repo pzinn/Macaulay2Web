@@ -6,7 +6,6 @@ import {
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 import { language, scrollDown } from "./htmlTools";
-import { processCellChange, myshell } from "./main";
 import Prism from "prismjs";
 
 interface Tutorial {
@@ -15,43 +14,41 @@ interface Tutorial {
   clickAction?: any;
 }
 
-const fsCodeStack = []; // stack of past code run full screen
+const codeStack = []; // stack of past code run full screen
 let clickedCode = null;
-const copyCellToTute = function (cell: HTMLElement) {
+const processCell = function (cell: HTMLElement) {
   cell = cell.cloneNode(true) as HTMLElement;
   let first = cell.firstChild;
   while (first !== null) {
     cell.removeChild(first);
     if (first.textContent.trimStart().startsWith("-- auto\n"))
-      clickedCode = fsCodeStack.shift();
+      clickedCode = codeStack.shift();
     else if (first.nodeName == "BR" && cell.childNodes.length > 0) {
-      if (
-        cell.firstChild.nodeType === 3 &&
-        cell.firstChild.textContent === "\n"
-      )
-        // not great
-        cell.removeChild(cell.firstChild);
       if (clickedCode) {
         // found code whose output just came out
         if (
-          !clickedCode.classList.contains("block") &&
-          clickedCode.parentElement.nodeName != "PRE"
+          cell.firstChild.nodeType === 3 &&
+          cell.firstChild.textContent === "\n"
         )
-          cell.classList.add("M2Inline");
+          // not great
+          cell.removeChild(cell.firstChild);
+        cell.classList.add(
+          clickedCode.classList.contains("block") ||
+            clickedCode.parentElement.nodeName == "PRE"
+            ? "M2Block"
+            : "M2Inline"
+        );
         let insertSpot = clickedCode;
         while (
           insertSpot.nextElementSibling &&
           insertSpot.nextElementSibling.classList.contains("M2Cell")
         )
-          insertSpot = insertSpot.nextElementSibling;
+          insertSpot = insertSpot.nextElementSibling; // may change that: overwrite existing somehow?
         insertSpot.after(cell);
         window.setTimeout(
           () => cell.scrollIntoView({ behavior: "smooth", block: "center" }),
           0
         );
-      } else {
-        const tute = document.getElementById("tutorial");
-        if (tute) tute.onclick = null; // shouldn't happen in full screen
       }
       return;
     }
@@ -62,12 +59,11 @@ const copyCellToTute = function (cell: HTMLElement) {
 const processTutorial = function (theHtml: string) {
   const el = document.createElement("div");
   el.innerHTML = theHtml;
-  // deal with code first: auto run
-  // and minor improvement: because <code> use white-space: pre, we remove extra spacing
-  let autocode = "";
+  // minor improvement: because <code> use white-space: pre, we remove extra spacing
   const codes = Array.from(el.getElementsByTagName("code"));
   for (const code of codes)
     if (language(code) == "Macaulay2") {
+      code.dataset.language = "Macaulay2"; // for future purposes
       const lines = code.innerText.split(/\r?\n/);
       while (lines.length > 0 && lines[0].trim() == "") lines.shift();
       while (lines.length > 0 && lines[lines.length - 1].trim() == "")
@@ -77,26 +73,11 @@ const processTutorial = function (theHtml: string) {
         const indent = l.match(/^\s*/)[0].length;
         if (indent != l.length && indent < minIndent) minIndent = indent;
       });
-      if (
-        code.innerText.trimStart().startsWith("-- auto\n") ||
-        (code.dataset.m2code && code.dataset.m2code.startsWith("-- auto"))
-      ) {
-        fsCodeStack.push(code);
-        autocode +=
-          (code.dataset.m2code ? code.dataset.m2code + "\n" : "") +
-          code.innerText +
-          "\n";
-      }
       code.innerHTML = Prism.highlight(
         lines.map((l) => l.substring(minIndent)).join("\n"),
         Prism.languages.macaulay2
       );
     }
-  if (autocode.length > 0) {
-    processCellChange(copyCellToTute);
-    setTimeout(() => myshell.postMessage(autocode + "-- auto\n"), 1);
-  }
-
   autoRender(el); // convert all the LaTeX at once
   // add accordions
   const accs = Array.from(el.querySelectorAll(".accordion"));
@@ -262,11 +243,11 @@ const renderLessonMaybe = function (newTutorialIndex?, newLessonNr?) {
 };
 
 const renderLesson = function (newTutorialIndex, newLessonNr): void {
-  const lesson = document.getElementById("lesson");
+  const lessonDiv = document.getElementById("lesson");
   if (newTutorialIndex != tutorialIndex) {
     tutorialIndex = newTutorialIndex;
-    lesson.innerHTML = "";
-    lesson.appendChild(tutorials[tutorialIndex].body);
+    lessonDiv.innerHTML = "";
+    lessonDiv.appendChild(tutorials[tutorialIndex].body);
   }
 
   lessonNr = newLessonNr;
@@ -277,14 +258,30 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
     if (i + 1 == lessonNr)
       tutorials[tutorialIndex].lessons[i].classList.add("current-lesson");
     else tutorials[tutorialIndex].lessons[i].classList.remove("current-lesson");
-  lesson.scrollTop = 0;
+  lessonDiv.scrollTop = 0;
   //tutorials[tutorialIndex].lessons[lessonNr-1].scrollIntoView();
-  if (lessonNr > 0) {
-    const hr =
-      tutorials[tutorialIndex].lessons[lessonNr - 1].querySelector("hr");
+  const lesson =
+    lessonNr > 0
+      ? tutorials[tutorialIndex].lessons[lessonNr - 1]
+      : tutorials[tutorialIndex].body; // want to apply to current lesson only -- except if it's one page
+  if (lesson) {
+    const hr = lesson.querySelector("hr");
     if (hr) {
       hr.classList.remove("closed");
       hr.click();
+    }
+    // auto code
+    const codes = Array.from(
+      lesson.querySelectorAll("code[data-language=Macaulay2]:not(.clicked)")
+    ) as HTMLElement[];
+    for (const code of codes) {
+      if (
+        code.innerText.trimStart().startsWith("-- auto\n") ||
+        (code.dataset.m2code && code.dataset.m2code.startsWith("-- auto"))
+      ) {
+        //        if (document.fullscreenElement === null) codeStack.push(code); // deactivated
+        code.click();
+      }
     }
   }
   updateTutorialNav();
@@ -334,6 +331,8 @@ const initTutorials = function () {
   tutorialIndex = null;
   lessonNr = 1;
 
+  const tutorial = document.getElementById("tutorial");
+
   for (const tute of startingTutorials) loadTutorial(tute, 0); // zero means don't render
 
   document.getElementById("runAllTute").onclick = function () {
@@ -341,7 +340,7 @@ const initTutorials = function () {
       const lesson =
         lessonNr > 0
           ? tutorials[tutorialIndex].lessons[lessonNr - 1]
-          : tutorials[tutorialIndex].body;
+          : tutorials[tutorialIndex].body; // want to apply to current lesson only -- except if it's one page
       if (lesson)
         Array.from(lesson.getElementsByTagName("code")).forEach((code) =>
           (code as HTMLElement).click()
@@ -363,19 +362,16 @@ const initTutorials = function () {
         if (!t.innerText.startsWith("-- auto\n"))
           // can be set manually
           t.dataset.m2code = "-- auto";
-        fsCodeStack.push(t);
+        codeStack.push(t);
         break;
       }
       t = t.parentElement;
     }
   };
 
-  const tutorial = document.getElementById("tutorial");
   document.onfullscreenchange = function () {
-    // move elsewhere? and rewrite better
-    processCellChange(
-      document.fullscreenElement == tutorial ? copyCellToTute : null
-    );
+    codeStack.length = 0;
+    clickedCode = null;
     tutorial.onclick =
       document.fullscreenElement == tutorial ? prepareCode : null;
     if (document.fullscreenElement === null) {
@@ -402,4 +398,10 @@ const removeTutorial = function (index) {
   };
 };
 
-export { initTutorials, renderLessonMaybe, removeTutorial, Tutorial };
+export {
+  initTutorials,
+  renderLessonMaybe,
+  removeTutorial,
+  Tutorial,
+  processCell,
+};

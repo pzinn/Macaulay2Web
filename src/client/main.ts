@@ -28,11 +28,7 @@ import { language } from "./htmlTools";
 let myshell = null; // the terminal
 let clientId = MINIMAL ? "public" : getCookieId(); // client's id. it's public / in the cookie,
 // but can be overwritten by url or chosen by server if no cookie
-
-let processCell = null;
-const processCellChange = function (f) {
-  processCell = f;
-};
+let initDone = false;
 
 const keydownAction = function (e) {
   if (e.key == "F1") {
@@ -64,14 +60,15 @@ const socketError = function (error) {
 const emitStack = [];
 
 const wrapEmitForDisconnect = function (event, msg, callback?) {
-  if (socket.disconnected) {
-    //    console.log("We are disconnected. "+event);
+  if (socket.disconnected || !initDone) {
+    //     console.log("We are disconnected/not init. " + event);
     const events = ["reset", "input", "chat", "fileexists"]; // !!!
     if (events.indexOf(event) >= 0) {
       emitStack.push([event, msg, callback]);
       socket.connect();
     }
   } else {
+    //     console.log("We are connected. " + event);
     socket.oldEmit(event, msg, callback);
   }
   return socket;
@@ -226,8 +223,6 @@ const init = function () {
   init2();
 };
 
-let initDone = false;
-
 const init2 = function () {
   if (!MINIMAL)
     document.getElementById("terminalDiv").style.display = "initial";
@@ -245,11 +240,10 @@ const init2 = function () {
     if (!initDone) {
       // first time we get our id, finish init
       initDone = true;
-      //  window.addEventListener("load", function () {
       socket.emit("restore"); // restore former M2 output
-      //  });
-
       if (!MINIMAL) extra2();
+      for (const e of emitStack) socket.oldEmit(e[0], e[1], e[2]); // not emit to avoid potential infinite loop
+      emitStack.length = 0;
       const exec = url.searchParams.get("exec");
       if (exec) myshell.postMessage(exec);
     }
@@ -260,7 +254,7 @@ const init2 = function () {
       console.log("Socket reconnected");
       // reconnect stuff
       if (!MINIMAL) syncChat();
-      for (const e of emitStack) socket.emit(e[0], e[1], e[2]);
+      for (const e of emitStack) socket.oldEmit(e[0], e[1], e[2]); // not emit to avoid potential infinite loop
       emitStack.length = 0;
     } else console.log("Socket connected");
   });
@@ -287,4 +281,4 @@ const init2 = function () {
   socket.connect();
 };
 
-export { init, myshell, socket, url, clientId, processCell, processCellChange };
+export { init, myshell, socket, url, clientId };
