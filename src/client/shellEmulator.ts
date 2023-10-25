@@ -1,4 +1,6 @@
-import { clientId, processCell } from "./main";
+declare const MINIMAL;
+import { clientId } from "./main";
+import { processCell } from "./tutorials"; // extra processing of output for tutorial
 
 import { autoRender } from "./autoRender";
 import { webAppTags, webAppClasses, webAppRegex } from "../common/tags";
@@ -659,7 +661,7 @@ const Shell = function (
             // but in rare circumstances (interrupt) it may be missing its \n
             const oldHtmlSec = htmlSec;
             closeHtml();
-            if (processCell !== null && tag == webAppTags.CellEnd)
+            if (!MINIMAL && tag == webAppTags.CellEnd && isTrueInput())
               processCell(oldHtmlSec);
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {
