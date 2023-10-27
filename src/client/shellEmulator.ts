@@ -150,10 +150,13 @@ const Shell = function (
   if (createInputSpan) createInputEl();
   else htmlSec = terminal;
 
+  const codeStack = []; // stack of past code run
+
   obj.codeInputAction = function (t) {
     t.classList.add("codetrigger");
     if (t.tagName == "CODE") {
       t.classList.add("clicked");
+      codeStack.push(t);
       obj.postMessage(
         t.textContent // used to be innerText
       );
@@ -661,8 +664,26 @@ const Shell = function (
             // but in rare circumstances (interrupt) it may be missing its \n
             const oldHtmlSec = htmlSec;
             closeHtml();
-            if (!MINIMAL && tag == webAppTags.CellEnd && isTrueInput())
-              processCell(oldHtmlSec);
+            if (
+              tag == webAppTags.CellEnd &&
+              isTrueInput() &&
+              codeStack.length > 0
+            ) {
+              processCellBlock: {
+                for (const el of oldHtmlSec.children as HTMLElement[])
+                  if (el.classList.contains("M2PastInput")) {
+                    while (
+                      codeStack[0].textContent.indexOf(
+                        el.textContent.trimRight()
+                      ) < 0
+                    ) {
+                      codeStack.shift();
+                      if (codeStack.length == 0) break processCellBlock;
+                    }
+                  }
+                if (!MINIMAL) processCell(oldHtmlSec, codeStack[0]); // or whole thing should be skipped in minimal mode?
+              }
+            }
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {
           // continuation of input section

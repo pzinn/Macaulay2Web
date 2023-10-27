@@ -14,26 +14,18 @@ interface Tutorial {
   clickAction?: any;
 }
 
-const codeStack = []; // stack of past code run full screen
-const processCell = function (cell: HTMLElement) {
-  if (codeStack.length == 0) return;
+const processCell = function (cell: HTMLElement, clickedCode: HTMLElement) {
+  if (
+    (document.fullscreenElement === null &&
+      !clickedCode.classList.contains("copy")) ||
+    clickedCode.classList.contains("nocopy")
+  )
+    return;
   cell = cell.cloneNode(true) as HTMLElement;
   let first = cell.firstChild;
   while (first !== null) {
     cell.removeChild(first);
-    if (
-      first.nodeName == "SPAN" &&
-      (first as HTMLElement).classList.contains("M2PastInput")
-    ) {
-      while (
-        codeStack[0].textContent.indexOf(first.textContent.trimRight()) < 0
-      ) {
-        codeStack.shift();
-        if (codeStack.length == 0) return;
-      }
-    } else if (first.nodeName == "BR" && cell.childNodes.length > 0) {
-      const clickedCode = codeStack[0];
-      // found code whose output just came out
+    if (first.nodeName == "BR" && cell.childNodes.length > 0) {
       if (
         cell.firstChild.nodeType === 3 &&
         cell.firstChild.textContent === "\n"
@@ -51,7 +43,7 @@ const processCell = function (cell: HTMLElement) {
         insertSpot.nextElementSibling &&
         insertSpot.nextElementSibling.classList.contains("M2Cell")
       )
-        insertSpot = insertSpot.nextElementSibling; // may change that: overwrite existing somehow?
+        insertSpot = insertSpot.nextElementSibling as HTMLElement; // may change that: overwrite existing somehow?
       insertSpot.after(cell);
       window.setTimeout(
         () => cell.scrollIntoView({ behavior: "smooth", block: "center" }),
@@ -355,35 +347,6 @@ const initTutorials = function () {
     }
   };
 
-  // TODO maybe just move to shellEmulator or main? so, always active?
-  const prepareCode = function (e) {
-    // adds a comment tag so input/output can be matched
-    if (e.button != 0) return;
-    let t = e.target as HTMLElement;
-    while (t && t != e.currentTarget) {
-      if (
-        t.tagName == "CODE" &&
-        language(t) == "Macaulay2" &&
-        getComputedStyle(t).getPropertyValue("cursor") == "pointer" &&
-        t.ownerDocument.getSelection().isCollapsed
-      ) {
-        codeStack.push(t);
-        break;
-      }
-      t = t.parentElement;
-    }
-  };
-
-  document.onfullscreenchange = function () {
-    codeStack.length = 0;
-    tutorial.onclick =
-      document.fullscreenElement == tutorial ? prepareCode : null;
-    if (document.fullscreenElement === null) {
-      scrollDown(document.getElementById("terminal"));
-      const inp = document.getElementsByClassName("M2CurrentInput");
-      if (inp.length > 0) (inp[0] as HTMLElement).focus();
-    }
-  };
   document.getElementById("fullscreenTute").onclick = function () {
     if (document.fullscreenElement !== tutorial) tutorial.requestFullscreen();
     else document.exitFullscreen();
