@@ -155,8 +155,8 @@ const Shell = function (
     if (t.tagName == "CODE") {
       t.classList.add("clicked");
       obj.postMessage(
-        (t.dataset.m2code ? t.dataset.m2code + "\n" : "") + t.innerText
-      ); // dataset.m2code can be used as secret extra input
+        t.textContent // used to be innerText
+      );
     } else {
       // past input / manual code: almost the same but not quite: code not sent, just replaces input
       let str = t.dataset.m2code ? t.dataset.m2code : t.textContent;
