@@ -443,7 +443,7 @@ const autoIndent = function (el) {
     else break; // other exotic spaces?
     pos0++;
   }
-  indent += delimLevel(input, pos0, indStart - 1) * M2indent; // if (indent<0) indent=0;
+  indent += delimLevel(input, pos0, indStart - 1) * M2indent; if (indent<0) indent=0;
   let pos1 = indStart; // keep track of current position in input
   sel.collapseToStart();
   let caretPos = pos[0]; // keep track of caret position

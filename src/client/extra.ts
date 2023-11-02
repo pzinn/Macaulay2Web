@@ -1037,6 +1037,14 @@ const extra2 = function () {
     else document.exitFullscreen();
   });
 
+  document.onfullscreenchange = function () {
+    if (document.fullscreenElement === null) {
+      scrollDown(document.getElementById("terminal"));
+      const inp = document.getElementsByClassName("M2CurrentInput");
+      if (inp.length > 0) (inp[0] as HTMLElement).focus();
+    }
+  };
+
   window.addEventListener("beforeunload", function () {
     autoSave(true);
   });

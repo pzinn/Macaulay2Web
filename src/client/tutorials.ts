@@ -14,42 +14,41 @@ interface Tutorial {
   clickAction?: any;
 }
 
-const codeStack = []; // stack of past code run full screen
-let clickedCode = null;
-const processCell = function (cell: HTMLElement) {
+const processCell = function (cell: HTMLElement, clickedCode: HTMLElement) {
+  if (
+    (document.fullscreenElement === null &&
+      !clickedCode.classList.contains("copy")) ||
+    clickedCode.classList.contains("nocopy")
+  )
+    return;
   cell = cell.cloneNode(true) as HTMLElement;
   let first = cell.firstChild;
   while (first !== null) {
     cell.removeChild(first);
-    if (first.textContent.trimStart().startsWith("-- auto\n"))
-      clickedCode = codeStack.shift();
-    else if (first.nodeName == "BR" && cell.childNodes.length > 0) {
-      if (clickedCode) {
-        // found code whose output just came out
-        if (
-          cell.firstChild.nodeType === 3 &&
-          cell.firstChild.textContent === "\n"
-        )
-          // not great
-          cell.removeChild(cell.firstChild);
-        cell.classList.add(
-          clickedCode.classList.contains("block") ||
-            clickedCode.parentElement.nodeName == "PRE"
-            ? "M2Block"
-            : "M2Inline"
-        );
-        let insertSpot = clickedCode;
-        while (
-          insertSpot.nextElementSibling &&
-          insertSpot.nextElementSibling.classList.contains("M2Cell")
-        )
-          insertSpot = insertSpot.nextElementSibling; // may change that: overwrite existing somehow?
-        insertSpot.after(cell);
-        window.setTimeout(
-          () => cell.scrollIntoView({ behavior: "smooth", block: "center" }),
-          0
-        );
-      }
+    if (first.nodeName == "BR" && cell.childNodes.length > 0) {
+      if (
+        cell.firstChild.nodeType === 3 &&
+        cell.firstChild.textContent === "\n"
+      )
+        // not great
+        cell.removeChild(cell.firstChild);
+      cell.classList.add(
+        clickedCode.classList.contains("block") ||
+          clickedCode.parentElement.nodeName == "PRE"
+          ? "M2Block"
+          : "M2Inline"
+      );
+      let insertSpot = clickedCode;
+      while (
+        insertSpot.nextElementSibling &&
+        insertSpot.nextElementSibling.classList.contains("M2Cell")
+      )
+        insertSpot = insertSpot.nextElementSibling as HTMLElement; // may change that: overwrite existing somehow?
+      insertSpot.after(cell);
+      window.setTimeout(
+        () => cell.scrollIntoView({ behavior: "smooth", block: "center" }),
+        0
+      );
       return;
     }
     first = cell.firstChild;
@@ -64,7 +63,7 @@ const processTutorial = function (theHtml: string) {
   for (const code of codes)
     if (language(code) == "Macaulay2") {
       code.dataset.language = "Macaulay2"; // for future purposes
-      const lines = code.innerText.split(/\r?\n/);
+      const lines = code.textContent.split(/\r?\n/);
       while (lines.length > 0 && lines[0].trim() == "") lines.shift();
       while (lines.length > 0 && lines[lines.length - 1].trim() == "")
         lines.pop();
@@ -276,8 +275,8 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
     ) as HTMLElement[];
     for (const code of codes) {
       if (
-        code.innerText.trimStart().startsWith("-- auto\n") ||
-        (code.dataset.m2code && code.dataset.m2code.startsWith("-- auto"))
+        code.textContent.trimStart().startsWith("-- auto\n") || // TODO remove?
+        code.classList.contains("autorun")
       ) {
         //        if (document.fullscreenElement === null) codeStack.push(code); // deactivated
         code.click();
@@ -348,38 +347,6 @@ const initTutorials = function () {
     }
   };
 
-  const prepareCode = function (e) {
-    // adds a comment tag so input/output can be matched
-    if (e.button != 0) return;
-    let t = e.target as HTMLElement;
-    while (t && t != e.currentTarget) {
-      if (
-        t.tagName == "CODE" &&
-        language(t) == "Macaulay2" &&
-        getComputedStyle(t).getPropertyValue("cursor") == "pointer" &&
-        t.ownerDocument.getSelection().isCollapsed
-      ) {
-        if (!t.innerText.startsWith("-- auto\n"))
-          // can be set manually
-          t.dataset.m2code = "-- auto";
-        codeStack.push(t);
-        break;
-      }
-      t = t.parentElement;
-    }
-  };
-
-  document.onfullscreenchange = function () {
-    codeStack.length = 0;
-    clickedCode = null;
-    tutorial.onclick =
-      document.fullscreenElement == tutorial ? prepareCode : null;
-    if (document.fullscreenElement === null) {
-      scrollDown(document.getElementById("terminal"));
-      const inp = document.getElementsByClassName("M2CurrentInput");
-      if (inp.length > 0) (inp[0] as HTMLElement).focus();
-    }
-  };
   document.getElementById("fullscreenTute").onclick = function () {
     if (document.fullscreenElement !== tutorial) tutorial.requestFullscreen();
     else document.exitFullscreen();
