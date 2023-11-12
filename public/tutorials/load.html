@@ -83,15 +83,29 @@
       <header><h2>Other accepted formats</h2></header>
       <h3>HTML lessons</h3>
       <p>All tutorials are ultimately converted to HTML (see <a href="tutorials/load.html" target="_blank">this tutorial</a>).
-	You can also upload lessons directly in HTML (file name with a .html extension).
-	Use &lt;code&gt; for Macaulay2 code.
+	You can also upload lessons directly in HTML (file name with a <tt>.html</tt> extension).
+	Use <tt>&lt;code&gt;</tt> for Macaulay2 code.
 	This offers the most flexibility since no translation is performed except the following.
       </p>
-      <p>The &lt;title&gt; tag (or the &lt;header&gt; if the former is absent) is used as title of the tutorial.
-	Every &lt;section&gt; is a page (lesson) in the tutorial.
-	The &lt;header&gt; of each &lt;section&gt; is its title (for the table of contents on the HOME tab).
-	All content outside &lt;section&gt; will appear in every lesson.
-	If there is a &lt;nav&gt; section it will be transferred to the HOME tab (right before the table of contents).
+      <p>The <tt>&lt;title&gt;</tt> tag (or the <tt>&lt;header&gt;</tt> if the former is absent) is used as title of the tutorial.
+	Every <tt>&lt;section&gt;</tt> is a page (lesson) in the tutorial.
+	The <tt>&lt;header&gt;</tt> of each <tt>&lt;section&gt;</tt> is its title (for the table of contents on the HOME tab).
+	All content outside <tt>&lt;section&gt;</tt> will appear in every lesson.
+	If there is a <tt>&lt;nav&gt;</tt> section it will be transferred to the HOME tab (right before the table of contents).
+      </p>
+      <p>
+	The behavior when clicking on code can also be altered using classes: <tt>run</tt> (the default behavior)
+	vs <tt>norun</tt> (replaces the current input but is not sent, just like past input) vs <tt>autorun</tt>
+	(runs immediately when the tutorial is displayed); and <tt>copy</tt> (the output is copied from the terminal
+	to the tutorial itself, default when full screen) vs <tt>nocopy</tt> (default when not in full screen).
+	Here's an example of <tt>run</tt> <tt>copy</tt>:
+	<br/>
+	<button data-m2code="print res coker vars (QQ[α,β,γ])" class="run copy">Press here for a surprise!</button>
+	<br/>
+	You can even make the code invisible: here's invisible <tt>autorun</tt> <tt>copy</tt> code:
+	<br/>
+	$\pi=$<code class='autorun copy' style='display:none'>print numeric pi</code>
+	<br/>
       </p>
       <h3>M2 files</h3>
       <p>You can directly upload a Macaulay2 file (file name with a .m2 extension). This offers the least flexibility,

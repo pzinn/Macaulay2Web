@@ -153,17 +153,19 @@ const Shell = function (
   const codeStack = []; // stack of past code run
 
   obj.codeInputAction = function (t) {
+    let str = t.dataset.m2code ? t.dataset.m2code : t.textContent; // used to be innerText
+    if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
+    t.dataset.m2code = str;
     t.classList.add("codetrigger");
-    if (t.tagName == "CODE") {
+    if (
+      (t.tagName == "CODE" && !t.classList.contains("norun")) ||
+      t.classList.contains("run")
+    ) {
       t.classList.add("clicked");
       codeStack.push(t);
-      obj.postMessage(
-        t.textContent // used to be innerText
-      );
+      obj.postMessage(str);
     } else {
       // past input / manual code: almost the same but not quite: code not sent, just replaces input
-      let str = t.dataset.m2code ? t.dataset.m2code : t.textContent;
-      if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
       // inputSpan.textContent = str;
       // setCaretAtEndMaybe(inputSpan);
       inputSpan.focus();
@@ -670,18 +672,23 @@ const Shell = function (
               codeStack.length > 0
             ) {
               processCellBlock: {
+                let i = 0;
                 for (const el of oldHtmlSec.children as HTMLElement[])
                   if (el.classList.contains("M2PastInput")) {
                     while (
-                      codeStack[0].textContent.indexOf(
-                        el.textContent.trimRight()
-                      ) < 0
+                      (i = codeStack[0].dataset.m2code.indexOf(
+                        el.textContent.trimRight(),
+                        i
+                      )) < 0
                     ) {
                       codeStack.shift();
                       if (codeStack.length == 0) break processCellBlock;
+                      i = 0;
                     }
+                    i += el.textContent.trimRight().length;
                   }
                 if (!MINIMAL) processCell(oldHtmlSec, codeStack[0]); // or whole thing should be skipped in minimal mode?
+                if (i >= codeStack[0].dataset.m2code.length) codeStack.shift();
               }
             }
           }
