@@ -16,7 +16,7 @@ interface Tutorial {
 
 const processCell = function (cell: HTMLElement, clickedCode: HTMLElement) {
   if (
-    (document.fullscreenElement === null &&
+    (document.fullscreenElement !== document.getElementById("tutorial") &&
       !clickedCode.classList.contains("copy")) ||
     clickedCode.classList.contains("nocopy")
   )
@@ -277,10 +277,8 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
       if (
         code.textContent.trimStart().startsWith("-- auto\n") || // TODO remove?
         code.classList.contains("autorun")
-      ) {
-        //        if (document.fullscreenElement === null) codeStack.push(code); // deactivated
+      )
         code.click();
-      }
     }
   }
   updateTutorialNav();
