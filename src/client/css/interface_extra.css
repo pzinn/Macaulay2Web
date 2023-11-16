@@ -416,4 +416,5 @@ nav {
     display: inline-block;
     line-height: initial;
     margin: 0px;
+    vertical-align:top;
 }
