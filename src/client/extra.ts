@@ -241,7 +241,7 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
   const el = document.getElementById("editorDiv");
   if (!rowcols) el.focus({ preventScroll: true });
 
-  if ((fileName && fileName == newName) || !newName) {
+  if ((fileName && fileName == newName && fileName != "./") || !newName) {
     // file already open in editor
     updateFileName(newName); // in case of positioning data
     if (rowcols) selectRowColumn(el, rowcols);
