@@ -111,7 +111,16 @@ const clickAction = function (e) {
     }
     t = t.parentElement;
   }
-  unselectCells(e.currentTarget.ownerDocument);
+  if (e.target.classList.contains("examples")) {
+    // bit of a hack: examples table ~ bar
+    const a = Array.from(
+      e.target.getElementsByClassName("M2Cell")
+    ) as HTMLElement[];
+    if (a.length > 0) {
+      a.forEach((el) => el.classList.add("M2CellSelected"));
+      (a[0].firstElementChild as HTMLElement).focus({ preventScroll: true });
+    }
+  } else unselectCells(e.currentTarget.ownerDocument);
 };
 
 const mousedownAction = function (e) {

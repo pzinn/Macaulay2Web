@@ -123,15 +123,21 @@ table.examples {
     margin-bottom: 0.5em;
     width: 50%;
     border-style: solid;
-    border-width: 3px;
+    border-width: 6px;
     border-spacing: 0px;
+    border-collapse: collapse;
     line-height: 110%;
+    cursor: pointer;
+}
+table.examples > tbody {
+    cursor: initial;
 }
 table.examples > tbody > tr > td { /* to avoid inheriting too far */
     border-style: solid;
     border-width: 1px;
     padding-right: 0.75em;
     padding-bottom: 1em;
+    border-collapse: initial;
 }
 table.examples pre {
     margin: 0pt;
