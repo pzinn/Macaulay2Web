@@ -241,7 +241,7 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
   const el = document.getElementById("editorDiv");
   if (!rowcols) el.focus({ preventScroll: true });
 
-  if ((fileName && fileName == newName) || !newName) {
+  if ((fileName && fileName == newName && fileName != "./") || !newName) {
     // file already open in editor
     updateFileName(newName); // in case of positioning data
     if (rowcols) selectRowColumn(el, rowcols);
@@ -443,6 +443,7 @@ const extra2 = function () {
 
   const editorEvaluateHover = function () {
     editorEvaluateOut();
+    if (document.getElementById("editorDiv").contentEditable != "true") return;
     const sel = window.getSelection();
     if (sel.isCollapsed) {
       const caret = getCaret(editor);
@@ -463,6 +464,7 @@ const extra2 = function () {
   const editorEvaluate = function (e?) {
     // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
     //    const sel = window.getSelection() as any; // modify is still "experimental"
+    if (document.getElementById("editorDiv").contentEditable != "true") return;
     const sel = window.getSelection();
     if (editor.contains(sel.focusNode)) {
       // only if we're inside the editor
