@@ -431,6 +431,7 @@ const Shell = function (
 
   const isTrueInput = function () {
     // test if input is from user or from e.g. examples
+    if (!createInputSpan) return false;
     let el = htmlSec;
     while (el && el != terminal && !el.classList.contains("M2Html"))
       el = el.parentElement; // TODO better
