@@ -304,7 +304,7 @@ const Shell = function (
     ) {
       // do not move caret on Ctrl/Command combos, PageUp/Down, etc
       if (e.key == "PageUp" && document.activeElement == inputSpan) {
-        savepos = window.getSelection().focusOffset;
+        savepos = getCaret(inputSpan);
         // this prevents the annoying behavior of page up going to start of inputSpan => weird horiz scrolling
         setCaret(inputSpan, 0);
       }
@@ -345,7 +345,7 @@ const Shell = function (
       !e.shiftKey &&
       document.activeElement == inputSpan
     ) {
-      const pos = window.getSelection().focusOffset;
+      const pos = getCaret(inputSpan);
       if (
         pos == inputSpan.textContent.length &&
         autoCompleteHandling(null, cmdHistory.sorted)
@@ -356,7 +356,7 @@ const Shell = function (
       }
     }
     setCaretAtEndMaybe(inputSpan, true);
-    const pos = window.getSelection().focusOffset;
+    const pos = getCaret(inputSpan);
     if (pos == 0) scrollLeft(terminal);
 
     if (e.key == "Escape") {
@@ -384,7 +384,7 @@ const Shell = function (
     if (!inputSpan) return;
     if (
       document.activeElement == inputSpan &&
-      window.getSelection().focusOffset == 0
+      getCaret(inputSpan) == 0
     )
       scrollLeft(terminal);
   };
