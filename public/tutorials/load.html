@@ -6,7 +6,7 @@
       <p>
 	You can write your own tutorial, and then load it on this website
 	(or, give it to your students, and let them load it). Download the
-	file <a href="/template-tutorial.md" target="_blank">tutorial-template.md</a>
+	file <a href="/template-tutorial.md" target="_blank">template-tutorial.md</a>
 	which is both a template for your own tutorial, and a guide for how to write one.
 	Or click on the lessons below to see the result.
       </p>
@@ -18,8 +18,8 @@
       <header><h2>Example lesson title</h2></header>
       <p>
 	The simplest way to produce a tutorial is by writing it in markdown.
-	This tutorial was written in a simple markdown format (the source
-	is <a href="/tutorial-template.md" target="_blank">tutorial-template.md</a>). After changing it,
+	This tutorial was written in a simple markdown format (the slightly simplified source
+	is <a href="/template-tutorial.md" target="_blank">template-tutorial.md</a>). After changing it,
 	you upload the resulting file (file name with a .md extension) via the &quot;LOAD YOUR OWN TUTORIAL&quot; tab
 	from the home page.  Give your modified file to your students for them to upload (or just give them the URL, e.g.,
 	<a href="#tutorial-load">this tutorial</a>), so they can work through your lessons.
@@ -94,11 +94,16 @@
 	If there is a <tt>&lt;nav&gt;</tt> section it will be transferred to the HOME tab (right before the table of contents).
       </p>
       <p>
-	The behavior when clicking on code can also be altered using classes: <tt>run</tt> (the default behavior)
+	The behavior when clicking on code can also be altered using classes: <tt>run</tt> (the default behavior
+	of <tt>&lt;code&gt;</tt>)
 	vs <tt>norun</tt> (replaces the current input but is not sent, just like past input) vs <tt>autorun</tt>
 	(runs immediately when the tutorial is displayed); and <tt>copy</tt> (the output is copied from the terminal
 	to the tutorial itself, default when full screen) vs <tt>nocopy</tt> (default when not in full screen).
 	Here's an example of <tt>run</tt> <tt>copy</tt>:
+	<br/>
+	<code class='block run copy'>1+1</code>
+	<br/>
+	Buttons or other HTML gadgets can be made to run arbitrary code by using the field <tt>data-m2code</tt>:
 	<br/>
 	<button data-m2code="print res coker vars (QQ[α,β,γ])" class="run copy">Press here for a surprise!</button>
 	<br/>
