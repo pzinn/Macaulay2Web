@@ -184,11 +184,13 @@ const autoCompleteHandling = function (el, dictionary?) {
     if (k > j) {
       if (k == j + 1) {
         // yay, one solution
-        if (flag) {
-          let ins = lst[j].substring(word.length, lst[j].length);
-          if (!dictionary) ins += " ";
-          document.execCommand("insertText", false, ins);
-        } else {
+        if (flag)
+          document.execCommand(
+            "insertText",
+            false,
+            lst[j].substring(word.length, lst[j].length)
+          );
+        else {
           while (i < pos) {
             document.execCommand("delete");
             pos--;
@@ -215,9 +217,7 @@ const autoCompleteHandling = function (el, dictionary?) {
           wordb.textContent = word;
           opt.append(wordb, lst[l].substring(word.length, lst[l].length));
           opt.dataset.fullword = flag
-            ? !dictionary
-              ? lst[l] + " "
-              : lst[l]
+            ? lst[l]
             : String.fromCharCode(UCsymbols[lst[l]]);
           if (dictionary) {
             const icon = document.createElement("i");

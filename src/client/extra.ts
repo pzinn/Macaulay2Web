@@ -573,7 +573,7 @@ const extra2 = function () {
     )[0] as HTMLElement;
     if (curInput) {
       curInput.focus();
-      document.execCommand("insertText", false, fileNameEl.value);
+      document.execCommand("insertText", false, '"'+fileNameEl.value+'"');
     }
   };
 
