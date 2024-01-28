@@ -65,6 +65,33 @@ const getCaret2 = function (el) {
   ];
 };
 
+const fullySelected = function (el: HTMLElement): boolean {
+  if (document.activeElement != el) return false;
+  const sel = window.getSelection();
+  if (sel.isCollapsed || sel.anchorOffset > 0) return false;
+  let node = el as Node;
+  while (node != sel.anchorNode) {
+    if (node.nodeType != 1 || node.childNodes.length == 0) return false;
+    node = node.firstChild;
+    while (node.textContent.trim().length == 0) {
+      node = node.nextSibling;
+      if (!node) return false;
+    } // annoying
+  }
+  node = el;
+  while (node != sel.focusNode) {
+    if (node.nodeType != 1 || node.childNodes.length == 0) return false;
+    node = node.lastChild;
+    while (node.textContent.trim().length == 0) {
+      node = node.previousSibling;
+      if (!node) return false;
+    } // annoying
+  }
+  return (
+    node.nodeType != 3 || sel.focusOffset >= node.textContent.trim().length
+  ); // CHECK. what if node isn't a text node?
+};
+
 const utf8 = new TextEncoder(); // M2 uses utf8, counts locations in bytes :/
 const locateRowColumn = function (txt: string, row: number, col: number) {
   // finds the offset of a row/col location in a text element
@@ -319,4 +346,5 @@ export {
   addMarkerPos,
   stripId,
   language,
+  fullySelected,
 };

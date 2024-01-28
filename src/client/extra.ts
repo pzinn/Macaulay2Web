@@ -10,6 +10,7 @@ import {
   nextChar,
   selectRowColumn,
   addMarkerEl,
+  fullySelected,
 } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import { initTutorials, renderLessonMaybe } from "./tutorials";
@@ -596,7 +597,7 @@ const extra2 = function () {
     )[0] as HTMLElement;
     if (curInput) {
       curInput.focus();
-      document.execCommand("insertText", false, '"'+fileNameEl.value+'"');
+      document.execCommand("insertText", false, '"' + fileNameEl.value + '"');
     }
   };
 
@@ -703,8 +704,13 @@ const extra2 = function () {
     inputParagraph.click();
   };
 
-  const editorInput = function () {
+  const editorInput = function (e) {
     if (autoSaveTimeout) window.clearTimeout(autoSaveTimeout);
+    if (e.inputType === "historyUndo") {
+      // if last action was syntax highlighting, re-undo
+      if (fullySelected(editor)) document.execCommand("undo");
+      return;
+    }
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
 

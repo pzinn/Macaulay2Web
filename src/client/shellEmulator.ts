@@ -369,6 +369,9 @@ const Shell = function (
     }
   };
 
+  inputSpan.beforeinput = function (e) {
+    if (!e.inputType) e.preventDefault(); // prevent messed up pasting of editor into input span during syntax hilite (TEMP?)
+  };
   /*
   inputSpan.oninput = function (e) {
     if (
@@ -384,10 +387,7 @@ const Shell = function (
 
   terminal.oninput = function () {
     if (!inputSpan) return;
-    if (
-      document.activeElement == inputSpan &&
-      getCaret(inputSpan) == 0
-    )
+    if (document.activeElement == inputSpan && getCaret(inputSpan) == 0)
       scrollLeft(terminal);
   };
 
