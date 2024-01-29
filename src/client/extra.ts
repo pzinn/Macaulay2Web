@@ -117,7 +117,7 @@ const autoSave = function (rush?) {
     document.getElementById("editorDiv").contentEditable != "true"
   )
     return; // the autoSaveHash === undefined is important -- sometimes autoSave gets called too early, *after* fileName has been set but *before* file has been loaded / hash computed
-  const content = document.getElementById("editorDiv").innerText as string;
+  const content = document.getElementById("editorDiv").textContent as string;
   const newHash = hashCode(content);
   if (newHash != autoSaveHash) {
     console.log("Saving " + fileName);
@@ -507,7 +507,7 @@ const extra2 = function () {
   };
 
   const editorEvaluateAll = function () {
-    myshell.postMessage(editor.innerText);
+    myshell.postMessage(editor.textContent);
     editor.focus();
   };
 
@@ -669,7 +669,7 @@ const extra2 = function () {
   };
 
   const saveFile = function () {
-    const content = editor.innerText as string;
+    const content = editor.textContent as string;
 
     autoSave(); // may be wrong name!!! same pbl as right below
     const inputLink =
@@ -778,7 +778,7 @@ const extra2 = function () {
     }
     const searchStringEl = document.getElementById("searchString");
     // display string
-    const txt = editor.innerText;
+    const txt = editor.textContent;
     const i = txt.indexOf(searchString, pos);
     if (i >= 0) {
       searchSuccess = searchString.length;

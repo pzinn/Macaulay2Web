@@ -206,7 +206,7 @@ const setCaretAtEndMaybe = function (el, flag?) {
   // flag means only do it if not already in el
   if (!flag || document.activeElement != el) {
     // not quite right... should test containance
-    setCaret(el, el.innerText.length);
+    setCaret(el, el.textContent.length);
     el.scrollIntoView({ inline: "end", block: "nearest" });
   }
 };
@@ -244,10 +244,10 @@ const caretIsAtEnd = function () {
 };
 
 const selectRowColumn = function (el, rowcols) {
-  let pos1 = locateRowColumn(el.innerText, rowcols[0], rowcols[1]);
-  if (pos1 === null) pos1 = el.innerText.length;
-  let pos2 = locateRowColumn(el.innerText, rowcols[2], rowcols[3]);
-  if (pos2 === null) pos2 = el.innerText.length;
+  let pos1 = locateRowColumn(el.textContent, rowcols[0], rowcols[1]);
+  if (pos1 === null) pos1 = el.textContent.length;
+  let pos2 = locateRowColumn(el.textContent, rowcols[2], rowcols[3]);
+  if (pos2 === null) pos2 = el.textContent.length;
   const nodesOffsets = locateOffset2(el, pos1, pos2);
   if (!nodesOffsets) return false; // shouldn't happen
   const sel = window.getSelection();

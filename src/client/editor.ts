@@ -325,7 +325,7 @@ const delimiterHandling = function (el) {
 // quotes need to be treated separately
 const quoteHandling = function (quote, el) {
   const pos = getCaret(el) - 1;
-  const input = el.innerText;
+  const input = el.textContent;
   if (pos > 0 && input[pos - 1] == "\\") return true; // \" does not trigger highlighting
   let flag = true;
   let last = -1;
@@ -348,7 +348,7 @@ const quoteHandling = function (quote, el) {
 const closingDelimiterHandling = function (index, el) {
   const pos = getCaret(el) - 1;
 
-  const input = el.innerText;
+  const input = el.textContent;
   let i, j;
   const depth = [];
   for (i = 0; i < openingDelimiters.length; i++) depth.push(i == index ? 1 : 0);
@@ -380,7 +380,7 @@ const closingDelimiterHandling = function (index, el) {
 
 const openingDelimiterHandling = function (index, el) {
   const pos = getCaret(el) - 1;
-  const input = el.innerText;
+  const input = el.textContent;
   let i, j;
   const depth = [];
   for (i = 0; i < openingDelimiters.length; i++) depth.push(i == index ? 1 : 0);
@@ -423,7 +423,7 @@ const delimLevel = function (s, start, end) {
 
 const autoIndent = function (el) {
   //  const t = Date.now();
-  const input = el.innerText;
+  const input = el.textContent;
   const sel = window.getSelection() as any;
   let pos = getCaret2(el); // start and end
   if (pos === null) return;
@@ -511,7 +511,7 @@ const syntaxHighlight = function (el: HTMLElement) {
     // to simplify (TEMP?) no hiliting while selecting
     const caret = getCaret(el);
     const newHTML = Prism.highlight(
-      htmlToM2(el).innerText,
+      htmlToM2(el).textContent,
       Prism.languages.macaulay2
     );
     if (el.innerHTML != newHTML) {

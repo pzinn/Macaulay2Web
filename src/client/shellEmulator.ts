@@ -153,7 +153,7 @@ const Shell = function (
   const codeStack = []; // stack of past code run
 
   obj.codeInputAction = function (t) {
-    let str = t.dataset.m2code ? t.dataset.m2code : t.textContent; // used to be innerText
+    let str = t.dataset.m2code ? t.dataset.m2code : t.textContent; // used to be textContent
     if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
     t.dataset.m2code = str;
     t.classList.add("codetrigger");
@@ -258,7 +258,7 @@ const Shell = function (
     }
     if (document.activeElement != inputSpan) {
       inputSpan.focus({ preventScroll: true });
-      setCaret(inputSpan, inputSpan.innerText.length);
+      setCaret(inputSpan, inputSpan.textContent.length);
     }
   };
 
@@ -310,7 +310,7 @@ const Shell = function (
       }
       if (e.key == "PageDown" && document.activeElement == inputSpan) {
         // this prevents the annoying behavior of page down going to end of inputSpan => weird horiz scrolling
-        setCaret(inputSpan, inputSpan.innerText.length);
+        setCaret(inputSpan, inputSpan.textContent.length);
       }
       return;
     }
@@ -566,7 +566,7 @@ const Shell = function (
             ) as HTMLInputElement;
             if (fileNameEl.value == m[1]) {
               // should this keep track of path somehow? needs more testing
-              const pos = locateRowColumn(editor.innerText, +m[2], +m[3]);
+              const pos = locateRowColumn(editor.textContent, +m[2], +m[3]);
               if (pos !== null) {
                 const nodeOffset = locateOffset(editor, pos);
                 if (nodeOffset) {
@@ -771,7 +771,7 @@ const Shell = function (
     )
       i++;
     const m1 = m[i];
-    const txt = pastInputs[i].innerText;
+    const txt = pastInputs[i].textContent;
     const offset = locateRowColumn(
       txt,
       row - +m1[1] + 1,
