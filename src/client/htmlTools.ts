@@ -25,7 +25,7 @@ const baselinePosition = function (el) {
 
 // TODO: rewrite getCaret(2) in a similar way as setCaret
 // caret (always assuming selection is collapsed)
-const getCaretInternal = function(el,node,offset): number | null {
+const getCaretInternal = function (el, node, offset): number | null {
   let cur = el;
   let len = 0;
   while (true) {
@@ -52,14 +52,17 @@ const getCaretInternal = function(el,node,offset): number | null {
       cur = cur.nextSibling;
     } else cur = cur.firstChild; // forward
   }
-}
+};
 const getCaret = function (el): number | null {
-    const sel = window.getSelection();
-    return getCaretInternal(el,sel.focusNode,sel.focusOffset);
+  const sel = window.getSelection();
+  return getCaretInternal(el, sel.focusNode, sel.focusOffset);
 };
 const getCaret2 = function (el) {
-    const sel = window.getSelection();
-    return [getCaretInternal(el,sel.anchorNode,sel.anchorOffset),getCaretInternal(el,sel.focusNode,sel.focusOffset)];
+  const sel = window.getSelection();
+  return [
+    getCaretInternal(el, sel.anchorNode, sel.anchorOffset),
+    getCaretInternal(el, sel.focusNode, sel.focusOffset),
+  ];
 };
 
 const utf8 = new TextEncoder(); // M2 uses utf8, counts locations in bytes :/

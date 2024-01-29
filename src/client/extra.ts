@@ -175,6 +175,7 @@ const localFileToEditor = function (fileName: string, rowcols?) {
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
     autoSaveHash = hashCode(xhr.responseText);
     if (rowcols) selectRowColumn(editor, rowcols);
+    else editor.scrollTop = 0;
   };
   autoSaveHash = undefined; // no autosaving while loading
   xhr.send(null);
