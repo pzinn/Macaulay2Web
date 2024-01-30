@@ -106,17 +106,27 @@ const updateFileName = function (newName: string) {
 
 let autoSaveTimeout = 0;
 let autoSaveHash;
-const autoSave = function (rush?) {
+const autoSave = function (e?, callback?, rush?) {
   if (autoSaveTimeout) {
     window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = 0;
   }
+
   if (
     !fileName ||
-    autoSaveHash === undefined ||
     document.getElementById("editorDiv").contentEditable != "true"
-  )
-    return; // the autoSaveHash === undefined is important -- sometimes autoSave gets called too early, *after* fileName has been set but *before* file has been loaded / hash computed
+  ) {
+    if (callback) callback();
+    return;
+  }
+  // the autoSaveHash === undefined is important -- sometimes autoSave gets called too early, *after* fileName has been set but *before* file has been loaded / hash computed
+  if (autoSaveHash === undefined) {
+    console.log("failed autoSave -- will try again");
+    setTimeout(() => {
+      autoSave(e, callback, rush);
+    }, 100); // we don't call back!
+    return;
+  }
   const content = document.getElementById("editorDiv").textContent as string;
   const newHash = hashCode(content);
   if (newHash != autoSaveHash) {
@@ -135,6 +145,7 @@ const autoSave = function (rush?) {
       req.send(formData);
     } else navigator.sendBeacon("/upload", formData);
   }
+  if (callback) callback();
 };
 
 let highlightTimeout = 0;
@@ -263,11 +274,14 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
         return;
       } else response = missing;
     } else console.log(response + " succesfully loaded");
-    autoSave();
-    updateFileName(newName);
-    if (response.search("directory@") >= 0) listDirToEditor(newName, response);
-    // eww
-    else localFileToEditor(response, rowcols);
+    autoSave(null, function () {
+      // saving old file <- important! can't fail! so we use callback
+      updateFileName(newName);
+      if (response.search("directory@") >= 0)
+        listDirToEditor(newName, response);
+      // eww
+      else localFileToEditor(response, rowcols);
+    });
   });
 };
 
@@ -549,19 +563,23 @@ const extra2 = function () {
 
   const homeEditorBtn = document.getElementById("homeEditorBtn");
   homeEditorBtn.onclick = function () {
-    autoSave();
-    turnOffSearchMode();
-    newEditorFileMaybe("./");
+    autoSave(null, function () {
+      // can't fail! so we use callback
+      turnOffSearchMode();
+      newEditorFileMaybe("./");
+    });
   };
 
   const clearEditorBtn = document.getElementById("clearEditorBtn");
   clearEditorBtn.onclick = function () {
-    autoSave();
-    turnOffSearchMode();
-    editor.innerHTML = "";
-    editor.contentEditable = "true";
-    updateFileName("");
-    fileNameEl.focus();
+    autoSave(null, function () {
+      // can't fail! so we use callback
+      turnOffSearchMode();
+      editor.innerHTML = "";
+      editor.contentEditable = "true";
+      updateFileName("");
+      fileNameEl.focus();
+    });
   };
 
   const copyFileNameBtn = document.getElementById("copyFileNameBtn");
@@ -808,7 +826,10 @@ const extra2 = function () {
     if (fileName && fileName.endsWith(".m2")) {
       highlightTimeout = window.setTimeout(function () {
         highlightTimeout = 0;
+        const autoSaveHash1 = autoSaveHash;
+        autoSaveHash = undefined; // no autosaving while syntax hiliting
         syntaxHighlight(editor);
+        autoSaveHash = autoSaveHash1;
       }, 1500);
     }
   };
@@ -1049,7 +1070,7 @@ const extra2 = function () {
   };
 
   window.addEventListener("beforeunload", function () {
-    autoSave(true);
+    autoSave(null, true);
   });
 
   const cookieQuery = document.getElementById("cookieQuery");
