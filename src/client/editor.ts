@@ -263,13 +263,12 @@ const autoCompleteHandling = function (el, dictionary?) {
           if (e.key.length == 1 && e.key >= " " && e.key <= "~") {
             let lostSelection = false;
             Array.from(tabMenu.children).forEach((el) => {
-              if (
-                el.lastChild.textContent.length > 0 &&
-                el.lastChild.textContent[0] == e.key
-              ) {
-                el.firstChild.textContent += e.key;
-                el.lastChild.textContent =
-                  el.lastChild.textContent.substring(1);
+              const startWord = el.firstChild;
+              const endWord = startWord.nextSibling;
+              const endWordText = endWord.textContent;
+              if (endWordText.length > 0 && endWordText[0] == e.key) {
+                startWord.textContent += e.key;
+                endWord.textContent = endWordText.substring(1);
               } else {
                 if (el.classList.contains("selected")) lostSelection = true;
                 el.remove();
