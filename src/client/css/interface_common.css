@@ -107,13 +107,14 @@ table {
     border-spacing: 0.2em;
     line-height: 1.2;
     font-size: inherit;
+    text-align: left;
+    vertical-align: text-top;
 }
 
 td, th {
     padding-left: 0.5em;
     padding-right: 0.5em;
-    text-align: left;
-    vertical-align: text-top;
+    padding-top: 0.25em;
 }
 
 /* from doc.css */
@@ -137,6 +138,7 @@ table.examples > tbody > tr > td { /* to avoid inheriting too far */
     border-width: 1px;
     padding-right: 0.75em;
     padding-bottom: 1em;
+    padding-top: 0em;
     border-collapse: initial;
 }
 table.examples pre {
