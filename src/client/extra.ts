@@ -107,6 +107,7 @@ const updateFileName = function (newName: string) {
 let autoSaveTimeout = 0;
 let autoSaveHash;
 const autoSave = function (e?, callback?, rush?) {
+  //    console.log("TEST autoSave: ",e,callback,rush,autoSaveHash); console.trace();
   if (autoSaveTimeout) {
     window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = 0;
@@ -122,13 +123,14 @@ const autoSave = function (e?, callback?, rush?) {
   // the autoSaveHash === undefined is important -- sometimes autoSave gets called too early, *after* fileName has been set but *before* file has been loaded / hash computed
   if (autoSaveHash === undefined) {
     console.log("failed autoSave -- will try again");
-    setTimeout(() => {
+    autoSaveTimeout = setTimeout(() => {
       autoSave(e, callback, rush);
-    }, 100); // we don't call back!
+    }, 100); // we don't call back yet
     return;
   }
   const content = document.getElementById("editorDiv").textContent as string;
   const newHash = hashCode(content);
+  //    console.log("hash: ",newHash," vs ",autoSaveHash);
   if (newHash != autoSaveHash) {
     console.log("Saving " + fileName);
     const file = new File([content], fileName);
@@ -296,13 +298,13 @@ const extra1 = function () {
   initTutorials();
 
   let oldTab = "";
-  let editorFocus = false;
+  let editorFoc = false;
   // supersedes mdl's internal tab handling
   const openTab = function () {
     let loc = document.location.hash.substring(1);
-    if (editorFocus) {
+    if (editorFoc) {
       if (loc == "editor") document.getElementById("editorDiv").focus(); // hacky -- editor keeps losing focus
-      editorFocus = false;
+      editorFoc = false;
       return;
     }
     // new syntax for navigating tutorial
@@ -326,7 +328,7 @@ const extra1 = function () {
           newEditorFileMaybe(newName, rowcols, null); // do something *if* session started
         document.location.hash = "#editor"; // drop the filename from the URL (needed for subsequent clicks)
         loc = "editor";
-        editorFocus = true; // ... but changing hash blurs editor
+        editorFoc = true; // ... but changing hash blurs editor
       }
     }
     const panel = document.getElementById(loc);
