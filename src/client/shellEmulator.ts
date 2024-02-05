@@ -440,14 +440,12 @@ const Shell = function (
     return el == terminal;
   };
 
-  const cell = function (el: HTMLElement) {
+  const sessionCell = function (el: HTMLElement) {
     let flag = true;
-    while (el && el != terminal) {
-      if (el.classList.contains("M2Cell"))
-        if (flag) flag = false;
-        else return el;
+    while (el && el.parentElement != terminal) {
       el = el.parentElement;
     }
+    return el;
   };
 
   const closeHtml = function () {
@@ -555,7 +553,11 @@ const Shell = function (
         if (m) {
           // highlight error
           if (m[1] == "stdio") {
-            const nodeOffset = obj.locateStdio(cell(htmlSec), +m[2], +m[3]);
+            const nodeOffset = obj.locateStdio(
+              sessionCell(htmlSec),
+              +m[2],
+              +m[3]
+            );
             if (nodeOffset) {
               addMarkerPos(nodeOffset[0], nodeOffset[1]).classList.add(
                 "error-marker"
@@ -758,8 +760,7 @@ const Shell = function (
 
   obj.locateStdio = function (cel: HTMLElement, row: number, column: number) {
     // find relevant input from stdio:row:column
-    const query =
-      ':scope > .M2Cell > .M2PastInput[data-positions*=" ' + row + ':"]';
+    const query = '.M2PastInput[data-positions*=" ' + row + ':"]';
     const pastInputs = Array.from(
       cel.querySelectorAll(query) as NodeListOf<HTMLElement>
     );
@@ -787,7 +788,7 @@ const Shell = function (
   };
 
   obj.selectPastInput = function (el: HTMLElement, rowcols) {
-    const cel = cell(el);
+    const cel = sessionCell(el);
     if (!cel) return;
     const nodeOffset1 = obj.locateStdio(cel, rowcols[0], rowcols[1]);
     if (!nodeOffset1) return;
