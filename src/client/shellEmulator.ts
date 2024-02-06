@@ -346,13 +346,15 @@ const Shell = function (
       document.activeElement == inputSpan
     ) {
       const pos = getCaret(inputSpan);
-      if (
-        pos == inputSpan.textContent.length &&
-        autoCompleteHandling(null, cmdHistory.sorted)
-      ) {
-        scrollDown(terminal);
-        e.preventDefault();
-        return;
+      const txt = inputSpan.textContent;
+      if (pos == txt.length) {
+        inputSpan.textContent = txt; // inputSpan.normalize(); wouldn't work because of delimiter hiliting
+        setCaret(inputSpan, pos);
+        if (autoCompleteHandling(null, cmdHistory.sorted)) {
+          scrollDown(terminal);
+          e.preventDefault();
+          return;
+        }
       }
     }
     setCaretAtEndMaybe(inputSpan, true);
