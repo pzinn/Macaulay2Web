@@ -249,7 +249,7 @@ const parseLocation = function (arg: string) {
 };
 
 const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
-  // missing = what to do if file missing : null = switch to new, string = load this instead
+  // missing = what to do if file missing : undefined = switch to new, null = do nothing, string = load this file instead
   const el = document.getElementById("editorDiv");
   if (!rowcols) el.focus({ preventScroll: true });
 
@@ -262,7 +262,8 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
 
   socket.emit("fileexists", newName, function (response) {
     if (!response) {
-      if (!missing) {
+      if (missing === null) return;
+      else if (missing === undefined) {
         updateFileName(newName);
         if (el.contentEditable != "true") {
           el.contentEditable = "true";
@@ -321,7 +322,8 @@ const extra1 = function () {
         document.location.hash = "#" + oldTab;
         loc = "";
       } else {
-        if (socket && socket.connected) newEditorFileMaybe(newName, rowcols); // do something *if* session started
+        if (socket && socket.connected)
+          newEditorFileMaybe(newName, rowcols, null); // do something *if* session started
         document.location.hash = "#editor"; // drop the filename from the URL (needed for subsequent clicks)
         loc = "editor";
         editorFocus = true; // ... but changing hash blurs editor
@@ -1085,6 +1087,5 @@ export {
   setCookie,
   getCookieId,
   setCookieId,
-  newEditorFileMaybe,
   checkScrollButton,
 };
