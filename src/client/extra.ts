@@ -106,19 +106,31 @@ const updateFileName = function (newName: string) {
 
 let autoSaveTimeout = 0;
 let autoSaveHash;
-const autoSave = function (rush?) {
+const autoSave = function (e?, callback?, rush?) {
+  //    console.log("TEST autoSave: ",e,callback,rush,autoSaveHash); console.trace();
   if (autoSaveTimeout) {
     window.clearTimeout(autoSaveTimeout);
     autoSaveTimeout = 0;
   }
+
   if (
     !fileName ||
-    autoSaveHash === undefined ||
     document.getElementById("editorDiv").contentEditable != "true"
-  )
-    return; // the autoSaveHash === undefined is important -- sometimes autoSave gets called too early, *after* fileName has been set but *before* file has been loaded / hash computed
-  const content = document.getElementById("editorDiv").innerText as string;
+  ) {
+    if (callback) callback();
+    return;
+  }
+  // the autoSaveHash === undefined is important -- sometimes autoSave gets called too early, *after* fileName has been set but *before* file has been loaded / hash computed
+  if (autoSaveHash === undefined) {
+    console.log("failed autoSave -- will try again");
+    autoSaveTimeout = setTimeout(() => {
+      autoSave(e, callback, rush);
+    }, 100); // we don't call back yet
+    return;
+  }
+  const content = document.getElementById("editorDiv").textContent as string;
   const newHash = hashCode(content);
+  //    console.log("hash: ",newHash," vs ",autoSaveHash);
   if (newHash != autoSaveHash) {
     console.log("Saving " + fileName);
     const file = new File([content], fileName);
@@ -135,6 +147,7 @@ const autoSave = function (rush?) {
       req.send(formData);
     } else navigator.sendBeacon("/upload", formData);
   }
+  if (callback) callback();
 };
 
 let highlightTimeout = 0;
@@ -175,6 +188,7 @@ const localFileToEditor = function (fileName: string, rowcols?) {
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
     autoSaveHash = hashCode(xhr.responseText);
     if (rowcols) selectRowColumn(editor, rowcols);
+    else editor.scrollTop = 0;
   };
   autoSaveHash = undefined; // no autosaving while loading
   xhr.send(null);
@@ -237,7 +251,7 @@ const parseLocation = function (arg: string) {
 };
 
 const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
-  // missing = what to do if file missing : null = switch to new, string = load this instead
+  // missing = what to do if file missing : undefined = switch to new, null = do nothing, string = load this file instead
   const el = document.getElementById("editorDiv");
   if (!rowcols) el.focus({ preventScroll: true });
 
@@ -250,7 +264,8 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
 
   socket.emit("fileexists", newName, function (response) {
     if (!response) {
-      if (!missing) {
+      if (missing === null) return;
+      else if (missing === undefined) {
         updateFileName(newName);
         if (el.contentEditable != "true") {
           el.contentEditable = "true";
@@ -262,11 +277,14 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
         return;
       } else response = missing;
     } else console.log(response + " succesfully loaded");
-    autoSave();
-    updateFileName(newName);
-    if (response.search("directory@") >= 0) listDirToEditor(newName, response);
-    // eww
-    else localFileToEditor(response, rowcols);
+    autoSave(null, function () {
+      // saving old file <- important! can't fail! so we use callback
+      updateFileName(newName);
+      if (response.search("directory@") >= 0)
+        listDirToEditor(newName, response);
+      // eww
+      else localFileToEditor(response, rowcols);
+    });
   });
 };
 
@@ -280,13 +298,13 @@ const extra1 = function () {
   initTutorials();
 
   let oldTab = "";
-  let editorFocus = false;
+  let editorFoc = false;
   // supersedes mdl's internal tab handling
   const openTab = function () {
     let loc = document.location.hash.substring(1);
-    if (editorFocus) {
+    if (editorFoc) {
       if (loc == "editor") document.getElementById("editorDiv").focus(); // hacky -- editor keeps losing focus
-      editorFocus = false;
+      editorFoc = false;
       return;
     }
     // new syntax for navigating tutorial
@@ -306,10 +324,11 @@ const extra1 = function () {
         document.location.hash = "#" + oldTab;
         loc = "";
       } else {
-        if (socket && socket.connected) newEditorFileMaybe(newName, rowcols); // do something *if* session started
+        if (socket && socket.connected)
+          newEditorFileMaybe(newName, rowcols, null); // do something *if* session started
         document.location.hash = "#editor"; // drop the filename from the URL (needed for subsequent clicks)
         loc = "editor";
-        editorFocus = true; // ... but changing hash blurs editor
+        editorFoc = true; // ... but changing hash blurs editor
       }
     }
     const panel = document.getElementById(loc);
@@ -507,7 +526,7 @@ const extra2 = function () {
   };
 
   const editorEvaluateAll = function () {
-    myshell.postMessage(editor.innerText);
+    myshell.postMessage(editor.textContent);
     editor.focus();
   };
 
@@ -548,19 +567,23 @@ const extra2 = function () {
 
   const homeEditorBtn = document.getElementById("homeEditorBtn");
   homeEditorBtn.onclick = function () {
-    autoSave();
-    turnOffSearchMode();
-    newEditorFileMaybe("./");
+    autoSave(null, function () {
+      // can't fail! so we use callback
+      turnOffSearchMode();
+      newEditorFileMaybe("./");
+    });
   };
 
   const clearEditorBtn = document.getElementById("clearEditorBtn");
   clearEditorBtn.onclick = function () {
-    autoSave();
-    turnOffSearchMode();
-    editor.innerHTML = "";
-    editor.contentEditable = "true";
-    updateFileName("");
-    fileNameEl.focus();
+    autoSave(null, function () {
+      // can't fail! so we use callback
+      turnOffSearchMode();
+      editor.innerHTML = "";
+      editor.contentEditable = "true";
+      updateFileName("");
+      fileNameEl.focus();
+    });
   };
 
   const copyFileNameBtn = document.getElementById("copyFileNameBtn");
@@ -669,7 +692,7 @@ const extra2 = function () {
   };
 
   const saveFile = function () {
-    const content = editor.innerText as string;
+    const content = editor.textContent as string;
 
     autoSave(); // may be wrong name!!! same pbl as right below
     const inputLink =
@@ -778,7 +801,7 @@ const extra2 = function () {
     }
     const searchStringEl = document.getElementById("searchString");
     // display string
-    const txt = editor.innerText;
+    const txt = editor.textContent;
     const i = txt.indexOf(searchString, pos);
     if (i >= 0) {
       searchSuccess = searchString.length;
@@ -807,7 +830,10 @@ const extra2 = function () {
     if (fileName && fileName.endsWith(".m2")) {
       highlightTimeout = window.setTimeout(function () {
         highlightTimeout = 0;
+        const autoSaveHash1 = autoSaveHash;
+        autoSaveHash = undefined; // no autosaving while syntax hiliting
         syntaxHighlight(editor);
+        autoSaveHash = autoSaveHash1;
       }, 1500);
     }
   };
@@ -1048,7 +1074,7 @@ const extra2 = function () {
   };
 
   window.addEventListener("beforeunload", function () {
-    autoSave(true);
+    autoSave(null, true);
   });
 
   const cookieQuery = document.getElementById("cookieQuery");
@@ -1063,6 +1089,5 @@ export {
   setCookie,
   getCookieId,
   setCookieId,
-  newEditorFileMaybe,
   checkScrollButton,
 };

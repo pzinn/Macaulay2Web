@@ -153,7 +153,7 @@ const Shell = function (
   const codeStack = []; // stack of past code run
 
   obj.codeInputAction = function (t) {
-    let str = t.dataset.m2code ? t.dataset.m2code : t.textContent; // used to be innerText
+    let str = t.dataset.m2code ? t.dataset.m2code : t.textContent; // used to be textContent
     if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
     t.dataset.m2code = str;
     t.classList.add("codetrigger");
@@ -258,7 +258,7 @@ const Shell = function (
     }
     if (document.activeElement != inputSpan) {
       inputSpan.focus({ preventScroll: true });
-      setCaret(inputSpan, inputSpan.innerText.length);
+      setCaret(inputSpan, inputSpan.textContent.length);
     }
   };
 
@@ -310,7 +310,7 @@ const Shell = function (
       }
       if (e.key == "PageDown" && document.activeElement == inputSpan) {
         // this prevents the annoying behavior of page down going to end of inputSpan => weird horiz scrolling
-        setCaret(inputSpan, inputSpan.innerText.length);
+        setCaret(inputSpan, inputSpan.textContent.length);
       }
       return;
     }
@@ -346,13 +346,15 @@ const Shell = function (
       document.activeElement == inputSpan
     ) {
       const pos = getCaret(inputSpan);
-      if (
-        pos == inputSpan.textContent.length &&
-        autoCompleteHandling(null, cmdHistory.sorted)
-      ) {
-        scrollDown(terminal);
-        e.preventDefault();
-        return;
+      const txt = inputSpan.textContent;
+      if (pos == txt.length) {
+        inputSpan.textContent = txt; // inputSpan.normalize(); wouldn't work because of delimiter hiliting
+        setCaret(inputSpan, pos);
+        if (autoCompleteHandling(null, cmdHistory.sorted)) {
+          scrollDown(terminal);
+          e.preventDefault();
+          return;
+        }
       }
     }
     setCaretAtEndMaybe(inputSpan, true);
@@ -438,14 +440,12 @@ const Shell = function (
     return el == terminal;
   };
 
-  const cell = function (el: HTMLElement) {
+  const sessionCell = function (el: HTMLElement) {
     let flag = true;
-    while (el && el != terminal) {
-      if (el.classList.contains("M2Cell"))
-        if (flag) flag = false;
-        else return el;
+    while (el && el.parentElement != terminal) {
       el = el.parentElement;
     }
+    return el;
   };
 
   const closeHtml = function () {
@@ -553,7 +553,11 @@ const Shell = function (
         if (m) {
           // highlight error
           if (m[1] == "stdio") {
-            const nodeOffset = obj.locateStdio(cell(htmlSec), +m[2], +m[3]);
+            const nodeOffset = obj.locateStdio(
+              sessionCell(htmlSec),
+              +m[2],
+              +m[3]
+            );
             if (nodeOffset) {
               addMarkerPos(nodeOffset[0], nodeOffset[1]).classList.add(
                 "error-marker"
@@ -566,7 +570,7 @@ const Shell = function (
             ) as HTMLInputElement;
             if (fileNameEl.value == m[1]) {
               // should this keep track of path somehow? needs more testing
-              const pos = locateRowColumn(editor.innerText, +m[2], +m[3]);
+              const pos = locateRowColumn(editor.textContent, +m[2], +m[3]);
               if (pos !== null) {
                 const nodeOffset = locateOffset(editor, pos);
                 if (nodeOffset) {
@@ -756,8 +760,7 @@ const Shell = function (
 
   obj.locateStdio = function (cel: HTMLElement, row: number, column: number) {
     // find relevant input from stdio:row:column
-    const query =
-      ':scope > .M2Cell > .M2PastInput[data-positions*=" ' + row + ':"]';
+    const query = '.M2PastInput[data-positions*=" ' + row + ':"]';
     const pastInputs = Array.from(
       cel.querySelectorAll(query) as NodeListOf<HTMLElement>
     );
@@ -771,7 +774,7 @@ const Shell = function (
     )
       i++;
     const m1 = m[i];
-    const txt = pastInputs[i].innerText;
+    const txt = pastInputs[i].textContent;
     const offset = locateRowColumn(
       txt,
       row - +m1[1] + 1,
@@ -785,7 +788,7 @@ const Shell = function (
   };
 
   obj.selectPastInput = function (el: HTMLElement, rowcols) {
-    const cel = cell(el);
+    const cel = sessionCell(el);
     if (!cel) return;
     const nodeOffset1 = obj.locateStdio(cel, rowcols[0], rowcols[1]);
     if (!nodeOffset1) return;
