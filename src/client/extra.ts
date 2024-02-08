@@ -919,7 +919,8 @@ const extra2 = function () {
   const scrollBtn = document.getElementById("scrollBtn");
   checkScrollButton = function () {
     scrollBtn.style.visibility =
-      terminal.scrollTop + terminal.clientHeight < terminal.scrollHeight
+      Math.ceil(terminal.scrollTop + terminal.clientHeight) <
+      terminal.scrollHeight // Math.ceil because of annoying rounding errors
         ? "visible"
         : "hidden";
   };
@@ -944,7 +945,8 @@ const extra2 = function () {
       terminal.onscroll = null;
       const scrollMiddle = terminal.scrollTop + terminal.clientHeight / 2;
       const scrollBtnVisibility =
-        terminal.scrollTop + terminal.clientHeight < terminal.scrollHeight; // rather than call checkScrollButton, more accurate
+        Math.ceil(terminal.scrollTop + terminal.clientHeight) <
+        terminal.scrollHeight; // Math.ceil because of annoying rounding errors. rather than call checkScrollButton, more accurate
       terminal.style.fontSize = sizePercent.toString() + "%";
       terminal.scrollTop = scrollBtnVisibility
         ? factor * scrollMiddle - terminal.clientHeight / 2 // keep middle fixed
