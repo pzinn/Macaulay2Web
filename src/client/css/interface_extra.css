@@ -445,3 +445,14 @@ nav {
     float: right;
     font-size: 18px;
 }
+
+
+@keyframes colorfade {
+    100% {
+        background-color: transparent;
+    }
+}
+
+#editor span {
+    animation: colorfade 0.5s linear 0.5s 1 normal forwards;
+}

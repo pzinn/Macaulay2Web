@@ -6,7 +6,7 @@ import {
   getCaret2,
   setCaret,
   forwardCaret,
-  addMarkerEl,
+  addColor,
 } from "./htmlTools";
 import { webAppRegex } from "../common/tags";
 import Prism from "prismjs";
@@ -323,6 +323,7 @@ const delimiterHandling = function (el) {
 
 // quotes need to be treated separately
 const quoteHandling = function (quote, el) {
+  // console.log("quote handling"); console.trace();
   const pos = getCaret(el) - 1;
   const input = el.textContent;
   if (pos > 0 && input[pos - 1] == "\\") return true; // \" does not trigger highlighting
@@ -336,11 +337,7 @@ const quoteHandling = function (quote, el) {
     }
   if (flag) return true; // opening " -- does not try to check, too confusing
   // otherwise, closing "
-  addMarkerEl(el, last).classList.add("valid-marker");
-  //	marker.dataset.content=quote;
-  addMarkerEl(el, pos).classList.add("valid-marker");
-  //	marker.dataset.content=quote;
-  setCaret(el, pos + 1);
+  addColor(el, true, last, pos);
   return true;
 };
 
@@ -369,11 +366,8 @@ const closingDelimiterHandling = function (index, el) {
       if (j >= 0) depth[j]++;
     }
   }
-  if (depth.every((val) => val == 0)) {
-    addMarkerEl(el, i).classList.add("valid-marker");
-    addMarkerEl(el, pos).classList.add("valid-marker");
-  } else addMarkerEl(el, pos).classList.add("error-marker");
-  setCaret(el, pos + 1);
+  if (depth.every((val) => val == 0)) addColor(el, true, i, pos);
+  else addColor(el, false, pos);
   return true;
 };
 
@@ -401,11 +395,8 @@ const openingDelimiterHandling = function (index, el) {
       if (j >= 0) depth[j]++;
     }
   }
-  if (depth.every((val) => val == 0)) {
-    addMarkerEl(el, pos).classList.add("valid-marker");
-    addMarkerEl(el, i).classList.add("valid-marker");
-  } // we never throw an error on an opening delimiter -- it's assumed more input is coming
-  setCaret(el, pos + 1);
+  if (depth.every((val) => val == 0)) addColor(el, true, i, pos);
+  // we never throw an error on an opening delimiter -- it's assumed more input is coming
   return true;
 };
 
@@ -504,7 +495,7 @@ const autoIndent = function (el) {
 const syntaxHighlight = function (el: HTMLElement) {
   if (autoComplete) return; // no highlighting while autocomplete menu is on, would make a mess!!
   // sadly, never happens -- oninput sucks
-
+  // console.log("syntax highlight");
   const sel = window.getSelection();
   if (sel.isCollapsed && document.activeElement == el) {
     // to simplify (TEMP?) no hiliting while selecting or when out of element

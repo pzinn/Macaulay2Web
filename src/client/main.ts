@@ -176,6 +176,8 @@ const init = function () {
 
   console.log("Macaulay2Web version " + options.version);
 
+  //  document.execCommand("styleWithCSS",false,"false");
+
   if (!MINIMAL) extra1();
 
   const userId: any = url.searchParams.get("user");

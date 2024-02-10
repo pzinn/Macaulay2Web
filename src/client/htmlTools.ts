@@ -74,6 +74,7 @@ const fullySelected = function (el: HTMLElement): boolean {
     if (node.nodeType != 1 || node.childNodes.length == 0) return false;
     node = node.firstChild;
     while (node.textContent.trim().length == 0) {
+      if (node == sel.anchorNode) break;
       node = node.nextSibling;
       if (!node) return false;
     } // annoying
@@ -83,6 +84,7 @@ const fullySelected = function (el: HTMLElement): boolean {
     if (node.nodeType != 1 || node.childNodes.length == 0) return false;
     node = node.lastChild;
     while (node.textContent.trim().length == 0) {
+      if (node == sel.focusNode) break;
       node = node.previousSibling;
       if (!node) return false;
     } // annoying
@@ -111,7 +113,7 @@ const locateRowColumn = function (txt: string, row: number, col: number) {
   return offset;
 };
 
-const locateOffsetInternal = function (el, cur, pos: number) {
+const locateOffsetInternal = function (el: HTMLElement, cur, pos: number) {
   while (true) {
     if (cur.nodeType === 3) {
       if (pos <= cur.textContent.length)
@@ -280,7 +282,7 @@ const selectRowColumn = function (el, rowcols) {
 
 const addMarker = function (perma?) {
   // perma means don't remove it after 1.5s
-  // markers are used for scrolling or highlighting
+  // markers are used for scrolling or highlighting -- being phased out for highlighting cause not ctrl-Z friendly
   const marker = document.createElement("span");
   marker.classList.add("marker");
   if (!perma)
@@ -324,6 +326,57 @@ const language = function (e) {
   return "Macaulay2"; // by default we assume code is M2
 };
 
+// a (ctrl-Z friendly) alternative to markers: just add color
+//
+const saltedColor = function (r, g, b) {
+  return (
+    "rgb(" +
+    Math.round(r + 3 * Math.random() - 1.5) +
+    "," +
+    Math.round(g + 3 * Math.random() - 1.5) +
+    "," +
+    Math.round(b + 3 * Math.random() - 1.5) +
+    ")"
+  ); // silly
+};
+const validColor = function () {
+  //  return saltedColor(80, 160, 0);
+  return saltedColor(160, 200, 120);
+};
+const invalidColor = function () {
+  //  return saltedColor(240, 0, 0);
+  return saltedColor(240, 120, 120);
+};
+
+const addColor = function (el, valid, ...posa) {
+  if (el.isContentEditable) {
+    const col = valid ? validColor() : invalidColor();
+    const sel = window.getSelection(); // just in case
+    posa.forEach((pos) => {
+      setCaret(el, pos, pos + 1);
+      document.execCommand("backColor", false, col);
+    });
+    sel.collapseToEnd();
+    document.execCommand("backColor", false, "white");
+  } else {
+    posa.forEach((pos) => {
+      const markerClass = valid ? "valid-marker" : "error-marker";
+      addMarkerEl(el, pos).classList.add(markerClass);
+    });
+  }
+};
+
+/*
+document.onanimationend = function (e) {
+  // color is animated
+  const targ = e.target as HTMLElement;
+  if (e.animationName == "colorfade" && !targ.isContentEditable) {
+    targ.replaceWith(document.createTextNode(targ.textContent));
+  }
+  // TODO remove color, avoids annoying issues
+};
+ */
+
 export {
   scrollDownLeft,
   scrollDown,
@@ -347,4 +400,5 @@ export {
   stripId,
   language,
   fullySelected,
+  addColor,
 };
