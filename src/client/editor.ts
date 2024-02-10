@@ -508,7 +508,6 @@ const syntaxHighlight = function (el: HTMLElement) {
   const sel = window.getSelection();
   if (sel.isCollapsed && document.activeElement == el) {
     // to simplify (TEMP?) no hiliting while selecting or when out of element
-    const caret = getCaret(el);
     const sTop = el.scrollTop;
     const sLeft = el.scrollLeft;
     let newHTML = Prism.highlight(

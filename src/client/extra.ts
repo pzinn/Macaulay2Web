@@ -784,6 +784,7 @@ const extra2 = function () {
 
   let searchSuccess = 0; // how many characters of the searchString we managed to find
   const editorKeyDownSearch = function (e) {
+    // returns true to stay in search mode, false to leave it
     //    console.log("search: " + searchString + " + " + e.key);
     const pos0 = getCaret2(editor);
     if (pos0 === null) return false;

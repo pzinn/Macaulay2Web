@@ -441,7 +441,6 @@ const Shell = function (
   };
 
   const sessionCell = function (el: HTMLElement) {
-    let flag = true;
     while (el && el.parentElement != terminal) {
       el = el.parentElement;
     }

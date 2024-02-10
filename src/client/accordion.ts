@@ -24,6 +24,7 @@ const initAccordion = function (index) {
   document.getElementById("accordion").appendChild(div);
 };
 
+/*
 function totalHeight(element) {
   // height including margins
   const height = element.offsetHeight,
@@ -32,7 +33,8 @@ function totalHeight(element) {
   return ["top", "bottom"]
     .map((side) => parseInt(style[`margin-${side}`]))
     .reduce((total, side) => total + side, height);
-}
+    }
+ */
 
 function innerHeight(element) {
   // height excluding padding

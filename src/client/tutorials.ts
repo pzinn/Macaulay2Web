@@ -5,7 +5,7 @@ import {
 } from "./accordion";
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
-import { language, scrollDown } from "./htmlTools";
+import { language } from "./htmlTools";
 import Prism from "prismjs";
 
 interface Tutorial {
