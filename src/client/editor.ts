@@ -198,7 +198,7 @@ const autoCompleteHandling = function (el, dictionary?) {
           document.execCommand(
             "insertText",
             false,
-            String.fromCharCode(UCsymbols[lst[j]])
+            String.fromCodePoint(UCsymbols[lst[j]])
           );
         }
       } else {
@@ -218,7 +218,7 @@ const autoCompleteHandling = function (el, dictionary?) {
           opt.append(wordb, lst[l].substring(word.length, lst[l].length));
           opt.dataset.fullword = flag
             ? lst[l]
-            : String.fromCharCode(UCsymbols[lst[l]]);
+            : String.fromCodePoint(UCsymbols[lst[l]]);
           if (dictionary) {
             const icon = document.createElement("i");
             icon.classList.add("material-icons");
