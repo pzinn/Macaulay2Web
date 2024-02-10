@@ -733,7 +733,7 @@ const extra2 = function () {
 
   const turnOffSearchMode = function () {
     searchMode = false;
-    document.getElementById("searchSpan").style.display = "none";
+    document.getElementById("searchBox").style.display = "none";
   };
 
   const editorKeyDown = function (e) {
@@ -775,7 +775,7 @@ const extra2 = function () {
         searchMode = true;
         prevSearchString = searchString;
         document.getElementById("searchString").textContent = searchString = "";
-        document.getElementById("searchSpan").style.display = "";
+        document.getElementById("searchBox").style.display = "";
       }
       e.preventDefault();
     }
@@ -870,6 +870,7 @@ const extra2 = function () {
   editor.onblur = autoSave;
   editor.onfocus = editorFocus;
   editor.onpaste = editorPaste;
+  attachClick("searchClose", turnOffSearchMode);
 
   let activeEl;
   const saveActive = function () {
