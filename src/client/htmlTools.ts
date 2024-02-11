@@ -74,6 +74,7 @@ const fullySelected = function (el: HTMLElement): boolean {
     if (node.nodeType != 1 || node.childNodes.length == 0) return false;
     node = node.firstChild;
     while (node.textContent.trim().length == 0) {
+      if (node == sel.anchorNode) break;
       node = node.nextSibling;
       if (!node) return false;
     } // annoying
@@ -83,6 +84,7 @@ const fullySelected = function (el: HTMLElement): boolean {
     if (node.nodeType != 1 || node.childNodes.length == 0) return false;
     node = node.lastChild;
     while (node.textContent.trim().length == 0) {
+      if (node == sel.focusNode) break;
       node = node.previousSibling;
       if (!node) return false;
     } // annoying
@@ -111,7 +113,7 @@ const locateRowColumn = function (txt: string, row: number, col: number) {
   return offset;
 };
 
-const locateOffsetInternal = function (el, cur, pos: number) {
+const locateOffsetInternal = function (el: HTMLElement, cur, pos: number) {
   while (true) {
     if (cur.nodeType === 3) {
       if (pos <= cur.textContent.length)

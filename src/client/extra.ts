@@ -704,13 +704,18 @@ const extra2 = function () {
     inputParagraph.click();
   };
 
-  const editorInput = function (e) {
+  const editorInput = function (e: InputEvent) {
     if (autoSaveTimeout) window.clearTimeout(autoSaveTimeout);
     if (e.inputType === "historyUndo") {
       // if last action was syntax highlighting, re-undo
       if (fullySelected(editor)) document.execCommand("undo");
       return;
-    }
+    } else if (
+      e.inputType === "insertText" ||
+      e.inputType === "deleteContentBackward"
+    )
+      // what else?
+      delimiterHandling(editor);
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
 
@@ -832,7 +837,8 @@ const extra2 = function () {
   const editorKeyUp = function (e) {
     if (e.key == "Enter" && !e.shiftKey && enterPressed) autoIndent(editor);
     enterPressed = false;
-    delimiterHandling(editor);
+    if (e.key.substring(0, 5) === "Arrow" || e.key.substring(0, 4) === "Page")
+      delimiterHandling(editor);
     if (highlightTimeout) window.clearTimeout(highlightTimeout);
     if (fileName && fileName.endsWith(".m2")) {
       highlightTimeout = window.setTimeout(function () {
