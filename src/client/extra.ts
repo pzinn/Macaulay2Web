@@ -1093,7 +1093,7 @@ const extra2 = function () {
   };
 
   window.addEventListener("beforeunload", function () {
-    autoSave(null, true);
+    autoSave(null, true, null);
   });
 
   const cookieQuery = document.getElementById("cookieQuery");
