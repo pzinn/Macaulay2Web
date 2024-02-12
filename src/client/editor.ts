@@ -506,19 +506,31 @@ const syntaxHighlight = function (el: HTMLElement) {
   // sadly, never happens -- oninput sucks
 
   const sel = window.getSelection();
-  if (sel.isCollapsed) {
-    // to simplify (TEMP?) no hiliting while selecting
-    const caret = getCaret(el);
-    const newHTML = Prism.highlight(
+  if (sel.isCollapsed && document.activeElement == el) {
+    // to simplify (TEMP?) no hiliting while selecting or when out of element
+    const sTop = el.scrollTop;
+    const sLeft = el.scrollLeft;
+    let newHTML = Prism.highlight(
       htmlToM2(el).textContent,
       Prism.languages.macaulay2
     );
     if (el.innerHTML != newHTML) {
       // avoid changing things if not necessary
-      el.innerHTML = newHTML;
-      if (caret)
-        // note that it could be zero but that's OK (I think)
-        setCaret(el, caret);
+      if (el.getAttribute("contenteditable") == "true") {
+        if (newHTML.length > 0 && newHTML[newHTML.length - 1] == "\n")
+          newHTML = newHTML.trimEnd() + "\n";
+        // trimming is to prevent annoying extra \n of chrome when pasting stuff with HTML tags
+        const caret = getCaret(el);
+        document.execCommand("selectAll"); // for undo purposes
+        document.execCommand("insertHTML", false, newHTML);
+        if (document.activeElement != el) {
+          // shouldn't be needed, for testing purposes
+          console.log("BUG");
+        }
+        if (caret !== null) setCaret(el, caret); // actually, if (caret) would work too
+      } else el.innerHTML = newHTML;
+      el.scrollTop = sTop;
+      el.scrollLeft = sLeft;
     }
   }
 };

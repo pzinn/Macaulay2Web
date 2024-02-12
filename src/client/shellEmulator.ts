@@ -369,8 +369,12 @@ const Shell = function (
     }
   };
 
+  terminal.onbeforeinput = function (e) {
+    //    console.log("inputSpan beforeinput: " + e.inputType);
+    if (!e.inputType) e.preventDefault(); // prevent messed up pasting of editor into input span during syntax hilite (TEMP?)
+  };
   /*
-  inputSpan.oninput = function (e) {
+  inputSpan.oninput = function (e) { // pointless to attach events to inputSpan
     if (
       inputSpan.parentElement == htmlSec &&
       htmlSec.classList.contains("M2Input")
@@ -382,21 +386,7 @@ const Shell = function (
   };
 */
 
-  terminal.oninput = function () {
-    if (!inputSpan) return;
-    if (
-      document.activeElement == inputSpan &&
-      getCaret(inputSpan) == 0
-    )
-      scrollLeft(terminal);
-  };
-
-  terminal.onkeyup = function () {
-    if (!inputSpan) return;
-    if (savepos !== null) {
-      setCaret(inputSpan, savepos);
-      savepos = null;
-    }
+  const delimiterHandlingMaybe = function () {
     if (
       inputSpan.parentElement == htmlSec &&
       htmlSec.classList.contains("M2Input")
@@ -404,6 +394,24 @@ const Shell = function (
       delimiterHandling(htmlSec);
     // the negation of the first only happens in transitional state; of the second if we turned off webapp mode
     // in both cases it's simpler to deactivate highlighting
+  };
+
+  terminal.oninput = function (e: InputEvent) {
+    if (!inputSpan) return;
+    if (document.activeElement == inputSpan && getCaret(inputSpan) == 0)
+      scrollLeft(terminal);
+    if (e.inputType === "insertText" || e.inputType === "deleteContentBackward")
+      delimiterHandlingMaybe();
+  };
+
+  terminal.onkeyup = function (e: KeyboardEvent) {
+    if (!inputSpan) return;
+    if (savepos !== null) {
+      setCaret(inputSpan, savepos);
+      savepos = null;
+    }
+    if (e.key.substring(0, 5) === "Arrow" || e.key.substring(0, 4) === "Page")
+      delimiterHandlingMaybe();
   };
 
   const subList = [];
@@ -441,7 +449,6 @@ const Shell = function (
   };
 
   const sessionCell = function (el: HTMLElement) {
-    let flag = true;
     while (el && el.parentElement != terminal) {
       el = el.parentElement;
     }

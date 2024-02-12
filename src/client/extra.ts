@@ -10,6 +10,7 @@ import {
   nextChar,
   selectRowColumn,
   addMarkerEl,
+  fullySelected,
 } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import { initTutorials, renderLessonMaybe } from "./tutorials";
@@ -596,7 +597,7 @@ const extra2 = function () {
     )[0] as HTMLElement;
     if (curInput) {
       curInput.focus();
-      document.execCommand("insertText", false, '"'+fileNameEl.value+'"');
+      document.execCommand("insertText", false, '"' + fileNameEl.value + '"');
     }
   };
 
@@ -703,8 +704,18 @@ const extra2 = function () {
     inputParagraph.click();
   };
 
-  const editorInput = function () {
+  const editorInput = function (e: InputEvent) {
     if (autoSaveTimeout) window.clearTimeout(autoSaveTimeout);
+    if (e.inputType === "historyUndo") {
+      // if last action was syntax highlighting, re-undo
+      if (fullySelected(editor)) document.execCommand("undo");
+      return;
+    } else if (
+      e.inputType === "insertText" ||
+      e.inputType === "deleteContentBackward"
+    )
+      // what else?
+      delimiterHandling(editor);
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
   };
 
@@ -727,7 +738,7 @@ const extra2 = function () {
 
   const turnOffSearchMode = function () {
     searchMode = false;
-    document.getElementById("searchSpan").style.display = "none";
+    document.getElementById("searchBox").style.display = "none";
   };
 
   const editorKeyDown = function (e) {
@@ -769,7 +780,7 @@ const extra2 = function () {
         searchMode = true;
         prevSearchString = searchString;
         document.getElementById("searchString").textContent = searchString = "";
-        document.getElementById("searchSpan").style.display = "";
+        document.getElementById("searchBox").style.display = "";
       }
       e.preventDefault();
     }
@@ -778,6 +789,7 @@ const extra2 = function () {
 
   let searchSuccess = 0; // how many characters of the searchString we managed to find
   const editorKeyDownSearch = function (e) {
+    // returns true to stay in search mode, false to leave it
     //    console.log("search: " + searchString + " + " + e.key);
     const pos0 = getCaret2(editor);
     if (pos0 === null) return false;
@@ -825,7 +837,8 @@ const extra2 = function () {
   const editorKeyUp = function (e) {
     if (e.key == "Enter" && !e.shiftKey && enterPressed) autoIndent(editor);
     enterPressed = false;
-    delimiterHandling(editor);
+    if (e.key.substring(0, 5) === "Arrow" || e.key.substring(0, 4) === "Page")
+      delimiterHandling(editor);
     if (highlightTimeout) window.clearTimeout(highlightTimeout);
     if (fileName && fileName.endsWith(".m2")) {
       highlightTimeout = window.setTimeout(function () {
@@ -864,6 +877,7 @@ const extra2 = function () {
   editor.onblur = autoSave;
   editor.onfocus = editorFocus;
   editor.onpaste = editorPaste;
+  attachClick("searchClose", turnOffSearchMode);
 
   let activeEl;
   const saveActive = function () {
@@ -1076,7 +1090,7 @@ const extra2 = function () {
   };
 
   window.addEventListener("beforeunload", function () {
-    autoSave(null, true);
+    autoSave(null, true, null);
   });
 
   const cookieQuery = document.getElementById("cookieQuery");

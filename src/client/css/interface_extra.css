@@ -418,3 +418,30 @@ nav {
     margin: 0px;
     vertical-align:top;
 }
+
+#searchBox {
+    border: 1px solid black;
+    background: white;
+    border-radius: 5px;
+    padding: 2px;
+    display: block; /* silly */
+    min-width: 100%;
+    width: 0px;
+    overflow-wrap: anywhere;
+/*    text-wrap:wrap !important; */
+    word-break: break-all;
+}
+
+#searchString {
+    white-space: pre-wrap;
+/*    display: inline-block;
+    vertical-align:top;
+    text-wrap:wrap !important;
+    overflow-wrap: anywhere; */
+}
+
+#searchClose {
+    cursor: pointer;
+    float: right;
+    font-size: 18px;
+}
