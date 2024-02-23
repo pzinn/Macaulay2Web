@@ -445,3 +445,7 @@ nav {
     float: right;
     font-size: 18px;
 }
+
+div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
+    outline: none;
+}
