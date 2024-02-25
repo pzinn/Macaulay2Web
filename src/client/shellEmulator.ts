@@ -197,7 +197,7 @@ const Shell = function (
 
   const focusElement = function () {
     const foc = window.getSelection().focusNode;
-    return foc.nodeType == 3 ? foc.parentElement : foc;
+    return foc && foc.nodeType == 3 ? foc.parentElement : foc;
   };
 
   const downArrowKeyHandling = function () {
