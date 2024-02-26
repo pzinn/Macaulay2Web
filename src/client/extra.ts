@@ -10,7 +10,6 @@ import {
   nextChar,
   selectRowColumn,
   addMarkerEl,
-  fullySelected,
 } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import { initTutorials, renderLessonMaybe } from "./tutorials";
@@ -706,14 +705,7 @@ const extra2 = function () {
 
   const editorInput = function (e: InputEvent) {
     if (autoSaveTimeout) window.clearTimeout(autoSaveTimeout);
-    if (e.inputType === "historyUndo") {
-      // if last action was syntax highlighting, re-undo
-      if (fullySelected(editor)) document.execCommand("undo");
-      return;
-    } else if (
-      e.inputType === "insertText" ||
-      e.inputType === "deleteContentBackward"
-    )
+    if (e.inputType === "insertText" || e.inputType === "deleteContentBackward")
       // what else?
       delimiterHandling(editor);
     autoSaveTimeout = window.setTimeout(autoSave, 30000);
