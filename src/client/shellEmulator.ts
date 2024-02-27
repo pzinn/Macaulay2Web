@@ -197,7 +197,7 @@ const Shell = function (
 
   const focusElement = function () {
     const foc = window.getSelection().focusNode;
-    return foc.nodeType == 3 ? foc.parentElement : foc;
+    return foc && foc.nodeType == 3 ? foc.parentElement : foc;
   };
 
   const downArrowKeyHandling = function () {
@@ -369,11 +369,11 @@ const Shell = function (
     }
   };
 
+  /*
   terminal.onbeforeinput = function (e) {
     //    console.log("inputSpan beforeinput: " + e.inputType);
     if (!e.inputType) e.preventDefault(); // prevent messed up pasting of editor into input span during syntax hilite (TEMP?)
   };
-  /*
   inputSpan.oninput = function (e) { // pointless to attach events to inputSpan
     if (
       inputSpan.parentElement == htmlSec &&
@@ -384,7 +384,7 @@ const Shell = function (
       // the test should be when hiliting, not delayed!!!!
       // more importantly, Prism breaks existing HTML and that's fatal for inputSpan
   };
-*/
+  */
 
   const delimiterHandlingMaybe = function () {
     if (
