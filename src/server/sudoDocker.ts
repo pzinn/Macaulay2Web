@@ -278,6 +278,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     dockerRunCmd += " --name " + newInstance.containerName;
     dockerRunCmd += " -p " + newInstance.port + ":22";
     dockerRunCmd += " -l " + "clientId=" + newInstance.clientId;
+    dockerRunCmd += " -v `pwd`/public/tutorials:/home/m2user/tutorials:ro";
     dockerRunCmd +=
       " " + this.hostConfig.containerType + " " + this.hostConfig.sshdCmd;
     //    logger.info("Running " + dockerRunCmd);
