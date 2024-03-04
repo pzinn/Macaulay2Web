@@ -47,7 +47,7 @@ const downloadFromInstance = function (
         const checkExists = function (doesNot) {
           sftp.stat(sourceFileName1, function (err, res) {
             if (err || !res) doesNot();
-            else if (res.isFile()) copyFile(!(res.mode & 16));
+            else if (res.isFile()) copyFile(!(res.mode & 128));
             else if (res.isDirectory()) readDir();
             else doesNot(); // we don't follow symbolic links
           });

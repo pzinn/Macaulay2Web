@@ -368,21 +368,19 @@ const fileUpload = function (request, response) {
     const file = request.files[0];
     logger.info("Tutorial upload " + file.originalname);
     // move to tutorial directory
-    fs.copyFile(
-      file.path,
-      staticFolder + "tutorials/" + file.originalname,
-      (err) => {
-        if (!request.body.noreply)
-          if (err) {
-            response.writeHead(500);
-            response.write("File upload failed. Please try again later.");
-          } else {
-            response.writeHead(200);
-          }
-        response.end();
-        unlink(file.path);
-      }
-    );
+    const fileName = staticFolder + "tutorials/" + file.originalname;
+    fs.copyFile(file.path, fileName, (err) => {
+      if (!request.body.noreply)
+        if (err) {
+          response.writeHead(500);
+          response.write("File upload failed. Please try again later.");
+        } else {
+          response.writeHead(200);
+        }
+      response.end();
+      unlink(file.path);
+      fs.chmod(fileName, 0o644, () => {}); // minor: won't prevent overwriting, helps fileDownload set readonly
+    });
     return;
   }
   fileUpload2(request, response);
