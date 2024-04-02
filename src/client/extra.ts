@@ -272,7 +272,7 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
       else if (missing === undefined) {
         updateFileName(newName);
         if (currentFileIsDirectory) {
-          currentFileIsDirectory = false;
+          currentFileIsDirectory = currentFileIsReadonly = false;
           el.innerHTML = "";
         }
         el.contentEditable = "true"; // TODO determine if read-only (HOW?)
