@@ -225,7 +225,7 @@ const Shell = function (
       cmdHistory.index > 0
     ) {
       if (cmdHistory.index === cmdHistory.length)
-        cmdHistory.current = htmlToM2(inputSpan).textContent;
+        cmdHistory.current = htmlToM2(inputSpan);
       cmdHistory.index--;
       inputSpan.textContent = cmdHistory[cmdHistory.index];
       return true;
@@ -273,7 +273,7 @@ const Shell = function (
       return;
     if (e.key == "Enter") {
       if (!e.shiftKey) {
-        obj.postMessage(htmlToM2(inputSpan).textContent);
+        obj.postMessage(htmlToM2(inputSpan));
         setCaret(inputSpan, 0);
         e.preventDefault(); // no crappy <div></div> added
       }

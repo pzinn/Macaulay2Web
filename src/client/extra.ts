@@ -4,6 +4,7 @@ import { socket, url, myshell, clientId } from "./main";
 import {
   scrollDown,
   setCaret,
+  setCaretAtEndMaybe,
   getCaret,
   getCaret2,
   caretIsAtEnd,
@@ -104,6 +105,9 @@ const updateFileName = function (newName: string) {
   setCookie(options.cookieFileName, fileName);
 };
 
+let currentFileIsDirectory;
+let currentFileIsReadonly;
+
 let autoSaveTimeout = 0;
 let autoSaveHash;
 const autoSave = function (e?, callback?, rush?) {
@@ -113,10 +117,7 @@ const autoSave = function (e?, callback?, rush?) {
     autoSaveTimeout = 0;
   }
 
-  if (
-    !fileName ||
-    document.getElementById("editorDiv").contentEditable != "true"
-  ) {
+  if (!fileName || currentFileIsReadonly) {
     if (callback) callback();
     return;
   }
@@ -180,12 +181,14 @@ const fileChangedCheck = function (data) {
 };
 
 const localFileToEditor = function (fileName: string, rowcols?) {
+  currentFileIsDirectory = false;
   if (highlightTimeout) window.clearTimeout(highlightTimeout);
   const editor = document.getElementById("editorDiv");
   const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName, true);
   xhr.onload = function () {
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
+    editor.contentEditable = "true";
     autoSaveHash = hashCode(xhr.responseText);
     if (rowcols) selectRowColumn(editor, rowcols);
     else editor.scrollTop = 0;
@@ -195,6 +198,7 @@ const localFileToEditor = function (fileName: string, rowcols?) {
 };
 
 const listDirToEditor = function (dirName: string, fileName: string) {
+  currentFileIsDirectory = currentFileIsReadonly = true;
   if (!dirName.endsWith("/")) dirName += "/";
   if (highlightTimeout) window.clearTimeout(highlightTimeout);
   const editor = document.getElementById("editorDiv");
@@ -267,10 +271,11 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
       if (missing === null) return;
       else if (missing === undefined) {
         updateFileName(newName);
-        if (el.contentEditable != "true") {
-          el.contentEditable = "true";
+        if (currentFileIsDirectory) {
+          currentFileIsDirectory = false;
           el.innerHTML = "";
         }
+        el.contentEditable = "true"; // TODO determine if read-only (HOW?)
         if (rowcols) selectRowColumn(el, rowcols);
         autoSaveHash = null; // force save
         autoSave();
@@ -283,7 +288,10 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
       if (response.search("directory@") >= 0)
         listDirToEditor(newName, response);
       // eww
-      else localFileToEditor(response, rowcols);
+      else {
+        currentFileIsReadonly = response.search("readonly@") >= 0;
+        localFileToEditor(response, rowcols);
+      }
     });
   });
 };
@@ -462,7 +470,7 @@ const extra2 = function () {
 
   const editorEvaluateHover = function () {
     editorEvaluateOut();
-    if (document.getElementById("editorDiv").contentEditable != "true") return;
+    if (currentFileIsDirectory) return;
     const sel = window.getSelection();
     if (sel.isCollapsed) {
       const caret = getCaret(editor);
@@ -483,7 +491,7 @@ const extra2 = function () {
   const editorEvaluate = function (e?) {
     // similar to trigger the paste event (except for when there's no selection and final \n) (which one can't manually, see below)
     //    const sel = window.getSelection() as any; // modify is still "experimental"
-    if (document.getElementById("editorDiv").contentEditable != "true") return;
+    if (currentFileIsDirectory) return;
     const sel = window.getSelection();
     if (editor.contains(sel.focusNode)) {
       // only if we're inside the editor
@@ -493,7 +501,6 @@ const extra2 = function () {
         sel.modify("move", "backward", "lineboundary");
         sel.modify("extend", "forward", "lineboundary");
 	*/
-        /*
         sel.modify("move", "forward", "lineboundary"); // semi-fix for annoying move/backward/lineboundary bug when line empty
         sel.modify("extend", "backward", "lineboundary");
 
@@ -501,9 +508,9 @@ const extra2 = function () {
         // sel.modify("move", "forward", "line"); // doesn't work in firefox
         sel.collapseToEnd();
         sel.modify("move", "forward", "character");
-	*/
         // giving up on using .modify since chromium devs can't be bothered fixing a trivial bug https://bugs.chromium.org/p/chromium/issues/detail?id=1221539#c3
-        // actually, has been fixed, apparently -- TODO reinstate
+        // actually, has been fixed, reinstated
+        /*
         const caret = getCaret(editor);
         const txt = editor.textContent;
         let start = caret - 1,
@@ -515,7 +522,8 @@ const extra2 = function () {
         setCaret(editor, end, end, true).scrollIntoView({
           block: "nearest",
           inline: "nearest",
-        });
+          });
+	 */
       } else s = sel.toString(); // fragInnerText(sel.getRangeAt(0).cloneContents()); // toString used to fail because ignored BR / DIV which firefox creates
       myshell.postMessage(s);
       // important not to move the pointer so can move to next line
@@ -580,6 +588,7 @@ const extra2 = function () {
       // can't fail! so we use callback
       turnOffSearchMode();
       editor.innerHTML = "";
+      currentFileIsDirectory = currentFileIsReadonly = false;
       editor.contentEditable = "true";
       updateFileName("");
       fileNameEl.focus();
@@ -595,7 +604,7 @@ const extra2 = function () {
       "M2CurrentInput"
     )[0] as HTMLElement;
     if (curInput) {
-      curInput.focus();
+      setCaretAtEndMaybe(curInput);
       document.execCommand("insertText", false, '"' + fileNameEl.value + '"');
     }
   };
@@ -676,6 +685,8 @@ const extra2 = function () {
       fileReader.onload = function () {
         updateAndHighlightMaybe(editor, fileReader.result as string, fileName);
         //        document.getElementById("editorTitle").click();
+        editor.contentEditable = "true";
+        currentFileIsReadonly = false;
         autoSaveHash = null; // force save
         autoSave();
       };
@@ -750,7 +761,28 @@ const extra2 = function () {
       if (!caretIsAtEnd()) e.preventDefault();
       e.stopPropagation();
       editorEvaluate();
-    } else if (e.key == "Escape") escapeKeyHandling();
+    } else if (e.key == "s" && e.ctrlKey) {
+      // emacs binding
+      if (!searchMode) {
+        searchMode = true;
+        prevSearchString = searchString;
+        document.getElementById("searchString").textContent = searchString = "";
+        document.getElementById("searchBox").style.display = "";
+      }
+      e.preventDefault();
+    }
+    if (currentFileIsReadonly) {
+      // a few more keys are allowed
+      if (
+        e.key != "Tab" &&
+        (!e.ctrlKey || e.key == "Backspace") &&
+        !e.key.startsWith("Page") &&
+        !e.key.startsWith("Arrow")
+      )
+        e.preventDefault();
+      return;
+    }
+    if (e.key == "Escape") escapeKeyHandling();
     else if (e.key == "Tab" && !e.shiftKey && !tabPressed) {
       // try to avoid disrupting the normal tab use as much as possible
       tabPressed = true;
@@ -765,15 +797,6 @@ const extra2 = function () {
       sel.modify("extend", "forward", "lineboundary");
       if (!sel.isCollapsed) document.execCommand("cut", false);
       else document.execCommand("forwardDelete", false);
-      e.preventDefault();
-    } else if (e.key == "s" && e.ctrlKey) {
-      // emacs binding
-      if (!searchMode) {
-        searchMode = true;
-        prevSearchString = searchString;
-        document.getElementById("searchString").textContent = searchString = "";
-        document.getElementById("searchBox").style.display = "";
-      }
       e.preventDefault();
     }
     tabPressed = false;
@@ -827,12 +850,13 @@ const extra2 = function () {
   };
 
   const editorKeyUp = function (e) {
+    if (currentFileIsDirectory) return;
     if (e.key == "Enter" && !e.shiftKey && enterPressed) autoIndent(editor);
     enterPressed = false;
-    if (e.key.substring(0, 5) === "Arrow" || e.key.substring(0, 4) === "Page")
+    if (e.key.startsWith("Arrow") || e.key.startsWith("Page"))
       delimiterHandling(editor);
     if (highlightTimeout) window.clearTimeout(highlightTimeout);
-    if (fileName && fileName.endsWith(".m2")) {
+    if (!currentFileIsReadonly && (!fileName || fileName.endsWith(".m2"))) {
       highlightTimeout = window.setTimeout(function () {
         highlightTimeout = 0;
         const autoSaveHash1 = autoSaveHash;
@@ -848,9 +872,15 @@ const extra2 = function () {
     enterPressed = false;
   };
 
+  const editorCut = function (e) {
+    turnOffSearchMode();
+    if (currentFileIsReadonly) e.preventDefault();
+  };
+
   const editorPaste = function (e) {
     e.preventDefault();
     turnOffSearchMode();
+    if (currentFileIsReadonly) return;
     const c1 = e.clipboardData.getData("text/html");
     if (c1) {
       const returnNext = nextChar() == "\n";
@@ -868,6 +898,7 @@ const extra2 = function () {
   editor.oninput = editorInput;
   editor.onblur = autoSave;
   editor.onfocus = editorFocus;
+  editor.oncut = editorCut;
   editor.onpaste = editorPaste;
   attachClick("searchClose", turnOffSearchMode);
 

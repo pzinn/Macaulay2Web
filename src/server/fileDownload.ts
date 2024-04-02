@@ -47,13 +47,14 @@ const downloadFromInstance = function (
         const checkExists = function (doesNot) {
           sftp.stat(sourceFileName1, function (err, res) {
             if (err || !res) doesNot();
-            else if (res.isFile()) copyFile();
+            else if (res.isFile()) copyFile(!(res.mode & 128));
             else if (res.isDirectory()) readDir();
             else doesNot(); // we don't follow symbolic links
           });
         };
 
-        const copyFile = function () {
+        const copyFile = function (readonly: boolean) {
+          if (readonly) fileName = "readonly@" + fileName; // eww
           targetFileName = targetPath + fileName;
           sftp.fastGet(sourceFileName1, targetFileName, function (sftpError) {
             if (!sftpError) success();

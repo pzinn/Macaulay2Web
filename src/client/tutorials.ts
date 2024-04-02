@@ -158,30 +158,39 @@ const uploadTutorial = function () {
   reader.onload = function (event) {
     let txt = event.target.result as string;
     let fileName = file.name;
+    let m2flag = false;
     if (fileName.endsWith(".md")) {
       txt = markdownToHTML(txt);
       fileName = fileName.substring(0, fileName.length - 3);
     } else if (fileName.endsWith(".m2")) {
-      txt = m2ToHTML(txt);
+      m2flag = true;
       fileName = fileName.substring(0, fileName.length - 3);
     } else if (fileName.endsWith(".html"))
       fileName = fileName.substring(0, fileName.length - 5);
+    else return;
     fileName = fileName.replace(/\W/g, "");
     if (startingTutorials.indexOf(fileName) >= 0) fileName = fileName + "1"; // prevents overwriting default ones
     // upload to server
     const req = new XMLHttpRequest();
     const formData = new FormData();
-    const file1 = new File([txt], fileName + ".html");
+    const file1 = new File([txt], fileName + (m2flag ? ".m2" : ".html"));
     formData.append("files[]", file1);
     formData.append("tutorial", "true");
     req.open("POST", "/upload");
     req.send(formData);
 
-    const newTutorial = processTutorial(txt);
-    tutorials[fileName] = newTutorial;
-    if (tutorialIndex == fileName) tutorialIndex = null; // force reload
-    initAccordion(fileName);
-    appendTutorialToAccordion(newTutorial, fileName);
+    if (m2flag) {
+      // just open it in editor
+      req.onload = function () {
+        document.location.hash = "#editor:tutorials/" + fileName + ".m2";
+      };
+    } else {
+      const newTutorial = processTutorial(txt);
+      tutorials[fileName] = newTutorial;
+      if (tutorialIndex == fileName) tutorialIndex = null; // force reload
+      initAccordion(fileName);
+      appendTutorialToAccordion(newTutorial, fileName);
+    }
   };
   tutorialUploadInput.value = "";
   return;

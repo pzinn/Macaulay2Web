@@ -142,23 +142,23 @@ body {
 #editorFileNameDiv {
     position: absolute;
     bottom: 20px;
-    right: 40px;
+    right: 20px;
     z-index: 1;
 }
 
 #editorFileName {
-    position: relative; /* for the z-index to work */
+    position: absolute;
     border:1px solid gray;
     border-radius:4px;
     width:175px;
+    top:0px;
+    left:0px;
     z-index: 2;
 }
 
 #pastFileNames {
-    position:absolute;
+    position:relative;  /* for the z-index to work */
     z-index: 0;
-    top:0px;
-    left:0px;
     width:200px;
     margin:0;
     padding:0;

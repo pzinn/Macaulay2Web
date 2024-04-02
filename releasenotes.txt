@@ -2,6 +2,7 @@
     * premium users
     * various interface improvements
     * github upload
+    * tutorials shared directory
 
 3.8 09/2021
     * code positioning meta-data
