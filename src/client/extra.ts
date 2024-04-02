@@ -4,6 +4,7 @@ import { socket, url, myshell, clientId } from "./main";
 import {
   scrollDown,
   setCaret,
+  setCaretAtEndMaybe,
   getCaret,
   getCaret2,
   caretIsAtEnd,
@@ -603,7 +604,7 @@ const extra2 = function () {
       "M2CurrentInput"
     )[0] as HTMLElement;
     if (curInput) {
-      curInput.focus();
+      setCaretAtEndMaybe(curInput);
       document.execCommand("insertText", false, '"' + fileNameEl.value + '"');
     }
   };
