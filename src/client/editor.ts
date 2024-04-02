@@ -512,10 +512,7 @@ const syntaxHighlight = function (el: HTMLElement) {
     const sTop = el.scrollTop;
     const sLeft = el.scrollLeft;
     */
-    const newHTML = Prism.highlight(
-      htmlToM2(el).textContent,
-      Prism.languages.macaulay2
-    );
+    const newHTML = Prism.highlight(htmlToM2(el), Prism.languages.macaulay2);
     if (el.innerHTML != newHTML) {
       // avoid changing things if not necessary
       const caret = getCaret(el);
@@ -543,7 +540,7 @@ const updateAndHighlightMaybe = function (
 };
 
 const htmlToM2 = function (el: HTMLElement) {
-  // minimal conversion: tables turn into matrices, maybe sub/superscripts...
+  // minimal conversion: tables turn into matrices, maybe sub/superscripts, convert KaTeX's weird minus sign...
   Array.from(el.querySelectorAll("table")).forEach((x: HTMLElement) => {
     // not get element by class name because it creates live lists
     x.replaceWith(
@@ -567,7 +564,7 @@ const htmlToM2 = function (el: HTMLElement) {
   Array.from(el.querySelectorAll("sup")).forEach((x: HTMLElement) =>
     x.replaceWith("^(" + x.textContent + ")")
   );
-  return el;
+  return el.textContent.replace("−", "-");
 };
 
 export {
