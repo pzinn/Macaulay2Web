@@ -501,7 +501,6 @@ const extra2 = function () {
         sel.modify("move", "backward", "lineboundary");
         sel.modify("extend", "forward", "lineboundary");
 	*/
-        /*
         sel.modify("move", "forward", "lineboundary"); // semi-fix for annoying move/backward/lineboundary bug when line empty
         sel.modify("extend", "backward", "lineboundary");
 
@@ -509,9 +508,9 @@ const extra2 = function () {
         // sel.modify("move", "forward", "line"); // doesn't work in firefox
         sel.collapseToEnd();
         sel.modify("move", "forward", "character");
-	*/
         // giving up on using .modify since chromium devs can't be bothered fixing a trivial bug https://bugs.chromium.org/p/chromium/issues/detail?id=1221539#c3
-        // actually, has been fixed, apparently -- TODO reinstate
+        // actually, has been fixed, reinstated
+        /*
         const caret = getCaret(editor);
         const txt = editor.textContent;
         let start = caret - 1,
@@ -523,7 +522,8 @@ const extra2 = function () {
         setCaret(editor, end, end, true).scrollIntoView({
           block: "nearest",
           inline: "nearest",
-        });
+          });
+	 */
       } else s = sel.toString(); // fragInnerText(sel.getRangeAt(0).cloneContents()); // toString used to fail because ignored BR / DIV which firefox creates
       myshell.postMessage(s);
       // important not to move the pointer so can move to next line
