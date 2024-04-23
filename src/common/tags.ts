@@ -8,6 +8,7 @@ const webAppTagCodes = [
   ["Url", 30, "M2Url"], // url
   ["Prompt", 14, "M2Text M2Prompt"],
   ["Position", 21, "M2Position"],
+  ["Inspect", 15, "M2Text M2Inspect"],
 ];
 const webAppTags = {} as any;
 const webAppClasses = {} as any;
