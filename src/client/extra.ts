@@ -108,7 +108,7 @@ const updateFileName = function (newName: string) {
 let currentFileIsDirectory;
 let currentFileIsReadonly;
 
-let autoSaveTimeout = 0;
+let autoSaveTimeout;
 let autoSaveHash;
 const autoSave = function (e?, callback?, rush?) {
   //    console.log("TEST autoSave: ",e,callback,rush,autoSaveHash); console.trace();
