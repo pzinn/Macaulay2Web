@@ -531,6 +531,11 @@ const Shell = function (
         if (url.startsWith("file://")) url = url.slice(7);
         iFrame.src = url;
       }
+    } else if (htmlSec.classList.contains("M2Inspect")) {
+      const inspector = document.getElementById("inspector");
+      if (inspector) inspector.remove();
+      terminal.parentElement.append(htmlSec); // eww
+      htmlSec.id = "inspector";
     } else if (htmlSec.classList.contains("M2Html")) {
       htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code);
       // KaTeX rendering
@@ -741,7 +746,7 @@ const Shell = function (
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
       }
     }
-    scrollDownLeft(terminal);
+    if (msg.indexOf(webAppTags.Inspect) < 0) scrollDownLeft(terminal); // a bit simplistic but works
   };
 
   const displayText = function (msg) {
