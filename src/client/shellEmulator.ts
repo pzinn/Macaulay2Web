@@ -683,8 +683,8 @@ const Shell = function (
           if (htmlSec != terminal || !createInputSpan) {
             // htmlSec == terminal should only happen at very start
             // or at the very end for rendering help -- then it's OK
-            //while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
-            // but in rare circumstances (interrupt) it may be missing its \n
+            while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
+            // but in rare circumstances (ctrl-C interrupt) it may be missing its \n
             const oldHtmlSec = htmlSec;
             closeHtml();
             if (
