@@ -246,7 +246,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
           saveFile +
           "; sudo docker exec " +
           instance.containerName +
-          ' tar --exclude "./.*" -C /home/' +
+          ' tar --exclude "./.*" --exclude "./tutorials" -C /home/' +
           instance.username +
           " -czf - . > " +
           saveFile;
