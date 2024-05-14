@@ -108,7 +108,7 @@ const updateFileName = function (newName: string) {
 let currentFileIsDirectory;
 let currentFileIsReadonly;
 
-let autoSaveTimeout = 0;
+let autoSaveTimeout;
 let autoSaveHash;
 const autoSave = function (e?, callback?, rush?) {
   //    console.log("TEST autoSave: ",e,callback,rush,autoSaveHash); console.trace();
@@ -272,7 +272,7 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
       else if (missing === undefined) {
         updateFileName(newName);
         if (currentFileIsDirectory) {
-          currentFileIsDirectory = false;
+          currentFileIsDirectory = currentFileIsReadonly = false;
           el.innerHTML = "";
         }
         el.contentEditable = "true"; // TODO determine if read-only (HOW?)

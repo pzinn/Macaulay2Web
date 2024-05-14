@@ -537,6 +537,10 @@ const Shell = function (
       terminal.parentElement.append(htmlSec); // eww
       htmlSec.id = "inspector";
     } else if (htmlSec.classList.contains("M2Html")) {
+      // first things first: make sure we don't mess with input (interrupts, tasks, etc, can display unexpectedly)
+      if (anc.classList.contains("M2Input")) {
+        anc.parentElement.insertBefore(htmlSec, anc);
+      }
       htmlSec.insertAdjacentHTML("beforeend", htmlSec.dataset.code);
       // KaTeX rendering
       autoRender(htmlSec);
@@ -680,7 +684,7 @@ const Shell = function (
             // htmlSec == terminal should only happen at very start
             // or at the very end for rendering help -- then it's OK
             while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
-            // but in rare circumstances (interrupt) it may be missing its \n
+            // but in rare circumstances (ctrl-C interrupt) it may be missing its \n
             const oldHtmlSec = htmlSec;
             closeHtml();
             if (
