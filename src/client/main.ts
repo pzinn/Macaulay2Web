@@ -96,8 +96,7 @@ const clickAction = function (e) {
     }
     if (
       ((t.tagName == "CODE" &&
-        language(t) == "Macaulay2" &&
-        getComputedStyle(t).getPropertyValue("cursor") == "pointer") ||
+        language(t) == "Macaulay2" ) ||
         t.dataset.m2code || // allows to emulate code pasting from arbitrary html element
         t.classList.contains("M2PastInput")) &&
       t.ownerDocument.getSelection().isCollapsed
