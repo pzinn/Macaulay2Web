@@ -255,7 +255,7 @@ const parseLocation = function (arg: string) {
 };
 
 const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
-  // missing = what to do if file missing : undefined = switch to new, null = do nothing, string = load this file instead
+  // missing = what to do if file missing : undefined/false = switch to new, true = do nothing
   const el = document.getElementById("editorDiv");
   if (!rowcols) el.focus({ preventScroll: true });
 
@@ -268,19 +268,17 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
 
   socket.emit("fileexists", newName, function (response) {
     if (!response) {
-      if (missing === null) return;
-      else if (missing === undefined) {
-        updateFileName(newName);
-        if (currentFileIsDirectory) {
-          currentFileIsDirectory = currentFileIsReadonly = false;
-          el.innerHTML = "";
-        }
-        el.contentEditable = "true"; // TODO determine if read-only (HOW?)
-        if (rowcols) selectRowColumn(el, rowcols);
-        autoSaveHash = null; // force save
-        autoSave();
-        return;
-      } else response = missing;
+      if (missing) return;
+      updateFileName(newName);
+      if (currentFileIsDirectory) {
+        currentFileIsDirectory = currentFileIsReadonly = false;
+        el.innerHTML = "";
+      }
+      el.contentEditable = "true"; // TODO determine if read-only (HOW?)
+      if (rowcols) selectRowColumn(el, rowcols);
+      autoSaveHash = null; // force save
+      autoSave();
+      return;
     } else console.log(response + " succesfully loaded");
     autoSave(null, function () {
       // saving old file <- important! can't fail! so we use callback
@@ -333,7 +331,7 @@ const extra1 = function () {
         loc = "";
       } else {
         if (socket && socket.connected)
-          newEditorFileMaybe(newName, rowcols, null); // do something *if* session started
+          newEditorFileMaybe(newName, rowcols, true); // do something *if* session started
         document.location.hash = "#editor"; // drop the filename from the URL (needed for subsequent clicks)
         loc = "editor";
         editorFoc = true; // ... but changing hash blurs editor
@@ -726,12 +724,8 @@ const extra2 = function () {
   const e = /^#editor:(.+)$/.exec(url.hash);
   const [newName, rowcols] = e
     ? parseLocation(decodeURI(e[1]))
-    : [getCookie(options.cookieFileName, "default.m2"), null];
-  newEditorFileMaybe(
-    newName,
-    rowcols,
-    newName == "default.m2" ? "default.orig.m2" : null
-  ); // possibly get the default file from the server
+    : [getCookie(options.cookieFileName, "tutorials/default.m2"), null];
+  newEditorFileMaybe(newName, rowcols, true);
 
   let tabPressed = false,
     enterPressed = false,

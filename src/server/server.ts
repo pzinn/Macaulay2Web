@@ -536,7 +536,7 @@ const short = function (msg: string) {
     .substring(0, 50)
     .replace(/[^\x20-\x7F]/g, " ")
     .trim();
-  if (msg.length > 50) shortMsg += "...["+msg.length+"]";
+  if (msg.length > 50) shortMsg += "...[" + msg.length + "]";
   return shortMsg;
 };
 
