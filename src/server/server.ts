@@ -379,7 +379,7 @@ const fileUpload = function (request, response) {
         }
       response.end();
       unlink(file.path);
-      fs.chmod(fileName, 0o644, () => {}); // minor: won't prevent overwriting, helps fileDownload set readonly
+      fs.chmod(fileName, 0o444, () => {}); // minor: won't prevent overwriting, helps fileDownload set readonly
     });
     return;
   }
