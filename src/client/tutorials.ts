@@ -307,22 +307,6 @@ const markdownToHTML = function (markdownText) {
   ); //eww
 };
 
-const m2ToHTML = function (m2Text) {
-  return (
-    "<div>" +
-    escapeHTML(m2Text)
-      .split(/\r?\n/)
-      .map(function (line) {
-        line = line.trim();
-        if (line == "") return "<br/>";
-        if (line.startsWith("--")) return line.substring(2) + "<br/>";
-        return "<code>" + line + "</code>";
-      })
-      .join("") +
-    "</div>"
-  );
-};
-
 const startingTutorials = [
   "welcome",
   "basic",
