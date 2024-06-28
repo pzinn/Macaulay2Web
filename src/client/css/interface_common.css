@@ -302,10 +302,9 @@ code {
     margin: 0;
     position: relative;
     z-index: 1; /* to avoid links disappearing under other stuff e.g. KaTeX */
-/*    color: initial; */
-}
-
-#tutorial code, #chat code { /* only this code is clickable */
+    /* used to be that  only this code is clickable:
+    #tutorial code, #chat code {
+   */
     background-color: lightyellow;
     cursor: pointer;
     transition: background-color 200ms;

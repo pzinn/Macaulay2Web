@@ -379,7 +379,7 @@ const fileUpload = function (request, response) {
         }
       response.end();
       unlink(file.path);
-      fs.chmod(fileName, 0o644, () => {}); // minor: won't prevent overwriting, helps fileDownload set readonly
+      fs.chmod(fileName, 0o444, () => {}); // minor: won't prevent overwriting, helps fileDownload set readonly
     });
     return;
   }
@@ -536,7 +536,7 @@ const short = function (msg: string) {
     .substring(0, 50)
     .replace(/[^\x20-\x7F]/g, " ")
     .trim();
-  if (msg.length > 50) shortMsg += "...["+msg.length+"]";
+  if (msg.length > 50) shortMsg += "...[" + msg.length + "]";
   return shortMsg;
 };
 
