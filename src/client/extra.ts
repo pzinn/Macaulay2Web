@@ -107,6 +107,13 @@ const updateFileName = function (newName: string) {
 
 let currentFileIsDirectory;
 let currentFileIsReadonly;
+const setReadonly = function (val: boolean, msg?: string) {
+  currentFileIsReadonly = val;
+  const btn = document.getElementById("warningBtn");
+  const tooltip = document.getElementById("warningBtn-tooltip");
+  if (btn) btn.style.display = val ? "" : "none";
+  if (tooltip) tooltip.textContent = msg;
+};
 
 let autoSaveTimeout;
 let autoSaveHash;
@@ -198,7 +205,8 @@ const localFileToEditor = function (fileName: string, rowcols?) {
 };
 
 const listDirToEditor = function (dirName: string, fileName: string) {
-  currentFileIsDirectory = currentFileIsReadonly = true;
+  currentFileIsDirectory = true;
+  setReadonly(true, "No syncing - directory");
   if (!dirName.endsWith("/")) dirName += "/";
   if (highlightTimeout) window.clearTimeout(highlightTimeout);
   const editor = document.getElementById("editorDiv");
@@ -271,10 +279,11 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
       if (missing) return;
       updateFileName(newName);
       if (currentFileIsDirectory) {
-        currentFileIsDirectory = currentFileIsReadonly = false;
+        currentFileIsDirectory = false;
+        setReadonly(newName == "", "No syncing - empty filename"); // TODO determine correctly if read only or not -- how?
         el.innerHTML = "";
       }
-      el.contentEditable = "true"; // TODO determine if read-only (HOW?)
+      el.contentEditable = "true";
       if (rowcols) selectRowColumn(el, rowcols);
       autoSaveHash = null; // force save
       autoSave();
@@ -287,7 +296,10 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
         listDirToEditor(newName, response);
       // eww
       else {
-        currentFileIsReadonly = response.search("readonly@") >= 0;
+        setReadonly(
+          response.search("readonly@") >= 0,
+          "No syncing - read only file"
+        );
         localFileToEditor(response, rowcols);
       }
     });
@@ -586,7 +598,8 @@ const extra2 = function () {
       // can't fail! so we use callback
       turnOffSearchMode();
       editor.innerHTML = "";
-      currentFileIsDirectory = currentFileIsReadonly = false;
+      currentFileIsDirectory = false;
+      setReadonly(true, "No syncing - empty filename");
       editor.contentEditable = "true";
       updateFileName("");
       fileNameEl.focus();
@@ -684,7 +697,7 @@ const extra2 = function () {
         updateAndHighlightMaybe(editor, fileReader.result as string, fileName);
         //        document.getElementById("editorTitle").click();
         editor.contentEditable = "true";
-        currentFileIsReadonly = false;
+        setReadonly(false);
         autoSaveHash = null; // force save
         autoSave();
       };
@@ -765,17 +778,6 @@ const extra2 = function () {
       }
       e.preventDefault();
     }
-    if (currentFileIsReadonly) {
-      // a few more keys are allowed
-      if (
-        e.key != "Tab" &&
-        (!e.ctrlKey || e.key == "Backspace") &&
-        !e.key.startsWith("Page") &&
-        !e.key.startsWith("Arrow")
-      )
-        e.preventDefault();
-      return;
-    }
     if (e.key == "Escape") escapeKeyHandling();
     else if (e.key == "Tab" && !e.shiftKey && !tabPressed) {
       // try to avoid disrupting the normal tab use as much as possible
@@ -850,7 +852,7 @@ const extra2 = function () {
     if (e.key.startsWith("Arrow") || e.key.startsWith("Page"))
       delimiterHandling(editor);
     if (highlightTimeout) window.clearTimeout(highlightTimeout);
-    if (!currentFileIsReadonly && (!fileName || fileName.endsWith(".m2"))) {
+    if (!fileName || fileName.endsWith(".m2")) {
       highlightTimeout = window.setTimeout(function () {
         highlightTimeout = 0;
         const autoSaveHash1 = autoSaveHash;
@@ -868,13 +870,11 @@ const extra2 = function () {
 
   const editorCut = function (e) {
     turnOffSearchMode();
-    if (currentFileIsReadonly) e.preventDefault();
   };
 
   const editorPaste = function (e) {
     e.preventDefault();
     turnOffSearchMode();
-    if (currentFileIsReadonly) return;
     const c1 = e.clipboardData.getData("text/html");
     if (c1) {
       const returnNext = nextChar() == "\n";
