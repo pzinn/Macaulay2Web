@@ -19,10 +19,13 @@ cd ../css
 wget -nv -N https://code.getmdl.io/1.3.0/material.indigo-deep_orange.min.css
 cd ..
 cd ../..
+
+cd public
 # sym link (necessary for e.g. help pages)
 echo Sym-linking
-cd public
 ln -sf ../src/client/js/VectorGraphics.js .
 # katex fonts
 ln -sf ../KaTeX/fonts .
+# make starting tutorials readonly
+chmod 444 tutorials/*
 cd ..
