@@ -169,7 +169,6 @@ const uploadTutorial = function () {
       fileName = fileName.substring(0, fileName.length - 5);
     else return;
     fileName = fileName.replace(/\W/g, "");
-    if (startingTutorials.indexOf(fileName) >= 0) fileName = fileName + "1"; // prevents overwriting default ones TODO just use readonly
     // upload to server
     const req = new XMLHttpRequest();
     const formData = new FormData();
