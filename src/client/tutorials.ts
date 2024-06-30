@@ -169,7 +169,7 @@ const uploadTutorial = function () {
       fileName = fileName.substring(0, fileName.length - 5);
     else return;
     fileName = fileName.replace(/\W/g, "");
-    if (startingTutorials.indexOf(fileName) >= 0) fileName = fileName + "1"; // prevents overwriting default ones
+    if (startingTutorials.indexOf(fileName) >= 0) fileName = fileName + "1"; // prevents overwriting default ones TODO just use readonly
     // upload to server
     const req = new XMLHttpRequest();
     const formData = new FormData();
@@ -182,7 +182,9 @@ const uploadTutorial = function () {
     if (m2flag) {
       // just open it in editor
       req.onload = function () {
-        document.location.hash = "#editor:tutorials/" + fileName + ".m2";
+        setTimeout(function () {
+          document.location.hash = "#editor:tutorials/" + fileName + ".m2";
+        }, 300); // not great -- need to wait to make sure server processes request
       };
     } else {
       const newTutorial = processTutorial(txt);

@@ -5,6 +5,12 @@ import path = require("path");
 import { logger } from "./logger";
 import { staticFolder, unlink, options, sshCredentials } from "./server";
 
+// note that downloadFromInstance is currently called in two distinct ways: (see in server.ts)
+// * by fileexists request from the client e.g. trying to open a docker file in editor
+// * by direct fileDownload (url from a connected client is automatically forwarded to the docker)
+// the first way might seem redundant but the second way is actually not great
+// (what if there's a public file with the same name?)
+
 const downloadFromInstance = function (
   client: Client,
   sourceFileName: string,
