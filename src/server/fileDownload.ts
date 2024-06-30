@@ -22,11 +22,27 @@ const downloadFromInstance = function (
 
   const userPath = userSpecificPath(client.id);
   const targetPath = staticFolder + userPath;
+  let targetFileName;
+
+  // not strictly necessary but convenient: don't bother copying files from the tutorials/ subdirectory because they come from the server anyway
+  // added advantage: they're marked readonly automatically
+  if (path.dirname(sourceFileName) == "tutorials") {
+    targetFileName = "files/readonly@" + sourceFileName;
+    fs.access(staticFolder + targetFileName, fs.constants.F_OK, (error) => {
+      if (error) {
+        logger.warn("failed to download " + sourceFileName, client);
+        next();
+      } else {
+        logger.info("successfully accessed " + sourceFileName, client);
+        next(targetFileName);
+      }
+    });
+    return;
+  }
 
   sshConnection.on("ready", function () {
     sshConnection.sftp(function (generateError, sftp) {
       let sourceFileName1; // adjusted for possible base dir
-      let targetFileName;
 
       const success = function () {
         logger.info("successfully downloaded " + sourceFileName1, client);
