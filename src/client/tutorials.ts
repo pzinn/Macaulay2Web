@@ -158,34 +158,28 @@ const uploadTutorial = function () {
   reader.onload = function (event) {
     let txt = event.target.result as string;
     let fileName = file.name;
-    let m2flag = false;
     if (fileName.endsWith(".md")) {
       txt = markdownToHTML(txt);
-      fileName = fileName.substring(0, fileName.length - 3);
-    } else if (fileName.endsWith(".m2")) {
-      m2flag = true;
-      fileName = fileName.substring(0, fileName.length - 3);
-    } else if (fileName.endsWith(".html"))
-      fileName = fileName.substring(0, fileName.length - 5);
-    else return;
-    fileName = fileName.replace(/\W/g, "");
+      fileName = fileName.substring(0, fileName.length - 3) + ".html";
+    }
+    fileName = fileName.replace(/[^\w.]/g, "");
     // upload to server
     const req = new XMLHttpRequest();
     const formData = new FormData();
-    const file1 = new File([txt], fileName + (m2flag ? ".m2" : ".html"));
+    const file1 = new File([txt], fileName);
     formData.append("files[]", file1);
     formData.append("tutorial", "true");
     req.open("POST", "/upload");
     req.send(formData);
 
-    if (m2flag) {
+    if (fileName.endsWith(".m2")) {
       // just open it in editor
       req.onload = function () {
         setTimeout(function () {
-          document.location.hash = "#editor:tutorials/" + fileName + ".m2";
+          document.location.hash = "#editor:tutorials/" + fileName;
         }, 300); // not great -- need to wait to make sure server processes request
       };
-    } else {
+    } else if (fileName.endsWith(".html")) {
       const newTutorial = processTutorial(txt);
       tutorials[fileName] = newTutorial;
       if (tutorialIndex == fileName) tutorialIndex = null; // force reload
