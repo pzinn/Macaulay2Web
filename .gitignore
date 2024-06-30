@@ -26,3 +26,4 @@ id_rsa*
 docker_key*
 host_key*
 public/tutorials
+public/files
