@@ -307,6 +307,7 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
 };
 
 let checkScrollButton = function () {}; // will be defined later
+let openTutorialInEditor = function (txt, fileName) {}; // will be defined later
 
 const extra1 = function () {
   const tabs = document.getElementById("tabs") as any;
@@ -703,6 +704,14 @@ const extra2 = function () {
       };
       fileReader.readAsText(fileToLoad, "UTF-8");
     }
+  };
+
+  openTutorialInEditor = function (txt, fileName) {
+    // similar to load file except went thru tutorial upload
+    updateAndHighlightMaybe(editor, txt, "tutorials/" + fileName);
+    editor.contentEditable = "true";
+    setReadonly(true, "No syncing - read only file");
+    document.location.hash = "#editor";
   };
 
   const loadFile = function () {
@@ -1123,4 +1132,5 @@ export {
   getCookieId,
   setCookieId,
   checkScrollButton,
+  openTutorialInEditor,
 };
