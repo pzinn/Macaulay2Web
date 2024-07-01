@@ -6,6 +6,7 @@ import {
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 import { language } from "./htmlTools";
+import { openTutorialInEditor } from "./extra";
 import Prism from "prismjs";
 
 interface Tutorial {
@@ -152,49 +153,52 @@ const updateTutorialNav = function () {
 const uploadTutorial = function () {
   if (this.files.length == 0) return;
   const file = this.files[0];
-  console.log("tutorial " + file.name + " uploaded");
-  const reader = new FileReader();
-  reader.readAsText(file);
-  reader.onload = function (event) {
-    let txt = event.target.result as string;
-    let fileName = file.name;
-    let m2flag = false;
-    if (fileName.endsWith(".md")) {
-      txt = markdownToHTML(txt);
-      fileName = fileName.substring(0, fileName.length - 3);
-    } else if (fileName.endsWith(".m2")) {
-      m2flag = true;
-      fileName = fileName.substring(0, fileName.length - 3);
-    } else if (fileName.endsWith(".html"))
-      fileName = fileName.substring(0, fileName.length - 5);
-    else return;
-    fileName = fileName.replace(/\W/g, "");
-    // upload to server
-    const req = new XMLHttpRequest();
-    const formData = new FormData();
-    const file1 = new File([txt], fileName + (m2flag ? ".m2" : ".html"));
-    formData.append("files[]", file1);
-    formData.append("tutorial", "true");
-    req.open("POST", "/upload");
-    req.send(formData);
+  let fileName = file.name;
+  console.log("tutorial " + fileName + " upload started");
+  fileName = fileName.replace(/[^\w.]/g, "");
+  if (
+    fileName.endsWith(".md") ||
+    fileName.endsWith(".html") ||
+    fileName.endsWith(".m2")
+  ) {
+    // we need to read it and possibly convert it to html
+    const reader = new FileReader();
+    reader.readAsText(file);
+    reader.onload = function (event) {
+      let txt = event.target.result as string;
+      if (fileName.endsWith(".md")) {
+        txt = markdownToHTML(txt);
+        fileName = fileName.substring(0, fileName.length - 3) + ".html";
+        const file1 = new File([txt], fileName);
+        uploadTutorial1(file1, fileName);
+      } else uploadTutorial1(file, fileName);
+      if (fileName.endsWith(".m2"))
+        // open in editor
+        openTutorialInEditor(txt, fileName);
+      else {
+        // open in tutorial tab
+        fileName = fileName.substring(0, fileName.length - 5);
+        const newTutorial = processTutorial(txt);
+        tutorials[fileName] = newTutorial;
+        if (tutorialIndex == fileName) tutorialIndex = null; // force reload
+        initAccordion(fileName);
+        appendTutorialToAccordion(newTutorial, fileName);
+      }
+    };
+  } else uploadTutorial1(file, fileName);
+};
 
-    if (m2flag) {
-      // just open it in editor
-      req.onload = function () {
-        setTimeout(function () {
-          document.location.hash = "#editor:tutorials/" + fileName + ".m2";
-        }, 300); // not great -- need to wait to make sure server processes request
-      };
-    } else {
-      const newTutorial = processTutorial(txt);
-      tutorials[fileName] = newTutorial;
-      if (tutorialIndex == fileName) tutorialIndex = null; // force reload
-      initAccordion(fileName);
-      appendTutorialToAccordion(newTutorial, fileName);
-    }
-  };
+const uploadTutorial1 = function (file, fileName) {
+  // upload to server
+  const req = new XMLHttpRequest();
+  const formData = new FormData();
+  formData.append("files[]", file);
+  formData.append("tutorial", "true");
+  req.open("POST", "/upload");
+  req.send(formData);
+
   tutorialUploadInput.value = "";
-  return;
+  console.log("tutorial " + fileName + " uploaded");
 };
 
 const tutorialUploadInput = document.createElement("input");
