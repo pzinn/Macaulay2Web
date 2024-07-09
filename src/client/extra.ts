@@ -279,11 +279,11 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
       if (missing) return;
       updateFileName(newName);
       if (currentFileIsDirectory) {
-        currentFileIsDirectory = false;
-        setReadonly(newName == "", "No syncing - empty filename"); // TODO determine correctly if read only or not -- how?
+        currentFileIsDirectory = false;        
         el.innerHTML = "";
       }
       el.contentEditable = "true";
+      setReadonly(newName == "", "No syncing - empty filename"); // TODO determine correctly if read only or not -- how?
       if (rowcols) selectRowColumn(el, rowcols);
       autoSaveHash = null; // force save
       autoSave();
