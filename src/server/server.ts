@@ -370,7 +370,6 @@ const fileUpload = function (request, response) {
     logger.info("Tutorial upload " + file.originalname);
     // move to tutorial directory
     const fileName = staticFolder + "tutorials/" + file.originalname;
-    console.log(file.originalname, " ", file.path, " ", fileName);
     fs.copyFile(file.path, fileName, (err) => {
       if (!request.body.noreply)
         if (err) {
@@ -389,9 +388,9 @@ const fileUpload = function (request, response) {
           fileName +
           "`; rm " +
           fileName;
-        console.log(cmd);
+        logger.info(cmd);
         exec(cmd, (error, stdout, stderr) => {
-          console.log(error + " " + stdout + " " + stderr);
+          logger.error(error + " " + stdout + " " + stderr);
         });
       }
     });
