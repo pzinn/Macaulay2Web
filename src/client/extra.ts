@@ -107,6 +107,13 @@ const updateFileName = function (newName: string) {
 
 let currentFileIsDirectory;
 let currentFileIsReadonly;
+let editor; // "editorDiv"
+
+const setDirectory = function (val: boolean) {
+  currentFileIsDirectory = val;
+  editor.contentEditable = !val; // auto convert to string
+};
+
 const setReadonly = function (val: boolean, msg?: string) {
   currentFileIsReadonly = val;
   const btn = document.getElementById("warningBtn");
@@ -136,7 +143,7 @@ const autoSave = function (e?, callback?, rush?) {
     }, 100); // we don't call back yet
     return;
   }
-  const content = document.getElementById("editorDiv").textContent as string;
+  const content = editor.textContent as string;
   const newHash = hashCode(content);
   //    console.log("hash: ",newHash," vs ",autoSaveHash);
   if (newHash != autoSaveHash) {
@@ -188,14 +195,12 @@ const fileChangedCheck = function (data) {
 };
 
 const localFileToEditor = function (fileName: string, rowcols?) {
-  currentFileIsDirectory = false;
   if (highlightTimeout) window.clearTimeout(highlightTimeout);
-  const editor = document.getElementById("editorDiv");
   const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName, true);
   xhr.onload = function () {
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
-    editor.contentEditable = "true";
+    setDirectory(false);
     autoSaveHash = hashCode(xhr.responseText);
     if (rowcols) selectRowColumn(editor, rowcols);
     else editor.scrollTop = 0;
@@ -205,15 +210,13 @@ const localFileToEditor = function (fileName: string, rowcols?) {
 };
 
 const listDirToEditor = function (dirName: string, fileName: string) {
-  currentFileIsDirectory = true;
   setReadonly(true, "No syncing - directory");
   if (!dirName.endsWith("/")) dirName += "/";
   if (highlightTimeout) window.clearTimeout(highlightTimeout);
-  const editor = document.getElementById("editorDiv");
   const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName, true);
   xhr.onload = function () {
-    editor.contentEditable = "false";
+    setDirectory(true);
     const lst = xhr.responseText
       .split("\n")
       .sort()
@@ -264,13 +267,12 @@ const parseLocation = function (arg: string) {
 
 const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
   // missing = what to do if file missing : undefined/false = switch to new, true = do nothing
-  const el = document.getElementById("editorDiv");
-  if (!rowcols) el.focus({ preventScroll: true });
+  if (!rowcols) editor.focus({ preventScroll: true });
 
   if ((fileName && fileName == newName && fileName != "./") || !newName) {
     // file already open in editor
     updateFileName(newName); // in case of positioning data
-    if (rowcols) selectRowColumn(el, rowcols);
+    if (rowcols) selectRowColumn(editor, rowcols);
     return;
   }
 
@@ -278,13 +280,10 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
     if (!response) {
       if (missing) return;
       updateFileName(newName);
-      if (currentFileIsDirectory) {
-        currentFileIsDirectory = false;        
-        el.innerHTML = "";
-      }
-      el.contentEditable = "true";
+      if (currentFileIsDirectory) editor.innerHTML = "";
+      setDirectory(false);
       setReadonly(newName == "", "No syncing - empty filename"); // TODO determine correctly if read only or not -- how?
-      if (rowcols) selectRowColumn(el, rowcols);
+      if (rowcols) selectRowColumn(editor, rowcols);
       autoSaveHash = null; // force save
       autoSave();
       return;
@@ -312,6 +311,7 @@ let openTutorialInEditor = function (txt, fileName) {}; // will be defined later
 const extra1 = function () {
   const tabs = document.getElementById("tabs") as any;
   const iFrame = document.getElementById("browseFrame") as HTMLIFrameElement;
+  editor = document.getElementById("editorDiv");
 
   let tab = url.hash;
   initTutorials();
@@ -322,7 +322,7 @@ const extra1 = function () {
   const openTab = function () {
     let loc = document.location.hash.substring(1);
     if (editorFoc) {
-      if (loc == "editor") document.getElementById("editorDiv").focus(); // hacky -- editor keeps losing focus
+      if (loc == "editor") editor.focus(); // hacky -- editor keeps losing focus
       editorFoc = false;
       return;
     }
@@ -467,7 +467,6 @@ const extra1 = function () {
 const extra2 = function () {
   const terminal = document.getElementById("terminal");
   const terminalDiv = document.getElementById("terminalDiv");
-  const editor = document.getElementById("editorDiv");
   const chatForm = document.getElementById("chatForm");
 
   let evaluateMarker = null;
@@ -599,9 +598,8 @@ const extra2 = function () {
       // can't fail! so we use callback
       turnOffSearchMode();
       editor.innerHTML = "";
-      currentFileIsDirectory = false;
+      setDirectory(false);
       setReadonly(true, "No syncing - empty filename");
-      editor.contentEditable = "true";
       updateFileName("");
       fileNameEl.focus();
     });
@@ -697,7 +695,7 @@ const extra2 = function () {
       fileReader.onload = function () {
         updateAndHighlightMaybe(editor, fileReader.result as string, fileName);
         //        document.getElementById("editorTitle").click();
-        editor.contentEditable = "true";
+        setDirectory(false);
         setReadonly(false);
         autoSaveHash = null; // force save
         autoSave();
@@ -709,7 +707,7 @@ const extra2 = function () {
   openTutorialInEditor = function (txt, fileName) {
     // similar to load file except went thru tutorial upload
     updateAndHighlightMaybe(editor, txt, "tutorials/" + fileName);
-    editor.contentEditable = "true";
+    setDirectory(false);
     setReadonly(true, "No syncing - read only file");
     document.location.hash = "#editor";
   };
