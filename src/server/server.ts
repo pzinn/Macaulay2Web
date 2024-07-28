@@ -196,6 +196,15 @@ const socketErrorAction = function (client: Client) {
 
 const vdots = " \u22EE\n";
 
+const cellRegExp = new RegExp(
+  webAppTags.Cell +
+    "[^" +
+    webAppTags.Cell +
+    webAppTags.CellEnd +
+    "]*" +
+    webAppTags.CellEnd
+); // tricky: because of possible nesting
+
 const sendDataToClient = function (client: Client) {
   return function (dataObject) {
     if (client.outputStat < 0) return; // output rate exceeded
@@ -225,16 +234,7 @@ const sendDataToClient = function (client: Client) {
       while (
         client.savedOutput.length > options.perContainerResources.maxSavedOutput
       ) {
-        const m = client.savedOutput.match(
-          new RegExp(
-            webAppTags.Cell +
-              "[^" +
-              webAppTags.Cell +
-              webAppTags.CellEnd +
-              "]*" +
-              webAppTags.CellEnd
-          ) // tricky: because of possible nesting
-        );
+        const m = client.savedOutput.match(cellRegExp);
         if (m === null) break; // give up -- normally, shouldn't happen except transitionally
         client.savedOutput =
           client.savedOutput.substring(0, m.index) +
