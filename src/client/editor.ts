@@ -1,6 +1,6 @@
 // contains functions used by both terminal and editor
 import { setupMenu } from "./menu";
-import M2symbols from "./prism-M2";
+import M2symbols from "./M2-symbols";
 import {
   getCaret,
   getCaret2,
