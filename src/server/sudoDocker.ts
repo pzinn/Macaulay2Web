@@ -8,7 +8,7 @@ import { Client, userSpecificPath } from "./client";
 import { clients, staticFolder, options as serverOptions } from "./server";
 import { logger } from "./logger";
 
-const save = "save.tar.gz";
+const save = "-save.tar.gz";
 
 class SudoDockerContainersInstanceManager implements InstanceManager {
   private resources: any;
