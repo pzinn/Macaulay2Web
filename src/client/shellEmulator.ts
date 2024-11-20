@@ -547,7 +547,7 @@ const Shell = function (
       ).forEach(
         (x) =>
           (x.innerHTML = Prism.highlight(
-            x.textContent,
+            x.innerText,
             Prism.languages.macaulay2
           ))
       );
