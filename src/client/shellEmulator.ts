@@ -531,11 +531,6 @@ const Shell = function (
         if (url.startsWith("file://")) url = url.slice(7);
         iFrame.src = url;
       }
-    } else if (htmlSec.classList.contains("M2Inspect")) {
-      const inspector = document.getElementById("inspector");
-      if (inspector) inspector.remove();
-      terminal.parentElement.append(htmlSec); // eww
-      htmlSec.id = "inspector";
     } else if (htmlSec.classList.contains("M2Html")) {
       // first things first: make sure we don't mess with input (interrupts, tasks, etc, can display unexpectedly)
       if (anc.classList.contains("M2Input")) {
@@ -552,7 +547,7 @@ const Shell = function (
       ).forEach(
         (x) =>
           (x.innerHTML = Prism.highlight(
-            x.textContent,
+            x.innerText,
             Prism.languages.macaulay2
           ))
       );
@@ -750,7 +745,7 @@ const Shell = function (
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
       }
     }
-    if (msg.indexOf(webAppTags.Inspect) < 0) scrollDownLeft(terminal); // a bit simplistic but works
+    scrollDownLeft(terminal);
   };
 
   const displayText = function (msg) {

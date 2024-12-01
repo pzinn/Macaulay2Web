@@ -1,6 +1,8 @@
 import { Shell } from "../client/shellEmulator";
 import { webAppTags } from "../common/tags";
 
+require("../client/js/prism-M2.js");
+
 const b64DecodeUnicode = function (str: string) {
   // so complicated...
   return decodeURIComponent(

@@ -1,19 +1,38 @@
 # Macaulay2Web - a Web App for Macaulay2
 
 Macaulay2Web is a web interface for the [Macaulay2](http://www.macaulay2.com).
-It is based on [InteractiveShell](https://travis-ci.org/fhinkel/InteractiveShell).
-What follows is somewhat outdated and in the process of being rewritten to take into account the differences
-between Macaulay2Web and the original InteractiveShell.
 
-## Quickstart
+It is currently running at https://www.unimelb-macaulay2.cloud.edu.au/.
 
-Run the following commands in a terminal (`vagrant` might take a while):
+## Quickstart: without virtusalisation
+This is now the recommended way, as it is less heavy than with virtualisation.
+Tools needed: git, nodejs, npm, docker, ssh.
+
+* Run the following from the terminal
+```bash
+git clone https://github.com/pzinn/Macaulay2Web.git
+cd Macaulay2Web
+npm install
+ssh-keygen -b 1024 -f id_rsa -P ''
+docker pull pzinn/m2container
+docker build -t m2container.
+npm run build
+npm start docker
+```
+
+* Point your browser to [localhost:8002](http://localhost:8002).
+
+
+## Quickstart: with virtualisation
+Tools needed: vagrant.
+
+* Run the following commands in a terminal (`vagrant` might take a while):
 ```bash
 git clone https://github.com/pzinn/Macaulay2Web.git
 cd Macaulay2Web/setups/basic
 vagrant up
 ```
-Point your browser to [localhost:8002](http://localhost:8002).
+* Point your browser to [localhost:8002](http://localhost:8002).
 
 ## Macaulay2Web
 
@@ -21,8 +40,9 @@ Macaulay2Web has a server/client structure, with the client running in the brows
 
 ## InteractiveShell
 
-Macaulay2Web is based on **InteractiveShell, a terminal emulator giving you an interface to a Macaulay2
-instance running remotely.** The main advantage of providing a web app rather than a native app is that you
+Macaulay2Web is based on [InteractiveShell](https://travis-ci.org/fhinkel/InteractiveShell),
+a terminal emulator giving you an interface to a Macaulay2
+instance running remotely. The main advantage of providing a web app rather than a native app is that you
 do not need to download and install Macaulay2,
 thus easing the entry barrier for new users. We have also found that users unfamiliar with unix-style
 command-line tools are more comfortable using a web app than a terminal.
@@ -76,26 +96,45 @@ There are two options:
 #### With docker containers
 The server will run locally, but the Macaulay2 processes will be spawned in docker containers.
 
-Install Macaulay2Web:
+* Go to https://github.com/pzinn/Macaulay2Web and clone the appropriate branch (main = HTTP, https = HTTPS), say
 ```bash
 git clone https://github.com/pzinn/Macaulay2Web.git
-cd Macaulay2Web
+```
+* Inside the Macaulay2Web directory (e.g., `cd ~/Macaulay2Web` first), run
+```bash
 npm install
 ```
-
-Then download and build the container:
+(which should also run the postinstall script)
+* Set up the ssh stuff:
+```bash
+ssh-keygen -b 1024 -f id_rsa -P ''
+```
+* Run
 ```bash
 docker pull pzinn/m2container
-docker build -t m2container .
 ```
-(depending on your system, you may have to precede this with `sudo`).
-
-Then compile and run:
+(this downloads a docker container with Macaulay2)
+* Run
 ```bash
-npm run
+docker build -t m2container.
+```
+inside the Macaulay2Web directory: this creates a local version of the docker container.
+* (optional) Set an admin id in `src/server/defaultOptions.ts`:
+```
+adminName: "adminsecretid999", // to be set live only
 ```
 
-Then open a browser at [http://localhost:8002](http://localhost:8002).
+* Build everything:
+```bash
+npm run build
+```
+* Start the server:
+```bash
+npm start docker > macaulay2web.log
+```
+(the log file is optional, obviously)
+
+* Then open a browser at [http://localhost:8002](http://localhost:8002).
 
 #### Without docker containers
 If you do not want to use docker containers, you also need Macaulay2 installed locally.

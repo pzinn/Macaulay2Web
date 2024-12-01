@@ -456,16 +456,3 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
     right:20px;
     z-index:2
 }
-
-#inspector {
-    position:absolute;
-    top:30px;
-    right:20px;
-    z-index:2;
-    background: white;
-    border: 1px solid black;
-    max-width:50%;
-    max-height:50%;
-    overflow: auto;
-    padding: 5px;
-}
