@@ -153,7 +153,7 @@ const Shell = function (
   const codeStack = []; // stack of past code run
 
   obj.codeInputAction = function (t) {
-    let str = t.dataset.m2code ? t.dataset.m2code : t.textContent; // used to be textContent
+    let str = t.dataset.m2code ? t.dataset.m2code : t.textContent; // used to be innerText
     if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
     t.dataset.m2code = str;
     t.classList.add("codetrigger");
