@@ -44,11 +44,11 @@ const getCaretInternal = function (el, node, offset): number | null {
       if (cur == el) return null;
       // backtrack
       while (!cur.nextSibling) {
-        if (cur.nodeName == "DIV" || cur.nodeName == "BR") len++; // for Firefox
+        //if (cur.nodeName == "DIV" || cur.nodeName == "BR") len++; // for Firefox
         cur = cur.parentElement;
         if (cur == el) return null;
       }
-      if (cur.nodeName == "DIV" || cur.nodeName == "BR") len++; // for Firefox
+      //if (cur.nodeName == "DIV" || cur.nodeName == "BR") len++; // for Firefox
       cur = cur.nextSibling;
     } else cur = cur.firstChild; // forward
   }
@@ -85,21 +85,24 @@ const locateRowColumn = function (txt: string, row: number, col: number) {
 };
 
 const locateOffsetInternal = function (el: HTMLElement, cur, pos: number) {
+  let tentativeNode = null;
   while (true) {
     if (cur.nodeType === 3) {
-      if (pos <= cur.textContent.length)
+      if (pos < cur.textContent.length)
         // bingo
         return [cur, pos];
       pos -= cur.textContent.length;
+      if (pos==0) // annoying edge case
+	tentativeNode = cur;
     }
     if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
       // backtrack
       while (!cur.nextSibling) {
-        if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
+        //if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
         cur = cur.parentElement;
-        if (cur == el) return null;
+        if (cur == el) return tentativeNode === null ? null : [tentativeNode,tentativeNode.textContent.length];
       }
-      if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
+      //if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
       // then go to next sibling
       cur = cur.nextSibling;
     } else cur = cur.firstChild; // otherwise forward
