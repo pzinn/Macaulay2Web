@@ -17,8 +17,6 @@ if (MINIMAL) {
       addEventListener.bind(this, a, b, c);
   };
 
-  require("./js/prism-M2.js");
-
   require("./js/material.js");
 
   // must add this due to failure of mdl, see https://stackoverflow.com/questions/31536467/how-to-hide-drawer-upon-user-click
@@ -40,6 +38,8 @@ if (MINIMAL) {
     false
   );
 }
+
+require("./js/prism-M2.js");
 
 require("./js/VectorGraphics.js");
 
