@@ -92,15 +92,19 @@ const locateOffsetInternal = function (el: HTMLElement, cur, pos: number) {
         // bingo
         return [cur, pos];
       pos -= cur.textContent.length;
-      if (pos==0) // annoying edge case
-	tentativeNode = cur;
+      if (pos == 0)
+        // annoying edge case
+        tentativeNode = cur;
     }
     if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
       // backtrack
       while (!cur.nextSibling) {
         //if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
         cur = cur.parentElement;
-        if (cur == el) return tentativeNode === null ? null : [tentativeNode,tentativeNode.textContent.length];
+        if (cur == el)
+          return tentativeNode === null
+            ? null
+            : [tentativeNode, tentativeNode.textContent.length];
       }
       //if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
       // then go to next sibling
