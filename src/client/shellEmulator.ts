@@ -16,6 +16,7 @@ import {
   locateRowColumn,
   locateOffset,
   addMarkerPos,
+  parseLocation
 } from "./htmlTools";
 import {
   escapeKeyHandling,
@@ -243,12 +244,23 @@ const Shell = function (
   };
 
   terminal.onclick = function (e) {
-    if (!inputSpan || !window.getSelection().isCollapsed) return;
     let t = e.target as HTMLElement;
     while (t != terminal) {
+      if (t.tagName == "A") {
+	const href=t.getAttribute("href");
+	if (href.startsWith("file://")) t.setAttribute("href","#editor:"+href.substring(7)); // TODO should pass it to main.ts instead for handling
+	else {
+	  const [name, rowcols] = parseLocation(href);
+	  if (rowcols) {
+            if (name == "stdio") {
+	      obj.selectPastInput(document.activeElement, rowcols);
+	      e.preventDefault();
+	    }
+	  }};
+	return;
+      };
       if (
         t.classList.contains("M2CellBar") ||
-        t.tagName == "A" ||
         t.tagName == "INPUT" ||
         t.tagName == "BUTTON" ||
         t.classList.contains("M2PastInput")
@@ -554,20 +566,17 @@ const Shell = function (
       // error highlighting
       Array.from(
         htmlSec.querySelectorAll(
-          ".M2ErrorLocation a[href*=editor]"
+          ".M2ErrorLocation a"
         ) as NodeListOf<HTMLAnchorElement>
       ).forEach((x) => {
-        const m = x.getAttribute("href").match(
-          // .href would give the expanded url, not the original one
-          /^#editor:([^:]+):(\d+):(\d+)/ // cf similar pattern in extra.ts
-        );
-        if (m) {
+	const [name, rowcols] = parseLocation(x.getAttribute("href"));
+        if (rowcols) {
           // highlight error
-          if (m[1] == "stdio") {
+          if (name == "stdio") {
             const nodeOffset = obj.locateStdio(
               sessionCell(htmlSec),
-              +m[2],
-              +m[3]
+              rowcols[0],
+              rowcols[1]
             );
             if (nodeOffset) {
               addMarkerPos(nodeOffset[0], nodeOffset[1]).classList.add(
@@ -579,9 +588,9 @@ const Shell = function (
             const fileNameEl = document.getElementById(
               "editorFileName"
             ) as HTMLInputElement;
-            if (fileNameEl.value == m[1]) {
+            if (fileNameEl.value == name) {
               // should this keep track of path somehow? needs more testing
-              const pos = locateRowColumn(editor.textContent, +m[2], +m[3]);
+              const pos = locateRowColumn(editor.textContent, rowcols[0], rowcols[1]);
               if (pos !== null) {
                 const nodeOffset = locateOffset(editor, pos);
                 if (nodeOffset) {

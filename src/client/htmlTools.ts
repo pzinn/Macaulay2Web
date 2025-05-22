@@ -304,6 +304,31 @@ const language = function (e) {
   return "Macaulay2"; // by default we assume code is M2
 };
 
+const parseLocation = function (arg: string) {
+  // get rid of leading "./"
+  if (arg.length > 2 && arg.startsWith("./")) arg = arg.substring(2);
+  // parse newName for positioning
+  // figure out filename
+  const m = arg.match(
+    //    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
+    /^([^#]+)#(\D*)(\d+)(?::(\D*)(\d+)|)(?:-(\D*)(\d+)(?::(\D*)(\d+)|)|)/
+  ) as any; // e.g. test.m2#3:5-5:7 or test.m2#L3:C5-L5:C7
+  if (!m) return [arg, null];
+  const rowcols = [];
+  // parse m
+  rowcols[0] = +m[3];
+  if (rowcols[0] < 1) rowcols[0] = 1;
+  rowcols[1] = m[5] ? +m[5] : 1;
+  if (rowcols[1] < 0) rowcols[1] = 0;
+  rowcols[2] = m[7] ? +m[7] : rowcols[0];
+  if (rowcols[2] < rowcols[0]) rowcols[2] = rowcols[0];
+  rowcols[3] = m[9] ? +m[9] : m[7] ? 1 : rowcols[1];
+  if (rowcols[2] == rowcols[0] && rowcols[3] < rowcols[1])
+    rowcols[3] = rowcols[1];
+  return [m[1], rowcols];
+};
+
+
 export {
   scrollDownLeft,
   scrollDown,
@@ -326,4 +351,5 @@ export {
   addMarkerPos,
   stripId,
   language,
+  parseLocation
 };
