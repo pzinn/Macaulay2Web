@@ -35,7 +35,7 @@ const getNewId = function (clients: IClients) {
 };
 
 const userSpecificPath = function (clientId: string): string {
-  return "files/" + clientId;
+  return "files/" + clientId + "-"; // used to be + "/" but we don't bother with subdirectories now
 };
 
 export { Client, IClients, getNewId, userSpecificPath };
