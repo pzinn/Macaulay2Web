@@ -526,24 +526,7 @@ const Shell = function (
         Prism.languages.macaulay2
       );
       htmlSec.classList.add("M2PastInput");
-    } else if (htmlSec.classList.contains("M2Url")) {
-      let url = htmlSec.dataset.code.trim();
-      console.log("Opening URL " + url);
-      if (
-        !iFrame ||
-        (window.location.protocol == "https:" && url.startsWith("http://")) // no insecure in frame
-      )
-        window.open(url, "M2 browse");
-      else if (url.startsWith("#")) document.location.hash = url;
-      else {
-        const url1 = new URL(url, "file://");
-        if (!url1.searchParams.get("user"))
-          url1.searchParams.append("user", clientId); // should we exclude "public"?
-        url = url1.toString();
-        if (url.startsWith("file://")) url = url.slice(7);
-        iFrame.src = url;
-      }
-    } else if (htmlSec.classList.contains("M2Html")) {
+    }  else if (htmlSec.classList.contains("M2Html")) {
       // first things first: make sure we don't mess with input (interrupts, tasks, etc, can display unexpectedly)
       if (anc.classList.contains("M2Input")) {
         anc.parentElement.insertBefore(htmlSec, anc);
@@ -563,6 +546,32 @@ const Shell = function (
             Prism.languages.macaulay2
           ))
       );
+      // auto opening links
+      Array.from(
+        htmlSec.querySelectorAll(
+          "a.auto"
+        ) as NodeListOf<HTMLAnchorElement>
+      ).forEach((x) => {
+	let url = x.href; // or getAttribute?
+        if (url.startsWith("file://")) x.href = url = url.slice(7); // for documentation links
+	console.log("Opening URL " + url);
+	x.click(); // TODO better? in particular add the user thingie otherwise won't work
+	/*
+	if (
+          !iFrame ||
+            (window.location.protocol == "https:" && url.startsWith("http://")) // no insecure in frame
+	)
+          window.open(url, "M2 browse");
+	else if (url.startsWith("#")) document.location.hash = url;
+	else {
+          const url1 = new URL(url, "file://");
+          if (!url1.searchParams.get("user"))
+            url1.searchParams.append("user", clientId); // should we exclude "public"?
+          url = url1.toString();
+          if (url.startsWith("file://")) url = url.slice(7);
+          iFrame.src = url;
+	  }*/
+      });
       // error highlighting
       Array.from(
         htmlSec.querySelectorAll(
