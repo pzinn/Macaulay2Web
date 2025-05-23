@@ -22,6 +22,7 @@ node_modules
 .vagrant/
 .cache/
 .vscode/
+.sass-cache/
 id_rsa*
 docker_key*
 host_key*

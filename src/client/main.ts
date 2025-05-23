@@ -76,7 +76,7 @@ const wrapEmitForDisconnect = function (event, msg, callback?) {
 
 const fixAnchor = function (t: HTMLAnchorElement) {
   const url = t.href;
-  if (!t.target && (t.hash=='')) {
+  if (!t.target && t.hash == "") {
     if (MINIMAL || (t.host && t.host != window.location.host))
       t.target = "_blank";
     else t.target = "browse";

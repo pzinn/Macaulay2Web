@@ -11,7 +11,7 @@ import {
   nextChar,
   selectRowColumn,
   addMarkerEl,
-  parseLocation
+  parseLocation,
 } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import { initTutorials, renderLessonMaybe } from "./tutorials";

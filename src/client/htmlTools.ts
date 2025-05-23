@@ -328,7 +328,6 @@ const parseLocation = function (arg: string) {
   return [m[1], rowcols];
 };
 
-
 export {
   scrollDownLeft,
   scrollDown,
@@ -351,5 +350,5 @@ export {
   addMarkerPos,
   stripId,
   language,
-  parseLocation
+  parseLocation,
 };

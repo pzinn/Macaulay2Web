@@ -16,7 +16,7 @@ import {
   locateRowColumn,
   locateOffset,
   addMarkerPos,
-  parseLocation
+  parseLocation,
 } from "./htmlTools";
 import {
   escapeKeyHandling,
@@ -247,18 +247,21 @@ const Shell = function (
     let t = e.target as HTMLElement;
     while (t != terminal) {
       if (t.tagName == "A") {
-	const href=t.getAttribute("href");
-	if (href.startsWith("file://")) t.setAttribute("href","#editor:"+href.substring(7)); // TODO should pass it to main.ts instead for handling
-	else {
-	  const [name, rowcols] = parseLocation(href);
-	  if (rowcols) {
+        const href = t.getAttribute("href");
+        if (href.startsWith("file://"))
+          t.setAttribute("href", "#editor:" + href.substring(7));
+        // TODO should pass it to main.ts instead for handling
+        else {
+          const [name, rowcols] = parseLocation(href);
+          if (rowcols) {
             if (name == "stdio") {
-	      obj.selectPastInput(document.activeElement, rowcols);
-	      e.preventDefault();
-	    }
-	  }};
-	return;
-      };
+              obj.selectPastInput(document.activeElement, rowcols);
+              e.preventDefault();
+            }
+          }
+        }
+        return;
+      }
       if (
         t.classList.contains("M2CellBar") ||
         t.tagName == "INPUT" ||
@@ -526,7 +529,7 @@ const Shell = function (
         Prism.languages.macaulay2
       );
       htmlSec.classList.add("M2PastInput");
-    }  else if (htmlSec.classList.contains("M2Html")) {
+    } else if (htmlSec.classList.contains("M2Html")) {
       // first things first: make sure we don't mess with input (interrupts, tasks, etc, can display unexpectedly)
       if (anc.classList.contains("M2Input")) {
         anc.parentElement.insertBefore(htmlSec, anc);
@@ -548,15 +551,13 @@ const Shell = function (
       );
       // auto opening links
       Array.from(
-        htmlSec.querySelectorAll(
-          "a.auto"
-        ) as NodeListOf<HTMLAnchorElement>
+        htmlSec.querySelectorAll("a.auto") as NodeListOf<HTMLAnchorElement>
       ).forEach((x) => {
-	let url = x.href; // or getAttribute?
+        let url = x.href; // or getAttribute?
         if (url.startsWith("file://")) x.href = url = url.slice(7); // for documentation links
-	console.log("Opening URL " + url);
-	x.click(); // TODO better? in particular add the user thingie otherwise won't work
-	/*
+        console.log("Opening URL " + url);
+        x.click(); // TODO better? in particular add the user thingie otherwise won't work
+        /*
 	if (
           !iFrame ||
             (window.location.protocol == "https:" && url.startsWith("http://")) // no insecure in frame
@@ -578,7 +579,7 @@ const Shell = function (
           ".M2ErrorLocation a"
         ) as NodeListOf<HTMLAnchorElement>
       ).forEach((x) => {
-	const [name, rowcols] = parseLocation(x.getAttribute("href"));
+        const [name, rowcols] = parseLocation(x.getAttribute("href"));
         if (rowcols) {
           // highlight error
           if (name == "stdio") {
@@ -599,7 +600,11 @@ const Shell = function (
             ) as HTMLInputElement;
             if (fileNameEl.value == name) {
               // should this keep track of path somehow? needs more testing
-              const pos = locateRowColumn(editor.textContent, rowcols[0], rowcols[1]);
+              const pos = locateRowColumn(
+                editor.textContent,
+                rowcols[0],
+                rowcols[1]
+              );
               if (pos !== null) {
                 const nodeOffset = locateOffset(editor, pos);
                 if (nodeOffset) {
