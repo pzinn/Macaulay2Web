@@ -246,19 +246,16 @@ const Shell = function (
   terminal.onclick = function (e) {
     let t = e.target as HTMLElement;
     while (t != terminal) {
-      if (t.tagName == "A") {
-        const href = t.getAttribute("href");
-        if (href.startsWith("file://"))
-          t.setAttribute("href", "#editor:" + href.substring(7));
-        // TODO should pass it to main.ts instead for handling
-        else {
-          const [name, rowcols] = parseLocation(href);
-          if (rowcols) {
-            if (name == "stdio") {
-              obj.selectPastInput(document.activeElement, rowcols);
-              e.preventDefault();
-            }
-          }
+      if (t instanceof HTMLAnchorElement) {
+        let href = t.getAttribute("href");
+        if (href.startsWith("file://")) href = href.substring(7);
+        const [name, rowcols] = parseLocation(href);
+        if (rowcols && name == "stdio") {
+          obj.selectPastInput(document.activeElement, rowcols);
+          e.preventDefault();
+        } else if ((!t.host || t.host == window.location.host) && t.pathname.endsWith(".m2")) { // calls to m2 local files are redirected to editor
+	  t.setAttribute("href","#editor:"+href);
+	  // TODO should pass it to main.ts instead for handling
         }
         return;
       }
