@@ -1,5 +1,5 @@
 declare const MINIMAL;
-import { clientId } from "./main";
+//import { clientId } from "./main";
 import { processCell } from "./tutorials"; // extra processing of output for tutorial
 
 import { autoRender } from "./autoRender";
@@ -268,6 +268,7 @@ const Shell = function (
         return;
       t = t.parentElement;
     }
+    if (!window.getSelection().isCollapsed) return;
     if (document.activeElement != inputSpan) {
       inputSpan.focus({ preventScroll: true });
       setCaret(inputSpan, inputSpan.textContent.length);

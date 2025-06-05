@@ -311,18 +311,18 @@ const parseLocation = function (arg: string) {
   // figure out filename
   const m = arg.match(
     //    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
-    /^([^#]+)#(\D*)(\d+)(?::(\D*)(\d+)|)(?:-(\D*)(\d+)(?::(\D*)(\d+)|)|)/
+    /^([^#]+)#\D*(\d+)(?::\D*(\d+)|)(?:-\D*(\d+)(?::\D*(\d+)|)|)/,
   ) as any; // e.g. test.m2#3:5-5:7 or test.m2#L3:C5-L5:C7
   if (!m) return [arg, null];
   const rowcols = [];
   // parse m
-  rowcols[0] = +m[3];
+  rowcols[0] = +m[2];
   if (rowcols[0] < 1) rowcols[0] = 1;
-  rowcols[1] = m[5] ? +m[5] : 1;
+  rowcols[1] = m[3] ? +m[3] : 1;
   if (rowcols[1] < 0) rowcols[1] = 0;
-  rowcols[2] = m[7] ? +m[7] : rowcols[0];
+  rowcols[2] = m[4] ? +m[4] : rowcols[0];
   if (rowcols[2] < rowcols[0]) rowcols[2] = rowcols[0];
-  rowcols[3] = m[9] ? +m[9] : m[7] ? 1 : rowcols[1];
+  rowcols[3] = m[5] ? +m[5] : m[4] ? 1 : rowcols[1];
   if (rowcols[2] == rowcols[0] && rowcols[3] < rowcols[1])
     rowcols[3] = rowcols[1];
   return [m[1], rowcols];
