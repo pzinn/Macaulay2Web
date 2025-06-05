@@ -11,7 +11,7 @@ type Socket = Socket0 & { oldEmit?: any };
 
 export { Socket };
 let socket: Socket;
-import { Shell } from "./shellEmulator";
+import { Shell } from "./terminal";
 
 import {
   barKey,
