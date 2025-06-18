@@ -233,7 +233,8 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     if (instance.numInputs == 0) self.removeInstanceInternal(instance);
     else {
       // first, save files
-      const savePath = staticFolder + userSpecificPath(instance.clientId) + saveFile;
+      const savePath =
+        staticFolder + userSpecificPath(instance.clientId) + saveFile;
       const saveDockerContainer =
         "rm -f " +
         savePath +

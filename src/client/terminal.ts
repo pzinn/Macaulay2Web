@@ -253,9 +253,13 @@ const Shell = function (
         if (rowcols && name == "stdio") {
           obj.selectPastInput(document.activeElement, rowcols);
           e.preventDefault();
-        } else if ((!t.host || t.host == window.location.host) && t.pathname.endsWith(".m2")) { // calls to m2 local files are redirected to editor
-	  t.setAttribute("href","#editor:"+href);
-	  // TODO should pass it to main.ts instead for handling
+        } else if (
+          (!t.host || t.host == window.location.host) &&
+          t.pathname.endsWith(".m2")
+        ) {
+          // calls to m2 local files are redirected to editor
+          t.setAttribute("href", "#editor:" + href);
+          // TODO should pass it to main.ts instead for handling
         }
         return;
       }

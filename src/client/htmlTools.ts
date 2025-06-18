@@ -311,7 +311,7 @@ const parseLocation = function (arg: string) {
   // figure out filename
   const m = arg.match(
     //    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
-    /^([^#]+)#\D*(\d+)(?::\D*(\d+)|)(?:-\D*(\d+)(?::\D*(\d+)|)|)/,
+    /^([^#]+)#\D*(\d+)(?::\D*(\d+)|)(?:-\D*(\d+)(?::\D*(\d+)|)|)/
   ) as any; // e.g. test.m2#3:5-5:7 or test.m2#L3:C5-L5:C7
   if (!m) return [arg, null];
   const rowcols = [];
