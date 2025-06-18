@@ -5,7 +5,6 @@ const webAppTagCodes = [
   ["CellEnd", 20, "M2CellEnd"], // end of cell
   ["Input", 28, "M2Text M2Input"], // it's text but it's input
   ["InputContd", 29, "M2Text M2Input M2InputContd"], // text, continuation of input
-  ["Url", 30, "M2Url"], // url
   ["Prompt", 14, "M2Text M2Prompt"],
   ["Position", 21, "M2Position"],
 ];

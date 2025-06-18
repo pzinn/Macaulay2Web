@@ -1,4 +1,4 @@
-import { Shell } from "../client/shellEmulator";
+import { Shell } from "../client/terminal";
 import { webAppTags } from "../common/tags";
 
 require("../client/js/prism-M2.js");

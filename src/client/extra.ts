@@ -11,6 +11,7 @@ import {
   nextChar,
   selectRowColumn,
   addMarkerEl,
+  parseLocation,
 } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
 import { initTutorials, renderLessonMaybe } from "./tutorials";
@@ -241,30 +242,6 @@ const listDirToEditor = function (dirName: string, fileName: string) {
   xhr.send(null);
 };
 
-const parseLocation = function (arg: string) {
-  // get rid of leading "./"
-  if (arg.length > 2 && arg.startsWith("./")) arg = arg.substring(2);
-  // parse newName for positioning
-  // figure out filename
-  const m = arg.match(
-    //    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
-    /^([^:]+):(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)/
-  ) as any; // e.g. test.m2:3:5-5:7
-  if (!m) return [arg, null];
-  const rowcols = [];
-  // parse m
-  rowcols[0] = +m[2];
-  if (rowcols[0] < 1) rowcols[0] = 1;
-  rowcols[1] = m[3] ? +m[3] : 1;
-  if (rowcols[1] < 0) rowcols[1] = 0;
-  rowcols[2] = m[5] ? +m[4] : rowcols[0];
-  if (rowcols[2] < rowcols[0]) rowcols[2] = rowcols[0];
-  rowcols[3] = m[5] ? +m[5] : m[4] ? +m[4] : rowcols[1];
-  if (rowcols[2] == rowcols[0] && rowcols[3] < rowcols[1])
-    rowcols[3] = rowcols[1];
-  return [m[1], rowcols];
-};
-
 const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
   // missing = what to do if file missing : undefined/false = switch to new, true = do nothing
   if (!rowcols) editor.focus({ preventScroll: true });
@@ -368,7 +345,7 @@ const extra1 = function () {
           scrollDown(ul);
         }
       }
-    }
+    } else document.location.hash = "#" + oldTab; // should this be there?
   };
 
   let ignoreFirstLoad = true;
@@ -1114,7 +1091,7 @@ const extra2 = function () {
   };
 
   window.addEventListener("beforeunload", function () {
-    autoSave(null, true, null);
+    autoSave(null, null, true);
   });
 
   const cookieQuery = document.getElementById("cookieQuery");

@@ -1,5 +1,5 @@
 declare const MINIMAL;
-import { clientId } from "./main";
+//import { clientId } from "./main";
 import { processCell } from "./tutorials"; // extra processing of output for tutorial
 
 import { autoRender } from "./autoRender";
@@ -16,6 +16,7 @@ import {
   locateRowColumn,
   locateOffset,
   addMarkerPos,
+  parseLocation,
 } from "./htmlTools";
 import {
   escapeKeyHandling,
@@ -243,12 +244,27 @@ const Shell = function (
   };
 
   terminal.onclick = function (e) {
-    if (!inputSpan || !window.getSelection().isCollapsed) return;
     let t = e.target as HTMLElement;
     while (t != terminal) {
+      if (t instanceof HTMLAnchorElement) {
+        let href = t.getAttribute("href");
+        if (href.startsWith("file://")) href = href.substring(7);
+        const [name, rowcols] = parseLocation(href);
+        if (rowcols && name == "stdio") {
+          obj.selectPastInput(document.activeElement, rowcols);
+          e.preventDefault();
+        } else if (
+          (!t.host || t.host == window.location.host) &&
+          t.pathname.endsWith(".m2")
+        ) {
+          // calls to m2 local files are redirected to editor
+          t.setAttribute("href", "#editor:" + href);
+          // TODO should pass it to main.ts instead for handling
+        }
+        return;
+      }
       if (
         t.classList.contains("M2CellBar") ||
-        t.tagName == "A" ||
         t.tagName == "INPUT" ||
         t.tagName == "BUTTON" ||
         t.classList.contains("M2PastInput")
@@ -256,6 +272,7 @@ const Shell = function (
         return;
       t = t.parentElement;
     }
+    if (!window.getSelection().isCollapsed) return;
     if (document.activeElement != inputSpan) {
       inputSpan.focus({ preventScroll: true });
       setCaret(inputSpan, inputSpan.textContent.length);
@@ -514,23 +531,6 @@ const Shell = function (
         Prism.languages.macaulay2
       );
       htmlSec.classList.add("M2PastInput");
-    } else if (htmlSec.classList.contains("M2Url")) {
-      let url = htmlSec.dataset.code.trim();
-      console.log("Opening URL " + url);
-      if (
-        !iFrame ||
-        (window.location.protocol == "https:" && url.startsWith("http://")) // no insecure in frame
-      )
-        window.open(url, "M2 browse");
-      else if (url.startsWith("#")) document.location.hash = url;
-      else {
-        const url1 = new URL(url, "file://");
-        if (!url1.searchParams.get("user"))
-          url1.searchParams.append("user", clientId); // should we exclude "public"?
-        url = url1.toString();
-        if (url.startsWith("file://")) url = url.slice(7);
-        iFrame.src = url;
-      }
     } else if (htmlSec.classList.contains("M2Html")) {
       // first things first: make sure we don't mess with input (interrupts, tasks, etc, can display unexpectedly)
       if (anc.classList.contains("M2Input")) {
@@ -551,23 +551,44 @@ const Shell = function (
             Prism.languages.macaulay2
           ))
       );
+      // auto opening links
+      Array.from(
+        htmlSec.querySelectorAll("a.auto") as NodeListOf<HTMLAnchorElement>
+      ).forEach((x) => {
+        let url = x.href; // or getAttribute?
+        if (url.startsWith("file://")) x.href = url = url.slice(7); // for documentation links
+        console.log("Opening URL " + url);
+        x.click(); // TODO better? in particular add the user thingie otherwise won't work
+        /*
+	if (
+          !iFrame ||
+            (window.location.protocol == "https:" && url.startsWith("http://")) // no insecure in frame
+	)
+          window.open(url, "M2 browse");
+	else if (url.startsWith("#")) document.location.hash = url;
+	else {
+          const url1 = new URL(url, "file://");
+          if (!url1.searchParams.get("user"))
+            url1.searchParams.append("user", clientId); // should we exclude "public"?
+          url = url1.toString();
+          if (url.startsWith("file://")) url = url.slice(7);
+          iFrame.src = url;
+	  }*/
+      });
       // error highlighting
       Array.from(
         htmlSec.querySelectorAll(
-          ".M2ErrorLocation a[href*=editor]"
+          ".M2ErrorLocation a"
         ) as NodeListOf<HTMLAnchorElement>
       ).forEach((x) => {
-        const m = x.getAttribute("href").match(
-          // .href would give the expanded url, not the original one
-          /^#editor:([^:]+):(\d+):(\d+)/ // cf similar pattern in extra.ts
-        );
-        if (m) {
+        const [name, rowcols] = parseLocation(x.getAttribute("href"));
+        if (rowcols) {
           // highlight error
-          if (m[1] == "stdio") {
+          if (name == "stdio") {
             const nodeOffset = obj.locateStdio(
               sessionCell(htmlSec),
-              +m[2],
-              +m[3]
+              rowcols[0],
+              rowcols[1]
             );
             if (nodeOffset) {
               addMarkerPos(nodeOffset[0], nodeOffset[1]).classList.add(
@@ -579,9 +600,13 @@ const Shell = function (
             const fileNameEl = document.getElementById(
               "editorFileName"
             ) as HTMLInputElement;
-            if (fileNameEl.value == m[1]) {
+            if (fileNameEl.value == name) {
               // should this keep track of path somehow? needs more testing
-              const pos = locateRowColumn(editor.textContent, +m[2], +m[3]);
+              const pos = locateRowColumn(
+                editor.textContent,
+                rowcols[0],
+                rowcols[1]
+              );
               if (pos !== null) {
                 const nodeOffset = locateOffset(editor, pos);
                 if (nodeOffset) {

@@ -103,14 +103,20 @@ const socketChatAction = function (socket: Socket, client: Client) {
     safeEmit(io, "chat", chat);
   };
   const chatRun = function (chat: Chat, runCmd: string) {
-    execInInstance(client, decode(runCmd), function (out) {
-      const msg = "```sh\n" + runCmd + "\n```\n```sh\n" + encode(out) + "```";
+    if (admin)
+      execInInstance(client, decode(runCmd), function (out) {
+        const msg = "```sh\n" + runCmd + "\n```\n```sh\n" + encode(out) + "```";
+        chat.recipients = null; // won't be recorded
+        chat.index = chatCounter++;
+        chat.message = msg;
+        safeEmit(socket, "chat", chat); // only sent to sender
+      });
+    else {
       chat.recipients = null; // won't be recorded
       chat.index = chatCounter++;
-      chat.message = msg;
-      "```sh\n" + runCmd + "\n```\n```sh\n" + encode(out) + "```";
+      chat.message = "/r temporarily disabled";
       safeEmit(socket, "chat", chat); // only sent to sender
-    });
+    }
   };
   const chatListUsers = function (chat: Chat, activeonly?: boolean) {
     let clientsList = Object.values(clients).sort(function (a, b) {

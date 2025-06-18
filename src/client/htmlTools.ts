@@ -92,15 +92,19 @@ const locateOffsetInternal = function (el: HTMLElement, cur, pos: number) {
         // bingo
         return [cur, pos];
       pos -= cur.textContent.length;
-      if (pos==0) // annoying edge case
-	tentativeNode = cur;
+      if (pos == 0)
+        // annoying edge case
+        tentativeNode = cur;
     }
     if (cur.nodeType !== 1 || (cur.nodeType === 1 && !cur.firstChild)) {
       // backtrack
       while (!cur.nextSibling) {
         //if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
         cur = cur.parentElement;
-        if (cur == el) return tentativeNode === null ? null : [tentativeNode,tentativeNode.textContent.length];
+        if (cur == el)
+          return tentativeNode === null
+            ? null
+            : [tentativeNode, tentativeNode.textContent.length];
       }
       //if (cur.nodeName == "DIV" || cur.nodeName == "BR") pos--; // for Firefox
       // then go to next sibling
@@ -300,6 +304,30 @@ const language = function (e) {
   return "Macaulay2"; // by default we assume code is M2
 };
 
+const parseLocation = function (arg: string) {
+  // get rid of leading "./"
+  if (arg.length > 2 && arg.startsWith("./")) arg = arg.substring(2);
+  // parse newName for positioning
+  // figure out filename
+  const m = arg.match(
+    //    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
+    /^([^#]+)#\D*(\d+)(?::\D*(\d+)|)(?:-\D*(\d+)(?::\D*(\d+)|)|)/
+  ) as any; // e.g. test.m2#3:5-5:7 or test.m2#L3:C5-L5:C7
+  if (!m) return [arg, null];
+  const rowcols = [];
+  // parse m
+  rowcols[0] = +m[2];
+  if (rowcols[0] < 1) rowcols[0] = 1;
+  rowcols[1] = m[3] ? +m[3] : 1;
+  if (rowcols[1] < 0) rowcols[1] = 0;
+  rowcols[2] = m[4] ? +m[4] : rowcols[0];
+  if (rowcols[2] < rowcols[0]) rowcols[2] = rowcols[0];
+  rowcols[3] = m[5] ? +m[5] : m[4] ? 1 : rowcols[1];
+  if (rowcols[2] == rowcols[0] && rowcols[3] < rowcols[1])
+    rowcols[3] = rowcols[1];
+  return [m[1], rowcols];
+};
+
 export {
   scrollDownLeft,
   scrollDown,
@@ -322,4 +350,5 @@ export {
   addMarkerPos,
   stripId,
   language,
+  parseLocation,
 };

@@ -12,13 +12,25 @@ Tools needed: git, nodejs, npm, docker, ssh.
 ```bash
 git clone https://github.com/pzinn/Macaulay2Web.git
 cd Macaulay2Web
+git submodule init
+git submodule update
 npm install
+npm run build
 ssh-keygen -b 1024 -f id_rsa -P ''
 docker pull pzinn/m2container
-docker build -t m2container.
-npm run build
+docker build -t m2container .
 npm start docker
 ```
+
+You can even run your local version of M2 (rather the dockerised one),
+though this is not recommended. In this case replace the last four
+lines with
+```bash
+ssh-keygen -t ecdsa -f ~/.ssh/id_ecdsa
+cat ~/.ssh/id_ecdsa.pub > ~/.ssh/authorized_keys
+npm start local
+```
+
 
 * Point your browser to [localhost:8002](http://localhost:8002).
 

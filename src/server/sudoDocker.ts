@@ -8,7 +8,7 @@ import { Client, userSpecificPath } from "./client";
 import { clients, staticFolder, options as serverOptions } from "./server";
 import { logger } from "./logger";
 
-const save = "-save.tar.gz";
+const saveFile = "save.tar.gz";
 
 class SudoDockerContainersInstanceManager implements InstanceManager {
   private resources: any;
@@ -114,9 +114,8 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
           );
           self.addInstanceToArray(instance);
           // check for saved files
-          const savePath = staticFolder + userSpecificPath(clientId);
-          const saveFile = savePath + save;
-          fs.access(saveFile, function (err) {
+          const savePath = staticFolder + userSpecificPath(clientId) + saveFile;
+          fs.access(savePath, function (err) {
             if (!err) {
               logger.info("Restoring files for " + clientId);
               const restoreDockerContainer =
@@ -125,7 +124,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                 " tar -C /home/" +
                 instance.username +
                 " -xzf - . < " +
-                saveFile;
+                savePath;
               exec(restoreDockerContainer, function (error) {
                 if (error) {
                   logger.error(
@@ -235,33 +234,27 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     if (instance.numInputs == 0) self.removeInstanceInternal(instance);
     else {
       // first, save files
-      const savePath = staticFolder + userSpecificPath(instance.clientId);
-      fs.mkdir(savePath, function (fsError) {
-        if (fsError) {
-          if (fsError.code !== "EEXIST")
-            logger.error("Error creating directory: " + savePath);
+      const savePath =
+        staticFolder + userSpecificPath(instance.clientId) + saveFile;
+      const saveDockerContainer =
+        "rm -f " +
+        savePath +
+        "; sudo docker exec " +
+        instance.containerName +
+        ' tar --exclude "./.*" --exclude "./tutorials" -C /home/' +
+        instance.username +
+        " -czf - . > " +
+        savePath;
+      exec(saveDockerContainer, function (error) {
+        if (error) {
+          logger.error(
+            "Error saving container " +
+              instance.containerName +
+              " with error:" +
+              error
+          );
         }
-        const saveFile = savePath + save;
-        const saveDockerContainer =
-          "rm -f " +
-          saveFile +
-          "; sudo docker exec " +
-          instance.containerName +
-          ' tar --exclude "./.*" --exclude "./tutorials" -C /home/' +
-          instance.username +
-          " -czf - . > " +
-          saveFile;
-        exec(saveDockerContainer, function (error) {
-          if (error) {
-            logger.error(
-              "Error saving container " +
-                instance.containerName +
-                " with error:" +
-                error
-            );
-          }
-          self.removeInstanceInternal(instance);
-        });
+        self.removeInstanceInternal(instance);
       });
     }
   }
