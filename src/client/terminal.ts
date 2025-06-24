@@ -255,7 +255,7 @@ const Shell = function (
           e.preventDefault();
         } else if (
           (!t.host || t.host == window.location.host) &&
-          t.pathname.endsWith(".m2")
+          t.pathname.includes(".m2")
         ) {
           // calls to m2 local files are redirected to editor
           t.setAttribute("href", "#editor:" + href);
