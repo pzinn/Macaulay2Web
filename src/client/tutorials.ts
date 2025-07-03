@@ -109,6 +109,16 @@ const processTutorial = function (theHtml: string) {
     };
   }
 
+  // run scripts
+  el.querySelectorAll("script").forEach((script) => {
+    const clone = document.createElement("script");
+    for (const attr of Array.from(script.attributes)) {
+      clone.setAttribute(attr.name, attr.value);
+    }
+    clone.text = script.innerHTML;
+    script.parentNode?.replaceChild(clone, script);
+  });
+
   const tutorial: Tutorial = {
     body: el,
     lessons: el.querySelectorAll("section:not(section section)"),
