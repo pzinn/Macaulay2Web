@@ -4,8 +4,8 @@ Macaulay2Web is a web interface for the [Macaulay2](http://www.macaulay2.com).
 
 It is currently running at https://www.unimelb-macaulay2.cloud.edu.au/.
 
-## Quickstart: without virtusalisation
-This is now the recommended way, as it is less heavy than with virtualisation.
+## Quickstart: without virtualization
+This is now the recommended way, as it is less heavy than with virtualization.
 Tools needed: git, nodejs, npm, docker, ssh.
 
 * Run the following from the terminal
@@ -35,7 +35,7 @@ npm start local
 * Point your browser to [localhost:8002](http://localhost:8002).
 
 
-## Quickstart: with virtualisation
+## Quickstart: with virtualization
 Tools needed: vagrant.
 
 * Run the following commands in a terminal (`vagrant` might take a while):
@@ -87,11 +87,11 @@ executing linux commands through Macaulay2's `get` command, accessing the file s
 files, and installing third party Macaulay2 packages.
 
 Users are identified by cookies. If you run long computations, you can come back later and 
-the results will be ready for you. There are mechanism to restrict ressources allocated to each user.
+the results will be ready for you. There are mechanism to restrict resources allocated to each user.
 
 ## Installation
 
-### Without virtualisation
+### Without virtualization
 
 If you do not want to run the web app within a virtual machine, you can run it locally. You need
 Node.js, npm, and Git. Furthermore you need to have a local ssh server running.
@@ -222,7 +222,7 @@ You can manipulate the resource limits of the virtual machine in the Vagrantfile
 ```
 Macaulay2Web/src/server/defaultOptions.ts
 ```
-contains several default values for the ressource limits of the single container.
+contains several default values for the resource limits of the single container.
 
 ### Linting
 We use Eslint

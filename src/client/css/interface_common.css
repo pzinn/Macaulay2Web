@@ -363,6 +363,10 @@ pre, blockquote, .token.string, .token.net {
     display: inline-block; /* inline-table would've been simpler for vertical alignment, except it gobbles space despite white-space:pre */
 }
 
+.language-python {
+    color: #3776AB;
+}
+
 /* menu stuff */
 ul.menu {
     list-style: none;
