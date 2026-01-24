@@ -90,7 +90,6 @@ const processTutorial = function (theHtml: string) {
   for (const hr of breaks) {
     hr.onclick = function (e) {
       const cur0 = e.target as HTMLElement;
-      console.log(cur0);
       let cur = cur0;
       const closing = cur.classList.toggle("closed");
       while (
