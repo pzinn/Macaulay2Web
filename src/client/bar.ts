@@ -49,6 +49,24 @@ const cutEl = (el) => {
   copyEl(el);
   removeEl(el);
 };
+const inputFactor = 1.1;
+const zoomInEl = (el) => {
+  const currentSize = el.style.fontSize; // caveat: only parses in %
+  const currentSizeValue = currentSize.endsWith("%")
+    ? currentSize.substring(0, currentSize.length - 1)
+    : 100;
+  el.style.fontSize = currentSizeValue * inputFactor + "%";
+};
+const zoomOutEl = (el) => {
+  const currentSize = el.style.fontSize; // caveat: only parses in %
+  const currentSizeValue = currentSize.endsWith("%")
+    ? currentSize.substring(0, currentSize.length - 1)
+    : 100;
+  el.style.fontSize = currentSizeValue / inputFactor + "%";
+};
+const zoomResetEl = (el) => {
+  el.style.fontSize = "";
+};
 
 let inputText = "";
 const inputEl = (el) => {
@@ -98,18 +116,21 @@ const finalInput = () => {
   navigator.clipboard.writeText(inputText);
 };
 
-// key: [displayed key,action,init action,final action]
+// key: [displayed keyx2,action,init action,final action,allowed on current input]
 const barActions = {
-  delete: ["Del", "Delete", removeEl, null, null],
+  delete: ["Del", "Delete", removeEl, null, null, false],
   backspace: ["", "", removeEl], // not mentioned in menu
-  enter: ["&nbsp;&#9166;&nbsp;", "Run", runEl, null, finalRun],
-  w: ["&nbsp;W&nbsp;", "Wrap", wrapEl, null, null],
-  " ": ["Spc", "Shrink", closeEl, null, null],
-  g: ["&nbsp;G&nbsp;", "Group", groupEl, initGroup, null],
-  "ctrl-x": ["Ctrl-X", "Cut", cutEl, initCopy, null],
-  "ctrl-c": ["Ctrl-C", "Copy", copyEl, initCopy, null],
-  "ctrl-v": ["Ctrl-V", "Paste", removeEl, null, finalPaste], // delete then paste
-  i: ["&nbsp;I&nbsp;", "Input", inputEl, initInput, finalInput], // copy input to clipboard
+  enter: ["&nbsp;&#9166;&nbsp;", "Run", runEl, null, finalRun, true],
+  w: ["&nbsp;W&nbsp;", "Wrap", wrapEl, null, null, false],
+  " ": ["Spc", "Shrink", closeEl, null, null, false],
+  g: ["&nbsp;G&nbsp;", "Group", groupEl, initGroup, null, false],
+  "ctrl-x": ["Ctrl-X", "Cut", cutEl, initCopy, null, false],
+  "ctrl-c": ["Ctrl-C", "Copy", copyEl, initCopy, null, false],
+  "ctrl-v": ["Ctrl-V", "Paste", removeEl, null, finalPaste, false], // delete then paste
+  i: ["&nbsp;I&nbsp;", "Input", inputEl, initInput, finalInput, true], // copy input to clipboard
+  "ctrl-+": ["Ctrl-+", "Zoom in", zoomInEl, null, null, true],
+  "ctrl--": ["Ctrl--", "Zoom out", zoomOutEl, null, null, true],
+  "ctrl-0": ["Ctrl-0", "Zoom reset", zoomResetEl, null, null, true],
 };
 
 const barAction = function (action: string, target0: HTMLElement) {
@@ -127,8 +148,9 @@ const barAction = function (action: string, target0: HTMLElement) {
   if (init) if (init(list)) return true;
 
   const fn = acts[2];
+  const currentAllowed = acts[5];
   list.forEach((x) => {
-    if (!x.contains(curInput) || fn == inputEl || fn == runEl) fn(x);
+    if (currentAllowed || !x.contains(curInput)) fn(x);
   });
 
   const final = acts[4];
