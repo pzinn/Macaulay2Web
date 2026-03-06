@@ -2,6 +2,8 @@ body {
     font-family: "Epilogue";
     font-size: 14px;
     line-height: 1.2; /* some reasonable default */
+    color: var(--text-main);
+    background: var(--bg-page);
 }
 img, svg, canvas {
     vertical-align: middle;

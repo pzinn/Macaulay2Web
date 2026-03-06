@@ -70,7 +70,7 @@ pre[class*="language-"] {
 }
 */
 .token.comment {
-    color: #607080;
+    color: var(--syntax-comment);
 }
 
 /*
@@ -85,12 +85,12 @@ pre[class*="language-"] {
 
 .token.constant {
     /*	color: #008b8b; */
-    color: #004060;
+    color: var(--syntax-constant);
 }
 
 .token.net,
 .token.string {
-	color: #8b2252;
+	color: var(--syntax-string);
 }
 
 /*
@@ -105,15 +105,15 @@ pre[class*="language-"] {
 */
 
 .token.keyword {
-    color: #a020f0;
+    color: var(--syntax-keyword);
 }
 
 .token.function {
-    color: #0000ff;
+    color: var(--syntax-function);
 }
 .token.class-name {
     /*    color: #228b22; */
-    color: #1c701c;
+    color: var(--syntax-class);
 }
 
 /*

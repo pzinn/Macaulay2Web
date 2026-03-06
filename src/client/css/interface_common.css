@@ -9,8 +9,74 @@
     src: url("iosevka-fixed-extendedmedium.woff2") format("woff2");
 }
 
+:root {
+    --bg-page: #d2dce9;
+    --bg-surface: #f8faf0;
+    --bg-terminal: #d2dce9;
+    --bg-code-inline: #fff8d6;
+    --bg-code-hover: #e0ffc0;
+    --bg-menu: #f0f0f0;
+    --bg-menu-selected: #ff6e40;
+    --bg-cell-hover: #808080;
+    --bg-cell-selected: #ff9800;
+    --bg-accent-soft: #7d8ed6;
+    --bg-accent-strong: #6a7bd2;
+    --bg-rule: #000080;
+    --text-main: #10141a;
+    --text-link: #c86400;
+    --text-dim: rgba(0, 0, 0, 0.26);
+    --text-katex-error: #c07060;
+    --text-marker-valid: #50a000;
+    --text-marker-error: #ff0000;
+    --text-marker-caret: #000000;
+    --syntax-comment: #607080;
+    --syntax-constant: #004060;
+    --syntax-string: #8b2252;
+    --syntax-keyword: #a020f0;
+    --syntax-function: #0000ff;
+    --syntax-class: #1c701c;
+    --shadow-main: #888888;
+    --border-main: #b1b1b1;
+}
+
+:root[data-theme="night"] {
+    --bg-page: #121923;
+    --bg-surface: #182333;
+    --bg-terminal: #141f2d;
+    --bg-code-inline: #2a3442;
+    --bg-code-hover: #31435a;
+    --bg-menu: #1e2a3c;
+    --bg-menu-selected: #d7663f;
+    --bg-cell-hover: #556277;
+    --bg-cell-selected: #e6893b;
+    --bg-accent-soft: #445f89;
+    --bg-accent-strong: #3f567b;
+    --bg-rule: #5f7aa5;
+    --text-main: #dce4ef;
+    --text-link: #f1af54;
+    --text-dim: rgba(220, 228, 239, 0.5);
+    --text-katex-error: #ff8f80;
+    --text-marker-valid: #8dda6f;
+    --text-marker-error: #ff8585;
+    --text-marker-caret: #e6ecf6;
+    --syntax-comment: #8ea5c1;
+    --syntax-constant: #8bc4ff;
+    --syntax-string: #f5b1cf;
+    --syntax-keyword: #c79dff;
+    --syntax-function: #89b8ff;
+    --syntax-class: #9cda93;
+    --shadow-main: #000000;
+    --border-main: #45536a;
+}
+
 body {
     font-family: "Epilogue";
+    color: var(--text-main);
+    background-color: var(--bg-page);
+}
+
+html {
+    background-color: var(--bg-page);
 }
 
 #terminal {
@@ -25,6 +91,8 @@ body {
     outline: none;
     line-height: 1.14286;
     padding-bottom: 0.7em;
+    background: var(--bg-terminal);
+    color: var(--text-main);
 }
 
 /* various sections inside #terminal */
@@ -228,7 +296,7 @@ does not contain the whole contents (and is possibly empty) */
 }
 
 .KatexError {
-    color: #C07060;
+    color: var(--text-katex-error);
     white-space: pre;
     font-family: "Iosevka", monospace;
     font-weight: normal;
@@ -255,7 +323,7 @@ does not contain the whole contents (and is possibly empty) */
 }
 
 .M2Cell:hover > .M2Left {
-    background: grey;
+    background: var(--bg-cell-hover);
 }
 
 .M2Separator:hover ~ .M2Left {
@@ -263,7 +331,7 @@ does not contain the whole contents (and is possibly empty) */
 }
 
 .M2Cell.M2CellSelected > .M2Left { /* need to override previous two */
-    background: orange !important;
+    background: var(--bg-cell-selected) !important;
 }
 
 .M2CellBar:hover {
@@ -280,7 +348,7 @@ does not contain the whole contents (and is possibly empty) */
 }
 
 .M2Separator:hover {
-    background: grey;
+    background: var(--bg-cell-hover);
 }
 
 .M2CellClosed {
@@ -305,7 +373,7 @@ code {
     /* used to be that  only this code is clickable:
     #tutorial code, #chat code {
    */
-    background-color: lightyellow;
+    background-color: var(--bg-code-inline);
     cursor: pointer;
     transition: background-color 200ms;
 }
@@ -331,7 +399,7 @@ pre > code, code.block { /* code block */
 }
 
 .M2PastInput:hover {
-    background-color: #E0FFC0;
+    background-color: var(--bg-code-hover);
     box-shadow: 1px 1px 2px 0px black;
     cursor: pointer;
 }
@@ -382,14 +450,14 @@ ul.menu {
 }
 
 .menu .selected {
-    background-color: rgb(255,110,64);
+    background-color: var(--bg-menu-selected);
 }
 
 #contextmenu {
     padding: 5px;
-    background: #f0f0f0;
-    box-shadow: 4px 4px 3px -2px #888888;
-    border: 1px solid #b1b1b1;
+    background: var(--bg-menu);
+    box-shadow: 4px 4px 3px -2px var(--shadow-main);
+    border: 1px solid var(--border-main);
     border-radius: 1px;
     position: absolute;
 }
@@ -416,7 +484,7 @@ ul.menu {
 a {
     cursor: pointer;
     text-decoration:none;
-    color: rgb(200,100,0);
+    color: var(--text-link);
 }
 
 .M2Html a {
@@ -438,19 +506,19 @@ a {
 
 .valid-marker::after {
     content: '▒'; /* default */
-    color: #50A000;
+    color: var(--text-marker-valid);
     opacity: 0.8;
 }
 
 .error-marker::after {
     /*    content: '▶';*/
     content: '▒'; /* default */
-    color: red;
+    color: var(--text-marker-error);
     opacity: 0.8;
 }
 .caret-marker::after {
     content: '▒'; /* default */
-    color: black;
+    color: var(--text-marker-caret);
     opacity: 0.8;
 }
 
