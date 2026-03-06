@@ -31,6 +31,12 @@
             <button id="zoomOutBtn" class="mdl-button mdl-js-button mdl-button--icon">
               <i class="material-icons">zoom_out</i>
 	    </button>
+            <button id="themeBtn" class="mdl-button mdl-js-button mdl-button--icon">
+              <i id="themeBtnIcon" class="material-icons">dark_mode</i>
+            </button>
+            <div class="mdl-tooltip" for="themeBtn">
+              Switch to night mode
+            </div>
             <button id="clearBtn" class="mdl-button mdl-js-button mdl-button--icon">
 	      <i class="material-icons">delete</i>
 	    </button>
@@ -249,7 +255,7 @@
 		    <span class="chatInput" style="width:1%">
 		      <i class="material-icons">chat</i>
 		    </span>
-		    <div contenteditable="true" class="chatInput" id="chatInput" style="background:white;width:calc(99% - 20px)"></div>
+		    <div contenteditable="true" class="chatInput" id="chatInput" style="width:calc(99% - 20px)"></div>
 		  </div>
 		  </form>
               </div>

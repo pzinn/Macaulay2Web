@@ -165,8 +165,75 @@ if (MINIMAL) {
 }
 
 const url = new URL(document.location.href);
+type ThemeMode = "day" | "night";
+let theme: ThemeMode = "day";
+
+const getCookie = function (name: string): string | null {
+  const pairs = document.cookie ? document.cookie.split("; ") : [];
+  for (const pair of pairs) {
+    const eq = pair.indexOf("=");
+    const key = eq >= 0 ? pair.substring(0, eq) : pair;
+    if (key === name) {
+      const val = eq >= 0 ? pair.substring(eq + 1) : "";
+      return decodeURIComponent(val);
+    }
+  }
+  return null;
+};
+
+const setCookie = function (name: string, value: string): void {
+  const expDate = new Date(new Date().getTime() + options.cookieDuration);
+  document.cookie =
+    name +
+    "=" +
+    encodeURIComponent(value) +
+    "; expires=" +
+    expDate.toUTCString() +
+    "; path=/; SameSite=Lax";
+};
+
+const isNightTheme = function (input: string | null): boolean {
+  return input === "night";
+};
+
+const updateThemeButton = function (): void {
+  const icon = document.getElementById("themeBtnIcon");
+  if (icon) icon.textContent = isNightTheme(theme) ? "light_mode" : "dark_mode";
+  const tooltip = document.querySelector(".mdl-tooltip[for='themeBtn']");
+  if (tooltip)
+    tooltip.textContent = isNightTheme(theme)
+      ? "Switch to day mode"
+      : "Switch to night mode";
+};
+
+const applyTheme = function (inputTheme: ThemeMode, persist?: boolean): void {
+  theme = isNightTheme(inputTheme) ? "night" : "day";
+  document.documentElement.dataset.theme = theme;
+  updateThemeButton();
+  if (persist !== false) setCookie(options.cookieThemeName, theme);
+};
+
+const initTheme = function (): void {
+  const storedTheme = getCookie(options.cookieThemeName);
+  const preferredTheme =
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "night"
+      : "day";
+  applyTheme(
+    (isNightTheme(storedTheme) ? storedTheme : preferredTheme) as ThemeMode,
+    false
+  );
+  const themeBtn = document.getElementById("themeBtn");
+  if (themeBtn) {
+    themeBtn.onclick = function () {
+      applyTheme(isNightTheme(theme) ? "day" : "night");
+    };
+  }
+};
 
 const init = function () {
+  initTheme();
   if (!MINIMAL && !navigator.cookieEnabled) {
     alert("This site requires cookies to be enabled.");
     return;
