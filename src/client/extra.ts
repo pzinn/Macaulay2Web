@@ -295,7 +295,22 @@ const extra1 = function () {
 
   let oldTab = "";
   let editorFoc = false;
-  // supersedes mdl's internal tab handling
+  const activateTab = function (loc: string) {
+    tabs
+      .querySelectorAll(".app-panel.is-active")
+      .forEach((el) => el.classList.remove("is-active"));
+    tabs
+      .querySelectorAll(".app-tab.is-active")
+      .forEach((el) => el.classList.remove("is-active"));
+    const panel = document.getElementById(loc);
+    const tab = document.getElementById(loc + "Title");
+    if (panel && tab) {
+      panel.classList.add("is-active");
+      tab.classList.add("is-active");
+    }
+  };
+
+  // custom tab handling (no MDL JS dependency)
   const openTab = function () {
     let loc = document.location.hash.substring(1);
     if (editorFoc) {
@@ -332,12 +347,7 @@ const extra1 = function () {
       oldTab = loc;
       const tab = document.getElementById(loc + "Title");
       if (tab) {
-        if (tabs.MaterialTabs) {
-          tabs.MaterialTabs.resetPanelState_();
-          tabs.MaterialTabs.resetTabState_();
-        }
-        panel.classList.add("is-active");
-        tab.classList.add("is-active");
+        activateTab(loc);
         if (loc == "chat") {
           tab.removeAttribute("data-message");
           // scroll. sadly, doesn't work if started with #chat
@@ -350,12 +360,10 @@ const extra1 = function () {
 
   let ignoreFirstLoad = true;
   const openBrowseTab = function (event) {
-    const el = document.getElementById("browseTitle");
-    // show tab panel
-    if (el && tabs.classList.contains("is-upgraded")) {
-      if (ignoreFirstLoad) ignoreFirstLoad = false;
-      else el.click();
-    }
+    if (ignoreFirstLoad) ignoreFirstLoad = false;
+    else if (document.location.hash !== "#browse")
+      document.location.hash = "#browse";
+    else activateTab("browse");
     // try to enable actions
     if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
       const bdy = iFrame.contentDocument.body;

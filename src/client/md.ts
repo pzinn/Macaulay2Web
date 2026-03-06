@@ -94,9 +94,9 @@ try {
     mdSubst[j].pattern = new RegExp(mdSubst[j].pattern, "g");
   for (let j = 0; j < patterns.length; j++)
     patterns[j].pattern = new RegExp(patterns[j].pattern);
-  forbiddenTagsRegex = new RegExp(
+    forbiddenTagsRegex = new RegExp(
     forbiddenTags.map((tag) => "(?<=<|</)" + tag).join("|") +
-      "|(?<=<[^>]*\\s)id=|(?<=<[^>]*\\s)for=|(?<=<[^>]*)mdl-",
+      "|(?<=<[^>]*\\s)id=|(?<=<[^>]*\\s)for=|(?<=<[^>]*)app-",
     "g"
   );
   removeForbiddenTags = (str) => str.replace(forbiddenTagsRegex, "no$&");

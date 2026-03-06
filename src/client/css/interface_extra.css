@@ -8,21 +8,287 @@ body {
 /*    background-color: whitesmoke; */
 }
 
-.mdl-grid {
+.app-shell {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-content{
+    height: calc(100vh - 64px);
+}
+
+@media (max-width:1024px) {
+    .app-content{
+	height: calc(100vh - 56px);
+    }
+}
+
+.app-grid{
     position: absolute;
-    width: calc(100% - 16px);
-    height: calc(100% - 16px);
+    width: 100%;
+    height: 100%;
+}
+
+.app-content{
+    display: block;
+    width: 100%;
+    position: relative;
+}
+
+.app-cell {
+    box-sizing: border-box;
+}
+
+.app-header {
+    z-index: 6;
+    background-color: var(--bg-header);
+    color: var(--text-on-accent);
+    box-shadow: 0 1px 4px var(--shadow-soft);
+}
+
+.app-header-row {
+    display: flex;
+    align-items: center;
+    height: 64px;
+    padding: 0px 40px 0px 80px;
+    box-sizing: border-box;
+}
+
+.app-layout-title {
+    font-size: 20px;
+    line-height: 1;
+    color: inherit;
+}
+
+.app-spacer {
+    flex-grow: 1;
+}
+
+.app-navigation {
+    display: flex;
+    align-items: center;
+}
+
+.app-drawer {
+    width: 240px;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    height: 100%;
+    overflow-y: auto;
+    z-index: 5;
+    transform: translateX(-100%);
+    transition: transform 200ms ease;
+    background-color: var(--bg-drawer);
+    color: var(--text-main);
+    border-right: 1px solid var(--border-main);
+}
+
+.app-drawer.is-visible {
+    transform: translateX(0px);
+}
+
+.app-nav-link {
+    display: block;
+    padding: 16px 24px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.app-nav-link:hover {
+    background: var(--bg-button);
+}
+
+.app-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    font-family: sans-serif;
+    color: var(--text-main);
+    border-radius: 2px;
+}
+
+.app-header .app-btn {
+    color: inherit;
+}
+
+.app-header .app-btn-icon {
+    color: var(--text-on-accent);
+}
+
+.app-header .app-btn-icon:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.app-header .app-btn-raised {
+    color: var(--text-main);
+}
+
+.app-btn:hover {
+    background: var(--bg-button);
+}
+
+.app-btn:disabled {
+    cursor: default;
+    opacity: 0.65;
+    background: transparent;
+}
+
+.app-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+.app-btn-raised {
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    font-size: 14px;
+    line-height: 1.2;
+    padding: 0 16px;
+    min-height: 38px;
+    box-shadow: 0 1px 2px var(--shadow-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    background: var(--bg-button-raised-day);
+}
+
+.app-btn-raised.app-btn-accent {
+    background: var(--bg-button-accent);
+    color: var(--text-on-accent);
+}
+
+#loadBtn.app-btn-raised.app-btn-colored,
+#saveBtn.app-btn-raised.app-btn-colored,
+#interruptBtn .app-btn-raised.app-btn-colored,
+#uploadBtn .app-btn-raised.app-btn-colored {
+    background: var(--bg-header);
+    color: var(--text-on-accent);
+    border: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+}
+
+#loadBtn.app-btn-raised.app-btn-colored:hover,
+#saveBtn.app-btn-raised.app-btn-colored:hover,
+#interruptBtn .app-btn-raised.app-btn-colored:hover,
+#uploadBtn .app-btn-raised.app-btn-colored:hover {
+    filter: brightness(1.08);
+}
+
+#loadBtn.app-btn-raised.app-btn-colored:active,
+#saveBtn.app-btn-raised.app-btn-colored:active,
+#interruptBtn .app-btn-raised.app-btn-colored:active,
+#uploadBtn .app-btn-raised.app-btn-colored:active {
+    transform: translateY(1px);
+    border: none;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.22), 0 1px 1px rgba(0, 0, 0, 0.12);
+}
+
+.app-btn-fab {
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+}
+
+.app-tabs {
+    height: 100%;
+    overflow-y: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.app-tab-bar {
+    display: flex;
+    height: 48px;
+    border-bottom: 1px solid var(--border-main);
+}
+
+.app-tab-bar.app-large-only {
+    display: flex;
+}
+
+.app-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 0;
+    min-width: 72px;
+    height: 48px;
+    padding: 0 16px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    text-transform: uppercase;
+}
+
+.app-tab::after {
+    content: "";
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+    height: 2px;
+    background: transparent;
+}
+
+.app-panel.is-active {
+    display: block;
+}
+
+.app-large-only {
+    display: revert;
+}
+
+.app-small-only {
+    display: none;
+}
+
+.app-tooltip {
+    display: none;
+}
+
+.app-dialog {
+    border: 1px solid var(--border-main);
+    border-radius: 4px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+}
+
+dialog.app-dialog::backdrop {
+    background: radial-gradient(
+        circle at center,
+        rgba(0, 0, 0, 0.14) 0%,
+        rgba(0, 0, 0, 0.28) 100%
+    );
 }
 
 #left-half, #right-half {
     position: relative;
-    /* grid has margin 8px, which is not subtracted by
-    box-sizing, so we subtract it manually */
-    height: calc(100% - 16px);
+    box-sizing: border-box;
+    height: 100%;
+}
+
+#left-half {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+#right-half {
+    padding-left: 12px;
 }
 
 @media (min-width:480px) {
-    .mdl-grid {
+    .app-grid{
 	display: flex;
 	flex-wrap: nowrap;
 	align-items: stretch;
@@ -75,11 +341,51 @@ body {
     #resize {
 	display: none;
     }
-    .mdl-layout__header-row {
+    .app-header-row{
 	padding: 0px 16px 0px 50px;
     }
-    .mdl-layout-title {
+    .app-layout-title{
 	font-size: 16px;
+    }
+}
+
+#drawerToggle {
+    display: none;
+}
+
+#drawerOverlay {
+    display: none;
+}
+
+@media (max-width:1023px) {
+    #drawerToggle {
+	display: block;
+    }
+    .app-large-only {
+        display: none;
+    }
+    .app-small-only {
+        display: inline-flex;
+    }
+    .app-drawer {
+	z-index: 5;
+    }
+    .app-drawer.is-visible {
+	transform: translateX(0px);
+    }
+    #drawerOverlay {
+	background: rgba(0,0,0,0.45);
+	display: block;
+	inset: 0;
+	opacity: 0;
+	position: fixed;
+	visibility: hidden;
+	z-index: 4;
+	transition: opacity 200ms ease, visibility 200ms ease;
+    }
+    #drawerOverlay.is-visible {
+	opacity: 1;
+	visibility: visible;
     }
 }
 
@@ -94,15 +400,32 @@ body {
     box-sizing: border-box;
 }
 
+#browse {
+    overflow: hidden;
+}
+
+#browseFrame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
 #lessonNav {
     position: relative;
     z-index: 2;
     float: right;
+    display: flex;
+    align-items: center;
+    gap: 2px;
     margin-right: 20px;
     margin-bottom: 0px;
 }
 
 #lessonNr {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
     vertical-align: middle;
 }
 
@@ -145,6 +468,17 @@ body {
     bottom: 20px;
     right: 20px;
     z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+#editorFileNameDiv > .app-btn-icon {
+    margin: 0;
+}
+
+#editorFileNameDiv > span {
+    display: inline-block;
 }
 
 #editorFileName {
@@ -169,8 +503,8 @@ body {
     border:0px;
     outline: 0px;
 }
-/* Select all buttons within a class="mdl-dialog" element */
-.mdl-dialog > button {
+/* Select all buttons within a class="app-dialog" element */
+.app-dialog > button{
     float: right;
 }
 
@@ -199,21 +533,14 @@ body {
     float: right;
     margin: 10px;
     border-radius: 5px;
+    width: min(20%, 180px);
+    height: auto;
 }
 
-.mdl-tabs {
-    height: 100%;
-    overflow-y: hidden;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-}
-
-.mdl-tabs__panel {
+.app-panel{
     overflow-y: auto;
     flex: 1;
-    display: flex;
+    display: none;
     height: 100%;
     position: relative;
     box-sizing: border-box;
@@ -221,11 +548,6 @@ body {
 
 .small-image {
     width: 20vw;
-}
-
-.mdl-mini-footer {
-    padding-top: 1px;
-    padding-bottom: 1px;
 }
 
 .accordion {
@@ -262,7 +584,15 @@ button.accordionOpen .material-icons {
 }
 
 .accordionTitleBar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-family: sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--bg-accordion-titlebar);
     cursor: pointer;
+    padding: 12px;
 }
 
 .accordionTitleBar:hover {
@@ -270,31 +600,46 @@ button.accordionOpen .material-icons {
 }
 
 .accordionTitle {
+    flex: 0 1 auto;
+    display: inline-block;
     text-align: left;
+}
+
+.accordionTitleBar > .material-icons {
+    margin-left: 0.35em;
 }
 
 .accordionTitle:hover {
     background-color: var(--bg-accent-strong);
 }
 
-.mdl-tabs__tab {
+.app-tab{
     font-family: sans-serif;
+    color: var(--text-dim);
     transition: color 200ms ease, background-color 200ms ease;
 }
 
-:root[data-theme="night"] .mdl-tabs__tab {
+.app-tabs .app-tab.is-active{
+    color: var(--text-main);
+}
+
+.app-tabs .app-tab.is-active::after {
+    background: var(--text-link);
+}
+
+:root[data-theme="night"] .app-tab {
+    color: var(--text-dim) !important;
+}
+
+:root[data-theme="night"] .app-tabs .app-tab.is-active {
     color: var(--text-main) !important;
 }
 
-:root[data-theme="night"] .mdl-tabs.is-upgraded .mdl-tabs__tab.is-active {
-    color: var(--text-link) !important;
-}
-
-:root[data-theme="night"] .mdl-tabs__tab-bar {
+:root[data-theme="night"] .app-tab-bar {
     border-bottom-color: var(--border-main);
 }
 
-:root[data-theme="night"] .mdl-tabs__tab-bar .mdl-tabs__tab::after {
+:root[data-theme="night"] .app-tab-bar .app-tab::after {
     background: var(--text-link);
 }
 
@@ -309,7 +654,7 @@ button.accordionOpen .material-icons {
     border:1px solid var(--border-main);
     padding: 10px 15px;
     margin-bottom: -1px;
-    background: var(--bg-surface);
+    background: var(--bg-chat-surface);
     transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }
 
@@ -331,7 +676,7 @@ button.accordionOpen .material-icons {
     height:24px;
     border:1px solid var(--border-main);
     border-radius:4px;
-    background: var(--bg-surface);
+    background: var(--bg-chat-surface);
     color: var(--text-main);
     transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }
@@ -457,7 +802,7 @@ nav {
 }
 
 #chatInput {
-    background: var(--bg-surface);
+    background: var(--bg-chat-surface);
 }
 
 #changeUserDialog,
@@ -467,62 +812,79 @@ nav {
     color: var(--text-main);
 }
 
+#changeUserDialog {
+    width: fit-content;
+    max-width: min(440px, calc(100% - 24px));
+    margin: 12px auto;
+    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.2),
+        0 0 0 100vmax rgba(0, 0, 0, 0.18);
+}
+
+#changeUserDialog button {
+    text-transform: uppercase;
+}
+
+#uploadDialog label.app-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 #editorDiv,
 #fullScreenOutput,
 #chatMessages {
     transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }
 
-:root[data-theme="night"] .mdl-layout__header {
+:root[data-theme="night"] .app-header {
     background-color: var(--bg-header);
     color: var(--text-main);
 }
 
-:root[data-theme="night"] .mdl-layout__header .mdl-layout-title,
-:root[data-theme="night"] .mdl-layout__header .material-icons {
+:root[data-theme="night"] .app-header .app-layout-title,
+:root[data-theme="night"] .app-header .material-icons {
     color: var(--text-strong);
 }
 
-:root[data-theme="night"] .mdl-layout__header .mdl-button {
+:root[data-theme="night"] .app-header .app-btn {
     color: var(--text-strong);
 }
 
-:root[data-theme="night"] .mdl-layout__drawer {
+:root[data-theme="night"] .app-drawer {
     background-color: var(--bg-drawer);
     color: var(--text-main);
     border-right: 1px solid var(--border-main);
 }
 
-:root[data-theme="night"] .mdl-layout__drawer .mdl-layout-title,
-:root[data-theme="night"] .mdl-layout__drawer .mdl-navigation__link {
+:root[data-theme="night"] .app-drawer .app-layout-title,
+:root[data-theme="night"] .app-drawer .app-nav-link {
     color: var(--text-main);
 }
 
-:root[data-theme="night"] .mdl-layout__drawer .mdl-navigation__link:hover {
+:root[data-theme="night"] .app-drawer .app-nav-link:hover {
     background: var(--bg-button);
 }
 
-:root[data-theme="night"] .mdl-tooltip {
+:root[data-theme="night"] .app-tooltip {
     background: var(--bg-tooltip);
     color: var(--text-on-accent);
 }
 
-:root[data-theme="night"] .mdl-button--raised {
+:root[data-theme="night"] .app-btn-raised {
     background: var(--bg-button);
     color: var(--text-main);
 }
 
-:root[data-theme="night"] .mdl-button--raised.mdl-button--accent {
+:root[data-theme="night"] .app-btn-raised.app-btn-accent {
     background: var(--bg-button-accent);
     color: var(--text-on-accent);
 }
 
-:root[data-theme="night"] .mdl-button--raised.mdl-button--colored {
+:root[data-theme="night"] .app-btn-raised.app-btn-colored {
     background: var(--bg-button);
     color: var(--text-main);
 }
 
-:root[data-theme="night"] .mdl-textfield__input,
 :root[data-theme="night"] input,
 :root[data-theme="night"] select {
     color: var(--text-main);
