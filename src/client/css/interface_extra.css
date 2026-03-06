@@ -279,14 +279,23 @@ button.accordionOpen .material-icons {
 
 .mdl-tabs__tab {
     font-family: sans-serif;
+    transition: color 200ms ease, background-color 200ms ease;
 }
 
 :root[data-theme="night"] .mdl-tabs__tab {
-    color: var(--text-main);
+    color: var(--text-main) !important;
 }
 
 :root[data-theme="night"] .mdl-tabs.is-upgraded .mdl-tabs__tab.is-active {
-    color: var(--text-link);
+    color: var(--text-link) !important;
+}
+
+:root[data-theme="night"] .mdl-tabs__tab-bar {
+    border-bottom-color: var(--border-main);
+}
+
+:root[data-theme="night"] .mdl-tabs__tab-bar .mdl-tabs__tab::after {
+    background: var(--text-link);
 }
 
 #chatMessages {
@@ -301,6 +310,7 @@ button.accordionOpen .material-icons {
     padding: 10px 15px;
     margin-bottom: -1px;
     background: var(--bg-surface);
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }
 
 .chatMessage table,.chatMessage th,.chatMessage td {
@@ -323,6 +333,7 @@ button.accordionOpen .material-icons {
     border-radius:4px;
     background: var(--bg-surface);
     color: var(--text-main);
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }
 
 input[type=checkbox]:not(:checked) + label {
@@ -334,7 +345,7 @@ input[type=checkbox]:not(:checked) + label {
 }
 
 [data-message] {
-    color: #C07040;
+    color: var(--state-warning);
 }
 
 [data-message=System] {
@@ -342,12 +353,12 @@ input[type=checkbox]:not(:checked) + label {
 }
 
 [data-message=Admin] {
-    color: #FF0000;
+    color: var(--state-error);
 }
 
 .message-pop {
 /*    font-weight: 700;*/
-    text-shadow: 0px 0px 4px #E09060;
+    text-shadow: 0px 0px 4px var(--state-warning-glow);
 }
 
 .message-close {
@@ -442,6 +453,7 @@ nav {
     overflow-wrap: anywhere;
 /*    text-wrap:wrap !important; */
     word-break: break-all;
+    transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
 }
 
 #chatInput {
@@ -453,6 +465,69 @@ nav {
 #uploadDialog {
     background: var(--bg-surface) !important;
     color: var(--text-main);
+}
+
+#editorDiv,
+#fullScreenOutput,
+#chatMessages {
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+
+:root[data-theme="night"] .mdl-layout__header {
+    background-color: var(--bg-header);
+    color: var(--text-main);
+}
+
+:root[data-theme="night"] .mdl-layout__header .mdl-layout-title,
+:root[data-theme="night"] .mdl-layout__header .material-icons {
+    color: var(--text-strong);
+}
+
+:root[data-theme="night"] .mdl-layout__header .mdl-button {
+    color: var(--text-strong);
+}
+
+:root[data-theme="night"] .mdl-layout__drawer {
+    background-color: var(--bg-drawer);
+    color: var(--text-main);
+    border-right: 1px solid var(--border-main);
+}
+
+:root[data-theme="night"] .mdl-layout__drawer .mdl-layout-title,
+:root[data-theme="night"] .mdl-layout__drawer .mdl-navigation__link {
+    color: var(--text-main);
+}
+
+:root[data-theme="night"] .mdl-layout__drawer .mdl-navigation__link:hover {
+    background: var(--bg-button);
+}
+
+:root[data-theme="night"] .mdl-tooltip {
+    background: var(--bg-tooltip);
+    color: var(--text-on-accent);
+}
+
+:root[data-theme="night"] .mdl-button--raised {
+    background: var(--bg-button);
+    color: var(--text-main);
+}
+
+:root[data-theme="night"] .mdl-button--raised.mdl-button--accent {
+    background: var(--bg-button-accent);
+    color: var(--text-on-accent);
+}
+
+:root[data-theme="night"] .mdl-button--raised.mdl-button--colored {
+    background: var(--bg-button);
+    color: var(--text-main);
+}
+
+:root[data-theme="night"] .mdl-textfield__input,
+:root[data-theme="night"] input,
+:root[data-theme="night"] select {
+    color: var(--text-main);
+    background-color: var(--bg-surface);
+    border-color: var(--border-main);
 }
 
 #searchString {
