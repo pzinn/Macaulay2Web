@@ -396,7 +396,7 @@ code {
     font-weight: normal;
     line-height: 1.5;
     text-decoration: none;
-    box-shadow: 1px 1px 2px 0px var(--shadow-soft);
+    box-shadow: rgb(0, 0, 0) 1px 1px 2px 0px;
     padding: 2px 4px;
     border-radius: 7px;
     display: inline;
@@ -458,7 +458,7 @@ pre > code, code.block { /* code block */
 
 .M2PastInput:hover {
     background-color: var(--bg-code-hover);
-    box-shadow: 1px 1px 2px 0px var(--shadow-soft);
+    box-shadow: rgb(0, 0, 0) 1px 1px 2px 0px;
     cursor: pointer;
 }
 

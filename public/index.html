@@ -55,7 +55,7 @@
               (Re)start M2
             </div>
             <div id="interruptBtn">
-              <span class="app-large-only" style="padding:0px 5px"><button class="app-btn app-btn-raised app-btn-colored">
+              <span class="app-large-only" style="padding:0px 5px"><button class="app-btn app-btn-raised app-btn-brand">
                   Interrupt
               </button></span>
               <button class="app-btn app-btn-icon app-small-only">
@@ -66,7 +66,7 @@
               Send Ctrl-c to M2
             </div>
             <div id="uploadBtn">
-              <span class="app-large-only" style="padding:0px 5px"><button class="app-btn app-btn-raised app-btn-colored">
+              <span class="app-large-only" style="padding:0px 5px"><button class="app-btn app-btn-raised app-btn-brand">
                   Upload file
               </button></span>
               <button class="app-btn app-btn-icon app-small-only">
@@ -178,11 +178,13 @@
 
               <div class="app-panel" style="overflow-y:hidden" id="editor">
 		<div id="editorBtns">
-		  <div id="warningBtn-tooltip" class="app-tooltip" for="warningBtn">
+		  <div id="warningBtn-tooltip" class="app-tooltip" for="warningBtnAnchor">
 		  </div>
-		  <button id="warningBtn" class="app-btn app-btn-raised" disabled>
-		    <i class="material-icons" style="color:black">sync_problem</i>
-		  </button>
+		  <span id="warningBtnAnchor">
+		    <button id="warningBtn" class="app-btn app-btn-raised app-btn-muted" disabled>
+		      <i class="material-icons" style="color:black">sync_problem</i>
+		    </button>
+		  </span>
 		  <div class="app-tooltip" for="runAllEditor">
 		    Run all editor code
 		  </div>
@@ -201,14 +203,14 @@
 		    Load a file to the editor and to the cloud
 		  </div>
                   <button type="button" id="loadBtn"
-			  class="app-btn app-btn-raised app-btn-colored">
+			  class="app-btn app-btn-raised app-btn-brand">
                     Load
                   </button>
 		  <div class="app-tooltip" for="saveBtn">
 		    Save the editor file locally
 		  </div>
                   <button type="button" id="saveBtn"
-			  class="app-btn app-btn-raised app-btn-colored">
+			  class="app-btn app-btn-raised app-btn-brand">
                     Save
                   </button>
 		  <div style="min-height:5pt"></div>
@@ -310,7 +312,7 @@
       <button id="uploadDialogClose" class="app-btn app-btn-icon">
         <i class="material-icons">close</i>
       </button>
-      <label class="app-btn app-btn-raised app-btn-colored">
+      <label class="app-btn app-btn-raised app-btn-secondary">
 	<input type="file" class="" multiple="true" id="localUpload" style="display:none"/>
 	Local file upload
       </label>
@@ -322,7 +324,7 @@
 	<input type="text" id="githubProject" name="githubproject" value=""><br/>
 	<label for="githubBranch">Branch or commit:</label>
 	<input type="text" id="githubBranch" name="githubbranch" value="main"><br/>
-	<button id="githubUpload" class="app-btn app-btn-raised app-btn-colored">GitHub upload</button>
+	<button id="githubUpload" class="app-btn app-btn-raised app-btn-secondary">GitHub upload</button>
       </div>
       <div class="app-dialog__content" id="uploadSuccessText">
       </div>

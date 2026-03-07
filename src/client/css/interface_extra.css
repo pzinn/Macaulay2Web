@@ -166,30 +166,35 @@ body {
     color: var(--text-on-accent);
 }
 
-#loadBtn.app-btn-raised.app-btn-colored,
-#saveBtn.app-btn-raised.app-btn-colored,
-#interruptBtn .app-btn-raised.app-btn-colored,
-#uploadBtn .app-btn-raised.app-btn-colored {
+.app-btn-raised.app-btn-secondary {
+    background: var(--bg-button);
+    color: var(--text-main);
+}
+
+.app-btn-raised.app-btn-secondary:hover {
+    filter: brightness(1.05);
+}
+
+.app-btn-raised.app-btn-brand {
     background: var(--bg-header);
     color: var(--text-on-accent);
     border: none;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
 }
 
-#loadBtn.app-btn-raised.app-btn-colored:hover,
-#saveBtn.app-btn-raised.app-btn-colored:hover,
-#interruptBtn .app-btn-raised.app-btn-colored:hover,
-#uploadBtn .app-btn-raised.app-btn-colored:hover {
+.app-btn-raised.app-btn-brand:hover {
     filter: brightness(1.08);
 }
 
-#loadBtn.app-btn-raised.app-btn-colored:active,
-#saveBtn.app-btn-raised.app-btn-colored:active,
-#interruptBtn .app-btn-raised.app-btn-colored:active,
-#uploadBtn .app-btn-raised.app-btn-colored:active {
+.app-btn-raised.app-btn-brand:active {
     transform: translateY(1px);
     border: none;
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.22), 0 1px 1px rgba(0, 0, 0, 0.12);
+}
+
+.app-btn-raised.app-btn-muted,
+.app-btn-raised.app-btn-muted:disabled {
+    background: rgba(158, 158, 158, 0.35);
 }
 
 .app-btn-fab {
@@ -461,6 +466,12 @@ dialog.app-dialog::backdrop {
     z-index: 2;
     top: 8px;
     right: 25px;
+}
+
+#warningBtnAnchor {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
 }
 
 #editorFileNameDiv {
@@ -902,7 +913,7 @@ nav {
     color: var(--text-on-accent);
 }
 
-:root[data-theme="night"] .app-btn-raised.app-btn-colored {
+:root[data-theme="night"] .app-btn-raised.app-btn-secondary {
     background: var(--bg-button);
     color: var(--text-main);
 }

@@ -117,10 +117,12 @@ const setDirectory = function (val: boolean) {
 
 const setReadonly = function (val: boolean, msg?: string) {
   currentFileIsReadonly = val;
-  const btn = document.getElementById("warningBtn");
-  const tooltip = document.getElementById("warningBtn-tooltip");
-  if (btn) btn.style.display = val ? "" : "none";
-  if (tooltip) tooltip.textContent = msg;
+  const btnAnchor = document.getElementById("warningBtnAnchor");
+  if (btnAnchor) {
+    btnAnchor.style.display = val ? "inline-flex" : "none";
+    if (msg && val) btnAnchor.setAttribute("title", msg);
+    else btnAnchor.removeAttribute("title");
+  }
 };
 
 let autoSaveTimeout;
