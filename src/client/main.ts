@@ -199,11 +199,15 @@ const isNightTheme = function (input: string | null): boolean {
 const updateThemeButton = function (): void {
   const icon = document.getElementById("themeBtnIcon");
   if (icon) icon.textContent = isNightTheme(theme) ? "light_mode" : "dark_mode";
-  const tooltip = document.querySelector(".mdl-tooltip[for='themeBtn']");
-  if (tooltip)
-    tooltip.textContent = isNightTheme(theme)
-      ? "Switch to day mode"
-      : "Switch to night mode";
+  const text = isNightTheme(theme)
+    ? "Switch to day mode"
+    : "Switch to night mode";
+  const themeBtn = document.getElementById("themeBtn");
+  if (themeBtn) themeBtn.setAttribute("title", text);
+  const tooltip = document.querySelector(
+    ".app-tooltip[for='themeBtn']"
+  );
+  if (tooltip) tooltip.textContent = text;
 };
 
 const applyTheme = function (inputTheme: ThemeMode, persist?: boolean): void {

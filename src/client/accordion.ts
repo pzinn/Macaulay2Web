@@ -6,14 +6,12 @@ const cssClasses = {
   titleSymbolClass: "material-icons accordionArrow",
   titleSymbolActive: "arrow_right",
   title: "accordionTitleBar",
-  titleMdl: "mdl-button mdl-js-button mdl-button--raised mdl-list__item",
-  titleHover: "mdl-button--colored",
+  titleButton: "app-btn app-btn-raised app-btn-colored",
   toggleClass: "accordionOpen",
   delayedToggleClass: "accordionDelayed",
-  content: "mdl-list__item-text-body mdl-list__item",
   innerList: "accordionMenu",
   menuItem: "accordionMenuTitle",
-  titleHref: "accordionTitle mdl-button mdl-js-button mdl-button-raised",
+  titleHref: "accordionTitle app-btn",
 };
 
 const initAccordion = function (index) {
@@ -109,7 +107,7 @@ const appendTutorialToAccordion = function (
   div.classList.add(cssClasses.accordionItem);
 
   const titlespan = document.createElement("span"); //title.cloneNode(false);
-  titlespan.className = cssClasses.titleMdl;
+  titlespan.className = cssClasses.titleButton;
   const titlea = document.createElement("a");
   titlea.className = cssClasses.titleHref;
   if (!clickAction) {

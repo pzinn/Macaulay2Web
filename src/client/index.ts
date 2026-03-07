@@ -4,36 +4,78 @@
 
 declare const MINIMAL;
 
-// bundle mdl
 if (MINIMAL) {
   console.log("Minimal Macaulay2Web interface");
 } else {
   console.log("Full Macaulay2Web interface");
 
-  // ugly hack: prevent mdl's built-in tab handling
-  const addEventListener = HTMLAnchorElement.prototype.addEventListener;
-  HTMLAnchorElement.prototype.addEventListener = function (a, b, c) {
-    if (!this.classList.contains("mdl-tabs__tab"))
-      addEventListener.bind(this, a, b, c);
+  const installTooltipFallbacks = function () {
+    const tooltips = document.querySelectorAll(".app-tooltip[for]");
+    tooltips.forEach((tooltipEl) => {
+      const targetId = tooltipEl.getAttribute("for");
+      if (!targetId) return;
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      const text = tooltipEl.textContent ? tooltipEl.textContent.trim() : "";
+      if (text !== "" && !target.getAttribute("title"))
+        target.setAttribute("title", text);
+    });
   };
 
-  require("./js/material.js");
+  const initDrawer = function () {
+    const layout = document.querySelector(".app-shell");
+    const drawer = document.querySelector(".app-drawer");
+    const overlay = document.getElementById("drawerOverlay");
+    const toggleBtn = document.getElementById("drawerToggle");
+    if (!layout || !drawer || !overlay || !toggleBtn) return;
+    const mobileQuery = window.matchMedia("(max-width: 1023px)");
 
-  // must add this due to failure of mdl, see https://stackoverflow.com/questions/31536467/how-to-hide-drawer-upon-user-click
+    const syncScreenClass = function () {
+      if (mobileQuery.matches) layout.classList.add("is-small-screen");
+      else layout.classList.remove("is-small-screen");
+    };
+
+    const closeDrawer = function () {
+      drawer.classList.remove("is-visible");
+      overlay.classList.remove("is-visible");
+      layout.classList.remove("drawer-open");
+    };
+
+    const openDrawer = function () {
+      if (!mobileQuery.matches) return;
+      drawer.classList.add("is-visible");
+      overlay.classList.add("is-visible");
+      layout.classList.add("drawer-open");
+    };
+
+    toggleBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (drawer.classList.contains("is-visible")) closeDrawer();
+      else openDrawer();
+    });
+
+    overlay.addEventListener("click", closeDrawer);
+
+    drawer.addEventListener("click", function (e) {
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === "A" || target.closest("a")))
+        closeDrawer();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeDrawer();
+    });
+
+    window.addEventListener("resize", closeDrawer);
+    window.addEventListener("resize", syncScreenClass);
+    syncScreenClass();
+  };
+
   document.addEventListener(
     "DOMContentLoaded",
     function () {
-      const drawer = document.querySelector(".mdl-layout__drawer");
-      drawer.addEventListener(
-        "click",
-        function () {
-          document
-            .querySelector(".mdl-layout__obfuscator")
-            .classList.remove("is-visible");
-          this.classList.remove("is-visible");
-        },
-        false
-      );
+      installTooltipFallbacks();
+      initDrawer();
     },
     false
   );
