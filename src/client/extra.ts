@@ -887,6 +887,20 @@ const extra2 = function () {
   editor.oncut = editorCut;
   editor.onpaste = editorPaste;
   attachClick("searchClose", turnOffSearchMode);
+  const searchBox = document.getElementById("searchBox");
+  if (searchBox) {
+    searchBox.onmousedown = function (ev) {
+      const target = ev.target as HTMLElement;
+      if (!searchMode || (target && target.id === "searchClose")) return;
+      // Keep editor focused so incremental search can continue from caret.
+      ev.preventDefault();
+      editor.focus({ preventScroll: true });
+    };
+    searchBox.onfocus = function () {
+      if (!searchMode) return;
+      editor.focus({ preventScroll: true });
+    };
+  }
 
   let activeEl;
   const saveActive = function () {

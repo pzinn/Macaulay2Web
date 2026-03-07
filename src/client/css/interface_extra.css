@@ -522,6 +522,28 @@ dialog.app-dialog::backdrop {
     right: 16px;
 }
 
+#scrollBtn .app-btn-fab {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    padding: 0;
+    background: rgba(158, 158, 158, 0.2);
+    color: var(--text-main);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+#scrollBtn .app-btn-fab:hover,
+#scrollBtn .app-btn-fab:focus,
+#scrollBtn .app-btn-fab:focus-visible {
+    background: rgba(158, 158, 158, 0.32);
+    outline: none;
+}
+
+#scrollBtn .app-btn-fab .material-icons {
+    font-size: 22px;
+}
+
 #maximizeOutput, #downsizeOutput {
     z-index: 2;
     position: absolute;
@@ -789,7 +811,7 @@ nav {
 
 #searchBox {
     border: 1px solid var(--border-main);
-    background: var(--bg-surface);
+    background: var(--bg-menu);
     border-radius: 5px;
     padding: 2px;
     display: block; /* silly */
