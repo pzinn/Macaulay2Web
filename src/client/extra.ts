@@ -1090,10 +1090,14 @@ const extra2 = function () {
   }
 
   // chat pm
-  attachClick("pmtoggle", function () {
-    (document.getElementById("pmto") as HTMLInputElement).disabled =
-      !this.checked;
-  });
+  const syncPmToggleState = function () {
+    const pmToggle = document.getElementById("pmtoggle") as HTMLInputElement;
+    const pmTo = document.getElementById("pmto") as HTMLInputElement;
+    if (!pmToggle || !pmTo) return;
+    pmTo.disabled = !pmToggle.checked;
+  };
+  attachClick("pmtoggle", syncPmToggleState);
+  syncPmToggleState();
 
   attachCtrlBtnActions();
   attachCloseDialogBtns();

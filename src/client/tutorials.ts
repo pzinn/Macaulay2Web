@@ -356,6 +356,32 @@ const initTutorials = function () {
     if (document.fullscreenElement !== tutorial) tutorial.requestFullscreen();
     else document.exitFullscreen();
   };
+
+  document.addEventListener("keydown", function (e: KeyboardEvent) {
+    if (document.fullscreenElement !== tutorial) return;
+    const target = e.target as HTMLElement | null;
+    if (
+      target &&
+      (target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable)
+    )
+      return;
+
+    if (e.key === "ArrowLeft") {
+      const prevBtn = document.getElementById("prevBtn") as HTMLButtonElement;
+      if (prevBtn && !prevBtn.disabled) {
+        e.preventDefault();
+        prevBtn.click();
+      }
+    } else if (e.key === "ArrowRight") {
+      const nextBtn = document.getElementById("nextBtn") as HTMLButtonElement;
+      if (nextBtn && !nextBtn.disabled) {
+        e.preventDefault();
+        nextBtn.click();
+      }
+    }
+  });
 };
 
 const removeTutorial = function (index) {
