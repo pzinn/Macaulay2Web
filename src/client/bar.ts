@@ -162,9 +162,16 @@ const barAction = function (action: string, target0: HTMLElement) {
 const barKey = function (e, target) {
   // target should be current cell (not bar)
   let key = e.key.toLowerCase();
-  if (e.ctrlKey)
+  if (e.ctrlKey) {
     if (key == "control") return;
-    else key = "ctrl-" + key;
+
+    // Chrome often reports Ctrl-+ as Ctrl-= (Shift+Equal), and numpad
+    // variants use "add"/"subtract". Normalize these to our action keys.
+    if (key == "=" || key == "add") key = "+";
+    else if (key == "subtract") key = "-";
+
+    key = "ctrl-" + key;
+  }
   hideContextMenu();
   e.stopPropagation();
   if (barAction(key, target)) e.preventDefault();
