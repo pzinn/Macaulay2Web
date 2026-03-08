@@ -351,8 +351,20 @@ dialog.app-dialog::backdrop {
 	position: relative;
 	top: 50%;
 	left: 50%;
-	transform: translate(-50%,0%) scale(75%);
+	transform: translate(-50%,-50%);
 	color: var(--text-link);
+        display: inline-flex;
+        align-items: center;
+        gap: 0;
+    }
+
+    #resizeball .resizeball-icon {
+        font-size: 18px;
+        font-variation-settings:
+            "FILL" 1,
+            "wght" 700,
+            "GRAD" 0,
+            "opsz" 24;
     }
 }
 /*
