@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="overflow:hidden">
+<html lang="en">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -26,13 +26,13 @@
           <span class="app-layout-title">Macaulay2Web</span>
           <div class="app-spacer"></div>
           <nav class="app-navigation">
-            <button id="zoomInBtn" class="app-btn app-btn-icon">
+            <button id="zoomInBtn" class="app-btn app-btn-icon app-large-only">
               <i class="material-icons">zoom_in</i>
 	    </button>
-            <button id="resetZoomBtn" class="app-btn app-btn-icon">
+            <button id="resetZoomBtn" class="app-btn app-btn-icon app-large-only">
               <i class="material-icons">find_replace</i>
 	    </button>
-            <button id="zoomOutBtn" class="app-btn app-btn-icon">
+            <button id="zoomOutBtn" class="app-btn app-btn-icon app-large-only">
               <i class="material-icons">zoom_out</i>
 	    </button>
             <button id="themeBtn" class="app-btn app-btn-icon">
@@ -203,17 +203,29 @@
 		  <div class="app-tooltip" for="loadBtn">
 		    Load a file to the editor and to the cloud
 		  </div>
-                  <button type="button" id="loadBtn"
-			  class="app-btn app-btn-raised app-btn-brand">
-                    Load
-                  </button>
+		  <div id="loadBtn" style="display:inline">
+                    <span class="app-large-only">
+                      <button type="button" class="app-btn app-btn-raised app-btn-brand">
+                        Load
+                      </button>
+                    </span>
+                    <button type="button" class="app-btn app-btn-raised app-btn-accent app-small-only">
+                      <i class="material-icons">folder_open</i>
+                    </button>
+                  </div>
 		  <div class="app-tooltip" for="saveBtn">
 		    Save the editor file locally
 		  </div>
-                  <button type="button" id="saveBtn"
-			  class="app-btn app-btn-raised app-btn-brand">
-                    Save
-                  </button>
+		  <div id="saveBtn" style="display:inline">
+                    <span class="app-large-only">
+                      <button type="button" class="app-btn app-btn-raised app-btn-brand">
+                        Save
+                      </button>
+                    </span>
+                    <button type="button" class="app-btn app-btn-raised app-btn-accent app-small-only">
+                      <i class="material-icons">save</i>
+                    </button>
+                  </div>
 		  <div style="min-height:5pt"></div>
 		  <div id="searchBox" style="display:none">
 		    Search:
