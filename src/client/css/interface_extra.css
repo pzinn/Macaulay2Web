@@ -661,7 +661,7 @@ dialog.app-dialog::backdrop {
     float: right;
     margin: 10px;
     border-radius: 5px;
-    width: min(20%, 180px);
+    width: min(20%, 170px);
     height: auto;
 }
 
