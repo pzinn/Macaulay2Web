@@ -88,6 +88,19 @@ body {
     transform: translateX(0px);
 }
 
+.app-drawer .app-layout-title {
+    display: block;
+    padding: 20px 24px 14px 24px;
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.app-drawer .app-navigation {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
 .app-nav-link {
     display: block;
     padding: 16px 24px;
@@ -375,8 +388,15 @@ dialog.app-dialog::backdrop {
 }
 
 @media (max-width:1023px) {
+    .app-header-row {
+        padding-left: 32px;
+    }
     #drawerToggle {
 	display: block;
+        margin-right: 18px;
+    }
+    .app-tab-bar.app-large-only {
+        display: none;
     }
     .app-large-only {
         display: none;
