@@ -8,6 +8,10 @@ body {
 /*    background-color: whitesmoke; */
 }
 
+html, body {
+    overflow-x: hidden;
+}
+
 .app-shell {
     height: 100vh;
     overflow: hidden;
@@ -86,6 +90,19 @@ body {
 
 .app-drawer.is-visible {
     transform: translateX(0px);
+}
+
+.app-drawer .app-layout-title {
+    display: block;
+    padding: 20px 24px 14px 24px;
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.app-drawer .app-navigation {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
 }
 
 .app-nav-link {
@@ -355,11 +372,70 @@ dialog.app-dialog::backdrop {
 }
 */
 @media (max-width:479px) {
+    html, body {
+        overflow-y: auto !important;
+    }
+    .app-shell {
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+    }
+    .app-content {
+        height: auto;
+        min-height: calc(100vh - 56px);
+    }
+    .app-grid {
+        position: relative;
+        height: auto;
+        display: block;
+    }
+    .app-tabs {
+        height: auto;
+        overflow: visible;
+    }
+    .app-panel {
+        height: auto;
+        overflow: visible;
+        position: relative;
+    }
+    #left-half, #right-half {
+        height: auto;
+        width: 100%;
+    }
+    #left-half {
+        padding-right: 12px;
+    }
+    #right-half {
+        padding-top: 10px;
+    }
+    #tutorial {
+        min-height: 0;
+    }
+    #lesson {
+        position: relative;
+        height: auto;
+        overflow: visible;
+    }
+    #lessonNav {
+        float: none;
+        margin-right: 0;
+    }
     #resize {
 	display: none;
     }
     .app-header-row{
-	padding: 0px 16px 0px 50px;
+	padding: 0px 12px 0px 16px;
+    }
+    .app-header .app-navigation {
+        gap: 1px;
+    }
+    .app-header .app-btn-icon {
+        width: 34px;
+        height: 34px;
+        padding: 5px;
+    }
+    .app-header .material-icons {
+        font-size: 20px;
     }
     .app-layout-title{
 	font-size: 16px;
@@ -375,8 +451,15 @@ dialog.app-dialog::backdrop {
 }
 
 @media (max-width:1023px) {
+    .app-header-row {
+        padding-left: 16px;
+    }
     #drawerToggle {
 	display: block;
+        margin-right: 8px;
+    }
+    .app-tab-bar.app-large-only {
+        display: none;
     }
     .app-large-only {
         display: none;
@@ -615,6 +698,22 @@ dialog.app-dialog::backdrop {
 }
 
 .material-icons {
+    font-family: "Material Symbols Outlined", "Material Icons";
+    font-weight: 400;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    font-variation-settings:
+        "FILL" 0,
+        "wght" 400,
+        "GRAD" 0,
+        "opsz" 24;
     vertical-align: middle;
     transition: transform 0.5s;
 }
@@ -799,7 +898,12 @@ nav {
 
 
 #lesson hr::after {
-  font-family: Material Icons;
+  font-family: "Material Symbols Outlined", "Material Icons";
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
   content: "expand_less";
   color: white;
   display: inline;
@@ -967,4 +1071,43 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
     top:0px;
     right:20px;
     z-index:2
+}
+
+/* Keep stacked mobile layout in normal document flow (override desktop fixed/absolute rules). */
+@media (max-width:479px) {
+    #tutorial {
+        position: relative;
+    }
+
+    .app-tabs {
+        height: auto;
+        overflow: visible;
+    }
+
+    .app-panel {
+        position: relative;
+        height: auto;
+        overflow: visible;
+    }
+
+    /* Exception: keep browse panel fixed-height so iframe 100% sizing stays stable. */
+    #browse.app-panel {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    #lesson {
+        position: relative;
+        height: auto;
+        overflow: visible;
+    }
+
+    #lessonNav {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 3;
+        float: none;
+        margin: 0;
+    }
 }
