@@ -1123,3 +1123,21 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
         margin: 0;
     }
 }
+
+#terminalProcInput {
+    position: absolute;
+    right: 100px;
+    top: 20px;
+    z-index: 2;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-main);
+    padding: 12px;
+}
+#terminalProcInput:empty {
+    display: none;
+}
+
+#terminalProcInput > ::before {
+  content: attr(data-m2code);
+}
+

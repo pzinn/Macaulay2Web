@@ -204,9 +204,7 @@ const updateThemeButton = function (): void {
     : "Switch to night mode";
   const themeBtn = document.getElementById("themeBtn");
   if (themeBtn) themeBtn.setAttribute("title", text);
-  const tooltip = document.querySelector(
-    ".app-tooltip[for='themeBtn']"
-  );
+  const tooltip = document.querySelector(".app-tooltip[for='themeBtn']");
   if (tooltip) tooltip.textContent = text;
 };
 
