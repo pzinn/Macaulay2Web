@@ -512,12 +512,52 @@ ul.menu {
 }
 
 #contextmenu {
-    padding: 5px;
+    padding: 6px;
     background: var(--bg-menu);
-    box-shadow: 4px 4px 3px -2px var(--shadow-main);
+    box-shadow: 0 8px 18px -10px var(--shadow-main), 0 3px 6px -4px var(--shadow-main);
     border: 1px solid var(--border-main);
-    border-radius: 1px;
+    border-radius: 6px;
     position: absolute;
+    min-width: 210px;
+}
+
+#contextmenu .contextmenu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    transition: background-color 120ms ease;
+}
+
+#contextmenu .contextmenu-item.contextmenu-group-start {
+    margin-top: 4px;
+    padding-top: 7px;
+    border-top: 1px solid var(--border-main);
+}
+
+#contextmenu .contextmenu-shortcut {
+    text-decoration: none;
+    color: var(--text-main);
+    opacity: 0.8;
+    font-size: 0.92em;
+    white-space: nowrap;
+}
+
+#contextmenu .contextmenu-label {
+    color: var(--text-main);
+    white-space: nowrap;
+}
+
+#contextmenu .contextmenu-item:hover,
+#contextmenu .contextmenu-item.selected,
+#contextmenu .contextmenu-item:focus {
+    background-color: var(--bg-menu-selected);
+}
+
+#contextmenu .contextmenu-item:active {
+    filter: brightness(0.97);
 }
 
 .M2Debug[data-type] {
