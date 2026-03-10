@@ -288,10 +288,6 @@ html, body {
     display: none;
 }
 
-.app-tooltip {
-    display: none;
-}
-
 .app-dialog {
     border: 1px solid var(--border-main);
     border-radius: 4px;
@@ -561,13 +557,6 @@ dialog.app-dialog::backdrop {
     font-weight: normal;
 }
 
-.close-icon {
-    position: absolute;
-    margin-top: -8px;
-    top: 50%;
-    right: 0.5em;
-}
-
 #editorBtns {
     position: absolute;
     z-index: 2;
@@ -626,13 +615,6 @@ dialog.app-dialog::backdrop {
     float: right;
 }
 
-#fullScreenOutput {
-    background: var(--bg-surface);
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-}
-
 #scrollBtn {
     z-index: 2;
     position: absolute;
@@ -660,13 +642,6 @@ dialog.app-dialog::backdrop {
 
 #scrollBtn .app-btn-fab .material-icons {
     font-size: 22px;
-}
-
-#maximizeOutput, #downsizeOutput {
-    z-index: 2;
-    position: absolute;
-    top: 5px;
-    right: 30px;
 }
 
 .image-text-wrap {
@@ -999,7 +974,6 @@ nav {
 }
 
 #editorDiv,
-#fullScreenOutput,
 #chatMessages {
     transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }
@@ -1031,11 +1005,6 @@ nav {
 
 :root[data-theme="night"] .app-drawer .app-nav-link:hover {
     background: var(--bg-button);
-}
-
-:root[data-theme="night"] .app-tooltip {
-    background: var(--bg-tooltip);
-    color: var(--text-on-accent);
 }
 
 :root[data-theme="night"] .app-btn-raised {
@@ -1140,4 +1109,3 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
 #terminalProcInput > ::before {
   content: attr(data-m2code);
 }
-
