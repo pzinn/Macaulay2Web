@@ -28,3 +28,4 @@ docker_key*
 host_key*
 public/tutorials
 public/files
+package-lock.json
