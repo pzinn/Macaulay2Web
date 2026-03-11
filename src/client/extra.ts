@@ -388,9 +388,14 @@ const extra1 = function () {
 
   // resize
   const resize = document.getElementById("resize");
+  const leftHalf = document.getElementById("left-half") as HTMLElement;
   let ismdwn = 0;
+  let resizeStartX: number | null = null;
+  let resizeStartWidth = 0;
   const resizeMouseDown = () => {
     ismdwn = 1;
+    resizeStartX = null;
+    resizeStartWidth = leftHalf.getBoundingClientRect().width;
     document.body.addEventListener("mousemove", resizeMouseMove);
     document.body.addEventListener("mouseup", resizeMouseEnd);
     document.body.addEventListener("mouseleave", resizeMouseEnd);
@@ -403,10 +408,11 @@ const extra1 = function () {
   };
 
   const resizeMouseMove = (event) => {
-    if (ismdwn === 1)
-      (document.getElementById("left-half") as any).style.flexBasis =
-        event.clientX - 24 + "px";
-    // 24 is left-padding+left-margin+right-margin
+    if (ismdwn === 1) {
+      if (resizeStartX === null) resizeStartX = event.clientX;
+      const deltaX = event.clientX - resizeStartX;
+      leftHalf.style.flexBasis = resizeStartWidth + deltaX + "px";
+    }
     else resizeMouseEnd();
   };
 
@@ -427,6 +433,8 @@ const extra1 = function () {
   resize.onmousedown = resizeMouseDown;
 
   const resizeTouchStart = () => {
+    resizeStartX = null;
+    resizeStartWidth = leftHalf.getBoundingClientRect().width;
     document.body.addEventListener("touchmove", resizeTouchMove);
     document.body.addEventListener("touchend", resizeTouchEnd);
     document.body.addEventListener("touchcancel", resizeTouchEnd);
@@ -434,9 +442,10 @@ const extra1 = function () {
   };
 
   const resizeTouchMove = (event) => {
-    (document.getElementById("left-half") as any).style.flexBasis =
-      event.changedTouches[0].clientX - 24 + "px";
-    // 24 is left-padding+left-margin+right-margin
+    const x = event.changedTouches[0].clientX;
+    if (resizeStartX === null) resizeStartX = x;
+    const deltaX = x - resizeStartX;
+    leftHalf.style.flexBasis = resizeStartWidth + deltaX + "px";
   };
 
   const resizeTouchEnd = () => {
