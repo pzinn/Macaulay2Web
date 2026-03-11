@@ -456,7 +456,7 @@ const fileUpload2 = function (request, response) {
 };
 
 const unhandled = function (request, response) {
-  logger.error("Request for something we don't serve: " + request.url);
+  logger.warn("Request for something we don't serve: " + request.url);
   response.writeHead(404, "Request for something we don't serve.");
   response.write("2^2*101"); // TODO: something nicer
   response.end();
