@@ -150,10 +150,10 @@ const Shell = function (
   if (createInputSpan) createInputEl();
   else htmlSec = terminal;
 
-  const codeStack = []; // stack of past code run
+  const codeStack = []; // stack of past code currently being processed
+  const terminalProcInput = document.getElementById("terminalProcInput");
   const clearCodeStack = function () {
     codeStack.length = 0;
-    const terminalProcInput = document.getElementById("terminalProcInput"); // TEMP?
     if (terminalProcInput) terminalProcInput.innerHTML = "";
   };
 
@@ -291,12 +291,12 @@ const Shell = function (
       return;
     if (e.key == "Enter") {
       if (!e.shiftKey) {
-        const terminalProcInput = document.getElementById("terminalProcInput"); // TEMP?
-        if (terminalProcInput) {
+        const M2input = htmlToM2(inputSpan);
+        if (terminalProcInput && M2input) {
           const procInputSpan = document.createElement("div");
           terminalProcInput.appendChild(procInputSpan);
-          obj.postMessage(htmlToM2(inputSpan), procInputSpan);
-        } else obj.postMessage(htmlToM2(inputSpan));
+          obj.postMessage(M2input, procInputSpan);
+        } else obj.postMessage(M2input);
         setCaret(inputSpan, 0);
         e.preventDefault(); // no crappy <div></div> added
       }
@@ -714,30 +714,24 @@ const Shell = function (
               isTrueInput() &&
               codeStack.length > 0
             ) {
-              processCellBlock: {
-                let i = 0;
-                for (const el of oldHtmlSec.children as HTMLElement[])
-                  if (el.classList.contains("M2PastInput")) {
-                    while (
-                      (i = codeStack[0].dataset.m2code.indexOf(
-                        el.textContent.trimRight(),
-                        i
-                      )) < 0
-                    ) {
-                      codeStack.shift();
-                      if (codeStack.length == 0) break processCellBlock;
-                      i = 0;
-                    }
-                    i += el.textContent.trimRight().length;
-                  }
-                if (!MINIMAL) processCell(oldHtmlSec, codeStack[0]); // or whole thing should be skipped in minimal mode?
-                if (
-                  codeStack[0].parentElement &&
-                  codeStack[0].parentElement.id == "terminalProcInput"
-                )
-                  codeStack[0].remove();
-                if (i >= codeStack[0].dataset.m2code.length) codeStack.shift();
-              }
+              const inputs = [
+                ...oldHtmlSec.querySelectorAll(":scope > .M2PastInput"),
+              ]
+                .map((x) => x.textContent)
+                .join()
+                .split("\n")
+                .filter(Boolean);
+              inputs.forEach((input) => {
+                if (codeStack[0].dataset.m2code == input) {
+                  if (!MINIMAL) processCell(oldHtmlSec, codeStack[0]); // or whole thing should be skipped in minimal mode?
+                  if (
+                    codeStack[0].parentElement &&
+                    codeStack[0].parentElement.id == "terminalProcInput"
+                  )
+                    codeStack[0].remove();
+                  codeStack.shift();
+                }
+              });
             }
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {
