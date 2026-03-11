@@ -5,7 +5,9 @@
     "outDir": "dist",
     "sourceMap": true, 
     "lib": ["es2020","dom"],
-    "types" : ["node", "express", "socket.io", "ssh2"]
+      "types" : ["node", "express", "socket.io", "ssh2"],
+      "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "src/server/*.ts",
