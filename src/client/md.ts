@@ -94,7 +94,7 @@ try {
     mdSubst[j].pattern = new RegExp(mdSubst[j].pattern, "g");
   for (let j = 0; j < patterns.length; j++)
     patterns[j].pattern = new RegExp(patterns[j].pattern);
-    forbiddenTagsRegex = new RegExp(
+  forbiddenTagsRegex = new RegExp(
     forbiddenTags.map((tag) => "(?<=<|</)" + tag).join("|") +
       "|(?<=<[^>]*\\s)id=|(?<=<[^>]*\\s)for=|(?<=<[^>]*)app-",
     "g"

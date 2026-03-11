@@ -228,11 +228,16 @@ const barRightClick = function (e) {
     if (barActions[key][0] != "") {
       li = doc.createElement("li");
       li.dataset.key = key;
+      li.classList.add("contextmenu-item");
+      if (key == "ctrl-x" || key == "ctrl-+") li.classList.add("contextmenu-group-start");
       tt = doc.createElement("tt");
-      tt.style.textDecoration = "underline";
+      tt.classList.add("contextmenu-shortcut");
       tt.innerHTML = barActions[key][0];
+      const label = doc.createElement("span");
+      label.classList.add("contextmenu-label");
+      label.textContent = barActions[key][1];
+      li.appendChild(label);
       li.appendChild(tt);
-      li.appendChild(doc.createTextNode(" " + barActions[key][1]));
       contextMenu.appendChild(li);
     }
 

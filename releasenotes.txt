@@ -1,3 +1,7 @@
+3.10 03/2026
+    * got rid of MDL
+    * various updates to look/feel of client
+
 3.9 04/2023
     * premium users
     * various interface improvements

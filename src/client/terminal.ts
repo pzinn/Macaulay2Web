@@ -83,7 +83,6 @@ const Shell = function (
   cmdHistory.sorted = []; // a sorted version
   // input is a bit messy...
   let inputEndFlag = false;
-  let procInputSpan = null; // temporary span containing currently processed input (for aesthetics only)
   let interpreterDepth = 1;
 
   const isEmptyCell = function (el) {
@@ -152,19 +151,22 @@ const Shell = function (
   else htmlSec = terminal;
 
   const codeStack = []; // stack of past code run
+  const clearCodeStack = function () {
+    codeStack.length = 0;
+    const terminalProcInput = document.getElementById("terminalProcInput"); // TEMP?
+    if (terminalProcInput) terminalProcInput.innerHTML = "";
+  };
 
   obj.codeInputAction = function (t) {
     let str = t.dataset.m2code ? t.dataset.m2code : t.textContent; // used to be innerText
     if (str[str.length - 1] == "\n") str = str.substring(0, str.length - 1); // cleaner this way
-    t.dataset.m2code = str;
     t.classList.add("codetrigger");
     if (
       (t.tagName == "CODE" && !t.classList.contains("norun")) ||
       t.classList.contains("run")
     ) {
       t.classList.add("clicked");
-      codeStack.push(t);
-      obj.postMessage(str);
+      obj.postMessage(str, t);
     } else {
       // past input / manual code: almost the same but not quite: code not sent, just replaces input
       // inputSpan.textContent = str;
@@ -181,16 +183,15 @@ const Shell = function (
 
   const returnSymbol = "\u21B5";
 
-  obj.postMessage = function (msg) {
+  obj.postMessage = function (msg, el?) {
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
     const clean = sanitizeInput(msg);
-    if (procInputSpan === null) {
-      // it'd be nicer to use ::before on inputSpan but sadly caret issues... cf https://stackoverflow.com/questions/60843694/cursor-position-in-an-editable-div-with-a-before-pseudo-element
-      procInputSpan = document.createElement("div");
-      inputSpan.parentElement.insertBefore(procInputSpan, inputSpan);
+    // move codeStack here
+    if (el) {
+      el.dataset.m2code = clean;
+      codeStack.push(el);
     }
-    procInputSpan.textContent += clean + returnSymbol + "\n";
     inputSpan.textContent = "";
     scrollDownLeft(terminal);
     emitInput(clean + "\n");
@@ -290,7 +291,12 @@ const Shell = function (
       return;
     if (e.key == "Enter") {
       if (!e.shiftKey) {
-        obj.postMessage(htmlToM2(inputSpan));
+        const terminalProcInput = document.getElementById("terminalProcInput"); // TEMP?
+        if (terminalProcInput) {
+          const procInputSpan = document.createElement("div");
+          terminalProcInput.appendChild(procInputSpan);
+          obj.postMessage(htmlToM2(inputSpan), procInputSpan);
+        } else obj.postMessage(htmlToM2(inputSpan));
         setCaret(inputSpan, 0);
         e.preventDefault(); // no crappy <div></div> added
       }
@@ -681,10 +687,6 @@ const Shell = function (
   };
 
   obj.displayOutput = function (msg: string) {
-    if (procInputSpan !== null) {
-      procInputSpan.remove();
-      procInputSpan = null;
-    }
     const txt = msg.replace(/\r/g, "").split(webAppRegex);
     for (let i = 0; i < txt.length; i += 2) {
       //console.log(i+"-"+(i+1)+"/"+txt.length+": ",i==0?"":webAppClasses[txt[i-1]]," : ",txt[i].replace("\n",returnSymbol));
@@ -729,6 +731,11 @@ const Shell = function (
                     i += el.textContent.trimRight().length;
                   }
                 if (!MINIMAL) processCell(oldHtmlSec, codeStack[0]); // or whole thing should be skipped in minimal mode?
+                if (
+                  codeStack[0].parentElement &&
+                  codeStack[0].parentElement.id == "terminalProcInput"
+                )
+                  codeStack[0].remove();
                 if (i >= codeStack[0].dataset.m2code.length) codeStack.shift();
               }
             }
@@ -783,12 +790,14 @@ const Shell = function (
   obj.reset = function () {
     console.log("Reset");
     removeAutoComplete(false, false); // remove autocomplete menu if open
+    clearCodeStack();
     createInputEl(); // recreate the input area
     interpreterDepth = 1;
   };
 
   obj.interrupt = function () {
     removeAutoComplete(false, false); // remove autocomplete menu if open
+    clearCodeStack();
     inputSpan.textContent = "";
     emitInput("\x03");
     setCaretAtEndMaybe(inputSpan);

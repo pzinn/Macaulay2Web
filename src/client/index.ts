@@ -9,19 +9,6 @@ if (MINIMAL) {
 } else {
   console.log("Full Macaulay2Web interface");
 
-  const installTooltipFallbacks = function () {
-    const tooltips = document.querySelectorAll(".app-tooltip[for]");
-    tooltips.forEach((tooltipEl) => {
-      const targetId = tooltipEl.getAttribute("for");
-      if (!targetId) return;
-      const target = document.getElementById(targetId);
-      if (!target) return;
-      const text = tooltipEl.textContent ? tooltipEl.textContent.trim() : "";
-      if (text !== "" && !target.getAttribute("title"))
-        target.setAttribute("title", text);
-    });
-  };
-
   const initDrawer = function () {
     const layout = document.querySelector(".app-shell");
     const drawer = document.querySelector(".app-drawer");
@@ -74,7 +61,6 @@ if (MINIMAL) {
   document.addEventListener(
     "DOMContentLoaded",
     function () {
-      installTooltipFallbacks();
       initDrawer();
     },
     false

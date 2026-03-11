@@ -1,4 +1,5 @@
 const webpack = require('webpack');
+const katexVersion = require('./KaTeX/package.json').version;
 
 module.exports = env => {
     var mode,filename,devtool;
@@ -21,17 +22,17 @@ module.exports = env => {
 	    rules: [
 		{
 		    test: /\.ts$/,
-		    use: 'ts-loader',
+		    use: {
+			loader: 'ts-loader',
+			options: {
+			    transpileOnly: true
+			}
+		    },
 		    exclude: /node_modules/
 		},
 		{
 		    test: /\.m2$|\.html$|\.txt$/,
 		    use: 'raw-loader'
-		},
-		{
-		    test: /KaTeX.*js$/,
-		    use: 'babel-loader',
-		    exclude: /node_modules/
 		}
 	    ]
 	},
@@ -42,7 +43,8 @@ module.exports = env => {
 	devtool: devtool,
 	plugins: [
 	    new webpack.DefinePlugin({ "MINIMAL": JSON.stringify(env.minimal),
-				       "process.env.npm_package_version": JSON.stringify(process.env.npm_package_version) }),
+				       "process.env.npm_package_version": JSON.stringify(process.env.npm_package_version),
+				       "__VERSION__": JSON.stringify(katexVersion) }),
 	]
     };
 };
