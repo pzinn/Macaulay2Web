@@ -859,6 +859,23 @@ nav {
     margin: 0px;
 }
 
+#accordion nav {
+    padding: 0.35em 1em 0.8em 1em;
+}
+
+#accordion .accordionMenu {
+    margin: 0.25em 0 0 0;
+    padding-left: 1.25em;
+}
+
+#accordion nav > *:first-child {
+    margin-top: 0;
+}
+
+#accordion nav > *:last-child {
+    margin-bottom: 0;
+}
+
 #lesson section:not(section section) {
     display: none;
 }
@@ -872,6 +889,11 @@ nav {
     margin: inherit;
     line-height: inherit;
     letter-spacing: inherit;
+}
+
+#loadTutorialBtn {
+    margin-top: 8px;
+    margin-left: 8px;
 }
 
 #lesson hr {
