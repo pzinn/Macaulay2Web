@@ -20,7 +20,7 @@ const httpServer = http.createServer(app);
 import fs = require("fs");
 import multer = require("multer");
 import url = require("url");
-const { exec } = require("child_process");
+const { exec, execFile } = require("child_process");
 const upload = multer({
   dest: "/tmp/",
   preservePath: true,
@@ -36,6 +36,58 @@ let getClientId;
 let serverConfig;
 let options;
 const staticFolder = path.join(__dirname, "../../public/");
+const tutorialsFolder = path.join(staticFolder, "tutorials");
+
+const isPathInside = function (basePath: string, candidatePath: string): boolean {
+  const relative = path.relative(basePath, candidatePath);
+  return (
+    relative === "" ||
+    (!relative.startsWith("..") && !path.isAbsolute(relative))
+  );
+};
+
+const sanitizeTutorialFileName = function (fileName: string): string | null {
+  if (!fileName) return null;
+  const basename = path.basename(fileName);
+  if (!basename || basename === "." || basename === "..") return null;
+  return basename;
+};
+
+const hasUnsafeTarEntryPath = function (entryPath: string): boolean {
+  if (!entryPath || entryPath.includes("\0")) return true;
+  if (path.posix.isAbsolute(entryPath)) return true;
+  if (/^[A-Za-z]:/.test(entryPath)) return true; // Windows absolute path
+  const normalized = path.posix.normalize(entryPath);
+  return normalized === ".." || normalized.startsWith("../");
+};
+
+const hasUnsafeTarEntryType = function (line: string): boolean {
+  const trimmed = line.trim();
+  if (trimmed === "") return false;
+  const type = trimmed[0];
+  return type === "l" || type === "h"; // symbolic link or hard link
+};
+
+const extractTutorialArchive = function (archivePath: string, next) {
+  execFile("tar", ["-tvzf", archivePath], function (typeError, typeOut) {
+    if (typeError) return next(typeError);
+    const entriesWithType = typeOut.split("\n");
+    if (entriesWithType.some(hasUnsafeTarEntryType)) {
+      return next(new Error("Archive contains unsupported link entries."));
+    }
+    execFile("tar", ["-tzf", archivePath], function (listError, stdout) {
+      if (listError) return next(listError);
+      const entries = stdout
+        .split("\n")
+        .map((x) => x.trim())
+        .filter((x) => x.length > 0);
+      if (entries.some(hasUnsafeTarEntryPath)) {
+        return next(new Error("Archive contains unsafe paths."));
+      }
+      execFile("tar", ["-xzf", archivePath, "-C", tutorialsFolder], next);
+    });
+  });
+};
 
 const sshCredentials = function (instance: Instance): ssh2.ConnectConfig {
   if (instance)
@@ -368,30 +420,57 @@ const fileUpload = function (request, response) {
   if (request.body.tutorial) {
     const file = request.files[0];
     logger.info("Tutorial upload " + file.originalname);
+    const safeName = sanitizeTutorialFileName(file.originalname);
+    if (!safeName) {
+      if (!request.body.noreply) {
+        response.writeHead(400);
+        response.write("Invalid tutorial file name.");
+      }
+      response.end();
+      unlink(file.path)();
+      return;
+    }
     // move to tutorial directory
-    const fileName = staticFolder + "tutorials/" + file.originalname;
+    const fileName = path.resolve(tutorialsFolder, safeName);
+    if (!isPathInside(tutorialsFolder, fileName)) {
+      if (!request.body.noreply) {
+        response.writeHead(400);
+        response.write("Invalid tutorial target path.");
+      }
+      response.end();
+      unlink(file.path)();
+      return;
+    }
     fs.copyFile(file.path, fileName, (err) => {
-      if (!request.body.noreply)
-        if (err) {
+      if (err) {
+        if (!request.body.noreply) {
           response.writeHead(500);
           response.write("File upload failed. Please try again later.");
-        } else {
-          response.writeHead(200);
-        }
-      response.end();
-      unlink(file.path);
+          response.end();
+        } else response.end();
+        unlink(file.path)();
+        return;
+      }
+      unlink(file.path)();
       if (fileName.endsWith(".tar.gz")) {
-        const cmd =
-          "tar zxf " +
-          fileName +
-          " -C `dirname " +
-          fileName +
-          "`; rm " +
-          fileName;
-        logger.info(cmd);
-        exec(cmd, (error, stdout, stderr) => {
-          logger.error(error + " " + stdout + " " + stderr);
+        extractTutorialArchive(fileName, (extractError) => {
+          unlink(fileName)();
+          if (!request.body.noreply) {
+            if (extractError) {
+              response.writeHead(400);
+              response.write(
+                "Tutorial archive contains invalid paths or could not be unpacked."
+              );
+            } else response.writeHead(200);
+          }
+          response.end();
+          if (extractError) {
+            logger.error("Tutorial extraction failed: " + extractError);
+          }
         });
+      } else {
+        if (!request.body.noreply) response.writeHead(200);
+        response.end();
       }
     });
     return;
