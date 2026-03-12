@@ -365,55 +365,124 @@ const unlink = function (completePath: string) {
 
 const fileUpload = function (request, response) {
   if (request.body.githubUser) {
+    const githubUser = (request.body.githubUser || "").trim();
+    const githubProject = (request.body.githubProject || "").trim();
+    const githubRef = (request.body.githubBranch || "").trim();
+    if (!githubUser || !githubProject || !githubRef) {
+      if (!request.body.noreply) {
+        response.writeHead(400);
+        response.write("GitHub upload failed: missing organisation/project/ref.");
+      }
+      response.end();
+      return;
+    }
     const URL =
-      "https://github.com/" +
-      request.body.githubUser +
+      "https://api.github.com/repos/" +
+      encodeURIComponent(githubUser) +
       "/" +
-      request.body.githubProject +
+      encodeURIComponent(githubProject) +
       "/tarball/" +
-      request.body.githubBranch;
+      encodeURIComponent(githubRef);
     const fileName =
-      request.body.githubUser +
+      githubUser +
       "_" +
-      request.body.githubProject +
+      githubProject +
       "_" +
-      request.body.githubBranch +
+      githubRef +
       ".tar.gz"; // doesn't really matter
     const filePath = "/tmp/" + fileName;
     const file = fs.createWriteStream(filePath);
-    file
-      .on("finish", function () {
-        // update request files[]
-        request.files = [{ path: filePath, originalname: fileName }];
-        fileUpload2(request, response);
-      })
-      .on("error", function (err) {
-        // Handle errors
-        unlink(filePath); // Delete the file async. (But we don't check the result)
-        // TODO
-      });
-    const writeToFile = function (res) {
-      res.pipe(file);
+    let responded = false;
+
+    const failGithubUpload = function (msg: string, err?) {
+      if (responded) return;
+      responded = true;
+      if (err) logger.error("GitHub upload failed: " + err);
+      try {
+        file.destroy();
+      } catch (destroyError) {
+        logger.warn("GitHub upload stream cleanup failed: " + destroyError);
+      }
+      unlink(filePath)();
+      if (!request.body.noreply) {
+        response.writeHead(502);
+        response.write(msg);
+      }
+      response.end();
     };
 
-    https.get(URL, function (res) {
-      if (
-        res.statusCode > 300 &&
-        res.statusCode < 400 &&
-        res.headers.location
-      ) {
-        if (url.parse(res.headers.location).hostname) {
-          https.get(res.headers.location, writeToFile);
-        } else {
-          https.get(
-            url.resolve(url.parse(URL).hostname, res.headers.location),
-            writeToFile
-          );
-        }
-      } else {
-        writeToFile(res);
+    const successGithubUpload = function () {
+      if (responded) return;
+      responded = true;
+      // update request files[]
+      request.files = [{ path: filePath, originalname: fileName }];
+      fileUpload2(request, response);
+    };
+
+    const downloadGithubArchive = function (downloadURL: string, redirectsLeft) {
+      if (responded) return;
+      if (redirectsLeft < 0) {
+        failGithubUpload("GitHub download failed: too many redirects.");
+        return;
       }
-    });
+      const req = https.get(
+        downloadURL,
+        {
+          headers: {
+            "User-Agent": "Macaulay2Web",
+            Accept: "application/vnd.github+json",
+          },
+        },
+        function (res) {
+        if (
+          res.statusCode > 300 &&
+          res.statusCode < 400 &&
+          res.headers.location
+        ) {
+          res.resume(); // avoid leaking sockets
+          const nextURL = url.parse(res.headers.location).hostname
+            ? res.headers.location
+            : url.resolve(downloadURL, res.headers.location);
+          downloadGithubArchive(nextURL, redirectsLeft - 1);
+          return;
+        }
+        if (res.statusCode !== 200) {
+          const status = res.statusCode || 0;
+          res.resume(); // avoid leaking sockets
+          failGithubUpload("GitHub download failed (HTTP " + status + ").");
+          return;
+        }
+        res.on("error", function (streamErr) {
+          failGithubUpload(
+            "GitHub download failed. Please try again later.",
+            streamErr
+          );
+        });
+        res.pipe(file);
+        }
+      );
+      req.setTimeout(20000, function () {
+        req.destroy(new Error("GitHub download timed out"));
+      });
+      req.on("error", function (reqErr) {
+        failGithubUpload(
+          "GitHub download failed. Please try again later.",
+          reqErr
+        );
+      });
+    };
+
+    file
+      .on("finish", function () {
+        successGithubUpload();
+      })
+      .on("error", function (err) {
+        failGithubUpload(
+          "GitHub download failed. Please try again later.",
+          err
+        );
+      });
+    downloadGithubArchive(URL, 5);
     return;
   }
   if (!request.files || request.files.length == 0) return;
