@@ -351,16 +351,14 @@ const fileDownload = function (request, response, next) {
   });
 };
 
-const unlink = function (completePath: string) {
-  return function () {
-    fs.unlink(completePath, function (err) {
-      if (err) {
-        logger.warn(
-          "Unable to unlink user generated file " + completePath + " : " + err
-        );
-      }
-    });
-  };
+const unlink = function (completePath: string): void {
+  fs.unlink(completePath, function (err) {
+    if (err) {
+      logger.warn(
+        "Unable to unlink user generated file " + completePath + " : " + err
+      );
+    }
+  });
 };
 
 const fileUpload = function (request, response) {
@@ -403,7 +401,7 @@ const fileUpload = function (request, response) {
       } catch (destroyError) {
         logger.warn("GitHub upload stream cleanup failed: " + destroyError);
       }
-      unlink(filePath)();
+      unlink(filePath);
       if (!request.body.noreply) {
         response.writeHead(502);
         response.write(msg);
@@ -496,7 +494,7 @@ const fileUpload = function (request, response) {
         response.write("Invalid tutorial file name.");
       }
       response.end();
-      unlink(file.path)();
+      unlink(file.path);
       return;
     }
     // move to tutorial directory
@@ -507,7 +505,7 @@ const fileUpload = function (request, response) {
         response.write("Invalid tutorial target path.");
       }
       response.end();
-      unlink(file.path)();
+      unlink(file.path);
       return;
     }
     fs.copyFile(file.path, fileName, (err) => {
@@ -517,13 +515,13 @@ const fileUpload = function (request, response) {
           response.write("File upload failed. Please try again later.");
           response.end();
         } else response.end();
-        unlink(file.path)();
+        unlink(file.path);
         return;
       }
-      unlink(file.path)();
+      unlink(file.path);
       if (fileName.endsWith(".tar.gz")) {
         extractTutorialArchive(fileName, (extractError) => {
-          unlink(fileName)();
+          unlink(fileName);
           if (!request.body.noreply) {
             if (extractError) {
               response.writeHead(400);

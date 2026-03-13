@@ -47,7 +47,7 @@ const downloadFromInstance = function (
 
       const success = function () {
         logger.info("successfully downloaded " + sourceFileName1, client);
-        setTimeout(unlink(targetFileName), 1000 * 60 * 10);
+        setTimeout(() => unlink(targetFileName), 1000 * 60 * 10);
         sshConnection.end();
         next(userPath + fileName);
       };
