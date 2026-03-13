@@ -1090,12 +1090,6 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
         overflow: visible;
     }
 
-    /* Exception: keep browse panel fixed-height so iframe 100% sizing stays stable. */
-    #browse.app-panel {
-        height: 100%;
-        overflow: hidden;
-    }
-
     #lesson {
         position: relative;
         height: auto;
@@ -1109,6 +1103,9 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
         z-index: 3;
         float: none;
         margin: 0;
+    }
+    #browseFrame {
+	height: 100vh;
     }
 }
 
