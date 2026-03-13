@@ -15,7 +15,10 @@ interface Tutorial {
   clickAction?: any;
 }
 
-const processCell = function (cell: HTMLElement, clickedCode: HTMLElement) {
+const processTutorialOutput = function (
+  cell: HTMLElement,
+  clickedCode: HTMLElement
+) {
   if (
     (document.fullscreenElement !== document.getElementById("tutorial") &&
       !clickedCode.classList.contains("copy")) ||
@@ -422,5 +425,5 @@ export {
   renderLessonMaybe,
   removeTutorial,
   Tutorial,
-  processCell,
+  processTutorialOutput,
 };
