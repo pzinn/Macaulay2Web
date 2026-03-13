@@ -264,6 +264,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       serverOptions.premiumList.indexOf(newInstance.clientId) >= 0;
     let dockerRunCmd =
       "sudo docker run  --security-opt seccomp=seccomp.json -d";
+    dockerRunCmd += " --log-opt max-size=10m --log-opt max-file=3";
     dockerRunCmd += ' --cpus="' + resources.cpuShares + '"';
     dockerRunCmd +=
       ' --memory="' +

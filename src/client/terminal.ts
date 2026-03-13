@@ -150,10 +150,12 @@ const Shell = function (
   if (createInputSpan) createInputEl();
   else htmlSec = terminal;
 
-  const codeStack = []; // stack of past code currently being processed
+  const codeElStack = []; // stack of past code currently being processed
+  let currentCode = [],
+    currentCodeEl;
   const terminalProcInput = document.getElementById("terminalProcInput");
   const clearCodeStack = function () {
-    codeStack.length = 0;
+    codeElStack.length = 0;
     if (terminalProcInput) terminalProcInput.innerHTML = "";
   };
 
@@ -187,10 +189,9 @@ const Shell = function (
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
     const clean = sanitizeInput(msg);
-    // move codeStack here
     if (el) {
       el.dataset.m2code = clean;
-      codeStack.push(el);
+      codeElStack.push(el);
     }
     inputSpan.textContent = "";
     scrollDownLeft(terminal);
@@ -712,7 +713,7 @@ const Shell = function (
             if (
               tag == webAppTags.CellEnd &&
               isTrueInput() &&
-              codeStack.length > 0
+              codeElStack.length > 0
             ) {
               const inputs = [
                 ...oldHtmlSec.querySelectorAll(":scope > .M2PastInput"),
@@ -722,14 +723,23 @@ const Shell = function (
                 .split("\n")
                 .filter(Boolean);
               inputs.forEach((input) => {
-                if (codeStack[0].dataset.m2code == input) {
-                  if (!MINIMAL) processCell(oldHtmlSec, codeStack[0]); // or whole thing should be skipped in minimal mode?
+                if (currentCode.length == 0) {
+                  if (codeElStack.length == 0) return;
+                  currentCodeEl = codeElStack.shift();
+                  currentCode = currentCodeEl.dataset.m2code
+                    .split("\n")
+                    .filter(Boolean);
+                  if (currentCode.length == 0) return;
+                }
+                //if (currentCode.shift() == input && currentCode.length == 0) {
+                if (currentCode.shift() && currentCode.length == 0) {
+                  // massive simplification
+                  if (!MINIMAL) processCell(oldHtmlSec, currentCodeEl); // or whole thing should be skipped in minimal mode?
                   if (
-                    codeStack[0].parentElement &&
-                    codeStack[0].parentElement.id == "terminalProcInput"
+                    currentCodeEl.parentElement &&
+                    currentCodeEl.parentElement.id == "terminalProcInput"
                   )
-                    codeStack[0].remove();
-                  codeStack.shift();
+                    currentCodeEl.remove();
                 }
               });
             }

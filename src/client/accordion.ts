@@ -96,11 +96,7 @@ const addAccordionButton = function (div: HTMLElement) {
   };
 };
 
-const appendTutorialToAccordion = function (
-  tutorial: Tutorial,
-  index,
-  clickAction?
-) {
+const appendTutorialToAccordion = function (tutorial: Tutorial, index) {
   const id = "accordion-" + index;
   const div = document.getElementById(id);
   div.innerHTML = "";
@@ -110,16 +106,11 @@ const appendTutorialToAccordion = function (
   titlespan.className = cssClasses.titleButton;
   const titlea = document.createElement("a");
   titlea.className = cssClasses.titleHref;
-  if (!clickAction) {
-    titlea.href = "#tutorial-" + index;
-    titlea.target = "_self";
-    titlea.onclick = function (e) {
-      e.stopPropagation();
-    };
-  } else {
-    titlea.tabIndex = 0; // still want focus
-    titlea.onclick = clickAction;
-  }
+  titlea.href = "#tutorial-" + index;
+  titlea.target = "_self";
+  titlea.onclick = function (e) {
+    e.stopPropagation();
+  };
   const title = tutorial.body.querySelector("title,header");
   titlea.innerHTML = title ? title.innerHTML : index; // use index as default title
   stripId(titlea);

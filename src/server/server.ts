@@ -18,7 +18,7 @@ import https = require("https");
 import fs = require("fs");
 import multer = require("multer");
 import url = require("url");
-const { exec } = require("child_process");
+const { exec, execFile } = require("child_process");
 const upload = multer({
   dest: "/tmp/",
   preservePath: true,
@@ -36,6 +36,61 @@ let getClientId;
 let serverConfig;
 let options;
 const staticFolder = path.join(__dirname, "../../public/");
+const tutorialsFolder = path.join(staticFolder, "tutorials");
+
+const isPathInside = function (
+  basePath: string,
+  candidatePath: string
+): boolean {
+  const relative = path.relative(basePath, candidatePath);
+  return (
+    relative === "" ||
+    (!relative.startsWith("..") && !path.isAbsolute(relative))
+  );
+};
+
+const sanitizeTutorialFileName = function (fileName: string): string | null {
+  if (!fileName) return null;
+  const basename = path.basename(fileName);
+  if (!basename || basename === "." || basename === "..") return null;
+  return basename;
+};
+
+const hasUnsafeTarEntryPath = function (entryPath: string): boolean {
+  if (!entryPath || entryPath.includes("\0")) return true;
+  if (path.posix.isAbsolute(entryPath)) return true;
+  if (/^[A-Za-z]:/.test(entryPath)) return true; // Windows absolute path
+  const normalized = path.posix.normalize(entryPath);
+  return normalized === ".." || normalized.startsWith("../");
+};
+
+const hasUnsafeTarEntryType = function (line: string): boolean {
+  const trimmed = line.trim();
+  if (trimmed === "") return false;
+  const type = trimmed[0];
+  return type === "l" || type === "h"; // symbolic link or hard link
+};
+
+const extractTutorialArchive = function (archivePath: string, next) {
+  execFile("tar", ["-tvzf", archivePath], function (typeError, typeOut) {
+    if (typeError) return next(typeError);
+    const entriesWithType = typeOut.split("\n");
+    if (entriesWithType.some(hasUnsafeTarEntryType)) {
+      return next(new Error("Archive contains unsupported link entries."));
+    }
+    execFile("tar", ["-tzf", archivePath], function (listError, stdout) {
+      if (listError) return next(listError);
+      const entries = stdout
+        .split("\n")
+        .map((x) => x.trim())
+        .filter((x) => x.length > 0);
+      if (entries.some(hasUnsafeTarEntryPath)) {
+        return next(new Error("Archive contains unsafe paths."));
+      }
+      execFile("tar", ["-xzf", archivePath, "-C", tutorialsFolder], next);
+    });
+  });
+};
 
 const sshCredentials = function (instance: Instance): ssh2.ConnectConfig {
   if (instance)
@@ -299,99 +354,193 @@ const fileDownload = function (request, response, next) {
   });
 };
 
-const unlink = function (completePath: string) {
-  return function () {
-    fs.unlink(completePath, function (err) {
-      if (err) {
-        logger.warn(
-          "Unable to unlink user generated file " + completePath + " : " + err
-        );
-      }
-    });
-  };
+const unlink = function (completePath: string): void {
+  fs.unlink(completePath, function (err) {
+    if (err) {
+      logger.warn(
+        "Unable to unlink user generated file " + completePath + " : " + err
+      );
+    }
+  });
 };
 
 const fileUpload = function (request, response) {
   if (request.body.githubUser) {
+    const githubUser = (request.body.githubUser || "").trim();
+    const githubProject = (request.body.githubProject || "").trim();
+    const githubRef = (request.body.githubBranch || "").trim();
+    if (!githubUser || !githubProject || !githubRef) {
+      if (!request.body.noreply) {
+        response.writeHead(400);
+        response.write(
+          "GitHub upload failed: missing organisation/project/ref."
+        );
+      }
+      response.end();
+      return;
+    }
     const URL =
-      "https://github.com/" +
-      request.body.githubUser +
+      "https://api.github.com/repos/" +
+      encodeURIComponent(githubUser) +
       "/" +
-      request.body.githubProject +
+      encodeURIComponent(githubProject) +
       "/tarball/" +
-      request.body.githubBranch;
+      encodeURIComponent(githubRef);
     const fileName =
-      request.body.githubUser +
-      "_" +
-      request.body.githubProject +
-      "_" +
-      request.body.githubBranch +
-      ".tar.gz"; // doesn't really matter
+      githubUser + "_" + githubProject + "_" + githubRef + ".tar.gz"; // doesn't really matter
     const filePath = "/tmp/" + fileName;
     const file = fs.createWriteStream(filePath);
-    file
-      .on("finish", function () {
-        // update request files[]
-        request.files = [{ path: filePath, originalname: fileName }];
-        fileUpload2(request, response);
-      })
-      .on("error", function (err) {
-        // Handle errors
-        unlink(filePath); // Delete the file async. (But we don't check the result)
-        // TODO
-      });
-    const writeToFile = function (res) {
-      res.pipe(file);
+    let responded = false;
+
+    const failGithubUpload = function (msg: string, err?) {
+      if (responded) return;
+      responded = true;
+      if (err) logger.error("GitHub upload failed: " + err);
+      try {
+        file.destroy();
+      } catch (destroyError) {
+        logger.warn("GitHub upload stream cleanup failed: " + destroyError);
+      }
+      unlink(filePath);
+      if (!request.body.noreply) {
+        response.writeHead(502);
+        response.write(msg);
+      }
+      response.end();
     };
 
-    https.get(URL, function (res) {
-      if (
-        res.statusCode > 300 &&
-        res.statusCode < 400 &&
-        res.headers.location
-      ) {
-        if (url.parse(res.headers.location).hostname) {
-          https.get(res.headers.location, writeToFile);
-        } else {
-          https.get(
-            url.resolve(url.parse(URL).hostname, res.headers.location),
-            writeToFile
-          );
-        }
-      } else {
-        writeToFile(res);
+    const successGithubUpload = function () {
+      if (responded) return;
+      responded = true;
+      // update request files[]
+      request.files = [{ path: filePath, originalname: fileName }];
+      fileUpload2(request, response);
+    };
+
+    const downloadGithubArchive = function (
+      downloadURL: string,
+      redirectsLeft
+    ) {
+      if (responded) return;
+      if (redirectsLeft < 0) {
+        failGithubUpload("GitHub download failed: too many redirects.");
+        return;
       }
-    });
+      const req = https.get(
+        downloadURL,
+        {
+          headers: {
+            "User-Agent": "Macaulay2Web",
+            Accept: "application/vnd.github+json",
+          },
+        },
+        function (res) {
+          if (
+            res.statusCode > 300 &&
+            res.statusCode < 400 &&
+            res.headers.location
+          ) {
+            res.resume(); // avoid leaking sockets
+            const nextURL = url.parse(res.headers.location).hostname
+              ? res.headers.location
+              : url.resolve(downloadURL, res.headers.location);
+            downloadGithubArchive(nextURL, redirectsLeft - 1);
+            return;
+          }
+          if (res.statusCode !== 200) {
+            const status = res.statusCode || 0;
+            res.resume(); // avoid leaking sockets
+            failGithubUpload("GitHub download failed (HTTP " + status + ").");
+            return;
+          }
+          res.on("error", function (streamErr) {
+            failGithubUpload(
+              "GitHub download failed. Please try again later.",
+              streamErr
+            );
+          });
+          res.pipe(file);
+        }
+      );
+      req.setTimeout(20000, function () {
+        req.destroy(new Error("GitHub download timed out"));
+      });
+      req.on("error", function (reqErr) {
+        failGithubUpload(
+          "GitHub download failed. Please try again later.",
+          reqErr
+        );
+      });
+    };
+
+    file
+      .on("finish", function () {
+        successGithubUpload();
+      })
+      .on("error", function (err) {
+        failGithubUpload(
+          "GitHub download failed. Please try again later.",
+          err
+        );
+      });
+    downloadGithubArchive(URL, 5);
     return;
   }
   if (!request.files || request.files.length == 0) return;
   if (request.body.tutorial) {
     const file = request.files[0];
     logger.info("Tutorial upload " + file.originalname);
-    // move to tutorial directory
-    const fileName = staticFolder + "tutorials/" + file.originalname;
-    fs.copyFile(file.path, fileName, (err) => {
-      if (!request.body.noreply)
-        if (err) {
-          response.writeHead(500);
-          response.write("File upload failed. Please try again later.");
-        } else {
-          response.writeHead(200);
-        }
+    const safeName = sanitizeTutorialFileName(file.originalname);
+    if (!safeName) {
+      if (!request.body.noreply) {
+        response.writeHead(400);
+        response.write("Invalid tutorial file name.");
+      }
       response.end();
       unlink(file.path);
+      return;
+    }
+    // move to tutorial directory
+    const fileName = path.resolve(tutorialsFolder, safeName);
+    if (!isPathInside(tutorialsFolder, fileName)) {
+      if (!request.body.noreply) {
+        response.writeHead(400);
+        response.write("Invalid tutorial target path.");
+      }
+      response.end();
+      unlink(file.path);
+      return;
+    }
+    fs.copyFile(file.path, fileName, (err) => {
+      if (err) {
+        if (!request.body.noreply) {
+          response.writeHead(500);
+          response.write("File upload failed. Please try again later.");
+          response.end();
+        } else response.end();
+        unlink(file.path);
+        return;
+      }
+      unlink(file.path);
       if (fileName.endsWith(".tar.gz")) {
-        const cmd =
-          "tar zxf " +
-          fileName +
-          " -C `dirname " +
-          fileName +
-          "`; rm " +
-          fileName;
-        logger.info(cmd);
-        exec(cmd, (error, stdout, stderr) => {
-          logger.error(error + " " + stdout + " " + stderr);
+        extractTutorialArchive(fileName, (extractError) => {
+          unlink(fileName);
+          if (!request.body.noreply) {
+            if (extractError) {
+              response.writeHead(400);
+              response.write(
+                "Tutorial archive contains invalid paths or could not be unpacked."
+              );
+            } else response.writeHead(200);
+          }
+          response.end();
+          if (extractError) {
+            logger.error("Tutorial extraction failed: " + extractError);
+          }
         });
+      } else {
+        if (!request.body.noreply) response.writeHead(200);
+        response.end();
       }
     });
     return;

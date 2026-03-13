@@ -229,7 +229,8 @@ const barRightClick = function (e) {
       li = doc.createElement("li");
       li.dataset.key = key;
       li.classList.add("contextmenu-item");
-      if (key == "ctrl-x" || key == "ctrl-+") li.classList.add("contextmenu-group-start");
+      if (key == "ctrl-x" || key == "ctrl-+")
+        li.classList.add("contextmenu-group-start");
       tt = doc.createElement("tt");
       tt.classList.add("contextmenu-shortcut");
       tt.innerHTML = barActions[key][0];
