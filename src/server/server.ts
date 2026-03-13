@@ -38,7 +38,10 @@ let options;
 const staticFolder = path.join(__dirname, "../../public/");
 const tutorialsFolder = path.join(staticFolder, "tutorials");
 
-const isPathInside = function (basePath: string, candidatePath: string): boolean {
+const isPathInside = function (
+  basePath: string,
+  candidatePath: string
+): boolean {
   const relative = path.relative(basePath, candidatePath);
   return (
     relative === "" ||
@@ -369,7 +372,9 @@ const fileUpload = function (request, response) {
     if (!githubUser || !githubProject || !githubRef) {
       if (!request.body.noreply) {
         response.writeHead(400);
-        response.write("GitHub upload failed: missing organisation/project/ref.");
+        response.write(
+          "GitHub upload failed: missing organisation/project/ref."
+        );
       }
       response.end();
       return;
@@ -382,12 +387,7 @@ const fileUpload = function (request, response) {
       "/tarball/" +
       encodeURIComponent(githubRef);
     const fileName =
-      githubUser +
-      "_" +
-      githubProject +
-      "_" +
-      githubRef +
-      ".tar.gz"; // doesn't really matter
+      githubUser + "_" + githubProject + "_" + githubRef + ".tar.gz"; // doesn't really matter
     const filePath = "/tmp/" + fileName;
     const file = fs.createWriteStream(filePath);
     let responded = false;
@@ -417,7 +417,10 @@ const fileUpload = function (request, response) {
       fileUpload2(request, response);
     };
 
-    const downloadGithubArchive = function (downloadURL: string, redirectsLeft) {
+    const downloadGithubArchive = function (
+      downloadURL: string,
+      redirectsLeft
+    ) {
       if (responded) return;
       if (redirectsLeft < 0) {
         failGithubUpload("GitHub download failed: too many redirects.");
@@ -432,31 +435,31 @@ const fileUpload = function (request, response) {
           },
         },
         function (res) {
-        if (
-          res.statusCode > 300 &&
-          res.statusCode < 400 &&
-          res.headers.location
-        ) {
-          res.resume(); // avoid leaking sockets
-          const nextURL = url.parse(res.headers.location).hostname
-            ? res.headers.location
-            : url.resolve(downloadURL, res.headers.location);
-          downloadGithubArchive(nextURL, redirectsLeft - 1);
-          return;
-        }
-        if (res.statusCode !== 200) {
-          const status = res.statusCode || 0;
-          res.resume(); // avoid leaking sockets
-          failGithubUpload("GitHub download failed (HTTP " + status + ").");
-          return;
-        }
-        res.on("error", function (streamErr) {
-          failGithubUpload(
-            "GitHub download failed. Please try again later.",
-            streamErr
-          );
-        });
-        res.pipe(file);
+          if (
+            res.statusCode > 300 &&
+            res.statusCode < 400 &&
+            res.headers.location
+          ) {
+            res.resume(); // avoid leaking sockets
+            const nextURL = url.parse(res.headers.location).hostname
+              ? res.headers.location
+              : url.resolve(downloadURL, res.headers.location);
+            downloadGithubArchive(nextURL, redirectsLeft - 1);
+            return;
+          }
+          if (res.statusCode !== 200) {
+            const status = res.statusCode || 0;
+            res.resume(); // avoid leaking sockets
+            failGithubUpload("GitHub download failed (HTTP " + status + ").");
+            return;
+          }
+          res.on("error", function (streamErr) {
+            failGithubUpload(
+              "GitHub download failed. Please try again later.",
+              streamErr
+            );
+          });
+          res.pipe(file);
         }
       );
       req.setTimeout(20000, function () {

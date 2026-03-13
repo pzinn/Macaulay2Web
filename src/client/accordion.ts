@@ -96,10 +96,7 @@ const addAccordionButton = function (div: HTMLElement) {
   };
 };
 
-const appendTutorialToAccordion = function (
-  tutorial: Tutorial,
-  index
-) {
+const appendTutorialToAccordion = function (tutorial: Tutorial, index) {
   const id = "accordion-" + index;
   const div = document.getElementById(id);
   div.innerHTML = "";
