@@ -3,7 +3,7 @@
 
 The simplest way to produce a tutorial is by writing it in markdown.
 This tutorial was written in a simple markdown format.  After changing it,
-you upload the resulting file (file name with a .md extension) via the "LOAD YOUR OWN TUTORIAL" tab
+you upload the resulting file (file name with a .md extension) via the "LOAD TUTORIAL" button
 from the home page.  Give your modified file to your students for them to upload (or just give them the URL)
 so they can work through your lessons.
 

@@ -119,6 +119,9 @@
 		  The interface requires a modern browser (chrome, firefox, brave, edge... not safari or internet explorer!). It uses a <a tabindex="0" id="cookieQuery">cookie</a> to identify users.
 		</p>
 		<div id="accordion"></div>
+		<button id="loadTutorialBtn" class="app-btn app-btn-raised app-btn-brand">
+		  Load Tutorial
+		</button>
                 <p style="font-size:0.8em">
 		  Written by <a href="http://blogs.unimelb.edu.au/paul-zinn-justin/">Paul Zinn-Justin</a> (2018-2023). This is an open source project, hosted on <a href="http://github.com/pzinn/Macaulay2Web" target="_blank">GitHub</a>.
 		  <br/>
@@ -269,7 +272,7 @@
                   <i class="material-icons">arrow_drop_down</i>
 		  </button>
 	      </div>
-	      <div id="terminalProcInput"></div>
+	      <div id="terminalProcInput" class="M2Text"></div>
             </div>
 	  </div>
         </div>
@@ -306,6 +309,14 @@
       </div>
       <div class="app-dialog__content" id="uploadSuccessText">
       </div>
+    </dialog>
+    <dialog id="tutorialUploadDialog" class="app-dialog" style="max-height:220px;min-width:320px;display:none">
+      <form method="dialog">
+	<p id="tutorialUploadDialogText"></p>
+	<menu>
+	  <button value="ok" class="app-btn app-btn-raised app-btn-secondary">OK</button>
+	</menu>
+      </form>
     </dialog>
 
   </body>

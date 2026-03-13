@@ -197,12 +197,39 @@ const uploadTutorial = function () {
   } else uploadTutorial1(file, fileName);
 };
 
+const showTutorialUploadDialog = function (msg: string) {
+  const dialog = document.getElementById("tutorialUploadDialog") as any;
+  if (!dialog) {
+    alert(msg);
+    return;
+  }
+  const txt = document.getElementById("tutorialUploadDialogText");
+  if (txt) txt.textContent = msg;
+  if (dialog.showModal) {
+    dialog.style.display = "";
+    dialog.showModal();
+  } else {
+    alert(msg);
+  }
+};
+
 const uploadTutorial1 = function (file, fileName) {
   // upload to server
   const req = new XMLHttpRequest();
   const formData = new FormData();
   formData.append("files[]", file);
   formData.append("tutorial", "true");
+  req.onload = function () {
+    if (req.status >= 200 && req.status < 300)
+      showTutorialUploadDialog("Tutorial upload succeeded.");
+    else
+      showTutorialUploadDialog(
+        req.responseText || "Tutorial upload failed. Please try again."
+      );
+  };
+  req.onerror = function () {
+    showTutorialUploadDialog("Tutorial upload failed due to a network error.");
+  };
   req.open("POST", "/upload");
   req.send(formData);
 
@@ -228,16 +255,7 @@ const loadTutorial = function (newTutorialIndex, newLessonNr) {
     console.log("tutorial " + newTutorialIndex + " loaded");
     newLessonNr = tutorials[newTutorialIndex].lessonNr; // in case it was updated
     tutorials[newTutorialIndex] = processTutorial(xhr.responseText);
-    appendTutorialToAccordion(
-      tutorials[newTutorialIndex],
-      newTutorialIndex,
-      newTutorialIndex == "load" // load tutorial is special
-        ? function (e) {
-            e.stopPropagation();
-            tutorialUploadInput.click();
-          }
-        : null
-    );
+    appendTutorialToAccordion(tutorials[newTutorialIndex], newTutorialIndex);
     if (newLessonNr) renderLesson(newTutorialIndex, newLessonNr);
   };
   xhr.open("GET", "tutorials/" + newTutorialIndex + ".html", true);
@@ -327,7 +345,7 @@ const startingTutorials = [
   "groebner",
   "math",
   "interface",
-  "load",
+  "sample",
 ];
 // weird hard-coding of initial tutorials TODO better
 
@@ -338,6 +356,9 @@ const initTutorials = function () {
   const tutorial = document.getElementById("tutorial");
 
   for (const tute of startingTutorials) loadTutorial(tute, 0); // zero means don't render
+  document.getElementById("loadTutorialBtn").onclick = function () {
+    tutorialUploadInput.click();
+  };
 
   document.getElementById("runAllTute").onclick = function () {
     if (tutorials[tutorialIndex]) {

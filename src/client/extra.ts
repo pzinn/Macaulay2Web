@@ -397,13 +397,9 @@ const extra1 = function () {
   const resizeMouseMove = (event) => {
     if (ismdwn === 1) {
       if (resizeStartX === null) resizeStartX = event.clientX;
-      leftHalf.style.flexBasis = computeResizeFlexBasis(
-        resizeStartWidth,
-        resizeStartX,
-        event.clientX
-      );
-    }
-    else resizeMouseEnd();
+      const deltaX = event.clientX - resizeStartX;
+      leftHalf.style.flexBasis = resizeStartWidth + deltaX + "px";
+    } else resizeMouseEnd();
   };
 
   const resizeMouseEnd = () => {

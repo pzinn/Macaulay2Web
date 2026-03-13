@@ -2,6 +2,12 @@ import { Client } from "./client";
 import ssh2 = require("ssh2");
 import { logger } from "./logger";
 import { unlink, options, sshCredentials } from "./server";
+import path = require("path");
+
+const shellQuote = function (value: string): string {
+  // Single-quote shell escaping: abc'def -> 'abc'"'"'def'
+  return "'" + value.replace(/'/g, "'\"'\"'") + "'";
+};
 
 const uploadToInstance = function (
   client: Client,
@@ -36,13 +42,14 @@ const uploadToInstance = function (
           next("", sftpError);
         } else if (fileName.endsWith(".tar.gz")) {
           // TODO: .tar and .gz separately?
+          const targetDir = path.posix.dirname(fileName);
           const cmd =
-            "tar zxf " +
-            fileName +
-            " -C `dirname " +
-            fileName +
-            "`; rm " +
-            fileName;
+            "tar -xzf " +
+            shellQuote(fileName) +
+            " -C " +
+            shellQuote(targetDir) +
+            " && rm -f -- " +
+            shellQuote(fileName);
           sshConnection.exec(cmd, function (err, stream) {
             if (err) {
               logger.error("failed to execute " + cmd, client);
