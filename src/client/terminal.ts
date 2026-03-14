@@ -776,6 +776,7 @@ const Shell = function (
         // all other states are raw text -- don't rewrite htmlSec.textContent+=txt[i] in case of input
       }
     }
+    htmlSec.scrollIntoView(); // overkill except in phone mode
     scrollDownLeft(terminal);
   };
 
