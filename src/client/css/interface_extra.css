@@ -44,10 +44,21 @@ html, body {
 }
 
 .app-header {
+    position: relative;
     z-index: 6;
     background-color: var(--bg-header);
     color: var(--text-on-accent);
-    box-shadow: 0 1px 4px var(--shadow-soft);
+}
+
+.app-header::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.16);
+    pointer-events: none;
 }
 
 .app-header-row {
