@@ -1,6 +1,7 @@
 3.10 03/2026
     * got rid of MDL
     * various updates to look/feel of client
+    * tests added
 
 3.9 04/2023
     * premium users
