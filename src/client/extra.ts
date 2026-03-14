@@ -25,6 +25,7 @@ import {
   syntaxHighlight,
   updateAndHighlightMaybe,
 } from "./editor";
+import { activateTabInContainer, computeResizeFlexBasis } from "./uiHelpers";
 
 const hashCode = function (s: string) {
   let hash = 0,
@@ -297,20 +298,6 @@ const extra1 = function () {
 
   let oldTab = "";
   let editorFoc = false;
-  const activateTab = function (loc: string) {
-    tabs
-      .querySelectorAll(".app-panel.is-active")
-      .forEach((el) => el.classList.remove("is-active"));
-    tabs
-      .querySelectorAll(".app-tab.is-active")
-      .forEach((el) => el.classList.remove("is-active"));
-    const panel = document.getElementById(loc);
-    const tab = document.getElementById(loc + "Title");
-    if (panel && tab) {
-      panel.classList.add("is-active");
-      tab.classList.add("is-active");
-    }
-  };
 
   // custom tab handling (no MDL JS dependency)
   const openTab = function () {
@@ -349,7 +336,7 @@ const extra1 = function () {
       oldTab = loc;
       const tab = document.getElementById(loc + "Title");
       if (tab) {
-        activateTab(loc);
+        activateTabInContainer(tabs, loc);
         if (loc == "chat") {
           tab.removeAttribute("data-message");
           // scroll. sadly, doesn't work if started with #chat
@@ -365,7 +352,7 @@ const extra1 = function () {
     if (ignoreFirstLoad) ignoreFirstLoad = false;
     else if (document.location.hash !== "#browse")
       document.location.hash = "#browse";
-    else activateTab("browse");
+    else activateTabInContainer(tabs, "browse");
     // try to enable actions
     if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body) {
       const bdy = iFrame.contentDocument.body;
@@ -443,8 +430,11 @@ const extra1 = function () {
   const resizeTouchMove = (event) => {
     const x = event.changedTouches[0].clientX;
     if (resizeStartX === null) resizeStartX = x;
-    const deltaX = x - resizeStartX;
-    leftHalf.style.flexBasis = resizeStartWidth + deltaX + "px";
+    leftHalf.style.flexBasis = computeResizeFlexBasis(
+      resizeStartWidth,
+      resizeStartX,
+      x
+    );
   };
 
   const resizeTouchEnd = () => {

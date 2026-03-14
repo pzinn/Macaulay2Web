@@ -10,6 +10,7 @@ mkdir -p js
 cd js
 wget -nv -N https://raw.githubusercontent.com/pzinn/M2/vanilla/M2/Macaulay2/packages/VectorGraphics/VectorGraphics.js
 cd ..
+cd ../..
 
 cd public
 # sym link (necessary for e.g. help pages)

@@ -24,6 +24,7 @@ import {
 import { options } from "../common/global";
 
 import { language } from "./htmlTools";
+import { getThemeButtonState } from "./uiHelpers";
 
 let myshell = null; // the terminal
 let clientId = MINIMAL ? "public" : getCookieId(); // client's id. it's public / in the cookie,
@@ -197,13 +198,11 @@ const isNightTheme = function (input: string | null): boolean {
 };
 
 const updateThemeButton = function (): void {
+  const state = getThemeButtonState(theme);
   const icon = document.getElementById("themeBtnIcon");
-  if (icon) icon.textContent = isNightTheme(theme) ? "light_mode" : "dark_mode";
-  const text = isNightTheme(theme)
-    ? "Switch to day mode"
-    : "Switch to night mode";
+  if (icon) icon.textContent = state.icon;
   const themeBtn = document.getElementById("themeBtn");
-  if (themeBtn) themeBtn.setAttribute("title", text);
+  if (themeBtn) themeBtn.setAttribute("title", state.title);
 };
 
 const applyTheme = function (inputTheme: ThemeMode, persist?: boolean): void {
