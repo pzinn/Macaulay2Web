@@ -777,10 +777,6 @@ button.accordionOpen .material-icons {
     border-bottom-color: var(--border-main);
 }
 
-:root[data-theme="night"] .app-tab-bar .app-tab::after {
-    background: var(--text-link);
-}
-
 #chatMessages {
     padding-left: 0px;
     overflow-y: scroll;
