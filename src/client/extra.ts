@@ -295,8 +295,25 @@ const listDirToEditor = function (dirName: string, fileName: string) {
       deleteButton.className =
         "app-btn app-btn-icon editorDirectoryDeleteButton";
       deleteButton.type = "button";
-      deleteButton.disabled = true;
-      deleteButton.title = "Delete file (coming soon)";
+      deleteButton.disabled = entry.parent;
+      deleteButton.title = entry.name.endsWith("/")
+        ? "Delete empty directory"
+        : "Delete file";
+      if (!entry.parent) {
+        deleteButton.onclick = function () {
+          const entryName = entry.name.endsWith("/")
+            ? entry.name.substring(0, entry.name.length - 1)
+            : entry.name;
+          if (!window.confirm("Delete " + entryName + "?")) return;
+          socket.emit("deletefile", entry.href, function (msg, err) {
+            if (err) {
+              window.alert(msg || "Delete failed.");
+              return;
+            }
+            newEditorFileMaybe(dirName);
+          });
+        };
+      }
       const deleteIcon = document.createElement("i");
       deleteIcon.className = "material-icons";
       deleteIcon.textContent = "delete";

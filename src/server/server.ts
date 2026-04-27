@@ -5,6 +5,7 @@ import { socketChatAction, systemChat } from "./chat";
 import { Instance, InstanceManager } from "./instance";
 import { AddressInfo } from "net";
 import { downloadFromInstance } from "./fileDownload";
+import { deleteFromInstance } from "./fileDelete";
 import { uploadToInstance } from "./fileUpload";
 import { webAppTags } from "../common/tags";
 import { logger } from "./logger";
@@ -747,6 +748,12 @@ const socketFileExists = function (socket: Socket, client: Client) {
   };
 };
 
+const socketDeleteFile = function (socket: Socket, client: Client) {
+  return function (fileName: string, callback) {
+    deleteFromInstance(client, fileName, callback);
+  };
+};
+
 const validateId = function (s): string {
   if (s === undefined) return undefined;
   s = s.replace(/\W/g, "");
@@ -790,6 +797,7 @@ const listen = function () {
     socket.on("disconnect", socketDisconnectAction(socket, client));
     socket.on("error", socketErrorAction(client));
     socket.on("fileexists", socketFileExists(socket, client));
+    socket.on("deletefile", socketDeleteFile(socket, client));
   });
 
   const listener = httpServer.listen(serverConfig.port);
