@@ -111,9 +111,22 @@ let currentFileIsDirectory;
 let currentFileIsReadonly;
 let editor; // "editorDiv"
 
+const setEditorActionButtonsDisabled = function (disabled: boolean) {
+  ["runBtn", "runAllEditor"].forEach((id) => {
+    const button = document.getElementById(id) as HTMLButtonElement;
+    if (button) button.disabled = disabled;
+  });
+  document
+    .querySelectorAll("#saveBtn button")
+    .forEach((button: HTMLButtonElement) => {
+      button.disabled = disabled;
+    });
+};
+
 const setDirectory = function (val: boolean) {
   currentFileIsDirectory = val;
   editor.contentEditable = !val; // auto convert to string
+  setEditorActionButtonsDisabled(val);
 };
 
 const setReadonly = function (val: boolean, msg?: string) {
@@ -223,23 +236,77 @@ const listDirToEditor = function (dirName: string, fileName: string) {
     setDirectory(true);
     const lst = xhr.responseText
       .split("\n")
+      .filter((s) => s.length > 0)
       .sort()
-      .map((s) => [dirName + s, s]);
+      .map((s) => ({ href: dirName + s, name: s, parent: false }));
     if (dirName != "./") {
       // a bit crude
       const i = dirName.lastIndexOf("/", dirName.length - 2);
       const ancestor = i >= 0 ? dirName.substring(0, i + 1) : "./";
-      lst.unshift([
-        ancestor,
-        "<i class='material-icons'>subdirectory_arrow_left</i>",
-      ]);
+      lst.unshift({ href: ancestor, name: "..", parent: true });
     }
-    editor.innerHTML =
-      "<ul style='list-style:none'>" +
-      lst
-        .map((a) => "<li><a href='#editor:" + a[0] + "'>" + a[1] + "</a></li>")
-        .join("") +
-      "</ul>";
+
+    const directoryView = document.createElement("div");
+    directoryView.className = "editorDirectory";
+
+    const title = document.createElement("div");
+    title.className = "editorDirectoryTitle";
+    const titleIcon = document.createElement("i");
+    titleIcon.className = "material-icons";
+    titleIcon.textContent = "folder_open";
+    const titleText = document.createElement("span");
+    titleText.textContent = dirName;
+    title.append(titleIcon, titleText);
+    directoryView.appendChild(title);
+
+    const list = document.createElement("ul");
+    list.className = "editorDirectoryList";
+    for (const entry of lst) {
+      const item = document.createElement("li");
+      item.className = "editorDirectoryItem";
+      if (entry.parent) item.classList.add("editorDirectoryItemParent");
+      const isM2File = !entry.name.endsWith("/") && entry.name.endsWith(".m2");
+      if (isM2File) item.classList.add("editorDirectoryItemM2");
+
+      const link = document.createElement("a");
+      link.className = "editorDirectoryLink";
+      link.href = "#editor:" + entry.href;
+
+      const icon = document.createElement("i");
+      icon.className = "material-icons";
+      icon.textContent = entry.parent
+        ? "subdirectory_arrow_left"
+        : entry.name.endsWith("/")
+        ? "folder"
+        : "description";
+
+      const label = document.createElement("span");
+      label.className = "editorDirectoryName";
+      label.textContent = entry.name;
+      link.append(icon, label);
+      if (isM2File) {
+        const badge = document.createElement("span");
+        badge.className = "editorDirectoryBadge";
+        badge.textContent = "M2";
+        link.appendChild(badge);
+      }
+
+      const deleteButton = document.createElement("button");
+      deleteButton.className =
+        "app-btn app-btn-icon editorDirectoryDeleteButton";
+      deleteButton.type = "button";
+      deleteButton.disabled = true;
+      deleteButton.title = "Delete file (coming soon)";
+      const deleteIcon = document.createElement("i");
+      deleteIcon.className = "material-icons";
+      deleteIcon.textContent = "delete";
+      deleteButton.appendChild(deleteIcon);
+
+      item.append(link, deleteButton);
+      list.appendChild(item);
+    }
+    directoryView.appendChild(list);
+    editor.replaceChildren(directoryView);
   };
   autoSaveHash = undefined; // no autosaving for directories
   xhr.send(null);
