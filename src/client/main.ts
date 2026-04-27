@@ -63,7 +63,7 @@ const emitStack = [];
 const wrapEmitForDisconnect = function (event, msg, callback?) {
   if (socket.disconnected || !initDone) {
     //     console.log("We are disconnected/not init. " + event);
-    const events = ["reset", "input", "chat", "fileexists"]; // !!!
+    const events = ["reset", "input", "chat", "fileexists", "deletefile"]; // !!!
     if (events.indexOf(event) >= 0) {
       emitStack.push([event, msg, callback]);
       socket.connect();

@@ -5,6 +5,7 @@ import { socketChatAction, systemChat } from "./chat";
 import { Instance, InstanceManager } from "./instance";
 import { AddressInfo } from "net";
 import { downloadFromInstance } from "./fileDownload";
+import { deleteFromInstance } from "./fileDelete";
 import { uploadToInstance } from "./fileUpload";
 import { webAppTags } from "../common/tags";
 import { logger } from "./logger";
@@ -621,6 +622,9 @@ const initializeServer = function () {
   app.use(expressWinston.logger(logger));
   app.use(favicon(staticFolder + "favicon.ico"));
   app.post("/upload/", upload.array("files[]"), fileUpload);
+  app.use("/share/", function (request, response) {
+    response.redirect(301, "/usr/share/" + request.url.substring(1));
+  });
   app.use("/usr/share/", serveStatic("/usr/share"), serveIndex("/usr/share")); // optionally, serve documentation locally and allow browsing
   app.use(serveStatic(staticFolder, { dotfiles: "allow" }));
   app.use(fileDownload);
@@ -744,6 +748,12 @@ const socketFileExists = function (socket: Socket, client: Client) {
   };
 };
 
+const socketDeleteFile = function (socket: Socket, client: Client) {
+  return function (fileName: string, callback) {
+    deleteFromInstance(client, fileName, callback);
+  };
+};
+
 const validateId = function (s): string {
   if (s === undefined) return undefined;
   s = s.replace(/\W/g, "");
@@ -791,6 +801,7 @@ const httpsWorker = function (glx) {
     socket.on("disconnect", socketDisconnectAction(socket, client));
     socket.on("error", socketErrorAction(client));
     socket.on("fileexists", socketFileExists(socket, client));
+    socket.on("deletefile", socketDeleteFile(socket, client));
   });
 
   glx.serveApp(app);
