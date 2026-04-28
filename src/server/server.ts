@@ -625,6 +625,9 @@ const initializeServer = function () {
   app.use("/share/", function (request, response) {
     response.redirect(301, "/usr/share/" + request.url.substring(1));
   });
+  app.use("/common/share/", function (request, response) {
+    response.redirect(301, "/usr/share/" + request.url.substring(1));
+  });
   app.use("/usr/share/", serveStatic("/usr/share"), serveIndex("/usr/share")); // optionally, serve documentation locally and allow browsing
   app.use(serveStatic(staticFolder, { dotfiles: "allow" }));
   app.use(fileDownload);
