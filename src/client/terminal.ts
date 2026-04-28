@@ -150,7 +150,7 @@ const Shell = function (
   if (createInputSpan) createInputEl();
   else htmlSec = terminal;
 
-  let codeElStack = []; // stack of past code currently being processed
+  const codeElStack = []; // stack of past code currently being processed
   const terminalProcInput = document.getElementById("terminalProcInput");
   const clearCodeStack = function () {
     codeElStack.length = 0;
@@ -187,6 +187,10 @@ const Shell = function (
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
     const clean = sanitizeInput(msg);
+    if (!el && terminalProcInput) {
+      el = document.createElement("div");
+      terminalProcInput.appendChild(el);
+    }
     if (el) {
       el.dataset.m2code = clean;
       codeElStack.push(el);
@@ -292,11 +296,7 @@ const Shell = function (
     if (e.key == "Enter") {
       if (!e.shiftKey) {
         const M2input = htmlToM2(inputSpan);
-        if (terminalProcInput && M2input) {
-          const procInputSpan = document.createElement("div");
-          terminalProcInput.appendChild(procInputSpan);
-          obj.postMessage(M2input, procInputSpan);
-        } else obj.postMessage(M2input);
+        if (M2input) obj.postMessage(M2input);
         setCaret(inputSpan, 0);
         e.preventDefault(); // no crappy <div></div> added
       }
