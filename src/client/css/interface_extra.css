@@ -1173,8 +1173,8 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
 
 #terminalFullscreen {
     position:absolute;
-    top:0px;
-    right:20px;
+    top:2px;
+    right:12px;
     z-index:2
 }
 
