@@ -1003,7 +1003,10 @@ const extra2 = function () {
     attachClick("runBtn", editorEvaluate);
     attachClick("runAllEditor", editorEvaluateAll);
     attachClick("resetBtn", emitReset);
-    attachClick("interruptBtn", myshell.interrupt);
+    attachClick("interruptBtn", function (ev) {
+      ev.stopPropagation();
+      myshell.interrupt();
+    });
     attachClick("saveBtn", saveFile);
     attachClick("loadBtn", loadFile);
     attachClick("clearBtn", clearOut);

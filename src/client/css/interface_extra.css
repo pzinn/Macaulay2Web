@@ -1214,19 +1214,64 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
     }
 }
 
+#terminalDiv {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+}
+
 #terminalProcInput {
+    --terminal-proc-action-width: 7.5rem;
+    --terminal-proc-min-code-width: 14ch;
+    display: none;
     position: absolute;
-    right: 100px;
+    right: 20px;
     top: 20px;
     z-index: 2;
+    box-sizing: border-box;
+    min-width: min(
+        33%,
+        calc(
+            var(--terminal-proc-action-width) +
+            var(--terminal-proc-min-code-width) +
+            3rem
+        )
+    );
+    max-width: 33%;
+    max-height: 33%;
+    overflow: auto;
     background: var(--bg-surface);
     border: 1px solid var(--border-main);
     padding: 12px;
 }
-#terminalProcInput:empty {
-    display: none;
+
+#terminalProcInput:has(#terminalProcInputLines > .terminalProcLine) {
+    display: block;
 }
 
-#terminalProcInput > ::before {
+#terminalProcInput #terminalProcInputActions {
+    position: relative;
+    float: right;
+    z-index: 1;
+    display: flex;
+    justify-content: flex-end;
+    width: var(--terminal-proc-action-width);
+    margin-left: 8px;
+    margin-bottom: 4px;
+    white-space: normal;
+}
+
+#terminalProcInputActions .app-btn-raised {
+    min-height: 30px;
+    padding: 0 10px;
+    white-space: normal;
+}
+
+#terminalProcInputLines {
+    min-width: 0;
+    min-height: 0;
+}
+
+#terminalProcInputLines > .terminalProcLine::before {
   content: attr(data-m2code);
 }

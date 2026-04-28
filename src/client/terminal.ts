@@ -151,10 +151,12 @@ const Shell = function (
   else htmlSec = terminal;
 
   const codeElStack = []; // stack of past code currently being processed
-  const terminalProcInput = document.getElementById("terminalProcInput");
+  const terminalProcInputLines = document.getElementById(
+    "terminalProcInputLines"
+  );
   const clearCodeStack = function () {
     codeElStack.length = 0;
-    if (terminalProcInput) terminalProcInput.innerHTML = "";
+    if (terminalProcInputLines) terminalProcInputLines.innerHTML = "";
   };
 
   obj.codeInputAction = function (t) {
@@ -181,17 +183,23 @@ const Shell = function (
     }, 100);
   };
 
-  const countSegments = (s) => (s.match(/[^\n]+/g) || []).length;
+  const inputSegments = (s) => s.match(/[^\n]+/g) || [];
+  const countSegments = (s) => inputSegments(s).length;
 
   obj.postMessage = function (msg, el?) {
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
     const clean = sanitizeInput(msg);
-    if (!el && terminalProcInput) {
-      el = document.createElement("div");
-      terminalProcInput.appendChild(el);
-    }
-    if (el) {
+    if (!el && terminalProcInputLines) {
+      inputSegments(clean).forEach((line) => {
+        const lineEl = document.createElement("div");
+        lineEl.classList.add("terminalProcLine");
+        lineEl.dataset.m2code = line;
+        codeElStack.push(lineEl);
+        lineEl.numSegments = 1;
+        terminalProcInputLines.appendChild(lineEl);
+      });
+    } else if (el) {
       el.dataset.m2code = clean;
       codeElStack.push(el);
       el.numSegments = countSegments(clean);
@@ -548,10 +556,7 @@ const Shell = function (
         } else {
           numInputs -= currentCodeEl.numSegments;
           currentCodeEl.numSegments = 0;
-          if (
-            currentCodeEl.parentElement &&
-            currentCodeEl.parentElement.id == "terminalProcInput"
-          ) {
+          if (currentCodeEl.classList.contains("terminalProcLine")) {
             currentCodeEl.remove();
             codeElStack.splice(i, 1);
           } else i++;
