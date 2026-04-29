@@ -218,6 +218,7 @@ const barMouseDown = function (e) {
 
 const barRightClick = function (e) {
   const doc = e.currentTarget.ownerDocument; // in case of iframe
+  hideContextMenu();
 
   contextMenu = doc.createElement("ul");
   contextMenu.id = "contextmenu";
@@ -242,11 +243,19 @@ const barRightClick = function (e) {
       contextMenu.appendChild(li);
     }
 
-  contextMenu.style.left = e.pageX + "px";
-  if (e.pageY < window.innerHeight / 2) contextMenu.style.top = e.pageY + "px";
-  else contextMenu.style.bottom = window.innerHeight - e.pageY + "px";
+  contextMenu.style.position = "fixed";
+  contextMenu.style.left = e.clientX + "px";
+  if (e.clientY < window.innerHeight / 2)
+    contextMenu.style.top = e.clientY + "px";
+  else contextMenu.style.bottom = window.innerHeight - e.clientY + "px";
 
-  doc.body.appendChild(contextMenu);
+  const fullscreenElement = doc.fullscreenElement as HTMLElement | null;
+  const targetNode = e.target as Node;
+  const menuParent =
+    fullscreenElement && fullscreenElement.contains(targetNode)
+      ? fullscreenElement
+      : doc.body;
+  menuParent.appendChild(contextMenu);
 
   if (doc.getElementsByClassName("M2CellSelected").length == 0)
     e.target.parentElement.classList.add("M2CellSelected"); // if nothing selected, select current
