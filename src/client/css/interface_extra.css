@@ -1173,8 +1173,8 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
 
 #terminalFullscreen {
     position:absolute;
-    top:0px;
-    right:20px;
+    top:2px;
+    right:12px;
     z-index:2
 }
 
@@ -1226,7 +1226,7 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
     display: none;
     position: absolute;
     right: 20px;
-    top: 20px;
+    top: 52px;
     z-index: 2;
     box-sizing: border-box;
     min-width: min(
@@ -1237,6 +1237,7 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
             3rem
         )
     );
+    min-height: calc(30px + 1.2em + 2rem);
     max-width: 33%;
     max-height: 33%;
     overflow: auto;
@@ -1246,18 +1247,18 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
 }
 
 #terminalProcInput:has(#terminalProcInputLines > .terminalProcLine) {
-    display: block;
+    display: flex;
+    flex-direction: column;
 }
 
 #terminalProcInput #terminalProcInputActions {
-    position: relative;
-    float: right;
+    position: absolute;
+    top: 12px;
+    right: 12px;
     z-index: 1;
     display: flex;
     justify-content: flex-end;
     width: var(--terminal-proc-action-width);
-    margin-left: 8px;
-    margin-bottom: 4px;
     white-space: normal;
 }
 
@@ -1268,8 +1269,14 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
 }
 
 #terminalProcInputLines {
+    box-sizing: border-box;
+    flex: 1 1 auto;
     min-width: 0;
     min-height: 0;
+    padding-top: calc(30px + 0.5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
 }
 
 #terminalProcInputLines > .terminalProcLine::before {
