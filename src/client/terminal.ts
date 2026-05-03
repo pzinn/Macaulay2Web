@@ -186,6 +186,30 @@ const Shell = function (
   const inputSegments = (s) => s.match(/[^\n]+/g) || [];
   const countSegments = (s) => inputSegments(s).length;
 
+  const countCellInputSegments = function (cell: HTMLElement) {
+    return Array.from(
+      cell.querySelectorAll(".M2PastInput") as NodeListOf<HTMLElement>
+    ).reduce((total, input) => total + countSegments(input.textContent), 0);
+  };
+
+  const finishProcessedInputForCell = function (cell: HTMLElement) {
+    let numInputs = countCellInputSegments(cell);
+    while (numInputs > 0 && codeElStack.length > 0) {
+      const currentCodeEl = codeElStack[0];
+      if (currentCodeEl.numSegments > numInputs) {
+        currentCodeEl.numSegments -= numInputs;
+        numInputs = 0;
+      } else {
+        numInputs -= currentCodeEl.numSegments;
+        currentCodeEl.numSegments = 0;
+        if (currentCodeEl.classList.contains("terminalProcLine"))
+          currentCodeEl.remove();
+        else if (!MINIMAL) processTutorialOutput(cell, currentCodeEl);
+        codeElStack.shift();
+      }
+    }
+  };
+
   obj.postMessage = function (msg, el?) {
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
@@ -545,23 +569,6 @@ const Shell = function (
         Prism.languages.macaulay2
       );
       htmlSec.classList.add("M2PastInput");
-      // mark inputs as regurgitated by M2
-      let numInputs = countSegments(htmlSec.textContent);
-      let i = 0;
-      while (numInputs > 0 && i < codeElStack.length) {
-        const currentCodeEl = codeElStack[i];
-        if (currentCodeEl.numSegments > numInputs) {
-          currentCodeEl.numSegments -= numInputs;
-          numInputs = 0;
-        } else {
-          numInputs -= currentCodeEl.numSegments;
-          currentCodeEl.numSegments = 0;
-          if (currentCodeEl.classList.contains("terminalProcLine")) {
-            currentCodeEl.remove();
-            codeElStack.splice(i, 1);
-          } else i++;
-        }
-      }
     } else if (htmlSec.classList.contains("M2Html")) {
       // first things first: make sure we don't mess with input (interrupts, tasks, etc, can display unexpectedly)
       if (anc.classList.contains("M2Input")) {
@@ -735,14 +742,7 @@ const Shell = function (
             const oldHtmlSec = htmlSec;
             closeHtml();
             if (tag == webAppTags.CellEnd && isTrueInput())
-              while (
-                codeElStack.length > 0 &&
-                codeElStack[0].numSegments == 0
-              ) {
-                //
-                if (!MINIMAL) processTutorialOutput(oldHtmlSec, codeElStack[0]); // or whole thing should be skipped in minimal mode?
-                codeElStack.shift();
-              }
+              finishProcessedInputForCell(oldHtmlSec);
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {
           // continuation of input section
