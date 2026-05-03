@@ -467,6 +467,7 @@ const extra1 = function () {
     ismdwn = 1;
     resizeStartX = null;
     resizeStartWidth = leftHalf.getBoundingClientRect().width;
+    resize.classList.add("is-resizing");
     document.body.addEventListener("mousemove", resizeMouseMove);
     document.body.addEventListener("mouseup", resizeMouseEnd);
     document.body.addEventListener("mouseleave", resizeMouseEnd);
@@ -496,6 +497,7 @@ const extra1 = function () {
         "mousemove",
         resizeMouseMove
       );
+    resize.classList.remove("is-resizing");
     document.body.style.userSelect = "";
     checkScrollButton();
   };
@@ -505,6 +507,7 @@ const extra1 = function () {
   const resizeTouchStart = () => {
     resizeStartX = null;
     resizeStartWidth = leftHalf.getBoundingClientRect().width;
+    resize.classList.add("is-resizing");
     document.body.addEventListener("touchmove", resizeTouchMove);
     document.body.addEventListener("touchend", resizeTouchEnd);
     document.body.addEventListener("touchcancel", resizeTouchEnd);
@@ -525,6 +528,7 @@ const extra1 = function () {
     document.body.removeEventListener("touchmove", resizeTouchMove);
     document.body.removeEventListener("touchend", resizeTouchEnd);
     document.body.removeEventListener("touchcancel", resizeTouchEnd);
+    resize.classList.remove("is-resizing");
     document.body.style.userSelect = "";
     checkScrollButton();
   };
