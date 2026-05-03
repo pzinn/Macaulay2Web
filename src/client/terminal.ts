@@ -188,7 +188,7 @@ const Shell = function (
 
   const countCellInputSegments = function (cell: HTMLElement) {
     return Array.from(
-      cell.querySelectorAll(".M2PastInput") as NodeListOf<HTMLElement>
+      cell.querySelectorAll(".M2PastInput:not(.examples *)") as NodeListOf<HTMLElement>
     ).reduce((total, input) => total + countSegments(input.textContent), 0);
   };
 
