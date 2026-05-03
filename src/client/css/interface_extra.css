@@ -736,7 +736,7 @@ dialog.app-dialog::backdrop {
 #scrollBtn {
     z-index: 2;
     position: absolute;
-    bottom: 10px;
+    bottom: 18px;
     right: 22px;
 }
 
