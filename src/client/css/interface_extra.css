@@ -560,6 +560,7 @@ dialog.app-dialog::backdrop {
     z-index: 1;
     resize: none;
     box-sizing: border-box;
+    padding-top: 6px;
     font-family: "Iosevka";
     font-weight: normal;
 }
@@ -723,8 +724,20 @@ dialog.app-dialog::backdrop {
 #scrollBtn {
     z-index: 2;
     position: absolute;
-    bottom: 16px;
-    right: 16px;
+    bottom: 10px;
+    right: 22px;
+}
+
+.github-corner {
+    opacity: 0.6;
+    transition: opacity 160ms ease;
+}
+
+.github-corner:hover,
+.github-corner:focus,
+.github-corner:focus-visible {
+    opacity: 1;
+    outline: none;
 }
 
 #scrollBtn .app-btn-fab {
@@ -733,15 +746,24 @@ dialog.app-dialog::backdrop {
     min-width: 30px;
     min-height: 30px;
     padding: 0;
-    background: rgba(158, 158, 158, 0.2);
+    background: rgba(255, 255, 255, 0.16);
+    color: var(--text-main);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+#terminalFullscreen .app-btn-icon {
+    background: rgba(255, 255, 255, 0.16);
     color: var(--text-main);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 #scrollBtn .app-btn-fab:hover,
 #scrollBtn .app-btn-fab:focus,
-#scrollBtn .app-btn-fab:focus-visible {
-    background: rgba(158, 158, 158, 0.32);
+#scrollBtn .app-btn-fab:focus-visible,
+#terminalFullscreen .app-btn-icon:hover,
+#terminalFullscreen .app-btn-icon:focus,
+#terminalFullscreen .app-btn-icon:focus-visible {
+    background: var(--bg-button);
     outline: none;
 }
 
@@ -1173,8 +1195,8 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
 
 #terminalFullscreen {
     position:absolute;
-    top:2px;
-    right:12px;
+    top:8px;
+    right:18px;
     z-index:2
 }
 
