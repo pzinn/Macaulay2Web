@@ -759,7 +759,7 @@ const socketDeleteFile = function (socket: Socket, client: Client) {
 
 const validateId = function (s): string {
   if (s === undefined) return undefined;
-  s = s.replace(/\W/g, "");
+  s = s.replace(/[^A-Za-z0-9_-]/g, "");
   return s == "" ? undefined : s;
 };
 

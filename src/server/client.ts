@@ -1,5 +1,6 @@
 import { Instance } from "./instance";
 import { logger } from "./logger";
+import crypto = require("crypto");
 import ssh2 = require("ssh2");
 import { Socket } from "socket.io";
 
@@ -28,7 +29,11 @@ interface IClients {
 const getNewId = function (clients: IClients) {
   let clientId: string;
   do {
-    clientId = String(Math.floor(Math.random() * 1000000));
+    clientId = crypto
+      .randomBytes(6)
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_");
   } while (clientId in clients);
   logger.info("New client id " + clientId);
   return clientId;
