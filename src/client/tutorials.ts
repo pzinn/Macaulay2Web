@@ -109,6 +109,7 @@ const processTutorial = function (theHtml: string) {
       }
       if (!closing) cur0.scrollIntoView({ behavior: "smooth" });
     };
+    hr.classList.add("separator");
   }
 
   // run scripts

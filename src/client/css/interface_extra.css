@@ -1035,7 +1035,7 @@ nav {
     margin-left: 8px;
 }
 
-#lesson hr {
+#lesson hr.separator {
   text-align: center;
   background-color: var(--bg-rule);
   border-radius: 8px;
@@ -1047,7 +1047,7 @@ nav {
 }
 
 
-#lesson hr::after {
+#lesson hr.separator::after {
   font-family: "Material Symbols Outlined", "Material Icons";
   font-variation-settings:
     "FILL" 0,
