@@ -307,7 +307,7 @@ const init = function () {
 
 const init2 = function () {
   if (!MINIMAL)
-    document.getElementById("terminalDiv").style.display = "initial";
+    document.getElementById("terminalDiv").style.display = "block";
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
   socket = io(ioParams, { autoConnect: false });
