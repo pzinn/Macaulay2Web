@@ -32,7 +32,16 @@ let clientId = MINIMAL ? "public" : getCookieId(); // client's id. it's public /
 let initDone = false;
 
 const keydownAction = function (e) {
-  if (e.key == "F1") {
+  if (
+    e.ctrlKey &&
+    !e.altKey &&
+    !e.metaKey &&
+    (e.key == "." || e.code == "Period")
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    myshell.interrupt();
+  } else if (e.key == "F1") {
     e.preventDefault();
     e.stopPropagation();
     //    const sel = window.getSelection().toString();
@@ -298,7 +307,7 @@ const init = function () {
 
 const init2 = function () {
   if (!MINIMAL)
-    document.getElementById("terminalDiv").style.display = "initial";
+    document.getElementById("terminalDiv").style.display = "block";
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
   socket = io(ioParams, { autoConnect: false });
