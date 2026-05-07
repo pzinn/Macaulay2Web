@@ -55,7 +55,7 @@
   },
   "scripts": {
     "postinstall": "./postinstall",
-    "build": "npm run lint && npm run format && npm run build:server && npm run build:client && npm run build:minimal && npm run build:css",
+    "build": "npm run build:server && npm run build:client && npm run build:minimal && npm run build:css",
     "build:server": "tsc",
     "build:client": "webpack --env production",
     "build:minimal": "webpack --env minimal",
