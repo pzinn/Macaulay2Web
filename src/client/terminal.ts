@@ -154,6 +154,11 @@ const Shell = function (
   const terminalProcInputLines = document.getElementById(
     "terminalProcInputLines"
   );
+  const scrollProcessedInputDown = function () {
+    const terminalProcInput = document.getElementById("terminalProcInput");
+    if (terminalProcInput)
+      terminalProcInput.scrollTop = terminalProcInput.scrollHeight;
+  };
   const clearCodeStack = function () {
     codeElStack.length = 0;
     if (terminalProcInputLines) terminalProcInputLines.innerHTML = "";
@@ -222,6 +227,7 @@ const Shell = function (
         codeElStack.push(lineEl);
         lineEl.numSegments = 1;
         terminalProcInputLines.appendChild(lineEl);
+        scrollProcessedInputDown();
       });
     } else if (el) {
       el.dataset.m2code = clean;
