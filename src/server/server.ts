@@ -185,6 +185,31 @@ const constructM2Command = function (): string {
   );
 };
 
+const expectedChannelCloses = new WeakSet<ssh2.ClientChannel>();
+
+function notifyMathProgramExit(
+  client: Client,
+  channel: ssh2.ClientChannel,
+  exitCode: number | null,
+  exitSignal: string | null
+) {
+  if (client.channel === channel) client.channel = null;
+  if (expectedChannelCloses.has(channel)) return;
+  const exitDetail =
+    exitSignal !== null
+      ? "signal " + exitSignal
+      : exitCode !== null
+      ? "exit code " + exitCode
+      : "unknown exit status";
+  logger.warn("MathProgram exited unexpectedly with " + exitDetail, client);
+  sendDataToClient(client)(
+    webAppTags.Html +
+      '<div class="M2Error">Macaulay2 exited unexpectedly, possibly because it exceeded the memory limit. Press Reset to start a fresh process.</div>' +
+      webAppTags.End +
+      webAppTags.CellEnd
+  );
+}
+
 const spawnMathProgram = function (client: Client, next) {
   logger.info("Spawning new MathProgram process", client);
   const connection: ssh2.Client = new ssh2.Client();
@@ -211,16 +236,23 @@ const spawnMathProgram = function (client: Client, next) {
             );
             return next(false);
           }
-          channel.on("close", function () {
+          let exitCode: number | null = null;
+          let exitSignal: string | null = null;
+          let channelClosed = false;
+          const handleChannelClose = function () {
+            if (channelClosed) return;
+            channelClosed = true;
+            notifyMathProgramExit(client, channel, exitCode, exitSignal);
             connection.end();
+          };
+          channel.on("exit", function (code, signal) {
+            exitCode = code;
+            exitSignal = signal;
           });
+          channel.on("close", handleChannelClose);
           channel.on("end", function () {
             channel.close();
-            logger.info(
-              "Channel to Math program ended, closing connection",
-              client
-            );
-            connection.end();
+            handleChannelClose();
           });
           attachChannelToClient(client, channel);
           next(true);
@@ -330,6 +362,8 @@ const attachChannelToClient = function (
 
 const killMathProgram = function (client: Client) {
   logger.info("kill MathProgram", client);
+  if (!client.channel) return;
+  expectedChannelCloses.add(client.channel);
   client.channel.close();
   client.channel = null; // TEMP. investigate why closing the connection (which happens when channel ends) doesn't actually do anything
 };
