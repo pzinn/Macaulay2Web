@@ -153,7 +153,7 @@ const getInstance = function (client: Client, next): void {
   } else {
     try {
       logger.info("No instance", client);
-      client.channel = null; // investigate why closing the connection (which happens when channel ends) doesn't actually do anything
+      client.channel = null;
       instanceManager.getNewInstance(client.id, function (instance: Instance) {
         client.instance = instance;
         client.instance.killNotify = killNotify(client); // what is this for???
@@ -185,6 +185,7 @@ const constructM2Command = function (): string {
   );
 };
 
+// Suppress "unexpected exit" notifications for channels deliberately closed by the server.
 const expectedChannelCloses = new WeakSet<ssh2.ClientChannel>();
 
 function notifyMathProgramExit(
@@ -365,7 +366,7 @@ const killMathProgram = function (client: Client) {
   if (!client.channel) return;
   expectedChannelCloses.add(client.channel);
   client.channel.close();
-  client.channel = null; // TEMP. investigate why closing the connection (which happens when channel ends) doesn't actually do anything
+  client.channel = null; // close() is async; mark it dead immediately so future input respawns M2.
 };
 
 const fileDownload = function (request, response, next) {
@@ -676,7 +677,11 @@ const clientExistenceCheck = function (clientId: string): Client {
   return clients[clientId];
 };
 
-const sanitizeClient = function (client: Client, next?) {
+const sanitizeClient = function (
+  client: Client,
+  next?,
+  clearSavedOutput = false
+) {
   if (!client.saneState) {
     logger.warn("Is already being sanitized", client);
     if (next) next(false);
@@ -695,7 +700,7 @@ const sanitizeClient = function (client: Client, next?) {
       spawnMathProgram(client, function (success: boolean) {
         if (success) {
           //          emitViaClientSockets(client, "output", webAppTags.CellEnd + "\n"); // to make it look nicer
-          client.savedOutput = "";
+          if (clearSavedOutput) client.savedOutput = "";
           client.outputStat = 0;
           client.saneState = true;
           if (next) next(true);
@@ -705,7 +710,7 @@ const sanitizeClient = function (client: Client, next?) {
             delete client.instance;
             setTimeout(function () {
               client.saneState = true;
-              sanitizeClient(client, next);
+              sanitizeClient(client, next, clearSavedOutput);
             }, 3000); // 3 sec
           } catch (instanceDeleteError) {
             logger.error(
@@ -728,7 +733,10 @@ const writeMsgOnStream = function (client: Client, msg: string) {
   client.channel.stdin.write(msg, function (err) {
     if (err) {
       logger.error("write failed: " + err, client);
-      sanitizeClient(client);
+      if (client.channel && !client.channel.writable) client.channel = null;
+      sanitizeClient(client, function (success: boolean) {
+        if (success) checkAndWrite(client, msg, true);
+      });
     }
   });
 };
@@ -743,9 +751,19 @@ const short = function (msg: string) {
   return shortMsg;
 };
 
-const checkAndWrite = function (client: Client, msg: string) {
+const checkAndWrite = function (
+  client: Client,
+  msg: string,
+  alreadyRetried = false
+) {
   if (!client.instance || !client.channel || !client.channel.writable) {
-    sanitizeClient(client);
+    if (alreadyRetried) {
+      logger.error("Input failed after respawning M2", client);
+      return;
+    }
+    sanitizeClient(client, function (success: boolean) {
+      if (success) checkAndWrite(client, msg, true);
+    });
   } else {
     client.instance.numInputs++;
     writeMsgOnStream(client, msg);
@@ -767,7 +785,7 @@ const socketResetAction = function (client: Client) {
     systemChat(client, "Resetting M2.");
     if (client.saneState) {
       if (client.channel) killMathProgram(client);
-      sanitizeClient(client);
+      sanitizeClient(client, null, true);
     } else logger.warn("Reset failed, client being sanitized", client);
   };
 };
