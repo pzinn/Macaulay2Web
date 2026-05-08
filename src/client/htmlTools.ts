@@ -228,15 +228,42 @@ const caretIsAtEnd = function () {
   }
 };
 
-const selectRowColumn = function (el, rowcols) {
-  let pos1 = locateRowColumn(el.textContent, rowcols[0], rowcols[1]);
+type SourceLocation = {
+  row: number;
+  column: number;
+};
+
+type ParsedLocation = {
+  start: SourceLocation;
+  end?: SourceLocation;
+  focus?: SourceLocation;
+};
+
+const compareLocations = function (a: SourceLocation, b: SourceLocation) {
+  return a.row == b.row ? a.column - b.column : a.row - b.row;
+};
+
+const normalizeParsedLocation = function (location: ParsedLocation) {
+  const start = location.start;
+  let end = location.end ?? start;
+  if (compareLocations(end, start) < 0) end = start;
+  let focus = location.focus ?? start;
+  if (compareLocations(focus, start) < 0) focus = start;
+  else if (compareLocations(focus, end) > 0) focus = end;
+  return { start, end, focus };
+};
+
+const parsedLocationNeedsCaretMarker = function (location: ParsedLocation) {
+  return !location.end || !!location.focus;
+};
+
+const selectRowColumn = function (el, location: ParsedLocation) {
+  const { start, end, focus } = normalizeParsedLocation(location);
+  let pos1 = locateRowColumn(el.textContent, start.row, start.column);
   if (pos1 === null) pos1 = el.textContent.length;
-  let pos2 = locateRowColumn(el.textContent, rowcols[2], rowcols[3]);
+  let pos2 = locateRowColumn(el.textContent, end.row, end.column);
   if (pos2 === null) pos2 = el.textContent.length;
-  let posFocus =
-    rowcols.length >= 6
-      ? locateRowColumn(el.textContent, rowcols[4], rowcols[5])
-      : pos1;
+  let posFocus = locateRowColumn(el.textContent, focus.row, focus.column);
   if (posFocus === null) posFocus = pos1;
   const nodesOffsets = locateOffset2(el, pos1, pos2);
   if (!nodesOffsets) return false; // shouldn't happen
@@ -247,6 +274,8 @@ const selectRowColumn = function (el, rowcols) {
     nodesOffsets[2],
     nodesOffsets[3]
   );
+
+  if (!parsedLocationNeedsCaretMarker(location)) return true;
 
   const focusNodeOffset = locateOffset(el, posFocus);
   const marker = focusNodeOffset
@@ -319,17 +348,14 @@ const parseLocation = function (arg: string) {
   // figure out filename
   const m = arg.match(/^([^#]+)#(.+)$/);
   if (!m) return [arg, null];
-  const parseOneLocation = function (s: string) {
+  const parseOneLocation = function (s: string): SourceLocation | null {
     const loc = s.match(/^[Ll]?(\d+)(?:(?::[Cc]?|[Cc])(\d+))?$/);
     if (!loc) return null;
     let row = +loc[1];
     if (row < 1) row = 1;
     let col = loc[2] ? +loc[2] : 1;
     if (col < 0) col = 0;
-    return [row, col];
-  };
-  const compareLocations = function (a, b) {
-    return a[0] == b[0] ? a[1] - b[1] : a[0] - b[0];
+    return { row, column: col };
   };
   const locationText = m[2];
   const focusSplit = locationText.split("_");
@@ -338,14 +364,15 @@ const parseLocation = function (arg: string) {
   if (rangeSplit.length > 2) return [arg, null];
   const start = parseOneLocation(rangeSplit[0]);
   if (!start) return [arg, null];
-  let end = rangeSplit[1] ? parseOneLocation(rangeSplit[1]) : start.slice();
-  if (!end) return [arg, null];
-  if (compareLocations(end, start) < 0) end = start.slice();
-  let focus = focusSplit[1] ? parseOneLocation(focusSplit[1]) : start.slice();
-  if (!focus) return [arg, null];
-  if (compareLocations(focus, start) < 0) focus = start.slice();
-  else if (compareLocations(focus, end) > 0) focus = end.slice();
-  return [m[1], [...start, ...end, ...focus]];
+  const end = rangeSplit.length == 2 ? parseOneLocation(rangeSplit[1]) : null;
+  if (rangeSplit.length == 2 && !end) return [arg, null];
+  const focus = focusSplit.length == 2 ? parseOneLocation(focusSplit[1]) : null;
+  if (focusSplit.length == 2 && !focus) return [arg, null];
+
+  const location: ParsedLocation = { start };
+  if (end) location.end = end;
+  if (focus) location.focus = focus;
+  return [m[1], location];
 };
 
 export {
@@ -364,6 +391,8 @@ export {
   nextChar,
   locateOffset,
   locateRowColumn,
+  normalizeParsedLocation,
+  parsedLocationNeedsCaretMarker,
   selectRowColumn,
   addMarker,
   addMarkerEl,

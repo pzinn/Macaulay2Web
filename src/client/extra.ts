@@ -211,7 +211,7 @@ const fileChangedCheck = function (data) {
   dialog.showModal();
 };
 
-const localFileToEditor = function (fileName: string, rowcols?) {
+const localFileToEditor = function (fileName: string, location?) {
   if (highlightTimeout) window.clearTimeout(highlightTimeout);
   const xhr = new XMLHttpRequest();
   xhr.open("GET", fileName, true);
@@ -219,7 +219,7 @@ const localFileToEditor = function (fileName: string, rowcols?) {
     updateAndHighlightMaybe(editor, xhr.responseText, fileName);
     setDirectory(false);
     autoSaveHash = hashCode(xhr.responseText);
-    if (rowcols) selectRowColumn(editor, rowcols);
+    if (location) selectRowColumn(editor, location);
     else editor.scrollTop = 0;
   };
   autoSaveHash = undefined; // no autosaving while loading
@@ -329,14 +329,14 @@ const listDirToEditor = function (dirName: string, fileName: string) {
   xhr.send(null);
 };
 
-const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
+const newEditorFileMaybe = function (newName: string, location?, missing?) {
   // missing = what to do if file missing : undefined/false = switch to new, true = do nothing
-  if (!rowcols) editor.focus({ preventScroll: true });
+  if (!location) editor.focus({ preventScroll: true });
 
   if ((fileName && fileName == newName && fileName != "./") || !newName) {
     // file already open in editor
     updateFileName(newName); // in case of positioning data
-    if (rowcols) selectRowColumn(editor, rowcols);
+    if (location) selectRowColumn(editor, location);
     return;
   }
 
@@ -347,7 +347,7 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
       if (currentFileIsDirectory) editor.innerHTML = "";
       setDirectory(false);
       setReadonly(newName == "", "No syncing - empty filename"); // TODO determine correctly if read only or not -- how?
-      if (rowcols) selectRowColumn(editor, rowcols);
+      if (location) selectRowColumn(editor, location);
       autoSaveHash = null; // force save
       autoSave();
       return;
@@ -363,7 +363,7 @@ const newEditorFileMaybe = function (newName: string, rowcols?, missing?) {
           response.search("readonly@") >= 0,
           "No syncing - read only file"
         );
-        localFileToEditor(response, rowcols);
+        localFileToEditor(response, location);
       }
     });
   });
@@ -401,15 +401,15 @@ const extra1 = function () {
     // editor stuff
     const e = /^editor:(.+)$/.exec(loc);
     if (e) {
-      const [newName, rowcols] = parseLocation(decodeURI(e[1]));
+      const [newName, location] = parseLocation(decodeURI(e[1]));
       if (newName == "stdio" || newName == "currentString") {
-        if (newName == "stdio" && rowcols && socket && socket.connected)
-          myshell.selectPastInput(document.activeElement, rowcols); // !
+        if (newName == "stdio" && location && socket && socket.connected)
+          myshell.selectPastInput(document.activeElement, location); // !
         document.location.hash = "#" + oldTab;
         loc = "";
       } else {
         if (socket && socket.connected)
-          newEditorFileMaybe(newName, rowcols, true); // do something *if* session started
+          newEditorFileMaybe(newName, location, true); // do something *if* session started
         document.location.hash = "#editor"; // drop the filename from the URL (needed for subsequent clicks)
         loc = "editor";
         editorFoc = true; // ... but changing hash blurs editor
@@ -642,8 +642,8 @@ const extra2 = function () {
   };
   fileNameEl.onchange = function () {
     const val = fileNameEl.value.trim();
-    const [newName, rowcols] = parseLocation(val);
-    newEditorFileMaybe(newName, rowcols);
+    const [newName, location] = parseLocation(val);
+    newEditorFileMaybe(newName, location);
   };
   const pastFileNames = document.getElementById(
     "pastFileNames"
@@ -815,10 +815,10 @@ const extra2 = function () {
 
   // starting text in editor TODO fix
   const e = /^#editor:(.+)$/.exec(url.hash);
-  const [newName, rowcols] = e
+  const [newName, location] = e
     ? parseLocation(decodeURI(e[1]))
     : [getCookie(options.cookieFileName, "tutorials/default.m2"), null];
-  newEditorFileMaybe(newName, rowcols, true);
+  newEditorFileMaybe(newName, location, true);
 
   let tabPressed = false,
     enterPressed = false,
