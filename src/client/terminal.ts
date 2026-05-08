@@ -631,8 +631,8 @@ const Shell = function (
           if (name == "stdio") {
             const nodeOffset = obj.locateStdio(
               sessionCell(htmlSec),
-              rowcols[0],
-              rowcols[1]
+              rowcols[4],
+              rowcols[5]
             );
             if (nodeOffset) {
               addMarkerPos(nodeOffset[0], nodeOffset[1]).classList.add(
@@ -648,8 +648,8 @@ const Shell = function (
               // should this keep track of path somehow? needs more testing
               const pos = locateRowColumn(
                 editor.textContent,
-                rowcols[0],
-                rowcols[1]
+                rowcols[4],
+                rowcols[5]
               );
               if (pos !== null) {
                 const nodeOffset = locateOffset(editor, pos);
@@ -857,9 +857,14 @@ const Shell = function (
       nodeOffset2[0],
       nodeOffset2[1]
     );
-    const marker = addMarkerPos(nodeOffset2[0], nodeOffset2[1]);
-    if (rowcols[0] == rowcols[2] && rowcols[1] == rowcols[3])
-      marker.classList.add("caret-marker");
+    const nodeOffsetFocus =
+      rowcols.length >= 6 ? obj.locateStdio(cel, rowcols[4], rowcols[5]) : null;
+    const focus =
+      nodeOffsetFocus && nodeOffsetFocus[2] == nodeOffset1[2]
+        ? nodeOffsetFocus
+        : nodeOffset1;
+    const marker = addMarkerPos(focus[0], focus[1]);
+    marker.classList.add("caret-marker");
     setTimeout(function () {
       marker.scrollIntoView({
         behavior: "smooth",

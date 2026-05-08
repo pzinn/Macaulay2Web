@@ -233,6 +233,11 @@ const selectRowColumn = function (el, rowcols) {
   if (pos1 === null) pos1 = el.textContent.length;
   let pos2 = locateRowColumn(el.textContent, rowcols[2], rowcols[3]);
   if (pos2 === null) pos2 = el.textContent.length;
+  let posFocus =
+    rowcols.length >= 6
+      ? locateRowColumn(el.textContent, rowcols[4], rowcols[5])
+      : pos1;
+  if (posFocus === null) posFocus = pos1;
   const nodesOffsets = locateOffset2(el, pos1, pos2);
   if (!nodesOffsets) return false; // shouldn't happen
   const sel = window.getSelection();
@@ -243,9 +248,12 @@ const selectRowColumn = function (el, rowcols) {
     nodesOffsets[3]
   );
 
-  const marker = addMarkerPos(nodesOffsets[2], nodesOffsets[3]);
+  const focusNodeOffset = locateOffset(el, posFocus);
+  const marker = focusNodeOffset
+    ? addMarkerPos(focusNodeOffset[0], focusNodeOffset[1])
+    : addMarker();
 
-  if (pos1 == pos2) marker.classList.add("caret-marker");
+  marker.classList.add("caret-marker");
   setTimeout(function () {
     // in case not in editor tab, need to wait
     marker.scrollIntoView({
@@ -309,23 +317,35 @@ const parseLocation = function (arg: string) {
   if (arg.length > 2 && arg.startsWith("./")) arg = arg.substring(2);
   // parse newName for positioning
   // figure out filename
-  const m = arg.match(
-    //    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
-    /^([^#]+)#\D*(\d+)(?::\D*(\d+)|)(?:-\D*(\d+)(?::\D*(\d+)|)|)/
-  ) as any; // e.g. test.m2#3:5-5:7 or test.m2#L3:C5-L5:C7
+  const m = arg.match(/^([^#]+)#(.+)$/);
   if (!m) return [arg, null];
-  const rowcols = [];
-  // parse m
-  rowcols[0] = +m[2];
-  if (rowcols[0] < 1) rowcols[0] = 1;
-  rowcols[1] = m[3] ? +m[3] : 1;
-  if (rowcols[1] < 0) rowcols[1] = 0;
-  rowcols[2] = m[4] ? +m[4] : rowcols[0];
-  if (rowcols[2] < rowcols[0]) rowcols[2] = rowcols[0];
-  rowcols[3] = m[5] ? +m[5] : m[4] ? 1 : rowcols[1];
-  if (rowcols[2] == rowcols[0] && rowcols[3] < rowcols[1])
-    rowcols[3] = rowcols[1];
-  return [m[1], rowcols];
+  const parseOneLocation = function (s: string) {
+    const loc = s.match(/^[Ll]?(\d+)(?:(?::[Cc]?|[Cc])(\d+))?$/);
+    if (!loc) return null;
+    let row = +loc[1];
+    if (row < 1) row = 1;
+    let col = loc[2] ? +loc[2] : 1;
+    if (col < 0) col = 0;
+    return [row, col];
+  };
+  const compareLocations = function (a, b) {
+    return a[0] == b[0] ? a[1] - b[1] : a[0] - b[0];
+  };
+  const locationText = m[2];
+  const focusSplit = locationText.split("_");
+  if (focusSplit.length > 2) return [arg, null];
+  const rangeSplit = focusSplit[0].split("-");
+  if (rangeSplit.length > 2) return [arg, null];
+  const start = parseOneLocation(rangeSplit[0]);
+  if (!start) return [arg, null];
+  let end = rangeSplit[1] ? parseOneLocation(rangeSplit[1]) : start.slice();
+  if (!end) return [arg, null];
+  if (compareLocations(end, start) < 0) end = start.slice();
+  let focus = focusSplit[1] ? parseOneLocation(focusSplit[1]) : start.slice();
+  if (!focus) return [arg, null];
+  if (compareLocations(focus, start) < 0) focus = start.slice();
+  else if (compareLocations(focus, end) > 0) focus = end.slice();
+  return [m[1], [...start, ...end, ...focus]];
 };
 
 export {
