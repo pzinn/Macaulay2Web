@@ -139,9 +139,9 @@ const Shell = function (
     inputSpan.classList.add("M2Text");
 
     htmlSec = terminal;
-    //    if (editor) htmlSec.appendChild(document.createElement("br")); // a bit of extra space doesn't hurt
-    createHtml(webAppClasses[webAppTags.Cell]); // we create a first cell for the whole session
-    createHtml(webAppClasses[webAppTags.Cell]); // and one for the starting text (Macaulay2 version... or whatever comes out of M2 first)
+    // the next two lines are no longer needed: they're handled by M2
+    // createHtml(webAppClasses[webAppTags.Cell]); // we create a first cell for the whole session
+    // createHtml(webAppClasses[webAppTags.Cell]); // and one for the starting cell
     htmlSec.appendChild(inputSpan);
 
     inputSpan.focus();

@@ -225,6 +225,7 @@ function notifyMathProgramExit(
       userMessage +
       "</div>" +
       webAppTags.End +
+      webAppTags.CellEnd +
       webAppTags.CellEnd
   );
 }
