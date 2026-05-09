@@ -196,8 +196,12 @@ function notifyMathProgramExit(
 ) {
   if (client.channel === channel) client.channel = null;
   if (expectedChannelCloses.has(channel)) return;
+  if (exitCode === 0 && exitSignal === null) {
+    logger.info("MathProgram exited normally with exit code 0", client);
+    return;
+  }
   const exitDetail =
-    exitSignal !== null
+    typeof exitSignal === "string"
       ? "signal " + exitSignal
       : exitCode !== null
       ? "exit code " + exitCode
@@ -247,12 +251,15 @@ const spawnMathProgram = function (client: Client, next) {
             connection.end();
           };
           channel.on("exit", function (code, signal) {
-            exitCode = code;
-            exitSignal = signal;
+            exitCode = typeof code === "number" ? code : null;
+            exitSignal = typeof signal === "string" ? signal : null;
           });
-          channel.on("close", handleChannelClose);
-          channel.on("end", function () {
-            channel.close();
+          channel.on("close", function (code, signal) {
+            if (typeof code === "number") {
+              exitCode = code;
+              exitSignal = null;
+            }
+            if (typeof signal === "string") exitSignal = signal;
             handleChannelClose();
           });
           attachChannelToClient(client, channel);
