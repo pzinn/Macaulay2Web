@@ -50,14 +50,34 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
         if (lst[i] != "") {
           const dockerInspectCmd = "sudo docker inspect " + lst[i];
           exec(dockerInspectCmd, function (error, stdout, stderr) {
+            if (error) {
+              logger.error(
+                "Error inspecting container " + lst[i] + ": " + error
+              );
+              asyncLoop(i);
+              return;
+            }
             const res = JSON.parse(stdout);
-            const clientId = res[0].Config.Labels.clientId;
+            const clientId =
+              res[0].Config.Labels && res[0].Config.Labels.clientId;
             if (clientId) {
               logger.info(
                 "Scanning " + lst[i] + " found " + clientId + res[0].Name
               );
               // find port
-              const port = +res[0].NetworkSettings.Ports["22/tcp"][0].HostPort;
+              const sshPorts =
+                res[0].NetworkSettings.Ports &&
+                res[0].NetworkSettings.Ports["22/tcp"];
+              if (!sshPorts || !sshPorts[0] || !sshPorts[0].HostPort) {
+                logger.info(
+                  "Skipping " +
+                    res[0].Name +
+                    " because it has no published SSH port"
+                );
+                asyncLoop(i);
+                return;
+              }
+              const port = +sshPorts[0].HostPort;
               const newInstance = JSON.parse(
                 JSON.stringify(self.currentInstance)
               ); // eww
