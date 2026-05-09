@@ -655,15 +655,8 @@ a {
     text-decoration: underline;
 }
 
-@keyframes error-color {
-  to {
-    color: var(--state-error);
-  }
-}
-
-.M2Error, .M2Error .token {
-    animation: error-color 2s -1s linear forwards paused;
-    /* color: color-mix(currentColor,#FF0000); */ /* not yet implemented by many browsers */
+.M2Error {
+    color: color-mix(in srgb, currentColor 50%, var(--state-error));
 /*    white-space: pre;
     font-family: "Iosevka", monospace; */
 }
