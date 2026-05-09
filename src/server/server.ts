@@ -207,9 +207,23 @@ function notifyMathProgramExit(
       ? "exit code " + exitCode
       : "unknown exit status";
   logger.warn("MathProgram exited unexpectedly with " + exitDetail, client);
+  const userMessage =
+    exitSignal === "SIGKILL"
+      ? "Macaulay2 was killed, probably because it exceeded the memory limit. Press Reset to start a fresh process."
+      : typeof exitSignal === "string"
+      ? "Macaulay2 exited unexpectedly with signal " +
+        exitSignal +
+        ". Press Reset to start a fresh process."
+      : exitCode !== null
+      ? "Macaulay2 exited unexpectedly with exit code " +
+        exitCode +
+        ". Press Reset to start a fresh process."
+      : "Macaulay2 exited unexpectedly. Press Reset to start a fresh process.";
   sendDataToClient(client)(
     webAppTags.Html +
-      '<div class="M2Error">Macaulay2 exited unexpectedly, possibly because it exceeded the memory limit. Press Reset to start a fresh process.</div>' +
+      '<div class="M2Error">' +
+      userMessage +
+      "</div>" +
       webAppTags.End +
       webAppTags.CellEnd
   );
