@@ -65,6 +65,7 @@
     "update-symbols": "M2 --script update-symbols.m2",
     "start": "node dist/server/index.js",
     "docker": "npm run build && npm start docker",
+    "new": "npm run build && npm start new",
     "local": "npm run build && npm start local",
     "debug": "npm run build:css && npm run build:debug && npm start local",
     "ssh": "npm run build && npm start ssh",
