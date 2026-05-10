@@ -7,7 +7,7 @@ import { AddressInfo } from "net";
 import { downloadFromInstance } from "./fileDownload";
 import { deleteFromInstance } from "./fileDelete";
 import { uploadToInstance } from "./fileUpload";
-import { webAppTags } from "../common/tags";
+import { webAppTags, completionProtocol } from "../common/tags";
 import { logger } from "./logger";
 import { Socket, Server } from "socket.io";
 
@@ -366,11 +366,89 @@ const sendDataToClient = function (client: Client) {
   };
 };
 
+const maxCompletionFrameLength = 200000;
+
+const sendCompletionResponseToClient = function (
+  client: Client,
+  payload: string
+) {
+  const fields = payload.split("\t");
+  const id = fields.shift();
+  if (!id || !/^[A-Za-z0-9_-]{1,96}$/.test(id)) {
+    logger.warn("Dropping malformed completion response", client);
+    return;
+  }
+  emitViaClientSockets(client, "completion-response", {
+    id,
+    completions: fields,
+  });
+};
+
+const sendM2OutputToClient = function (client: Client) {
+  const sendOutput = sendDataToClient(client);
+  const completionResponsePrefixLength = function (data: string) {
+    const maxLength = Math.min(
+      data.length,
+      completionProtocol.ResponseStart.length - 1
+    );
+    for (let length = maxLength; length > 0; length--)
+      if (completionProtocol.ResponseStart.startsWith(data.slice(-length)))
+        return length;
+    return 0;
+  };
+  return function (dataObject) {
+    let data = client.controlOutputBuffer + dataObject.toString();
+    client.controlOutputBuffer = "";
+    while (data.length > 0) {
+      const start = data.indexOf(completionProtocol.ResponseStart);
+      if (start < 0) {
+        const keep = completionResponsePrefixLength(data);
+        if (keep > 0) {
+          if (data.length > keep) sendOutput(data.slice(0, -keep));
+          client.controlOutputBuffer = data.slice(-keep);
+          return;
+        }
+        sendOutput(data);
+        return;
+      }
+      if (start > 0) {
+        sendOutput(data.substring(0, start));
+        data = data.substring(start);
+      }
+      const end = data.indexOf(
+        completionProtocol.End,
+        completionProtocol.ResponseStart.length
+      );
+      if (end < 0) {
+        if (data.length > maxCompletionFrameLength) {
+          logger.warn("Dropping oversized incomplete completion frame", client);
+          data = data.substring(completionProtocol.ResponseStart.length);
+          continue;
+        }
+        client.controlOutputBuffer = data;
+        return;
+      }
+      sendCompletionResponseToClient(
+        client,
+        data.substring(completionProtocol.ResponseStart.length, end)
+      );
+      data = data.substring(end + 1);
+    }
+  };
+};
+
+const clearCompletionOutputBuffer = function (client: Client) {
+  if (client.controlOutputBuffer) {
+    logger.warn("Clearing incomplete completion frame", client);
+    client.controlOutputBuffer = "";
+  }
+};
+
 const attachListenersToOutput = function (client: Client) {
   if (client.channel) {
     client.channel
       .removeAllListeners("data")
-      .on("data", sendDataToClient(client));
+      .on("data", sendM2OutputToClient(client));
   }
 };
 
@@ -379,12 +457,14 @@ const attachChannelToClient = function (
   channel: ssh2.ClientChannel
 ) {
   channel.setEncoding("utf8");
+  clearCompletionOutputBuffer(client);
   client.channel = channel;
   attachListenersToOutput(client);
 };
 
 const killMathProgram = function (client: Client) {
   logger.info("kill MathProgram", client);
+  clearCompletionOutputBuffer(client);
   if (!client.channel) return;
   expectedChannelCloses.add(client.channel);
   client.channel.close();
@@ -795,9 +875,42 @@ const checkAndWrite = function (
 const socketInputAction = function (socket: Socket, client: Client) {
   return function (msg: string) {
     logger.info("Receiving input: " + short(msg), client);
+    if (msg == "\x03") clearCompletionOutputBuffer(client);
     //      updateLastActiveTime(client); // only output now triggers that
     if (client.saneState) checkAndWrite(client, msg);
     else logger.warn("Input failed, client being sanitized", client);
+  };
+};
+
+const socketCompletionRequestAction = function (socket: Socket, client: Client) {
+  return function (request: { id?: string; prefix?: string }) {
+    const id = request && request.id;
+    const prefix = request && request.prefix;
+    if (
+      typeof id !== "string" ||
+      !/^[A-Za-z0-9_-]{1,96}$/.test(id) ||
+      typeof prefix !== "string" ||
+      !/^[A-Za-z0-9]{1,128}$/.test(prefix)
+    ) {
+      logger.warn("Rejecting malformed completion request", client);
+      return;
+    }
+    if (!client.saneState || !client.channel || !client.channel.writable) {
+      safeEmit(socket, "completion-response", { id, completions: null });
+      return;
+    }
+    const msg =
+      completionProtocol.RequestStart +
+      id +
+      "\t" +
+      prefix +
+      completionProtocol.End;
+    client.channel.stdin.write(msg, function (err) {
+      if (err) {
+        logger.error("completion request write failed: " + err, client);
+        safeEmit(socket, "completion-response", { id, completions: null });
+      }
+    });
   };
 };
 
@@ -868,6 +981,7 @@ const listen = function () {
       safeEmit(socket, "instance", clientId);
     });
     socket.on("input", socketInputAction(socket, client));
+    socket.on("completion-request", socketCompletionRequestAction(socket, client));
     socket.on("reset", socketResetAction(client));
     socket.on("chat", socketChatAction(socket, client));
     socket.on("restore", socketRestoreAction(socket, client));

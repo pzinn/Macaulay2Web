@@ -174,6 +174,28 @@ if (MINIMAL) {
   };
 }
 
+let completionRequestCounter = 0;
+const completionRequestPrefix = Math.random().toString(36).slice(2);
+const completionRequests = new Map();
+const completionRequestTimeout = 250;
+
+const requestDynamicCompletions = function (
+  prefix: string,
+  callback: (completions: string[] | null) => void
+) {
+  if (!socket || !socket.connected) {
+    callback(null);
+    return;
+  }
+  const id = completionRequestPrefix + "-" + ++completionRequestCounter;
+  const timeout = window.setTimeout(() => {
+    completionRequests.delete(id);
+    callback(null);
+  }, completionRequestTimeout);
+  completionRequests.set(id, { callback, timeout });
+  socket.emit("completion-request", { id, prefix });
+};
+
 const url = new URL(document.location.href);
 type ThemeMode = "day" | "night";
 let theme: ThemeMode = "day";
@@ -342,6 +364,18 @@ const init2 = function () {
   });
 
   socket.on("output", socketOutput);
+  socket.on("completion-response", function (response) {
+    if (!response || typeof response.id !== "string") return;
+    const request = completionRequests.get(response.id);
+    if (!request) return;
+    completionRequests.delete(response.id);
+    window.clearTimeout(request.timeout);
+    request.callback(
+      Array.isArray(response.completions)
+        ? Array.from(new Set(response.completions)).sort()
+        : null
+    );
+  });
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;
   socket.on("connect_error", socketError);
@@ -355,6 +389,7 @@ const init2 = function () {
   myshell = new Shell(
     document.getElementById("terminal"),
     (msg) => socket.emit("input", msg),
+    requestDynamicCompletions,
     document.getElementById("editorDiv"),
     document.getElementById("browseFrame") as HTMLFrameElement,
     true

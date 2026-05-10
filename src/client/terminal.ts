@@ -22,6 +22,7 @@ import {
 } from "./htmlTools";
 import {
   escapeKeyHandling,
+  autoCompleteWordContext,
   autoCompleteHandling,
   removeAutoComplete,
   sanitizeInput,
@@ -70,6 +71,10 @@ Array.prototype.sortedPush = function (el: any) {
 const Shell = function (
   terminal: HTMLElement,
   emitInput: (msg: string) => void,
+  requestCompletions: (
+    prefix: string,
+    callback: (completions: string[] | null) => void
+  ) => void,
   editor: HTMLElement,
   iFrame: HTMLFrameElement,
   createInputSpan: boolean
@@ -393,13 +398,35 @@ const Shell = function (
     // auto-completion code
     if (e.key == "Tab") {
       // try to avoid disrupting the normal tab use as much as possible
-      if (
-        document.activeElement == inputSpan &&
-        !e.shiftKey &&
-        autoCompleteHandling(null)
-      ) {
-        //        scrollDown(terminal);
-        e.preventDefault();
+      if (document.activeElement == inputSpan && !e.shiftKey) {
+        const completionContext = autoCompleteWordContext();
+        if (
+          completionContext &&
+          completionContext.isM2Symbol &&
+          requestCompletions
+        ) {
+          const requestedWord = completionContext.word;
+          requestCompletions(requestedWord, (completions) => {
+            const currentContext = autoCompleteWordContext();
+            if (
+              document.activeElement != inputSpan ||
+              !currentContext ||
+              currentContext.word != requestedWord
+            )
+              return;
+            if (
+              completions &&
+              completions.length > 0 &&
+              autoCompleteHandling(null, completions, true)
+            )
+              scrollDown(terminal);
+            else if (autoCompleteHandling(null)) scrollDown(terminal);
+          });
+          e.preventDefault();
+        } else if (autoCompleteHandling(null)) {
+          //        scrollDown(terminal);
+          e.preventDefault();
+        }
       }
       return;
     }
