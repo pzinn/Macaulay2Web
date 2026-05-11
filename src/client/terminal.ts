@@ -440,7 +440,7 @@ const Shell = function (
       if (pos == txt.length) {
         inputSpan.textContent = txt; // inputSpan.normalize(); wouldn't work because of delimiter hiliting
         setCaret(inputSpan, pos);
-        if (autoCompleteHandling(null, cmdHistory.sorted)) {
+        if (autoCompleteHandling(null, cmdHistory.sorted, false, true)) {
           scrollDown(terminal);
           e.preventDefault();
           return;

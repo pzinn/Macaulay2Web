@@ -176,7 +176,12 @@ const removeAutoComplete = function (autoCompleteSelection, caret: boolean) {
   }
 };
 
-const autoCompleteHandling = function (el, dictionary?, useCurrentWord = false) {
+const autoCompleteHandling = function (
+  el,
+  dictionary?,
+  useCurrentWord = false,
+  removableDictionary = false
+) {
   if (autoComplete) return; // normally should never happen
   autoCompleteEl = el;
   const sel = window.getSelection();
@@ -239,7 +244,7 @@ const autoCompleteHandling = function (el, dictionary?, useCurrentWord = false) 
           opt.dataset.fullword = flag
             ? lst[l]
             : String.fromCodePoint(UCsymbols[lst[l]]);
-          if (dictionary) {
+          if (removableDictionary) {
             const icon = document.createElement("i");
             icon.classList.add("material-icons");
             icon.textContent = "close";
@@ -251,6 +256,11 @@ const autoCompleteHandling = function (el, dictionary?, useCurrentWord = false) 
               if (k > dictionary.length) k = dictionary.length;
               while (m < k && dictionary[m] != opt.dataset.fullword) m++;
               if (m < k) dictionary.splice(m, 1);
+              if (opt.classList.contains("selected")) {
+                const nextSelection =
+                  opt.nextElementSibling || opt.previousElementSibling;
+                if (nextSelection) menuSel(nextSelection);
+              }
               opt.remove();
               e.stopPropagation();
               if (tabMenu.childElementCount == 0)
