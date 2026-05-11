@@ -264,14 +264,16 @@ table.examples {
 table.examples > tbody {
     cursor: initial;
 }
+
 table.examples > tbody > tr > td { /* to avoid inheriting too far */
     border-style: solid;
     border-width: 1px;
     padding-right: 0.75em;
     padding-bottom: 1em;
-    padding-top: 0em;
+    padding-top: 1.2em;
     border-collapse: initial;
 }
+
 table.examples pre {
     margin: 0pt;
     padding: 0pt;
@@ -373,7 +375,7 @@ does not contain the whole contents (and is possibly empty) */
     margin-top: 1.2em;
 }
 
-.M2Cell > .M2Cell:first-of-type {
+.M2Cell > .M2Cell:first-of-type, td > .M2Cell {
     margin-top: 0em; /* in some cases margin collapse doesn't occur */
 }
 
