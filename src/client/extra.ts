@@ -80,6 +80,10 @@ const attachClick = function (id: string, f) {
   if (el) el.onclick = f;
 };
 
+const isCtrlS = function (e: KeyboardEvent) {
+  return e.ctrlKey && !e.altKey && !e.metaKey && e.key.toLowerCase() == "s";
+};
+
 let fileName;
 const updateFileName = function (newName: string) {
   const fileNameEl = document.getElementById(
@@ -859,6 +863,10 @@ const extra2 = function () {
   const editorKeyDown = function (e) {
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
     //removeDelimiterHighlight(editor);
+    if (currentFileIsDirectory && isCtrlS(e)) {
+      e.preventDefault();
+      return;
+    }
     if (searchMode) {
       if (editorKeyDownSearch(e)) {
         e.preventDefault();
@@ -873,7 +881,7 @@ const extra2 = function () {
       if (!caretIsAtEnd()) e.preventDefault();
       e.stopPropagation();
       editorEvaluate();
-    } else if (e.key == "s" && e.ctrlKey) {
+    } else if (isCtrlS(e)) {
       // emacs binding
       if (!searchMode) {
         searchMode = true;
