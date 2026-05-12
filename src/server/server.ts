@@ -133,8 +133,25 @@ const safeEmit = function (target: Socket | Server, type: string, data): void {
   }
 };
 
+const shortSocketPayload = function (type: string, data): string {
+  if (typeof data === "string") return short(data);
+  if (type === "completion-response" && data && typeof data === "object") {
+    const completions = Array.isArray(data.completions)
+      ? data.completions
+      : null;
+    return `id=${data.id} completions=${
+      completions ? completions.length : data.completions
+    }`;
+  }
+  try {
+    return short(JSON.stringify(data));
+  } catch {
+    return short(String(data));
+  }
+};
+
 const emitViaClientSockets = function (client: Client, type: string, data) {
-  const s = short(data.toString());
+  const s = shortSocketPayload(type, data);
   logger.info("Sending " + type + ": " + s, client);
   client.sockets.forEach((socket) => safeEmit(socket, type, data));
 };
