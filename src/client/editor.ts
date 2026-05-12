@@ -176,13 +176,14 @@ const removeAutoComplete = function (autoCompleteSelection, caret: boolean) {
   }
 };
 
-const updateAutoCompleteOverflow = function () {
+const updateAutoCompleteLayout = function () {
   if (!autoComplete) return;
   const menu = autoComplete.firstElementChild as HTMLElement;
   if (!menu) return;
   const isScrollable = menu.scrollHeight > menu.clientHeight + 1;
   if (!isScrollable) menu.scrollTop = 0;
   autoComplete.toggleAttribute("data-scrollable", isScrollable);
+  autoComplete.style.paddingLeft = `${menu.offsetWidth}px`;
 };
 
 const autoCompleteHandling = function (
@@ -274,7 +275,7 @@ const autoCompleteHandling = function (
               e.stopPropagation();
               if (tabMenu.childElementCount == 0)
                 removeAutoComplete(false, true); // no choice => back to normal typing
-              else updateAutoCompleteOverflow();
+              else updateAutoCompleteLayout();
             };
             opt.appendChild(icon);
           }
@@ -293,7 +294,7 @@ const autoCompleteHandling = function (
           autoComplete,
           autoCompleteNode.nextSibling
         );
-        updateAutoCompleteOverflow();
+        updateAutoCompleteLayout();
         const menuSel = setupMenu(tabMenu, removeAutoComplete, (e) => {
           // keydown event
           if (e.key == "Shift") {
@@ -316,7 +317,7 @@ const autoCompleteHandling = function (
               }
             });
             if (tabMenu.childElementCount == 0) return; // no choice => back to normal typing
-            updateAutoCompleteOverflow();
+            updateAutoCompleteLayout();
             autoComplete.dataset.word += e.key;
             if (tabMenu.childElementCount == 1)
               removeAutoComplete(tabMenu.firstChild, true);

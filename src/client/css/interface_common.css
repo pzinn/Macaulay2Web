@@ -545,8 +545,22 @@ ul.menu {
     z-index: 20;
 }
 
+#editorDiv #autocomplete {
+    --bg-autocomplete: var(--bg-surface);
+}
+
+#terminal #autocomplete {
+    --bg-autocomplete: var(--bg-terminal);
+}
+
 #autocomplete > .menu {
+    background: var(--bg-autocomplete, var(--bg-menu));
+    /*border: 1px solid var(--border-main);
+    box-shadow: var(--shadow-soft);*/
+    color: var(--text-main);
     display: inline-block;
+    font-style: normal;
+    font-weight: 400;
     left: 0;
     max-height: min(18em, 45vh);
     overflow-x: hidden;
