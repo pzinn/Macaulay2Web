@@ -131,6 +131,30 @@ let autoComplete = null; // autocomplete HTML element (when tab is pressed)
 let autoCompleteNode = null; // where it sits
 let autoCompleteEl = null; // ancestor element (editor) for hiliting
 
+const autoCompleteWordContext = function () {
+  const sel = window.getSelection();
+  const node = sel.focusNode; // or anchorNode? start vs end of selection
+  const pos = sel.focusOffset;
+  const msg = node.textContent;
+  let i = pos - 1;
+  while (
+    i >= 0 &&
+    ((msg[i] >= "A" && msg[i] <= "Z") ||
+      (msg[i] >= "a" && msg[i] <= "z") ||
+      (msg[i] >= "0" && msg[i] <= "9"))
+  )
+    i--; // would be faster with regex
+  const word = msg.substring(i + 1, pos);
+  if (word == "") return null;
+  return {
+    node,
+    pos,
+    word,
+    start: i,
+    isM2Symbol: i < 0 || msg[i] != "\u250B",
+  };
+};
+
 const removeAutoComplete = function (autoCompleteSelection, caret: boolean) {
   // null or the menu element to insert
   if (autoComplete) {
@@ -152,7 +176,12 @@ const removeAutoComplete = function (autoCompleteSelection, caret: boolean) {
   }
 };
 
-const autoCompleteHandling = function (el, dictionary?) {
+const autoCompleteHandling = function (
+  el,
+  dictionary?,
+  useCurrentWord = false,
+  removableDictionary = false
+) {
   if (autoComplete) return; // normally should never happen
   autoCompleteEl = el;
   const sel = window.getSelection();
@@ -160,15 +189,10 @@ const autoCompleteHandling = function (el, dictionary?) {
   let pos = sel.focusOffset;
   const msg = autoCompleteNode.textContent;
   let i = -1;
-  if (!dictionary) {
-    i = pos - 1;
-    while (
-      i >= 0 &&
-      ((msg[i] >= "A" && msg[i] <= "Z") ||
-        (msg[i] >= "a" && msg[i] <= "z") ||
-        (msg[i] >= "0" && msg[i] <= "9"))
-    )
-      i--; // would be faster with regex
+  if (!dictionary || useCurrentWord) {
+    const context = autoCompleteWordContext();
+    if (!context) return false; // signal so can interpret tab some other way
+    i = context.start;
   }
   const word = msg.substring(i + 1, pos);
   if (word == "") return false; // signal so can interpret tab some other way
@@ -220,7 +244,7 @@ const autoCompleteHandling = function (el, dictionary?) {
           opt.dataset.fullword = flag
             ? lst[l]
             : String.fromCodePoint(UCsymbols[lst[l]]);
-          if (dictionary) {
+          if (removableDictionary) {
             const icon = document.createElement("i");
             icon.classList.add("material-icons");
             icon.textContent = "close";
@@ -232,6 +256,11 @@ const autoCompleteHandling = function (el, dictionary?) {
               if (k > dictionary.length) k = dictionary.length;
               while (m < k && dictionary[m] != opt.dataset.fullword) m++;
               if (m < k) dictionary.splice(m, 1);
+              if (opt.classList.contains("selected")) {
+                const nextSelection =
+                  opt.nextElementSibling || opt.previousElementSibling;
+                if (nextSelection) menuSel(nextSelection);
+              }
               opt.remove();
               e.stopPropagation();
               if (tabMenu.childElementCount == 0)
@@ -570,6 +599,7 @@ const htmlToM2 = function (el: HTMLElement) {
 
 export {
   escapeKeyHandling,
+  autoCompleteWordContext,
   autoCompleteHandling,
   removeAutoComplete,
   sanitizeInput,

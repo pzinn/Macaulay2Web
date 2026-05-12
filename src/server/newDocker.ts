@@ -10,12 +10,11 @@ import { logger } from "./logger";
 
 const saveFile = "save.tar.gz";
 
-class SudoDockerContainersInstanceManager implements InstanceManager {
+class NewDockerContainersInstanceManager implements InstanceManager {
   private resources: any;
   private hostConfig: any;
   private currentInstance: any;
   private currentContainers: any[];
-  private startPort: number;
 
   constructor(resources: any, hostConfig: any, currentInstance: Instance) {
     this.resources = resources;
@@ -23,14 +22,40 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     this.currentInstance = currentInstance;
     const currentContainers = [];
     this.currentContainers = currentContainers;
-    this.startPort = currentInstance.port;
   }
 
-  private incrementPort() {
-    this.currentInstance.port =
-      this.currentInstance.port == 65535
-        ? this.startPort
-        : this.currentInstance.port + 1;
+  private dockerName(clientId: string) {
+    return "m2Client." + clientId;
+  }
+
+  private getIpFromInspect(res): string {
+    const networks = res[0].NetworkSettings.Networks;
+    if (networks)
+      for (const networkName in networks) {
+        if (networks[networkName].IPAddress)
+          return networks[networkName].IPAddress;
+      }
+    return res[0].NetworkSettings.IPAddress;
+  }
+
+  private getContainerIp(containerName: string, next) {
+    const dockerInspectCmd = "sudo docker inspect " + containerName;
+    exec(dockerInspectCmd, function (error, stdout, stderr) {
+      if (error) {
+        logger.error(
+          "Error inspecting container " + containerName + ": " + error
+        );
+        return next(error);
+      }
+      const res = JSON.parse(stdout);
+      const ip = this.getIpFromInspect(res);
+      if (!ip) {
+        const msg = "No Docker bridge IP found for " + containerName;
+        logger.error(msg);
+        return next(new Error(msg));
+      }
+      next(null, ip);
+    }.bind(this));
   }
 
   // scan existing dockers
@@ -42,7 +67,6 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
       const asyncLoop = function (i) {
         if (i == 0) {
-          self.incrementPort();
           next();
           return;
         }
@@ -64,32 +88,23 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               logger.info(
                 "Scanning " + lst[i] + " found " + clientId + res[0].Name
               );
-              // find port
-              const sshPorts =
-                res[0].NetworkSettings.Ports &&
-                res[0].NetworkSettings.Ports["22/tcp"];
-              if (!sshPorts || !sshPorts[0] || !sshPorts[0].HostPort) {
-                logger.info(
-                  "Skipping " +
-                    res[0].Name +
-                    " because it has no published SSH port"
-                );
+              const ip = self.getIpFromInspect(res);
+              if (!ip) {
+                logger.error("No Docker bridge IP found for " + res[0].Name);
                 asyncLoop(i);
                 return;
               }
-              const port = +sshPorts[0].HostPort;
               const newInstance = JSON.parse(
                 JSON.stringify(self.currentInstance)
               ); // eww
               // test for sshd?
-              newInstance.port = port;
-              if (self.currentInstance.port < port)
-                self.currentInstance.port = port;
+              newInstance.host = ip;
+              newInstance.port = 22;
               newInstance.clientId = clientId;
               newInstance.lastActiveTime =
                 Date.now() - self.hostConfig.minContainerAge; // now Date.now() to avoid nasty bug where new users can't be created for 10 mins after reboot
               newInstance.numInputs = 0;
-              newInstance.containerName = "m2Port" + newInstance.port;
+              newInstance.containerName = res[0].Name.replace(/^\//, "");
               if (clients[clientId]) {
                 if (clients[clientId].instance)
                   self.removeInstance(clients[clientId].instance);
@@ -112,9 +127,9 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
         1 + self.currentContainers.length - self.hostConfig.maxContainerNumber
       ); // no waiting for it
     const instance = JSON.parse(JSON.stringify(self.currentInstance));
-    self.incrementPort();
-    instance.containerName = "m2Port" + instance.port;
+    instance.containerName = self.dockerName(clientId);
     instance.clientId = clientId;
+    instance.port = 22;
     instance.lastActiveTime = Date.now();
     instance.numInputs = 0;
     exec(
@@ -132,30 +147,46 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               " created for " +
               clientId
           );
-          self.addInstanceToArray(instance);
-          // check for saved files
-          const savePath = staticFolder + userSpecificPath(clientId) + saveFile;
-          fs.access(savePath, function (err) {
-            if (!err) {
-              logger.info("Restoring files for " + clientId);
-              const restoreDockerContainer =
-                "sudo docker exec -i " +
+          self.getContainerIp(instance.containerName, function (ipError, ip) {
+            if (ipError) {
+              self.removeInstanceInternal(instance);
+              setTimeout(function () {
+                self.getNewInstance(clientId, next);
+              }, 3000);
+              return;
+            }
+            instance.host = ip;
+            logger.info(
+              "Docker container " +
                 instance.containerName +
-                " tar -C /home/" +
-                instance.username +
-                " -xzf - . < " +
-                savePath;
-              exec(restoreDockerContainer, function (error) {
-                if (error) {
-                  logger.error(
-                    "Error restoring files for container " +
-                      instance.containerName +
-                      " with error:" +
-                      error
-                  );
-                } else {
-                  // cleanup
-                  /*
+                " has bridge IP " +
+                ip
+            );
+            self.addInstanceToArray(instance);
+            // check for saved files
+            const savePath =
+              staticFolder + userSpecificPath(clientId) + saveFile;
+            fs.access(savePath, function (err) {
+              if (!err) {
+                logger.info("Restoring files for " + clientId);
+                const restoreDockerContainer =
+                  "sudo docker exec -i " +
+                  instance.containerName +
+                  " tar -C /home/" +
+                  instance.username +
+                  " -xzf - . < " +
+                  savePath;
+                exec(restoreDockerContainer, function (error) {
+                  if (error) {
+                    logger.error(
+                      "Error restoring files for container " +
+                        instance.containerName +
+                        " with error:" +
+                        error
+                    );
+                  } else {
+                    // cleanup
+                    /*
                   fs.rm(
                     savePath,
                     { recursive: true, force: true },
@@ -171,10 +202,11 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
                     }
                   );
 		    */
-                }
-              });
-            }
-            self.waitForSshd(next, instance); // don't wait for restore in case it hangs
+                  }
+                });
+              }
+              self.waitForSshd(next, instance); // don't wait for restore in case it hangs
+            });
           });
         }
       }
@@ -186,7 +218,6 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       "diff <(sudo docker inspect m2container --format='{{.Id}}') <(sudo docker inspect " +
         instance.containerName +
         " --format='{{.Image}}')",
-      { shell: "/bin/bash" },
       next
     );
   };
@@ -291,7 +322,6 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       (premium ? 2 * resources.memory : resources.memory) +
       'm"';
     dockerRunCmd += " --name " + newInstance.containerName;
-    dockerRunCmd += " -p " + newInstance.port + ":22";
     dockerRunCmd += " -l " + "clientId=" + newInstance.clientId;
     dockerRunCmd += " -v `pwd`/public/tutorials:/home/m2user/tutorials:ro";
     dockerRunCmd +=
@@ -336,7 +366,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 }
 
 const options = {
-  manager: SudoDockerContainersInstanceManager,
+  manager: NewDockerContainersInstanceManager,
 };
 
 export { options };

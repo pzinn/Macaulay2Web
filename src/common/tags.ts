@@ -19,4 +19,10 @@ const webAppRegex = new RegExp(
   "([" + Object.values(webAppTags).join("") + "])"
 );
 
-export { webAppTags, webAppClasses, webAppRegex };
+const completionProtocol = {
+  RequestStart: "\x1b]M2-COMPLETE-REQUEST;",
+  ResponseStart: "\x1b]M2-COMPLETE-RESPONSE;",
+  End: "\x07",
+};
+
+export { webAppTags, webAppClasses, webAppRegex, completionProtocol };

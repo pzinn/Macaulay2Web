@@ -1,6 +1,6 @@
 {
   "name": "macaulay2web",
-  "version": "3.10.1",
+  "version": "3.10.2",
   "homepage": "https://github.com/pzinn/Macaulay2Web",
   "description": "Web app for Macaulay2",
   "author": {
@@ -56,7 +56,7 @@
   },
   "scripts": {
     "postinstall": "./postinstall",
-    "build": "npm run lint && npm run format && npm run build:server && npm run build:client && npm run build:minimal && npm run build:css",
+    "build": "npm run build:server && npm run build:client && npm run build:minimal && npm run build:css",
     "build:server": "tsc",
     "build:client": "webpack --env production",
     "build:minimal": "webpack --env minimal",
@@ -66,6 +66,7 @@
     "update-symbols": "M2 --script update-symbols.m2",
     "start": "node dist/server/index.js",
     "docker": "npm run build && npm start docker",
+    "new": "npm run build && npm start new",
     "local": "npm run build && npm start local",
     "debug": "npm run build:css && npm run build:debug && npm start local",
     "ssh": "npm run build && npm start ssh",

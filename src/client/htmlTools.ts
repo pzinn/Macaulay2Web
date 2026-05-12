@@ -228,11 +228,43 @@ const caretIsAtEnd = function () {
   }
 };
 
-const selectRowColumn = function (el, rowcols) {
-  let pos1 = locateRowColumn(el.textContent, rowcols[0], rowcols[1]);
+type SourceLocation = {
+  row: number;
+  column: number;
+};
+
+type ParsedLocation = {
+  start: SourceLocation;
+  end?: SourceLocation;
+  focus?: SourceLocation;
+};
+
+const compareLocations = function (a: SourceLocation, b: SourceLocation) {
+  return a.row == b.row ? a.column - b.column : a.row - b.row;
+};
+
+const normalizeParsedLocation = function (location: ParsedLocation) {
+  const start = location.start;
+  let end = location.end ?? start;
+  if (compareLocations(end, start) < 0) end = start;
+  let focus = location.focus ?? start;
+  if (compareLocations(focus, start) < 0) focus = start;
+  else if (compareLocations(focus, end) > 0) focus = end;
+  return { start, end, focus };
+};
+
+const parsedLocationNeedsCaretMarker = function (location: ParsedLocation) {
+  return !location.end || !!location.focus;
+};
+
+const selectRowColumn = function (el, location: ParsedLocation) {
+  const { start, end, focus } = normalizeParsedLocation(location);
+  let pos1 = locateRowColumn(el.textContent, start.row, start.column);
   if (pos1 === null) pos1 = el.textContent.length;
-  let pos2 = locateRowColumn(el.textContent, rowcols[2], rowcols[3]);
+  let pos2 = locateRowColumn(el.textContent, end.row, end.column);
   if (pos2 === null) pos2 = el.textContent.length;
+  let posFocus = locateRowColumn(el.textContent, focus.row, focus.column);
+  if (posFocus === null) posFocus = pos1;
   const nodesOffsets = locateOffset2(el, pos1, pos2);
   if (!nodesOffsets) return false; // shouldn't happen
   const sel = window.getSelection();
@@ -243,9 +275,14 @@ const selectRowColumn = function (el, rowcols) {
     nodesOffsets[3]
   );
 
-  const marker = addMarkerPos(nodesOffsets[2], nodesOffsets[3]);
+  if (!parsedLocationNeedsCaretMarker(location)) return true;
 
-  if (pos1 == pos2) marker.classList.add("caret-marker");
+  const focusNodeOffset = locateOffset(el, posFocus);
+  const marker = focusNodeOffset
+    ? addMarkerPos(focusNodeOffset[0], focusNodeOffset[1])
+    : addMarker();
+
+  marker.classList.add("caret-marker");
   setTimeout(function () {
     // in case not in editor tab, need to wait
     marker.scrollIntoView({
@@ -309,23 +346,33 @@ const parseLocation = function (arg: string) {
   if (arg.length > 2 && arg.startsWith("./")) arg = arg.substring(2);
   // parse newName for positioning
   // figure out filename
-  const m = arg.match(
-    //    /([^:]*)(?::(\d+)(?::(\d+)|)(?:-(\d+)(?::(\d+)|)|)|)/
-    /^([^#]+)#\D*(\d+)(?::\D*(\d+)|)(?:-\D*(\d+)(?::\D*(\d+)|)|)/
-  ) as any; // e.g. test.m2#3:5-5:7 or test.m2#L3:C5-L5:C7
+  const m = arg.match(/^([^#]+)#(.+)$/);
   if (!m) return [arg, null];
-  const rowcols = [];
-  // parse m
-  rowcols[0] = +m[2];
-  if (rowcols[0] < 1) rowcols[0] = 1;
-  rowcols[1] = m[3] ? +m[3] : 1;
-  if (rowcols[1] < 0) rowcols[1] = 0;
-  rowcols[2] = m[4] ? +m[4] : rowcols[0];
-  if (rowcols[2] < rowcols[0]) rowcols[2] = rowcols[0];
-  rowcols[3] = m[5] ? +m[5] : m[4] ? 1 : rowcols[1];
-  if (rowcols[2] == rowcols[0] && rowcols[3] < rowcols[1])
-    rowcols[3] = rowcols[1];
-  return [m[1], rowcols];
+  const parseOneLocation = function (s: string): SourceLocation | null {
+    const loc = s.match(/^[Ll]?(\d+)(?:(?::[Cc]?|[Cc])(\d+))?$/);
+    if (!loc) return null;
+    let row = +loc[1];
+    if (row < 1) row = 1;
+    let col = loc[2] ? +loc[2] : 1;
+    if (col < 0) col = 0;
+    return { row, column: col };
+  };
+  const locationText = m[2];
+  const focusSplit = locationText.split("_");
+  if (focusSplit.length > 2) return [arg, null];
+  const rangeSplit = focusSplit[0].split("-");
+  if (rangeSplit.length > 2) return [arg, null];
+  const start = parseOneLocation(rangeSplit[0]);
+  if (!start) return [arg, null];
+  const end = rangeSplit.length == 2 ? parseOneLocation(rangeSplit[1]) : null;
+  if (rangeSplit.length == 2 && !end) return [arg, null];
+  const focus = focusSplit.length == 2 ? parseOneLocation(focusSplit[1]) : null;
+  if (focusSplit.length == 2 && !focus) return [arg, null];
+
+  const location: ParsedLocation = { start };
+  if (end) location.end = end;
+  if (focus) location.focus = focus;
+  return [m[1], location];
 };
 
 export {
@@ -344,6 +391,8 @@ export {
   nextChar,
   locateOffset,
   locateRowColumn,
+  normalizeParsedLocation,
+  parsedLocationNeedsCaretMarker,
   selectRowColumn,
   addMarker,
   addMarkerEl,

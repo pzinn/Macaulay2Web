@@ -70,7 +70,8 @@ pre[class*="language-"] {
 }
 */
 .token.comment {
-    color: var(--syntax-comment);
+    --token-color: var(--syntax-comment);
+    color: var(--token-color);
 }
 
 /*
@@ -85,12 +86,14 @@ pre[class*="language-"] {
 
 .token.constant {
     /*	color: #008b8b; */
-    color: var(--syntax-constant);
+    --token-color: var(--syntax-constant);
+    color: var(--token-color);
 }
 
 .token.net,
 .token.string {
-	color: var(--syntax-string);
+    --token-color: var(--syntax-string);
+	color: var(--token-color);
 }
 
 /*
@@ -105,15 +108,22 @@ pre[class*="language-"] {
 */
 
 .token.keyword {
-    color: var(--syntax-keyword);
+    --token-color: var(--syntax-keyword);
+    color: var(--token-color);
 }
 
 .token.function {
-    color: var(--syntax-function);
+    --token-color: var(--syntax-function);
+    color: var(--token-color);
 }
 .token.class-name {
     /*    color: #228b22; */
-    color: var(--syntax-class);
+    --token-color: var(--syntax-class);
+    color: var(--token-color);
+}
+
+.M2Error .token {
+    color: color-mix(in srgb, var(--token-color, currentColor) 50%, var(--state-error));
 }
 
 /*

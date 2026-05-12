@@ -10,7 +10,7 @@ import { logger } from "./logger";
 
 const usage = function (): void {
   logger.info(
-    "Usage: npm {run/start} {local|docker|ssh} [http port] [https port]"
+    "Usage: npm {run/start} {local|docker|new|ssh} [http port] [https port]"
   );
 };
 
@@ -38,6 +38,8 @@ if (mode === "local") {
   overrideOptions = require(path + "localServer");
 } else if (mode === "docker") {
   overrideOptions = require(path + "sudoDocker");
+} else if (mode === "new") {
+  overrideOptions = require(path + "newDocker");
 } else if (mode === "ssh") {
   overrideOptions = require(path + "sshDocker");
 } else {

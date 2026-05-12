@@ -17,9 +17,12 @@ import {
   locateOffset,
   addMarkerPos,
   parseLocation,
+  normalizeParsedLocation,
+  parsedLocationNeedsCaretMarker,
 } from "./htmlTools";
 import {
   escapeKeyHandling,
+  autoCompleteWordContext,
   autoCompleteHandling,
   removeAutoComplete,
   sanitizeInput,
@@ -68,6 +71,10 @@ Array.prototype.sortedPush = function (el: any) {
 const Shell = function (
   terminal: HTMLElement,
   emitInput: (msg: string) => void,
+  requestCompletions: (
+    prefix: string,
+    callback: (completions: string[] | null) => void
+  ) => void,
   editor: HTMLElement,
   iFrame: HTMLFrameElement,
   createInputSpan: boolean
@@ -137,9 +144,9 @@ const Shell = function (
     inputSpan.classList.add("M2Text");
 
     htmlSec = terminal;
-    //    if (editor) htmlSec.appendChild(document.createElement("br")); // a bit of extra space doesn't hurt
-    createHtml(webAppClasses[webAppTags.Cell]); // we create a first cell for the whole session
-    createHtml(webAppClasses[webAppTags.Cell]); // and one for the starting text (Macaulay2 version... or whatever comes out of M2 first)
+    // the next two lines are no longer needed: they're handled by M2
+    // createHtml(webAppClasses[webAppTags.Cell]); // we create a first cell for the whole session
+    // createHtml(webAppClasses[webAppTags.Cell]); // and one for the starting cell
     htmlSec.appendChild(inputSpan);
 
     inputSpan.focus();
@@ -292,9 +299,9 @@ const Shell = function (
       if (t instanceof HTMLAnchorElement) {
         let href = t.getAttribute("href");
         if (href.startsWith("file://")) href = href.substring(7);
-        const [name, rowcols] = parseLocation(href);
-        if (rowcols && name == "stdio") {
-          obj.selectPastInput(document.activeElement, rowcols);
+        const [name, location] = parseLocation(href);
+        if (location && name == "stdio") {
+          obj.selectPastInput(document.activeElement, location);
           e.preventDefault();
         } else if (
           (!t.host || t.host == window.location.host) &&
@@ -391,13 +398,35 @@ const Shell = function (
     // auto-completion code
     if (e.key == "Tab") {
       // try to avoid disrupting the normal tab use as much as possible
-      if (
-        document.activeElement == inputSpan &&
-        !e.shiftKey &&
-        autoCompleteHandling(null)
-      ) {
-        //        scrollDown(terminal);
-        e.preventDefault();
+      if (document.activeElement == inputSpan && !e.shiftKey) {
+        const completionContext = autoCompleteWordContext();
+        if (
+          completionContext &&
+          completionContext.isM2Symbol &&
+          requestCompletions
+        ) {
+          const requestedWord = completionContext.word;
+          requestCompletions(requestedWord, (completions) => {
+            const currentContext = autoCompleteWordContext();
+            if (
+              document.activeElement != inputSpan ||
+              !currentContext ||
+              currentContext.word != requestedWord
+            )
+              return;
+            if (
+              completions &&
+              completions.length > 0 &&
+              autoCompleteHandling(null, completions, true)
+            )
+              scrollDown(terminal);
+            else if (autoCompleteHandling(null)) scrollDown(terminal);
+          });
+          e.preventDefault();
+        } else if (autoCompleteHandling(null)) {
+          //        scrollDown(terminal);
+          e.preventDefault();
+        }
       }
       return;
     }
@@ -411,7 +440,7 @@ const Shell = function (
       if (pos == txt.length) {
         inputSpan.textContent = txt; // inputSpan.normalize(); wouldn't work because of delimiter hiliting
         setCaret(inputSpan, pos);
-        if (autoCompleteHandling(null, cmdHistory.sorted)) {
+        if (autoCompleteHandling(null, cmdHistory.sorted, false, true)) {
           scrollDown(terminal);
           e.preventDefault();
           return;
@@ -625,14 +654,15 @@ const Shell = function (
           ".M2ErrorLocation a"
         ) as NodeListOf<HTMLAnchorElement>
       ).forEach((x) => {
-        const [name, rowcols] = parseLocation(x.getAttribute("href"));
-        if (rowcols) {
+        const [name, location] = parseLocation(x.getAttribute("href"));
+        if (location) {
+          const { focus } = normalizeParsedLocation(location);
           // highlight error
           if (name == "stdio") {
             const nodeOffset = obj.locateStdio(
               sessionCell(htmlSec),
-              rowcols[0],
-              rowcols[1]
+              focus.row,
+              focus.column
             );
             if (nodeOffset) {
               addMarkerPos(nodeOffset[0], nodeOffset[1]).classList.add(
@@ -648,8 +678,8 @@ const Shell = function (
               // should this keep track of path somehow? needs more testing
               const pos = locateRowColumn(
                 editor.textContent,
-                rowcols[0],
-                rowcols[1]
+                focus.row,
+                focus.column
               );
               if (pos !== null) {
                 const nodeOffset = locateOffset(editor, pos);
@@ -843,12 +873,13 @@ const Shell = function (
       return [nodeOffset[0], nodeOffset[1], pastInputs[i], offset]; // node, offset in node, element, offset in element
   };
 
-  obj.selectPastInput = function (el: HTMLElement, rowcols) {
+  obj.selectPastInput = function (el: HTMLElement, location) {
+    const { start, end, focus } = normalizeParsedLocation(location);
     const cel = sessionCell(el);
     if (!cel) return;
-    const nodeOffset1 = obj.locateStdio(cel, rowcols[0], rowcols[1]);
+    const nodeOffset1 = obj.locateStdio(cel, start.row, start.column);
     if (!nodeOffset1) return;
-    const nodeOffset2 = obj.locateStdio(cel, rowcols[2], rowcols[3]);
+    const nodeOffset2 = obj.locateStdio(cel, end.row, end.column);
     if (!nodeOffset2 || nodeOffset2[2] != nodeOffset1[2]) return;
     const sel = window.getSelection();
     sel.setBaseAndExtent(
@@ -857,9 +888,15 @@ const Shell = function (
       nodeOffset2[0],
       nodeOffset2[1]
     );
-    const marker = addMarkerPos(nodeOffset2[0], nodeOffset2[1]);
-    if (rowcols[0] == rowcols[2] && rowcols[1] == rowcols[3])
-      marker.classList.add("caret-marker");
+    if (!parsedLocationNeedsCaretMarker(location)) return;
+
+    const nodeOffsetFocus = obj.locateStdio(cel, focus.row, focus.column);
+    const nodeOffsetMarker =
+      nodeOffsetFocus && nodeOffsetFocus[2] == nodeOffset1[2]
+        ? nodeOffsetFocus
+        : nodeOffset1;
+    const marker = addMarkerPos(nodeOffsetMarker[0], nodeOffsetMarker[1]);
+    marker.classList.add("caret-marker");
     setTimeout(function () {
       marker.scrollIntoView({
         behavior: "smooth",

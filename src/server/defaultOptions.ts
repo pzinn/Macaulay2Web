@@ -17,7 +17,8 @@ const options = {
   },
   serverConfig: {
     m2Prefixes: {
-      stty: "stty -echo;",
+      //stty: "stty -echo;",
+      stty: "stty -icanon -echo min 1 time 0;",
       //      tagstderr: "LD_PRELOAD=/usr/lib64/libtagstderr.so ", // should be last
     },
     m2Command: "M2 --webapp",

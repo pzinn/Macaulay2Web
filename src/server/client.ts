@@ -12,12 +12,14 @@ class Client {
   public outputStat: number; // an idea of output rate, to prevent flooding
   public channel: ssh2.ClientChannel;
   public id: string;
+  public controlOutputBuffer: string;
   constructor(newId: string) {
     this.saneState = true;
     this.sockets = [];
     this.savedOutput = "";
     this.outputStat = 0;
     this.id = newId;
+    this.controlOutputBuffer = "";
   }
   public fileUploadChunks: Buffer[];
 }
