@@ -540,6 +540,26 @@ ul.menu {
     z-index: 10;
 }
 
+#autocomplete {
+    position: relative;
+    z-index: 20;
+}
+
+#autocomplete > .menu {
+    display: inline-block;
+    left: 0;
+    max-height: min(18em, 45vh);
+    overflow-x: hidden;
+    overflow-y: hidden;
+    position: absolute;
+    top: 0;
+    vertical-align: top;
+}
+
+#autocomplete[data-scrollable] > .menu {
+    overflow-y: auto;
+}
+
 .menu .selected {
     background-color: var(--bg-menu-selected);
 }

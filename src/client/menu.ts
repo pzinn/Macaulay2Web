@@ -19,6 +19,7 @@ const setupMenu = function (menuElement, menuFunction, keyFunction?) {
       if (menuSelection) menuSelection.classList.remove("selected");
       menuSelection = newSelection;
       menuSelection.classList.add("selected");
+      menuSelection.scrollIntoView({ block: "nearest" });
     }
     return menuSelection;
   };
@@ -59,7 +60,7 @@ const setupMenu = function (menuElement, menuFunction, keyFunction?) {
     if (keyFunction) keyFunction(e);
   };
   menuElement.focus();
-  menuSelection.scrollIntoView();
+  menuSelection.scrollIntoView({ block: "nearest" });
   menuElement.onblur = function () {
     wrapMenuFunction(false, false);
   };
