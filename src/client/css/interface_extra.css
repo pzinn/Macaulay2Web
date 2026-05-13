@@ -579,8 +579,8 @@ dialog.app-dialog::backdrop {
 }
 
 #editorDiv.is-searching {
-    outline: 2px solid var(--text-link);
-    outline-offset: -2px;
+    outline: 3px solid color-mix(in srgb, var(--bg-menu) 88%, var(--text-link));
+    outline-offset: -3px;
 }
 
 .editorDirectory {
