@@ -540,6 +540,40 @@ ul.menu {
     z-index: 10;
 }
 
+#autocomplete {
+    position: relative;
+    z-index: 20;
+}
+
+#editorDiv #autocomplete {
+    --bg-autocomplete: var(--bg-surface);
+}
+
+#terminal #autocomplete {
+    --bg-autocomplete: var(--bg-terminal);
+}
+
+#autocomplete > .menu {
+    background: var(--bg-autocomplete, var(--bg-menu));
+    /*border: 1px solid var(--border-main);
+    box-shadow: var(--shadow-soft);*/
+    color: var(--text-main);
+    display: inline-block;
+    font-style: normal;
+    font-weight: 400;
+    left: 0;
+    max-height: min(18em, 45vh);
+    overflow-x: hidden;
+    overflow-y: hidden;
+    position: absolute;
+    top: 0;
+    vertical-align: top;
+}
+
+#autocomplete[data-scrollable] > .menu {
+    overflow-y: auto;
+}
+
 .menu .selected {
     background-color: var(--bg-menu-selected);
 }

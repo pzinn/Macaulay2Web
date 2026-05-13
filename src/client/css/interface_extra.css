@@ -578,6 +578,11 @@ dialog.app-dialog::backdrop {
     font-weight: normal;
 }
 
+#editorDiv.is-searching {
+    outline: 2px solid var(--text-link);
+    outline-offset: -2px;
+}
+
 .editorDirectory {
     box-sizing: border-box;
     color: var(--text-main);
@@ -1089,16 +1094,39 @@ nav {
 
 #searchBox {
     border: 1px solid var(--border-main);
-    background: var(--bg-menu);
+    background: color-mix(in srgb, var(--bg-menu) 88%, var(--text-link));
     border-radius: 5px;
-    padding: 2px;
+    box-shadow: 0 2px 5px var(--shadow-soft);
     display: block; /* silly */
     min-width: 100%;
+    padding: 5px 8px;
     width: 0px;
     overflow-wrap: anywhere;
 /*    text-wrap:wrap !important; */
     word-break: break-all;
     transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+
+@keyframes search-failed-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 2px 5px var(--shadow-soft);
+    }
+    45% {
+        transform: scale(1.015);
+        box-shadow:
+            0 0 0 2px color-mix(in srgb, var(--state-error) 55%, transparent),
+            0 0 18px color-mix(in srgb, var(--state-error) 35%, transparent);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 2px 5px var(--shadow-soft);
+    }
+}
+
+#searchBox.searchFailedPulse {
+    animation: search-failed-pulse 420ms ease;
+    transform-origin: center;
 }
 
 #pmto:disabled {
@@ -1194,6 +1222,10 @@ nav {
     vertical-align:top;
     text-wrap:wrap !important;
     overflow-wrap: anywhere; */
+}
+
+#searchString .searchFailed {
+    text-decoration: underline var(--state-error);
 }
 
 #searchClose {
