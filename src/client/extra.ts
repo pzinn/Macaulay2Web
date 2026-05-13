@@ -80,6 +80,10 @@ const attachClick = function (id: string, f) {
   if (el) el.onclick = f;
 };
 
+const isCtrlS = function (e: KeyboardEvent) {
+  return e.ctrlKey && !e.altKey && !e.metaKey && e.key.toLowerCase() == "s";
+};
+
 let fileName;
 const updateFileName = function (newName: string) {
   const fileNameEl = document.getElementById(
@@ -828,12 +832,41 @@ const extra2 = function () {
 
   const turnOffSearchMode = function () {
     searchMode = false;
+    editor.classList.remove("is-searching");
     document.getElementById("searchBox").style.display = "none";
+  };
+
+  const setSearchStringDisplay = function (successLength: number) {
+    const searchStringEl = document.getElementById("searchString");
+    searchStringEl.textContent = "";
+    if (successLength >= searchString.length) {
+      searchStringEl.textContent = searchString;
+      return;
+    }
+    searchStringEl.appendChild(
+      document.createTextNode(searchString.substring(0, successLength))
+    );
+    const failedSearch = document.createElement("span");
+    failedSearch.classList.add("searchFailed");
+    failedSearch.textContent = searchString.substring(successLength);
+    searchStringEl.appendChild(failedSearch);
+  };
+
+  const signalSearchFailure = function () {
+    const searchBox = document.getElementById("searchBox");
+    searchBox.classList.remove("searchFailedPulse");
+    // Restart the animation even when repeated failed searches happen quickly.
+    void searchBox.offsetWidth;
+    searchBox.classList.add("searchFailedPulse");
   };
 
   const editorKeyDown = function (e) {
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
     //removeDelimiterHighlight(editor);
+    if (currentFileIsDirectory && isCtrlS(e)) {
+      e.preventDefault();
+      return;
+    }
     if (searchMode) {
       if (editorKeyDownSearch(e)) {
         e.preventDefault();
@@ -848,10 +881,12 @@ const extra2 = function () {
       if (!caretIsAtEnd()) e.preventDefault();
       e.stopPropagation();
       editorEvaluate();
-    } else if (e.key == "s" && e.ctrlKey) {
+    } else if (isCtrlS(e)) {
       // emacs binding
       if (!searchMode) {
         searchMode = true;
+        editor.classList.add("is-searching");
+        searchSuccess = 0;
         prevSearchString = searchString;
         document.getElementById("searchString").textContent = searchString = "";
         document.getElementById("searchBox").style.display = "";
@@ -882,8 +917,12 @@ const extra2 = function () {
   const editorKeyDownSearch = function (e) {
     // returns true to stay in search mode, false to leave it
     //    console.log("search: " + searchString + " + " + e.key);
+    if (e.key == "Escape") {
+      turnOffSearchMode();
+      return true;
+    }
     const pos0 = getCaret2(editor);
-    if (pos0 === null) return false;
+    if (pos0 === null || pos0[0] === null) return false;
     let pos = pos0[0];
     if (e.key == "s" && e.ctrlKey) {
       if (searchString == "") searchString = prevSearchString;
@@ -897,12 +936,11 @@ const extra2 = function () {
       searchString = searchString.substring(0, searchString.length - 1);
       if (searchSuccess > searchString.length)
         searchSuccess = searchString.length;
-    } else if (e.key.length != "1" || e.ctrlKey || e.altKey) {
+    } else if (e.key.length !== 1 || e.ctrlKey || e.altKey) {
       return e.key == "Control" || e.key == "Shift"; // TODO: better
     } else {
       searchString = searchString + e.key;
     }
-    const searchStringEl = document.getElementById("searchString");
     // display string
     const txt = editor.textContent;
     const i = txt.indexOf(searchString, pos);
@@ -913,14 +951,11 @@ const extra2 = function () {
         block: "center",
         inline: "end",
       });
-      searchStringEl.textContent = searchString;
+      setSearchStringDisplay(searchString.length);
     } else {
       if (searchSuccess == searchString.length) searchSuccess = 0;
-      searchStringEl.innerHTML =
-        searchString.substring(0, searchSuccess) +
-        "<span style='text-decoration:underline red'>" +
-        searchString.substring(searchSuccess, searchString.length) +
-        "</span>"; // eww
+      setSearchStringDisplay(searchSuccess);
+      signalSearchFailure();
     }
     return true;
   };
