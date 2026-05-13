@@ -364,6 +364,9 @@ const init2 = function () {
   });
 
   socket.on("output", socketOutput);
+  socket.on("terminal-reset", function () {
+    myshell.reset();
+  });
   socket.on("completion-response", function (response) {
     if (!response || typeof response.id !== "string") return;
     const request = completionRequests.get(response.id);

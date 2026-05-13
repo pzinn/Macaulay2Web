@@ -156,6 +156,19 @@ const emitViaClientSockets = function (client: Client, type: string, data) {
   client.sockets.forEach((socket) => safeEmit(socket, type, data));
 };
 
+const emitViaOtherClientSockets = function (
+  client: Client,
+  sender: Socket,
+  type: string,
+  data
+) {
+  const s = shortSocketPayload(type, data);
+  logger.info("Sending " + type + " to other sockets: " + s, client);
+  client.sockets
+    .filter((socket) => socket !== sender)
+    .forEach((socket) => safeEmit(socket, type, data));
+};
+
 const getInstance = function (client: Client, next): void {
   if (client.instance) {
     instanceManager.checkInstance(client.instance, function (error) {
@@ -931,11 +944,12 @@ const socketCompletionRequestAction = function (socket: Socket, client: Client) 
   };
 };
 
-const socketResetAction = function (client: Client) {
+const socketResetAction = function (socket: Socket, client: Client) {
   return function () {
     logger.info("Received reset", client);
     systemChat(client, "Resetting M2.");
     if (client.saneState) {
+      emitViaOtherClientSockets(client, socket, "terminal-reset", null);
       if (client.channel) killMathProgram(client);
       sanitizeClient(client, null, true);
     } else logger.warn("Reset failed, client being sanitized", client);
@@ -999,7 +1013,7 @@ const listen = function () {
     });
     socket.on("input", socketInputAction(socket, client));
     socket.on("completion-request", socketCompletionRequestAction(socket, client));
-    socket.on("reset", socketResetAction(client));
+    socket.on("reset", socketResetAction(socket, client));
     socket.on("chat", socketChatAction(socket, client));
     socket.on("restore", socketRestoreAction(socket, client));
     socket.on("disconnect", socketDisconnectAction(socket, client));
