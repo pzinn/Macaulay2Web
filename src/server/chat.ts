@@ -9,6 +9,7 @@ import {
   clients,
   options,
   instanceManager,
+  expectMathProgramClose,
 } from "./server";
 import { logger } from "./logger";
 import { execInInstance } from "./exec";
@@ -226,15 +227,19 @@ const socketChatAction = function (socket: Socket, client: Client) {
         // kill others
         if (args == "all")
           for (const id in clients) {
-            if (id != options.adminName)
+            if (id != options.adminName) {
+              expectMathProgramClose(clients[id]);
               instanceManager.removeInstanceFromId(id);
+            }
           }
         else
-          args
-            .split(" ")
-            .forEach((id) => instanceManager.removeInstanceFromId(id));
+          args.split(" ").forEach((id) => {
+            if (clients[id]) expectMathProgramClose(clients[id]);
+            instanceManager.removeInstanceFromId(id);
+          });
       } else {
         logger.info("Killing instance", client);
+        expectMathProgramClose(client);
         instanceManager.removeInstanceFromId(client.id); // self-kill
         systemChat(client, "Instance killed. Press Reset to start a new one."); // sent to all users with that id, not just sender
       }

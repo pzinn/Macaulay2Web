@@ -218,6 +218,10 @@ const constructM2Command = function (): string {
 // Suppress "unexpected exit" notifications for channels deliberately closed by the server.
 const expectedChannelCloses = new WeakSet<ssh2.ClientChannel>();
 
+const expectMathProgramClose = function (client: Client) {
+  if (client.channel) expectedChannelCloses.add(client.channel);
+};
+
 function notifyMathProgramExit(
   client: Client,
   channel: ssh2.ClientChannel,
@@ -496,7 +500,7 @@ const killMathProgram = function (client: Client) {
   logger.info("kill MathProgram", client);
   clearCompletionOutputBuffer(client);
   if (!client.channel) return;
-  expectedChannelCloses.add(client.channel);
+  expectMathProgramClose(client);
   client.channel.close();
   client.channel = null; // close() is async; mark it dead immediately so future input respawns M2.
 };
@@ -1089,4 +1093,5 @@ export {
   unlink,
   sshCredentials,
   instanceManager,
+  expectMathProgramClose,
 };
