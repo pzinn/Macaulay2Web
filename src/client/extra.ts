@@ -833,7 +833,9 @@ const extra2 = function () {
   const turnOffSearchMode = function () {
     searchMode = false;
     editor.classList.remove("is-searching");
-    document.getElementById("searchBox").style.display = "none";
+    const searchBox = document.getElementById("searchBox");
+    searchBox.classList.remove("searchFailedPulse");
+    searchBox.style.display = "none";
   };
 
   const setSearchStringDisplay = function (successLength: number) {

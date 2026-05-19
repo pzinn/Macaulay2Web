@@ -156,6 +156,19 @@ const emitViaClientSockets = function (client: Client, type: string, data) {
   client.sockets.forEach((socket) => safeEmit(socket, type, data));
 };
 
+const emitViaOtherClientSockets = function (
+  client: Client,
+  sender: Socket,
+  type: string,
+  data
+) {
+  const s = shortSocketPayload(type, data);
+  logger.info("Sending " + type + " to other sockets: " + s, client);
+  client.sockets
+    .filter((socket) => socket !== sender)
+    .forEach((socket) => safeEmit(socket, type, data));
+};
+
 const getInstance = function (client: Client, next): void {
   if (client.instance) {
     instanceManager.checkInstance(client.instance, function (error) {
@@ -204,6 +217,10 @@ const constructM2Command = function (): string {
 
 // Suppress "unexpected exit" notifications for channels deliberately closed by the server.
 const expectedChannelCloses = new WeakSet<ssh2.ClientChannel>();
+
+const expectMathProgramClose = function (client: Client) {
+  if (client.channel) expectedChannelCloses.add(client.channel);
+};
 
 function notifyMathProgramExit(
   client: Client,
@@ -483,7 +500,7 @@ const killMathProgram = function (client: Client) {
   logger.info("kill MathProgram", client);
   clearCompletionOutputBuffer(client);
   if (!client.channel) return;
-  expectedChannelCloses.add(client.channel);
+  expectMathProgramClose(client);
   client.channel.close();
   client.channel = null; // close() is async; mark it dead immediately so future input respawns M2.
 };
@@ -931,11 +948,12 @@ const socketCompletionRequestAction = function (socket: Socket, client: Client) 
   };
 };
 
-const socketResetAction = function (client: Client) {
+const socketResetAction = function (socket: Socket, client: Client) {
   return function () {
     logger.info("Received reset", client);
     systemChat(client, "Resetting M2.");
     if (client.saneState) {
+      emitViaOtherClientSockets(client, socket, "terminal-reset", null);
       if (client.channel) killMathProgram(client);
       sanitizeClient(client, null, true);
     } else logger.warn("Reset failed, client being sanitized", client);
@@ -1003,7 +1021,7 @@ const httpsWorker = function (glx) {
     });
     socket.on("input", socketInputAction(socket, client));
     socket.on("completion-request", socketCompletionRequestAction(socket, client));
-    socket.on("reset", socketResetAction(client));
+    socket.on("reset", socketResetAction(socket, client));
     socket.on("chat", socketChatAction(socket, client));
     socket.on("restore", socketRestoreAction(socket, client));
     socket.on("disconnect", socketDisconnectAction(socket, client));
@@ -1094,4 +1112,5 @@ export {
   unlink,
   sshCredentials,
   instanceManager,
+  expectMathProgramClose,
 };

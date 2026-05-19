@@ -579,8 +579,8 @@ dialog.app-dialog::backdrop {
 }
 
 #editorDiv.is-searching {
-    outline: 2px solid var(--text-link);
-    outline-offset: -2px;
+    outline: 3px solid color-mix(in srgb, var(--bg-menu) 88%, var(--text-link));
+    outline-offset: -3px;
 }
 
 .editorDirectory {
@@ -1356,4 +1356,13 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
 
 #terminalProcInputLines > .terminalProcLine::before {
   content: attr(data-m2code);
+}
+
+#terminalProcInputLines > .terminalProcLine {
+    transition: opacity 700ms ease;
+}
+
+#terminalProcInputLines > .terminalProcLine.is-complete {
+    font-weight: 700;
+    opacity: 0;
 }
