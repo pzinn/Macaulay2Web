@@ -240,10 +240,10 @@ const listDirToEditor = function (dirName: string, fileName: string) {
     setDirectory(true);
     const lst = xhr.responseText
       .split("\n")
-      .filter((s) => s.length > 0)
+      .filter((s) => s.length > 0 && ![".", "..", "./", "../"].includes(s))
       .sort()
       .map((s) => ({ href: dirName + s, name: s, parent: false }));
-    if (dirName != "./") {
+    if (dirName != "./" && dirName != "/") {
       // a bit crude
       const i = dirName.lastIndexOf("/", dirName.length - 2);
       const ancestor = i >= 0 ? dirName.substring(0, i + 1) : "./";

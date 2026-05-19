@@ -16,7 +16,8 @@ const downloadFromInstance = function (
   sourceFileName: string,
   next
 ) {
-  let fileName: string = path.basename(sourceFileName);
+  const isRootDirectory = sourceFileName == "/";
+  let fileName: string = isRootDirectory ? "root" : path.basename(sourceFileName);
   if (!fileName || !client.instance || !client.instance.host) return next();
   const sshConnection: ssh2.Client = new ssh2.Client();
 
@@ -97,17 +98,22 @@ const downloadFromInstance = function (
 
       // determine where and if file exists
       const relative = !sourceFileName.startsWith("/");
-      sourceFileName1 =
-        options.serverConfig.baseDirectory +
-        (relative ? sourceFileName : sourceFileName.substring(1));
-      checkExists(function () {
-        if (relative) failure();
-        else {
-          // annoying subtlety: if relative false, we don't know if path relative or absolute => try both :/
-          sourceFileName1 = sourceFileName;
-          checkExists(failure);
-        }
-      });
+      if (isRootDirectory) {
+        sourceFileName1 = sourceFileName;
+        checkExists(failure);
+      } else {
+        sourceFileName1 =
+          options.serverConfig.baseDirectory +
+          (relative ? sourceFileName : sourceFileName.substring(1));
+        checkExists(function () {
+          if (relative) failure();
+          else {
+            // annoying subtlety: if relative false, we don't know if path relative or absolute => try both :/
+            sourceFileName1 = sourceFileName;
+            checkExists(failure);
+          }
+        });
+      }
     });
   });
   sshConnection.on("error", function (error) {
