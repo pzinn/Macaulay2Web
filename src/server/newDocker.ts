@@ -334,7 +334,7 @@ class NewDockerContainersInstanceManager implements InstanceManager {
       'm"';
     dockerRunCmd += " --name " + newInstance.containerName;
     dockerRunCmd += " -l " + "clientId=" + newInstance.clientId;
-    dockerRunCmd += " -v `pwd`/public/tutorials:/home/m2user/tutorials:ro";
+    dockerRunCmd += " -v " + staticFolder + "tutorials:/home/m2user/tutorials:ro";
     dockerRunCmd +=
       " " + this.hostConfig.containerType + " " + this.hostConfig.sshdCmd;
     //    logger.info("Running " + dockerRunCmd);
