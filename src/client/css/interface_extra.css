@@ -1357,3 +1357,12 @@ div:focus-visible { /* prevent annoying focus behavior of scrollable divs */
 #terminalProcInputLines > .terminalProcLine::before {
   content: attr(data-m2code);
 }
+
+#terminalProcInputLines > .terminalProcLine {
+    transition: opacity 700ms ease;
+}
+
+#terminalProcInputLines > .terminalProcLine.is-complete {
+    font-weight: 700;
+    opacity: 0;
+}

@@ -170,6 +170,12 @@ const Shell = function (
     codeElStack.length = 0;
     if (terminalProcInputLines) terminalProcInputLines.innerHTML = "";
   };
+  const fadeProcessedInputLine = function (line: HTMLElement) {
+    line.classList.add("is-complete");
+    window.setTimeout(function () {
+      line.remove();
+    }, 500);
+  };
 
   obj.codeInputAction = function (t) {
     let str = t.dataset.m2code ? t.dataset.m2code : t.textContent; // used to be innerText
@@ -215,7 +221,7 @@ const Shell = function (
         numInputs -= currentCodeEl.numSegments;
         currentCodeEl.numSegments = 0;
         if (currentCodeEl.classList.contains("terminalProcLine"))
-          currentCodeEl.remove();
+          fadeProcessedInputLine(currentCodeEl);
         else if (!MINIMAL) processTutorialOutput(cell, currentCodeEl);
         codeElStack.shift();
       }
