@@ -5,7 +5,12 @@ import childProcess = require("child_process");
 const exec = childProcess.exec;
 
 import { Client, userSpecificPath } from "./client";
-import { clients, staticFolder, options as serverOptions } from "./server";
+import {
+  clients,
+  staticFolder,
+  options as serverOptions,
+  notifyExpectedMathProgramStop,
+} from "./server";
 import { logger } from "./logger";
 
 const saveFile = "save.tar.gz";
@@ -219,7 +224,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     this.sortInstancesByAge();
     for (let i = 0; i < num && this.currentContainers.length > 0; i++) {
       const instance = this.currentContainers[0];
-      if (this.isLegal(instance)) this.removeInstance(instance);
+      if (this.isLegal(instance)) this.removeInstance(instance, true);
       else throw new Error("Too many active users.");
     }
   };
@@ -245,9 +250,15 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     });
   }
 
-  private removeInstance(instance: Instance) {
+  private removeInstance(instance: Instance, notifyClient = false) {
     const self = this;
     logger.info("Removing container: " + instance.containerName);
+    if (notifyClient && clients[instance.clientId]) {
+      notifyExpectedMathProgramStop(
+        clients[instance.clientId],
+        "Macaulay2 was stopped by the server to free resources. Press Reset to start a fresh process."
+      );
+    }
     self.removeInstanceFromArray(instance); // do this first to avoid trying to remove the same container multiple times
 
     if (instance.numInputs == 0) self.removeInstanceInternal(instance);

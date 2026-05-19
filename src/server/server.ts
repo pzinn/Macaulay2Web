@@ -222,6 +222,22 @@ const expectMathProgramClose = function (client: Client) {
   if (client.channel) expectedChannelCloses.add(client.channel);
 };
 
+const notifyExpectedMathProgramStop = function (
+  client: Client,
+  userMessage: string
+) {
+  expectMathProgramClose(client);
+  sendDataToClient(client)(
+    webAppTags.Html +
+      '<div class="M2Error">' +
+      userMessage +
+      "</div>" +
+      webAppTags.End +
+      webAppTags.CellEnd +
+      webAppTags.CellEnd
+  );
+};
+
 function notifyMathProgramExit(
   client: Client,
   channel: ssh2.ClientChannel,
@@ -1094,4 +1110,5 @@ export {
   sshCredentials,
   instanceManager,
   expectMathProgramClose,
+  notifyExpectedMathProgramStop,
 };
