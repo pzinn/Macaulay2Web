@@ -1,3 +1,10 @@
 This directory contains docker files for creating a Macaulay2 image:
-docker build -t pzinn/m2container .
-ATM the default (fedora) dockerfile must manually provide the RPM file
+
+```
+DOCKER_BUILDKIT=1 docker build \
+    --build-arg MACAULAY2_RPM=Macaulay2.rpm \
+    -t pzinn/m2container .
+```
+
+The rpm file for Macaulay2 must be manually put in the same directory as the Dockerfile.
+Set `MACAULAY2_RPM` to its filename.
