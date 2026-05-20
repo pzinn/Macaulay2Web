@@ -236,7 +236,7 @@ ul, ol, p { /* slowly destroying all of mdl's css... */
 }
 
 .M2Html ul,.M2Html ol {
-    padding-left: 20px;
+    padding-left: 1.25em;
     margin: 0px;
 }
 
@@ -261,7 +261,7 @@ table.examples {
     margin-bottom: 0.5em;
     width: 50%;
     border-style: solid;
-    border-width: 6px;
+    border-width: 0.375em;
     border-spacing: 0px;
     border-collapse: collapse;
     line-height: 110%;
@@ -285,8 +285,8 @@ table.examples pre {
     padding: 0pt;
 }
 div.indent {
-    border-left:3px solid;
-    padding:10px;
+    border-left: 0.2em solid;
+    padding: 0.7em;
 }
 
 h1,h2,h3,h4,h5,h6 {
@@ -492,12 +492,12 @@ pre > code, code.block { /* code block */
 
 .M2PastInput {
     transition: background-color 200ms;
-    border-radius: 5px;
+    border-radius: 0.35em;
 }
 
 .M2PastInput:hover {
     background-color: var(--bg-code-hover);
-    box-shadow: rgb(0, 0, 0) 1px 1px 2px 0px;
+    box-shadow: rgb(0, 0, 0) 0.07em 0.07em 0.14em 0;
     cursor: pointer;
 }
 
