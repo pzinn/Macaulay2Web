@@ -1,12 +1,18 @@
 @font-face {
-    font-family:"Iosevka";
-    font-weight:400;
-    src: url("iosevka-fixed-extended.woff2") format("woff2");
+	font-family: 'Iosevka';
+	font-display: swap;
+	font-weight: 400;
+	font-stretch: normal;
+	font-style: normal;
+	src: url('IosevkaM2-Regular.woff2') format('woff2');
 }
 @font-face {
-    font-family:"Iosevka";
-    font-weight:500;
-    src: url("iosevka-fixed-extendedmedium.woff2") format("woff2");
+	font-family: 'Iosevka';
+	font-display: swap;
+	font-weight: 500;
+	font-stretch: normal;
+	font-style: normal;
+	src: url('IosevkaM2-Medium.woff2') format('woff2');
 }
 
 :root {
