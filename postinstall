@@ -17,7 +17,11 @@ cd public
 echo Sym-linking
 ln -sf ../src/client/js/VectorGraphics.js .
 # katex fonts
-ln -sf ../KaTeX/fonts .
+if [ -L fonts ]; then
+    rm fonts
+fi
+mkdir -p fonts
+ln -sfn ../../KaTeX/fonts fonts/KaTeX
 # make starting tutorials readonly
 chmod 444 tutorials/*
 cd ..

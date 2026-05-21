@@ -4,7 +4,7 @@
 	font-weight: 400;
 	font-stretch: normal;
 	font-style: normal;
-	src: url('IosevkaM2-Regular.woff2') format('woff2');
+	src: url('fonts/IosevkaM2/IosevkaM2-Regular.woff2') format('woff2');
 }
 @font-face {
 	font-family: 'Iosevka';
@@ -12,7 +12,7 @@
 	font-weight: 500;
 	font-stretch: normal;
 	font-style: normal;
-	src: url('IosevkaM2-Medium.woff2') format('woff2');
+	src: url('fonts/IosevkaM2/IosevkaM2-Medium.woff2') format('woff2');
 }
 
 :root {
