@@ -235,6 +235,18 @@ const Shell = function (
     return cell && cell !== terminal ? cell : null;
   };
 
+  const discardEmptyOpenInputCell = function () {
+    if (!inputSpan || !htmlSec.classList.contains("M2Input")) return false;
+    if (!htmlSec.contains(inputSpan) || htmlSec.textContent != "") return false;
+    const cell = activeCell();
+    if (!cell) return false;
+    const parent = cell.parentElement;
+    attachElement(inputSpan, parent);
+    cell.remove();
+    htmlSec = parent;
+    return true;
+  };
+
   const countCellInputSegments = function (cell: HTMLElement) {
     return Array.from(
       cell.querySelectorAll(".M2PastInput:not(.examples *)") as NodeListOf<HTMLElement>
@@ -275,6 +287,17 @@ const Shell = function (
       finishProcessedCodeEl(cell, codeElStack[0]);
       codeElStack.shift();
     }
+  };
+
+  const finishEvaluationForCurrentCell = function (
+    discardUnreportedInput = false
+  ) {
+    closeInputSection(false);
+    const cell = activeCell();
+    if (!cell || !isTrueInputCell(cell)) return;
+    cell.dataset.webAppEvaluationProtocol = "true";
+    finishProcessedInputForCell(cell);
+    if (discardUnreportedInput) finishCurrentSubmission(cell);
   };
 
   obj.postMessage = function (msg, el?) {
@@ -830,36 +853,34 @@ const Shell = function (
             createHtml(webAppClasses[tag]);
             if (inputSpan) attachElement(inputSpan, htmlSec);
           }
-        } else if (tag == webAppTags.InputDiscarded) {
-          closeInputSection(false);
-          const cell = activeCell();
-          if (cell && isTrueInputCell(cell)) {
-            cell.dataset.webAppEvaluationProtocol = "true";
-            cell.dataset.skipNextEvaluationEnd = "true";
-            finishCurrentSubmission(cell);
-          }
-        } else if (tag == webAppTags.EvaluationEnd) {
-          closeInputSection(false);
-          const cell = activeCell();
-          if (cell && isTrueInputCell(cell)) {
-            cell.dataset.webAppEvaluationProtocol = "true";
-            if (cell.dataset.skipNextEvaluationEnd === "true")
-              delete cell.dataset.skipNextEvaluationEnd;
-            else finishProcessedInputForCell(cell);
-          }
-        } else if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
+        } else if (
+          tag == webAppTags.InputDiscarded ||
+          tag == webAppTags.EvaluationEnd
+        ) {
+          finishEvaluationForCurrentCell(tag == webAppTags.InputDiscarded);
+        } else if (tag == webAppTags.End) {
           continuationCandidate = null;
           if (htmlSec != terminal || !createInputSpan) {
             // htmlSec == terminal should only happen at very start
             // or at the very end for rendering help -- then it's OK
-            const oldHtmlSec = htmlSec;
             closeHtml();
-            if (
-              tag == webAppTags.CellEnd &&
-              isTrueInputCell(oldHtmlSec) &&
-              oldHtmlSec.dataset.webAppEvaluationProtocol !== "true"
-            )
-              finishProcessedInputForCell(oldHtmlSec);
+          }
+        } else if (tag == webAppTags.CellEnd) {
+          continuationCandidate = null;
+          if (!discardEmptyOpenInputCell()) {
+            closeInputSection(false);
+            if (htmlSec != terminal || !createInputSpan) {
+              // htmlSec == terminal should only happen at very start
+              // or at the very end for rendering help -- then it's OK
+              const oldHtmlSec = htmlSec;
+              closeHtml();
+              if (
+                isTrueInputCell(oldHtmlSec) &&
+                oldHtmlSec.dataset.webAppEvaluationProtocol !== "true"
+              ) {
+                finishProcessedInputForCell(oldHtmlSec);
+              }
+            }
           }
         } else {
           continuationCandidate = null;
