@@ -158,6 +158,7 @@ const Shell = function (
   else htmlSec = terminal;
 
   const codeElStack = []; // stack of past code currently being processed
+  let submissionSerial = 0;
   const terminalProcInputLines = document.getElementById(
     "terminalProcInputLines"
   );
@@ -204,10 +205,32 @@ const Shell = function (
   const inputSegments = (s) => s.match(/[^\n]+/g) || [];
   const countSegments = (s) => inputSegments(s).length;
 
+  const closeInputSection = function () {
+    if (htmlSec.classList.contains("M2Input")) closeHtml();
+    inputEndFlag = false;
+  };
+
+  const activeCell = function () {
+    let cell = htmlSec;
+    while (cell && cell !== terminal && !cell.classList.contains("M2Cell"))
+      cell = cell.parentElement;
+    return cell && cell !== terminal ? cell : null;
+  };
+
   const countCellInputSegments = function (cell: HTMLElement) {
     return Array.from(
       cell.querySelectorAll(".M2PastInput:not(.examples *)") as NodeListOf<HTMLElement>
     ).reduce((total, input) => total + countSegments(input.textContent), 0);
+  };
+
+  const finishProcessedCodeEl = function (
+    cell: HTMLElement,
+    currentCodeEl: any
+  ) {
+    currentCodeEl.numSegments = 0;
+    if (currentCodeEl.classList.contains("terminalProcLine"))
+      fadeProcessedInputLine(currentCodeEl);
+    else if (!MINIMAL) processTutorialOutput(cell, currentCodeEl);
   };
 
   const finishProcessedInputForCell = function (cell: HTMLElement) {
@@ -219,12 +242,21 @@ const Shell = function (
         numInputs = 0;
       } else {
         numInputs -= currentCodeEl.numSegments;
-        currentCodeEl.numSegments = 0;
-        if (currentCodeEl.classList.contains("terminalProcLine"))
-          fadeProcessedInputLine(currentCodeEl);
-        else if (!MINIMAL) processTutorialOutput(cell, currentCodeEl);
+        finishProcessedCodeEl(cell, currentCodeEl);
         codeElStack.shift();
       }
+    }
+  };
+
+  const finishCurrentSubmission = function (cell: HTMLElement) {
+    if (codeElStack.length == 0) return;
+    const submissionId = codeElStack[0].submissionId;
+    while (
+      codeElStack.length > 0 &&
+      codeElStack[0].submissionId === submissionId
+    ) {
+      finishProcessedCodeEl(cell, codeElStack[0]);
+      codeElStack.shift();
     }
   };
 
@@ -232,6 +264,7 @@ const Shell = function (
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
     const clean = sanitizeInput(msg);
+    const submissionId = ++submissionSerial;
     if (!el && terminalProcInputLines) {
       inputSegments(clean).forEach((line) => {
         const lineEl = document.createElement("div");
@@ -239,6 +272,7 @@ const Shell = function (
         lineEl.dataset.m2code = line;
         codeElStack.push(lineEl);
         lineEl.numSegments = 1;
+        lineEl.submissionId = submissionId;
         terminalProcInputLines.appendChild(lineEl);
         scrollProcessedInputDown();
       });
@@ -246,6 +280,7 @@ const Shell = function (
       el.dataset.m2code = clean;
       codeElStack.push(el);
       el.numSegments = countSegments(clean);
+      el.submissionId = submissionId;
     }
     inputSpan.textContent = "";
     scrollDownLeft(terminal);
@@ -544,6 +579,10 @@ const Shell = function (
     return el == terminal;
   };
 
+  const isTrueInputCell = function (cell: HTMLElement) {
+    return createInputSpan && !cell.closest(".examples");
+  };
+
   const sessionCell = function (el: HTMLElement) {
     while (el && el.parentElement != terminal) {
       el = el.parentElement;
@@ -770,12 +809,30 @@ const Shell = function (
         ((i == 0 && txt[i].length > 0) ||
           (i > 0 && txt[i - 1] !== webAppTags.InputContd))
       ) {
-        closeHtml();
-        inputEndFlag = false;
+        closeInputSection();
       }
       if (i > 0) {
         const tag = txt[i - 1];
-        if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
+        if (tag == webAppTags.InputEnd) {
+          closeInputSection();
+        } else if (tag == webAppTags.InputDiscarded) {
+          closeInputSection();
+          const cell = activeCell();
+          if (cell && isTrueInputCell(cell)) {
+            cell.dataset.webAppEvaluationProtocol = "true";
+            cell.dataset.skipNextEvaluationEnd = "true";
+            finishCurrentSubmission(cell);
+          }
+        } else if (tag == webAppTags.EvaluationEnd) {
+          closeInputSection();
+          const cell = activeCell();
+          if (cell && isTrueInputCell(cell)) {
+            cell.dataset.webAppEvaluationProtocol = "true";
+            if (cell.dataset.skipNextEvaluationEnd === "true")
+              delete cell.dataset.skipNextEvaluationEnd;
+            else finishProcessedInputForCell(cell);
+          }
+        } else if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
           if (htmlSec != terminal || !createInputSpan) {
             // htmlSec == terminal should only happen at very start
             // or at the very end for rendering help -- then it's OK
@@ -783,7 +840,11 @@ const Shell = function (
             // but in rare circumstances (ctrl-C interrupt) it may be missing its \n
             const oldHtmlSec = htmlSec;
             closeHtml();
-            if (tag == webAppTags.CellEnd && isTrueInput())
+            if (
+              tag == webAppTags.CellEnd &&
+              isTrueInputCell(oldHtmlSec) &&
+              oldHtmlSec.dataset.webAppEvaluationProtocol !== "true"
+            )
               finishProcessedInputForCell(oldHtmlSec);
           }
         } else if (tag === webAppTags.InputContd && inputEndFlag) {
