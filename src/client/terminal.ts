@@ -88,8 +88,6 @@ const Shell = function (
   const cmdHistory: any = []; // History of commands for terminal-like arrow navigation
   cmdHistory.index = 0;
   cmdHistory.sorted = []; // a sorted version
-  // input is a bit messy...
-  let inputEndFlag = false;
   let interpreterDepth = 1;
 
   const isEmptyCell = function (el) {
@@ -150,8 +148,6 @@ const Shell = function (
     htmlSec.appendChild(inputSpan);
 
     inputSpan.focus();
-
-    inputEndFlag = false;
   };
 
   if (createInputSpan) createInputEl();
@@ -204,10 +200,32 @@ const Shell = function (
 
   const inputSegments = (s) => s.match(/[^\n]+/g) || [];
   const countSegments = (s) => inputSegments(s).length;
+  let continuationCandidate: HTMLElement = null;
 
-  const closeInputSection = function () {
-    if (htmlSec.classList.contains("M2Input")) closeHtml();
-    inputEndFlag = false;
+  const closeInputSection = function (allowContinuation = true) {
+    if (htmlSec.classList.contains("M2Input")) {
+      continuationCandidate = allowContinuation ? htmlSec : null;
+      closeHtml();
+    } else if (!allowContinuation) {
+      continuationCandidate = null;
+    }
+  };
+
+  const reopenInputSectionForContinuation = function () {
+    if (htmlSec.classList.contains("M2Input")) return true;
+    if (!continuationCandidate || !continuationCandidate.isConnected)
+      return false;
+    htmlSec = continuationCandidate;
+    continuationCandidate = null;
+    const trailingBreak = htmlSec.nextSibling;
+    if (trailingBreak && trailingBreak.nodeName == "BR")
+      trailingBreak.remove();
+    const text = htmlSec.textContent;
+    htmlSec.innerHTML = "";
+    htmlSec.classList.remove("M2PastInput");
+    htmlSec.appendChild(document.createTextNode(text));
+    if (inputSpan) attachElement(inputSpan, htmlSec);
+    return true;
   };
 
   const activeCell = function () {
@@ -227,7 +245,6 @@ const Shell = function (
     cell: HTMLElement,
     currentCodeEl: any
   ) {
-    currentCodeEl.numSegments = 0;
     if (currentCodeEl.classList.contains("terminalProcLine"))
       fadeProcessedInputLine(currentCodeEl);
     else if (!MINIMAL) processTutorialOutput(cell, currentCodeEl);
@@ -803,20 +820,18 @@ const Shell = function (
     const txt = msg.replace(/\r/g, "").split(webAppRegex);
     for (let i = 0; i < txt.length; i += 2) {
       //console.log(i+"-"+(i+1)+"/"+txt.length+": ",i==0?"":webAppClasses[txt[i-1]]," : ",txt[i].replace("\n",returnSymbol));
-      // if we are at the end of an input section
-      if (
-        inputEndFlag &&
-        ((i == 0 && txt[i].length > 0) ||
-          (i > 0 && txt[i - 1] !== webAppTags.InputContd))
-      ) {
-        closeInputSection();
-      }
       if (i > 0) {
         const tag = txt[i - 1];
         if (tag == webAppTags.InputEnd) {
           closeInputSection();
+        } else if (tag == webAppTags.InputContd) {
+          if (!reopenInputSectionForContinuation()) {
+            continuationCandidate = null;
+            createHtml(webAppClasses[tag]);
+            if (inputSpan) attachElement(inputSpan, htmlSec);
+          }
         } else if (tag == webAppTags.InputDiscarded) {
-          closeInputSection();
+          closeInputSection(false);
           const cell = activeCell();
           if (cell && isTrueInputCell(cell)) {
             cell.dataset.webAppEvaluationProtocol = "true";
@@ -824,7 +839,7 @@ const Shell = function (
             finishCurrentSubmission(cell);
           }
         } else if (tag == webAppTags.EvaluationEnd) {
-          closeInputSection();
+          closeInputSection(false);
           const cell = activeCell();
           if (cell && isTrueInputCell(cell)) {
             cell.dataset.webAppEvaluationProtocol = "true";
@@ -833,11 +848,10 @@ const Shell = function (
             else finishProcessedInputForCell(cell);
           }
         } else if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
+          continuationCandidate = null;
           if (htmlSec != terminal || !createInputSpan) {
             // htmlSec == terminal should only happen at very start
             // or at the very end for rendering help -- then it's OK
-            while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
-            // but in rare circumstances (ctrl-C interrupt) it may be missing its \n
             const oldHtmlSec = htmlSec;
             closeHtml();
             if (
@@ -847,37 +861,19 @@ const Shell = function (
             )
               finishProcessedInputForCell(oldHtmlSec);
           }
-        } else if (tag === webAppTags.InputContd && inputEndFlag) {
-          // continuation of input section
-          inputEndFlag = false;
         } else {
+          continuationCandidate = null;
           // new section
           createHtml(webAppClasses[tag]);
-          if (
-            inputSpan &&
-            (tag === webAppTags.Input || tag === webAppTags.InputContd)
-          ) {
-            // input section: a bit special (ends at first \n)
+          if (inputSpan && tag === webAppTags.Input) {
+            // Move the live input span inside the echoed input for indentation.
             attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
           }
         }
       }
 
       if (txt[i].length > 0) {
-        // for next round, check if we're nearing the end of an input section
-        if (htmlSec.classList.contains("M2Input")) {
-          const ii = txt[i].indexOf("\n");
-          if (ii >= 0) {
-            if (ii < txt[i].length - 1) {
-              // need to do some surgery
-              displayText(txt[i].substring(0, ii + 1));
-              closeHtml();
-              txt[i] = txt[i].substring(ii + 1, txt[i].length);
-            } else inputEndFlag = true;
-            // can't tell for sure if it's the end of input or not (could be a InputContd), so set a flag to remind us
-          }
-        }
-
+        continuationCandidate = null;
         if (htmlSec.dataset.code !== undefined) htmlSec.dataset.code += txt[i];
         else displayText(txt[i]);
         //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // used to update in real time
