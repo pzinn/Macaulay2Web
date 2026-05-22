@@ -935,6 +935,18 @@ button.accordionOpen .material-icons {
     border-collapse: collapse;
 }
 
+.chat-inline-image {
+    display: block;
+    max-width: min(100%, 36rem);
+    max-height: 20rem;
+    margin: 0.4rem 0;
+    object-fit: contain;
+}
+
+#chatInput .chat-inline-image {
+    max-height: 8rem;
+}
+
 .chatDiv {
     display:table;
     border-collapse:separate;

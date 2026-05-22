@@ -1144,8 +1144,51 @@ const extra2 = function () {
   socket.on("chat", socketChat);
 
   if (chatForm) {
-    const chatInput = document.getElementById("chatInput") as HTMLInputElement;
+    const chatInput = document.getElementById("chatInput") as HTMLElement;
     const chatAlias = document.getElementById("chatAlias") as HTMLInputElement;
+    const maxChatImageBytes = 512 * 1024;
+    const allowedChatImageTypes = new Set([
+      "image/gif",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ]);
+    const insertChatNode = function (node: Node) {
+      chatInput.focus();
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0 && chatInput.contains(sel.anchorNode)) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(node);
+        range.setStartAfter(node);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else {
+        chatInput.appendChild(node);
+      }
+    };
+    const insertChatImage = function (file: File) {
+      if (!allowedChatImageTypes.has(file.type)) {
+        alert("Only PNG, JPEG, GIF, or WebP images can be dropped into chat.");
+        return;
+      }
+      if (file.size > maxChatImageBytes) {
+        alert("Chat images must be at most 512 KB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function () {
+        const img = document.createElement("img");
+        img.src = reader.result as string;
+        img.alt = file.name;
+        img.className = "chat-inline-image";
+        insertChatNode(img);
+        chatInput.focus();
+        setCaretAtEndMaybe(chatInput);
+      };
+      reader.readAsDataURL(file);
+    };
     // init alias as cookie or default
     chatAlias.value = getCookie(options.cookieAliasName, options.defaultAlias);
     chatAlias.onchange = function () {
@@ -1173,12 +1216,12 @@ const extra2 = function () {
       if (e.key == "Enter" && !e.shiftKey) {
         e.preventDefault();
         const txt = chatInput.textContent.trim();
-        if (txt != "") {
+        if (txt != "" || chatInput.querySelector("img")) {
           const msg: Chat = {
             type: "message",
             alias: chatAlias.value,
             message: chatInput.innerHTML,
-            text: txt,
+            text: txt || "[image]",
             time: Date.now(),
           };
           if (
@@ -1208,6 +1251,15 @@ const extra2 = function () {
           chatInput.textContent = "";
         }
       }
+    };
+    chatInput.ondragover = function (e) {
+      e.preventDefault();
+    };
+    chatInput.ondrop = function (e) {
+      e.preventDefault();
+      Array.from(e.dataTransfer.files).forEach((file) => {
+        if (file.type.startsWith("image/")) insertChatImage(file);
+      });
     };
     // signal presence
     //    window.addEventListener("load", function () {
