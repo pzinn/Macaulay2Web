@@ -1,1 +1,2 @@
+// this is used for static autocompletion
 export default [@M2SYMBOLS@].sort();
