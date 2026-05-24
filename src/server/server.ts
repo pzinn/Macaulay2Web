@@ -418,19 +418,40 @@ const sendDataToClient = function (client: Client) {
 
 const maxCompletionFrameLength = 200000;
 
+const normalizeCompletionEntry = function (entry) {
+  if (typeof entry === "string") return { name: entry, kind: "" };
+  if (!entry || typeof entry !== "object" || typeof entry.name !== "string")
+    return null;
+  if (entry.name.length == 0 || entry.name.length > 256) return null;
+  return {
+    name: entry.name,
+    kind: typeof entry.kind === "string" ? entry.kind : "",
+  };
+};
+
 const sendCompletionResponseToClient = function (
   client: Client,
   payload: string
 ) {
-  const fields = payload.split("\t");
-  const id = fields.shift();
+  const tab = payload.indexOf("\t");
+  const id = tab < 0 ? payload : payload.substring(0, tab);
   if (!id || !/^[A-Za-z0-9_-]{1,96}$/.test(id)) {
     logger.warn("Dropping malformed completion response", client);
     return;
   }
+  let completions = null;
+  try {
+    const rawCompletions = JSON.parse(tab < 0 ? "[]" : payload.substring(tab + 1));
+    if (Array.isArray(rawCompletions))
+      completions = rawCompletions
+        .map(normalizeCompletionEntry)
+        .filter((entry) => entry !== null);
+  } catch (error) {
+    logger.warn("Dropping malformed completion payload: " + error, client);
+  }
   emitViaClientSockets(client, "completion-response", {
     id,
-    completions: fields,
+    completions,
   });
 };
 

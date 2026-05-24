@@ -179,9 +179,30 @@ const completionRequestPrefix = Math.random().toString(36).slice(2);
 const completionRequests = new Map();
 const completionRequestTimeout = 250;
 
+type CompletionEntry = { name: string; kind?: string };
+
+const normalizeCompletionEntries = function (entries): CompletionEntry[] | null {
+  if (!Array.isArray(entries)) return null;
+  const byName = new Map<string, CompletionEntry>();
+  entries.forEach((entry) => {
+    let normalized: CompletionEntry | null = null;
+    if (typeof entry === "string") normalized = { name: entry };
+    else if (entry && typeof entry.name === "string")
+      normalized = {
+        name: entry.name,
+        kind: typeof entry.kind === "string" ? entry.kind : "",
+      };
+    if (normalized && normalized.name && !byName.has(normalized.name))
+      byName.set(normalized.name, normalized);
+  });
+  return Array.from(byName.values()).sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+};
+
 const requestDynamicCompletions = function (
   prefix: string,
-  callback: (completions: string[] | null) => void
+  callback: (completions: CompletionEntry[] | null) => void
 ) {
   if (!socket || !socket.connected) {
     callback(null);
@@ -373,11 +394,7 @@ const init2 = function () {
     if (!request) return;
     completionRequests.delete(response.id);
     window.clearTimeout(request.timeout);
-    request.callback(
-      Array.isArray(response.completions)
-        ? Array.from(new Set(response.completions)).sort()
-        : null
-    );
+    request.callback(normalizeCompletionEntries(response.completions));
   });
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;

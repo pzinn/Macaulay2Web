@@ -54,6 +54,7 @@
     --syntax-keyword: #a020f0;
     --syntax-function: #0000ff;
     --syntax-class: #1c701c;
+    --syntax-list: #a35a00;
     --shadow-main: #888888;
     --shadow-soft: rgba(0, 0, 0, 0.22);
     --border-main: #b1b1b1;
@@ -99,6 +100,7 @@
     --syntax-keyword: #d7b5ff;
     --syntax-function: #9bc8ff;
     --syntax-class: #9cda93;
+    --syntax-list: #f0b060;
     --shadow-main: #000000;
     --shadow-soft: rgba(0, 0, 0, 0.45);
     --border-main: #45536a;
@@ -578,6 +580,32 @@ ul.menu {
 
 #autocomplete[data-scrollable] > .menu {
     overflow-y: auto;
+}
+
+#autocomplete .autocomplete-kind-function {
+    color: var(--syntax-function);
+}
+
+#autocomplete .autocomplete-kind-list,
+#autocomplete .autocomplete-kind-sequence {
+    color: var(--syntax-list);
+}
+
+#autocomplete .autocomplete-kind-hash-table {
+    color: var(--syntax-constant);
+}
+
+#autocomplete .autocomplete-kind-mutable-hash-table {
+    color: var(--syntax-class);
+}
+
+#autocomplete .autocomplete-kind-string,
+#autocomplete .autocomplete-kind-net {
+    color: var(--syntax-string);
+}
+
+#autocomplete .autocomplete-kind-symbol {
+    color: var(--syntax-keyword);
 }
 
 .menu .selected {

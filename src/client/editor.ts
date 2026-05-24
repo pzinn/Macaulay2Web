@@ -33,6 +33,20 @@ const UCsymbols = {
 };
 
 const UCsymbolKeys = Object.keys(UCsymbols).sort();
+type CompletionEntry = string | { name: string; kind?: string };
+
+const completionWord = function (entry: CompletionEntry) {
+  return typeof entry === "string" ? entry : entry.name;
+};
+
+const completionKind = function (entry: CompletionEntry) {
+  return typeof entry === "string" ? "" : entry.kind || "";
+};
+
+const completionKindClass = function (kind: string) {
+  return "autocomplete-kind-" + kind.replace(/[^a-z0-9_-]/gi, "-");
+};
+
 //const UCsymbolValues = Object.values(UCsymbols)
 //  .map((i) => String.fromCodePoint(i))
 //  .join("");
@@ -212,18 +226,19 @@ const autoCompleteHandling = function (
 
   // find all symbols starting with last word of msg
   let j = 0;
-  while (j < lst.length && lst[j] < word) j++;
+  while (j < lst.length && completionWord(lst[j]) < word) j++;
   if (j < lst.length) {
     let k = j;
-    while (k < lst.length && lst[k].startsWith(word)) k++;
+    while (k < lst.length && completionWord(lst[k]).startsWith(word)) k++;
     if (k > j) {
       if (k == j + 1) {
+        const optionWord = completionWord(lst[j]);
         // yay, one solution
         if (flag)
           document.execCommand(
             "insertText",
             false,
-            lst[j].substring(word.length, lst[j].length)
+            optionWord.substring(word.length, optionWord.length)
           );
         else {
           while (i < pos) {
@@ -233,7 +248,7 @@ const autoCompleteHandling = function (
           document.execCommand(
             "insertText",
             false,
-            String.fromCodePoint(UCsymbols[lst[j]])
+            String.fromCodePoint(UCsymbols[optionWord])
           );
         }
       } else {
@@ -247,13 +262,19 @@ const autoCompleteHandling = function (
         tabMenu.classList.add("menu");
         tabMenu.tabIndex = 0;
         for (let l = j; l < k; l++) {
+          const optionWord = completionWord(lst[l]);
           const opt = document.createElement("li");
+          const kind = completionKind(lst[l]);
+          if (kind) {
+            opt.dataset.kind = kind;
+            opt.classList.add(completionKindClass(kind));
+          }
           const wordb = document.createElement("b");
           wordb.textContent = word;
-          opt.append(wordb, lst[l].substring(word.length, lst[l].length));
+          opt.append(wordb, optionWord.substring(word.length, optionWord.length));
           opt.dataset.fullword = flag
-            ? lst[l]
-            : String.fromCodePoint(UCsymbols[lst[l]]);
+            ? optionWord
+            : String.fromCodePoint(UCsymbols[optionWord]);
           if (removableDictionary) {
             const icon = document.createElement("i");
             icon.classList.add("material-icons");
@@ -264,7 +285,11 @@ const autoCompleteHandling = function (
               // can't use l, may have shifted
               let m = j;
               if (k > dictionary.length) k = dictionary.length;
-              while (m < k && dictionary[m] != opt.dataset.fullword) m++;
+              while (
+                m < k &&
+                completionWord(dictionary[m]) != opt.dataset.fullword
+              )
+                m++;
               if (m < k) dictionary.splice(m, 1);
               if (opt.classList.contains("selected")) {
                 const nextSelection =
@@ -622,3 +647,5 @@ export {
   autoIndent,
   htmlToM2,
 };
+
+export type { CompletionEntry };

@@ -29,6 +29,7 @@ import {
   delimiterHandling,
   htmlToM2,
 } from "./editor";
+import type { CompletionEntry } from "./editor";
 
 import Prism from "prismjs";
 
@@ -73,7 +74,7 @@ const Shell = function (
   emitInput: (msg: string) => void,
   requestCompletions: (
     prefix: string,
-    callback: (completions: string[] | null) => void
+    callback: (completions: CompletionEntry[] | null) => void
   ) => void,
   editor: HTMLElement,
   iFrame: HTMLFrameElement,
