@@ -582,6 +582,28 @@ ul.menu {
     overflow-y: auto;
 }
 
+#autocomplete > .menu.autocomplete-removable {
+    width: max-content;
+}
+
+#autocomplete > .menu.autocomplete-removable > li {
+    align-items: center;
+    display: flex;
+    white-space: nowrap;
+}
+
+#autocomplete .autocomplete-label {
+    flex: 0 1 auto;
+    white-space: nowrap;
+}
+
+#autocomplete .autocomplete-delete {
+    flex: 0 0 auto;
+    font-size: 0.8em;
+    margin-left: auto;
+    padding-left: 0.8em;
+}
+
 #autocomplete .autocomplete-kind-function {
     color: var(--syntax-function);
 }

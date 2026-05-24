@@ -279,6 +279,7 @@ const autoCompleteHandling = function (
         autoComplete.dataset.word = flag ? word : "\u250B" + word;
         const tabMenu = document.createElement("ul");
         tabMenu.classList.add("menu");
+        if (removableDictionary) tabMenu.classList.add("autocomplete-removable");
         tabMenu.tabIndex = 0;
         for (let l = j; l < k; l++) {
           const optionWord = completionWord(lst[l]);
@@ -290,16 +291,20 @@ const autoCompleteHandling = function (
           }
           const wordb = document.createElement("b");
           wordb.textContent = word;
-          opt.append(wordb, optionWord.substring(word.length, optionWord.length));
+          const optText = document.createElement("span");
+          optText.classList.add("autocomplete-label");
+          optText.append(
+            wordb,
+            optionWord.substring(word.length, optionWord.length)
+          );
+          opt.append(optText);
           opt.dataset.fullword = flag
             ? optionWord
             : String.fromCodePoint(UCsymbols[optionWord]);
           if (removableDictionary) {
             const icon = document.createElement("i");
-            icon.classList.add("material-icons");
+            icon.classList.add("material-icons", "autocomplete-delete");
             icon.textContent = "close";
-            icon.style.fontSize = "0.8em";
-            icon.style.float = "right";
             icon.onclick = function (e) {
               // can't use l, may have shifted
               let m = j;
@@ -349,7 +354,7 @@ const autoCompleteHandling = function (
           if (e.key.length == 1 && e.key >= " " && e.key <= "~") {
             let lostSelection = false;
             Array.from(tabMenu.children).forEach((el) => {
-              const startWord = el.firstChild;
+              const startWord = el.querySelector("b");
               const endWord = startWord.nextSibling;
               const endWordText = endWord.textContent;
               if (endWordText.length > 0 && endWordText[0] == e.key) {
