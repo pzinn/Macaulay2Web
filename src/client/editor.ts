@@ -47,6 +47,25 @@ const completionKindClass = function (kind: string) {
   return "autocomplete-kind-" + kind.replace(/[^a-z0-9_-]/gi, "-");
 };
 
+const compareCompletions = function (a: CompletionEntry, b: CompletionEntry) {
+  const wordA = completionWord(a);
+  const wordB = completionWord(b);
+  return wordA < wordB ? -1 : wordA > wordB ? 1 : 0;
+};
+
+const mergeM2Completions = function (
+  dynamicCompletions: CompletionEntry[] | null
+) {
+  const completionsByName = new Map<string, CompletionEntry>();
+  M2symbols.forEach((name) => completionsByName.set(name, { name }));
+  if (dynamicCompletions)
+    dynamicCompletions.forEach((completion) => {
+      const name = completionWord(completion);
+      if (name) completionsByName.set(name, completion);
+    });
+  return Array.from(completionsByName.values()).sort(compareCompletions);
+};
+
 //const UCsymbolValues = Object.values(UCsymbols)
 //  .map((i) => String.fromCodePoint(i))
 //  .join("");
@@ -646,6 +665,7 @@ export {
   updateAndHighlightMaybe,
   autoIndent,
   htmlToM2,
+  mergeM2Completions,
 };
 
 export type { CompletionEntry };

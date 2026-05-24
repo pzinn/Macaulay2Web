@@ -28,6 +28,7 @@ import {
   sanitizeInput,
   delimiterHandling,
   htmlToM2,
+  mergeM2Completions,
 } from "./editor";
 import type { CompletionEntry } from "./editor";
 
@@ -489,6 +490,7 @@ const Shell = function (
         ) {
           const requestedWord = completionContext.word;
           requestCompletions(requestedWord, (completions) => {
+            const mergedCompletions = mergeM2Completions(completions);
             const currentContext = autoCompleteWordContext();
             if (
               document.activeElement != inputSpan ||
@@ -497,9 +499,8 @@ const Shell = function (
             )
               return;
             if (
-              completions &&
-              completions.length > 0 &&
-              autoCompleteHandling(null, completions, true)
+              mergedCompletions.length > 0 &&
+              autoCompleteHandling(null, mergedCompletions, true)
             )
               scrollDown(terminal);
             else if (autoCompleteHandling(null)) scrollDown(terminal);
