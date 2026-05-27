@@ -22,13 +22,12 @@ import {
 } from "./htmlTools";
 import {
   escapeKeyHandling,
-  autoCompleteWordContext,
   autoCompleteHandling,
   removeAutoComplete,
   sanitizeInput,
   delimiterHandling,
   htmlToM2,
-  mergeM2Completions,
+  dynamicAutoCompleteHandling,
 } from "./editor";
 import type { CompletionEntry } from "./editor";
 
@@ -482,29 +481,17 @@ const Shell = function (
     if (e.key == "Tab") {
       // try to avoid disrupting the normal tab use as much as possible
       if (document.activeElement == inputSpan && !e.shiftKey) {
-        const completionContext = autoCompleteWordContext();
         if (
-          completionContext &&
-          completionContext.isM2Symbol &&
-          requestCompletions
+          dynamicAutoCompleteHandling(
+            null,
+            inputSpan,
+            requestCompletions,
+            () => scrollDown(terminal),
+            () => {
+              if (autoCompleteHandling(null)) scrollDown(terminal);
+            }
+          )
         ) {
-          const requestedWord = completionContext.word;
-          requestCompletions(requestedWord, (completions) => {
-            const mergedCompletions = mergeM2Completions(completions);
-            const currentContext = autoCompleteWordContext();
-            if (
-              document.activeElement != inputSpan ||
-              !currentContext ||
-              currentContext.word != requestedWord
-            )
-              return;
-            if (
-              mergedCompletions.length > 0 &&
-              autoCompleteHandling(null, mergedCompletions, true)
-            )
-              scrollDown(terminal);
-            else if (autoCompleteHandling(null)) scrollDown(terminal);
-          });
           e.preventDefault();
         } else if (autoCompleteHandling(null)) {
           //        scrollDown(terminal);

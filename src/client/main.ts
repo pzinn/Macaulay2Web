@@ -366,7 +366,7 @@ const init2 = function () {
       // first time we get our id, finish init
       initDone = true;
       socket.emit("restore"); // restore former M2 output
-      if (!MINIMAL) extra2();
+      if (!MINIMAL) extra2(requestDynamicCompletions);
       for (const e of emitStack) socket.oldEmit(e[0], e[1], e[2]); // not emit to avoid potential infinite loop
       emitStack.length = 0;
       const exec = url.searchParams.get("exec");

@@ -24,7 +24,9 @@ import {
   autoIndent,
   syntaxHighlight,
   updateAndHighlightMaybe,
+  dynamicAutoCompleteHandling,
 } from "./editor";
+import type { CompletionRequester } from "./editor";
 import { activateTabInContainer, computeResizeFlexBasis } from "./uiHelpers";
 
 const hashCode = function (s: string) {
@@ -538,7 +540,7 @@ const extra1 = function () {
 };
 
 // 2nd part: once session active
-const extra2 = function () {
+const extra2 = function (requestCompletions?: CompletionRequester) {
   const terminal = document.getElementById("terminal");
   const terminalDiv = document.getElementById("terminalDiv");
   const chatForm = document.getElementById("chatForm");
@@ -896,7 +898,19 @@ const extra2 = function () {
     else if (e.key == "Tab" && !e.shiftKey && !tabPressed) {
       // try to avoid disrupting the normal tab use as much as possible
       tabPressed = true;
-      if (!window.getSelection().isCollapsed || !autoCompleteHandling(editor))
+      const dynamicCompletionRequested =
+        window.getSelection().isCollapsed &&
+        dynamicAutoCompleteHandling(
+          editor,
+          editor,
+          requestCompletions,
+          undefined,
+          () => autoIndent(editor)
+        );
+      if (
+        !dynamicCompletionRequested &&
+        (!window.getSelection().isCollapsed || !autoCompleteHandling(editor))
+      )
         autoIndent(editor);
       e.preventDefault();
       return;

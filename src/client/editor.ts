@@ -34,6 +34,10 @@ const UCsymbols = {
 
 const UCsymbolKeys = Object.keys(UCsymbols).sort();
 type CompletionEntry = string | { name: string; kind?: string };
+type CompletionRequester = (
+  prefix: string,
+  callback: (completions: CompletionEntry[] | null) => void
+) => void;
 
 const completionWord = function (entry: CompletionEntry) {
   return typeof entry === "string" ? entry : entry.name;
@@ -64,6 +68,36 @@ const mergeM2Completions = function (
       if (name) completionsByName.set(name, completion);
     });
   return Array.from(completionsByName.values()).sort(compareCompletions);
+};
+
+const dynamicAutoCompleteHandling = function (
+  el,
+  focusEl: Element,
+  requestCompletions: CompletionRequester | undefined,
+  onSuccess?: () => void,
+  onFallback?: () => void
+) {
+  const completionContext = autoCompleteWordContext();
+  if (
+    !completionContext ||
+    !completionContext.isM2Symbol ||
+    !requestCompletions
+  )
+    return false;
+  const requestedWord = completionContext.word;
+  requestCompletions(requestedWord, (completions) => {
+    const currentContext = autoCompleteWordContext();
+    if (
+      document.activeElement != focusEl ||
+      !currentContext ||
+      currentContext.word != requestedWord
+    )
+      return;
+    if (autoCompleteHandling(el, mergeM2Completions(completions), true)) {
+      if (onSuccess) onSuccess();
+    } else if (onFallback) onFallback();
+  });
+  return true;
 };
 
 //const UCsymbolValues = Object.values(UCsymbols)
@@ -671,6 +705,7 @@ export {
   autoIndent,
   htmlToM2,
   mergeM2Completions,
+  dynamicAutoCompleteHandling,
 };
 
-export type { CompletionEntry };
+export type { CompletionEntry, CompletionRequester };
