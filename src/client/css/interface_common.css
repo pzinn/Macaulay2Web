@@ -204,7 +204,6 @@ html {
 .M2Html {
     display: inline-table; /* to make sure size is as big as content. inline-block is the more obvious choice */
     white-space: nowrap;
-    /* line-height: 0; */ /* necessary for exotic stuff. for all standard HTML elements need to redefine it to something more sensible */
     line-height: 1.2;
     font-family: "Epilogue";
     font-weight: normal;
@@ -213,6 +212,7 @@ html {
 
 .M2Html p { /* not great. for e.g. help */
     white-space: normal;
+    max-width: calc(100% - 50px); /* for <p> elements inside to wrap properly */
 }
 
 /*
