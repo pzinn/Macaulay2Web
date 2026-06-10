@@ -290,15 +290,13 @@ const Shell = function (
     }
   };
 
-  const finishEvaluationForCurrentCell = function (
-    discardUnreportedInput = false
-  ) {
+  const finishDiscardedInputForCurrentCell = function () {
     closeInputSection(false);
     const cell = activeCell();
     if (!cell || !isTrueInputCell(cell)) return;
     cell.dataset.webAppEvaluationProtocol = "true";
     finishProcessedInputForCell(cell);
-    if (discardUnreportedInput) finishCurrentSubmission(cell);
+    finishCurrentSubmission(cell);
   };
 
   obj.postMessage = function (msg, el?) {
@@ -842,11 +840,11 @@ const Shell = function (
             createHtml(webAppClasses[tag]);
             if (inputSpan) attachElement(inputSpan, htmlSec);
           }
-        } else if (
-          tag == webAppTags.InputDiscarded ||
-          tag == webAppTags.EvaluationEnd
-        ) {
-          finishEvaluationForCurrentCell(tag == webAppTags.InputDiscarded);
+        } else if (tag == webAppTags.InputDiscarded) {
+          finishDiscardedInputForCurrentCell();
+        } else if (tag == webAppTags.EvaluationEnd) {
+          // This marks one completed expression, not necessarily the end of
+          // the current prompt cell. A continuation may still follow.
         } else if (tag == webAppTags.End) {
           continuationCandidate = null;
           if (htmlSec != terminal || !createInputSpan) {
