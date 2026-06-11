@@ -4,7 +4,7 @@
 	font-weight: 400;
 	font-stretch: normal;
 	font-style: normal;
-	src: url('IosevkaM2-Regular.woff2') format('woff2');
+	src: url('fonts/IosevkaM2/IosevkaM2-Regular.woff2') format('woff2');
 }
 @font-face {
 	font-family: 'Iosevka';
@@ -12,7 +12,7 @@
 	font-weight: 500;
 	font-stretch: normal;
 	font-style: normal;
-	src: url('IosevkaM2-Medium.woff2') format('woff2');
+	src: url('fonts/IosevkaM2/IosevkaM2-Medium.woff2') format('woff2');
 }
 
 :root {
@@ -54,6 +54,7 @@
     --syntax-keyword: #a020f0;
     --syntax-function: #0000ff;
     --syntax-class: #1c701c;
+    --syntax-list: #a35a00;
     --shadow-main: #888888;
     --shadow-soft: rgba(0, 0, 0, 0.22);
     --border-main: #b1b1b1;
@@ -99,6 +100,7 @@
     --syntax-keyword: #d7b5ff;
     --syntax-function: #9bc8ff;
     --syntax-class: #9cda93;
+    --syntax-list: #f0b060;
     --shadow-main: #000000;
     --shadow-soft: rgba(0, 0, 0, 0.45);
     --border-main: #45536a;
@@ -202,7 +204,6 @@ html {
 .M2Html {
     display: inline-table; /* to make sure size is as big as content. inline-block is the more obvious choice */
     white-space: nowrap;
-    /* line-height: 0; */ /* necessary for exotic stuff. for all standard HTML elements need to redefine it to something more sensible */
     line-height: 1.2;
     font-family: "Epilogue";
     font-weight: normal;
@@ -211,6 +212,7 @@ html {
 
 .M2Html p { /* not great. for e.g. help */
     white-space: normal;
+    max-width: calc(100% - 50px); /* for <p> elements inside to wrap properly */
 }
 
 /*
@@ -236,7 +238,7 @@ ul, ol, p { /* slowly destroying all of mdl's css... */
 }
 
 .M2Html ul,.M2Html ol {
-    padding-left: 20px;
+    padding-left: 1.25em;
     margin: 0px;
 }
 
@@ -261,7 +263,7 @@ table.examples {
     margin-bottom: 0.5em;
     width: 50%;
     border-style: solid;
-    border-width: 6px;
+    border-width: 0.375em;
     border-spacing: 0px;
     border-collapse: collapse;
     line-height: 110%;
@@ -285,8 +287,8 @@ table.examples pre {
     padding: 0pt;
 }
 div.indent {
-    border-left:3px solid;
-    padding:10px;
+    border-left: 0.2em solid;
+    padding: 0.7em;
 }
 
 h1,h2,h3,h4,h5,h6 {
@@ -492,12 +494,12 @@ pre > code, code.block { /* code block */
 
 .M2PastInput {
     transition: background-color 200ms;
-    border-radius: 5px;
+    border-radius: 0.35em;
 }
 
 .M2PastInput:hover {
     background-color: var(--bg-code-hover);
-    box-shadow: rgb(0, 0, 0) 1px 1px 2px 0px;
+    box-shadow: rgb(0, 0, 0) 0.07em 0.07em 0.14em 0;
     cursor: pointer;
 }
 
@@ -578,6 +580,54 @@ ul.menu {
 
 #autocomplete[data-scrollable] > .menu {
     overflow-y: auto;
+}
+
+#autocomplete > .menu.autocomplete-removable {
+    width: max-content;
+}
+
+#autocomplete > .menu.autocomplete-removable > li {
+    align-items: center;
+    display: flex;
+    white-space: nowrap;
+}
+
+#autocomplete .autocomplete-label {
+    flex: 0 1 auto;
+    white-space: nowrap;
+}
+
+#autocomplete .autocomplete-delete {
+    flex: 0 0 auto;
+    font-size: 0.8em;
+    margin-left: auto;
+    padding-left: 0.8em;
+}
+
+#autocomplete .autocomplete-kind-function {
+    color: var(--syntax-function);
+}
+
+#autocomplete .autocomplete-kind-list,
+#autocomplete .autocomplete-kind-sequence {
+    color: var(--syntax-list);
+}
+
+#autocomplete .autocomplete-kind-hash-table {
+    color: var(--syntax-constant);
+}
+
+#autocomplete .autocomplete-kind-mutable-hash-table {
+    color: var(--syntax-class);
+}
+
+#autocomplete .autocomplete-kind-string,
+#autocomplete .autocomplete-kind-net {
+    color: var(--syntax-string);
+}
+
+#autocomplete .autocomplete-kind-symbol {
+    color: var(--syntax-keyword);
 }
 
 .menu .selected {

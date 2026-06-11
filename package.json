@@ -1,6 +1,6 @@
 {
   "name": "macaulay2web",
-  "version": "3.10.2",
+  "version": "3.10.3",
   "homepage": "https://github.com/pzinn/Macaulay2Web",
   "description": "Web app for Macaulay2",
   "author": {
@@ -43,7 +43,7 @@
     "express-winston": "^3.4.0",
     "greenlock-express": "^4.0.3",
     "html-entities": "^2.3.2",
-    "http-auth": "^3.2.4",
+    "http-auth": "^4.2.1",
     "multer": "^2.0.0",
     "prismjs": "^1.25.0",
     "serve-favicon": "^2.5.0",
@@ -62,7 +62,7 @@
     "build:minimal": "webpack --env minimal",
     "build:debug": "webpack --env debug",
     "build:debug-minimal": "webpack --env debug --env minimal",
-    "build:css": "cd src/client/css; sass ../../../KaTeX/src/styles/katex.scss katex.css; cat katex.css VectorGraphics.css interface_common.css interface_minimal.css prism-M2.css | postcss -o ../../../public/minimal.css && cat katex.css VectorGraphics.css interface_common.css interface_extra.css prism-M2.css | postcss -o ../../../public/index.css",
+    "build:css": "cd src/client/css; sass ../../../KaTeX/src/styles/katex.scss katex.css; sed -i 's#../../fonts/#fonts/KaTeX/#g' katex.css; cat katex.css VectorGraphics.css interface_common.css interface_minimal.css prism-M2.css | postcss -o ../../../public/minimal.css && cat katex.css VectorGraphics.css interface_common.css interface_extra.css prism-M2.css | postcss -o ../../../public/index.css",
     "update-symbols": "M2 --script update-symbols.m2",
     "start": "node dist/server/index.js",
     "docker": "npm run build && npm start docker",
@@ -105,7 +105,7 @@
     "sass": "^1.79.4",
     "ts-loader": "^8.0.15",
     "typescript": "^4.2.2",
-    "vitest": "^2.1.8",
+    "vitest": "^4.1.8",
     "webpack": "^5.24.2",
     "webpack-cli": "^4.5.0"
   },

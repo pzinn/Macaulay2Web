@@ -3,8 +3,10 @@ const webAppTagCodes = [
   ["End", 18, "M2End"], // end of HTML (or url) section
   ["Cell", 19, "M2Text M2Cell"], // cell (bundled input + output)
   ["CellEnd", 20, "M2CellEnd"], // end of cell
+  ["InputEnd", 22, ""], // explicit end of an input section
   ["Input", 28, "M2Text M2Input"], // it's text but it's input
   ["InputContd", 29, "M2Text M2Input M2InputContd"], // text, continuation of input
+  ["InputDiscarded", 31, ""], // remaining buffered input was discarded; evaluation is complete
   ["Prompt", 14, "M2Text M2Prompt"],
   ["Position", 21, "M2Position"],
 ];

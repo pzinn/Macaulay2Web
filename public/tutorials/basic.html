@@ -14,21 +14,21 @@
 </p>
 <pre><code>restart</code></pre>
 <p>
-    Your first input prompt will be <tt>i1 : </tt>.  In response to the prompt,
+    Your first input prompt will be <samp><span style="text-decoration:underline">i1</span> : </samp>.  In response to the prompt,
     either press the "2+2" button below, or
-    type <tt>2+2</tt>, and press return.  The expression you entered will be
-    evaluated - no punctuation is required at the end of the line.
+    type <samp>2+2</samp>, and press return.  The expression you entered will be
+    evaluated &mdash; no punctuation is required at the end of the line.
 </p>
 <pre><code>2+2</code></pre>
 <p>
-    The answer is displayed to the right of the output label <tt>o1 = </tt>.
+    The answer is displayed to the right of the output label <samp><span style="text-decoration:underline">o1</span> = </samp>.
 </p>
 <p>
     Here is some arithmetic with fractions.
 </p>
 <pre><code>3/5 + 7/11</code></pre>
 <p>
-    Notice the additional line of output labeled with \({\tt o2\colon }\).
+    Notice the additional line of output labeled with <samp><span style="text-decoration:underline">o2</span> : </samp>.
     Output lines labeled with colons provide information about the type of
     output.  In this case, \({\mathbb{Q}}\) stands for
     the class of all rational numbers, and indicates that the answer on
@@ -39,19 +39,19 @@
 </p>
 <pre><code>1*2*3*4</code></pre>
 <p>
-    Powers are obtained with " <tt>^</tt> ":
+    Powers are obtained with " <samp>^</samp> ":
 </p>
 <pre><code>2^200</code></pre>
 <p>
-    Factorials are obtained with " <tt>!</tt> ":
+    Factorials are obtained with " <samp>!</samp> ":
 </p>
 <pre><code>40!</code></pre>
     <p>
       Some output is longer than the window:
-      <pre><code>100!</code></pre>
+      <pre><code>200!</code></pre>
       Scroll horizontally to see
       the rest of the output. (Alternatively, click on the bar to the left of the output
-      and press <tt>W</tt> to wrap it.)
+      and press <samp>W</samp> to wrap it.)
     </p>
     <p>
     Multiple expressions may be separated by semicolons:
@@ -62,12 +62,12 @@
 </p>
 <pre><code>4*5;</code></pre>
 <p>
-    The output from the previous line can be obtained with <tt>oo</tt>  even if 
+    The output from the previous line can be obtained with <samp>oo</samp>  even if 
     a semicolon prevented it from being printed.
 </p>
 <pre><code>oo</code></pre>
 <p>
-    Lines before that can be obtained with <tt>ooo</tt> and <tt>oooo</tt>.
+    Lines before that can be obtained with <samp>ooo</samp> and <samp>oooo</samp>.
     Alternatively, the symbol labeling an output line
     can be used to retrieve the value, as in the following example.
 </p>
@@ -77,15 +77,15 @@
 </p>
 <pre><code>"hi there"</code></pre>
 <p>
-    A value can be assigned to a variable with " <tt>=</tt> ":
+    A value can be assigned to a variable with " <samp>=</samp> ":
 </p>
 <pre><code>s = "hi there"</code></pre>
 <p>
-    Strings may be concatenated horizontally with " <tt>|</tt> ":
+    Strings may be concatenated horizontally with " <samp>|</samp> ":
 </p>
 <pre><code>s | " - " | s</code></pre>
 <p>
-    or vertically with " <tt>||</tt> ":
+    or vertically with " <samp>||</samp> ":
 </p>
 <pre><code>s || "-- -----" || s</code></pre>
 </section>
@@ -106,7 +106,8 @@
 </p>
 <pre><code>10*{1,2,3} + {1,1,1}</code></pre>
 <p>
-    A function can be created with the arrow operator, <tt>-></tt>.
+  A function can be created with the arrow operator, <samp>-&gt;</samp>
+  (input " <samp style="font-variant-ligatures: none;">-&zwnj;&gt;</samp> ").
 </p>
 <pre><code>f = i -> i^3</code></pre>
 <p>
@@ -119,20 +120,20 @@
 <pre><code>g = (x,y) -> x * y</code></pre>
 <pre><code>g(6,9)</code></pre>
 <p>
-    The function <tt>apply</tt> can be used to apply a function to each element of a list.
+    The function <samp>apply</samp> can be used to apply a function to each element of a list.
 </p>
 <pre><code>apply({1,2,3,4}, i -> i^2)</code></pre>
 <pre><code>apply({1,2,3,4}, f)</code></pre>
 <p>
-    The operator " <tt>..</tt> " may be used to generate sequences of consecutive numbers.
+    The operator " <samp>..</samp> " may be used to generate sequences of consecutive numbers.
 </p>
 <pre><code>apply(1 .. 4, f) </code></pre>
 <p>
-    If the first argument to <tt>apply</tt> is an integer \(n\), then it stands for the list \(\{0, 1, ..., n-1\}\).
+    If the first argument to <samp>apply</samp> is an integer \(n\), then it stands for the list \(\{0, 1, ..., n-1\}\).
 </p>
 <pre><code>apply(5, f)</code></pre>
 <p>
-    The syntax for a <tt>for</tt> loop is the following:
+    The syntax for a <samp>for</samp> loop is the following:
 </p>
 <pre><code>for i from 1 to 5 do print(i, i^3)</code></pre>
 </section>
@@ -143,9 +144,9 @@
 </p>
 <pre><code>R = ZZ/5[x,y,z];</code></pre>
 <p>
-    <tt>ZZ</tt> represents the ring of integers.
-    The symbols <tt>ZZ/5</tt>
-    represent the quotient ring \(\ZZ/5\ZZ\), and <tt>ZZ/5[x,y,z]</tt>
+    <samp>ZZ</samp> represents the ring of integers.
+    The symbols <samp>ZZ/5</samp>
+    represent the quotient ring \(\ZZ/5\ZZ\), and <samp>ZZ/5[x,y,z]</samp>
     represents the ring of polynomials in the variables $x$, $y$, and $z$ with coefficients
     in the ring \(\ZZ/5\ZZ\).
 </p>
@@ -155,7 +156,7 @@
 </p>
 <pre><code>R</code></pre>
 <p>
-    To see the original description of a ring, use <tt>describe</tt>.
+    To see the original description of a ring, use <samp>describe</samp>.
 </p>
 <pre><code>describe R</code></pre>
 <p>
@@ -177,21 +178,21 @@
 </p>
 <pre><code>F_{2,1,1}</code></pre>
 <p>
-    We can create a homomorphism between free modules with <tt>matrix</tt>
+    We can create a homomorphism between free modules with <samp>matrix</samp>
     by providing the list of rows of the matrix, each of which is in turn
     a list of ring elements.
 </p>
 <pre><code>f = matrix {{x,y,z}}</code></pre>
 <p>
-    Use <tt>image</tt> to get the image of \(f\).
+    Use <samp>image</samp> to get the image of \(f\).
 </p>
 <pre><code>image f</code></pre>
 <p>
-    We may use <tt>ideal</tt> to produce the corresponding ideal:
+    We may use <samp>ideal</samp> to produce the corresponding ideal:
 </p>
 <pre><code>ideal (x,y,z)</code></pre>
 <p>
-    We may use <tt>kernel</tt> to compute the kernel of \(f\):
+    We may use <samp>kernel</samp> to compute the kernel of \(f\):
 </p>
 <pre><code>kernel f</code></pre>
 <p>
@@ -200,50 +201,50 @@
     the left of the matrix give the degrees of the basis elements of the
     target of the matrix; they are omitted if the degrees are all zero.
     In case the matrix itself is desired, it can be obtained 
-    with <tt>generators</tt>, as follows.
+    with <samp>generators</samp>, as follows.
 </p>
 <pre><code>generators oo</code></pre>
 <p>
-    We may use <tt>poincare</tt> to compute the Poincaré polynomial (the numerator of
+    We may use <samp>poincare</samp> to compute the Poincaré polynomial (the numerator of
     the Hilbert function):
 </p>
 <pre><code>poincare kernel f</code></pre>
 <p>
-    We may use <tt>rank</tt> to compute the rank:
+    We may use <samp>rank</samp> to compute the rank:
 </p>
 <pre><code>rank kernel f</code></pre>
 <p>
-    A presentation for the kernel can be obtained with <tt>presentation</tt>:
+    A presentation for the kernel can be obtained with <samp>presentation</samp>:
 </p>
 <pre><code>presentation kernel f</code></pre>
 <p>
-    We can produce the cokernel with <tt>cokernel</tt>; no computation is performed.
+    We can produce the cokernel with <samp>cokernel</samp>; no computation is performed.
 </p>
 <pre><code>cokernel f</code></pre>
 <p>
-    The direct sum is formed with " <tt>++</tt> ".
+    The direct sum is formed with " <samp>++</samp> ".
 </p>
 <pre><code>N = kernel f ++ cokernel f</code></pre>
 <p>
-    The answer is expressed in terms of the <tt>subquotient</tt> function, which
+    The answer is expressed in terms of the <samp>subquotient</samp> function, which
     produces subquotient modules.  Each subquotient module is accompanied
     by its matrix of generators and its matrix of relations.  These matrices
-    can be recovered with <tt>generators</tt> and <tt>relations</tt>.
+    can be recovered with <samp>generators</samp> and <samp>relations</samp>.
 </p>
 <pre><code>generators N</code></pre>
 <pre><code>relations N</code></pre>
 <p>
-    The function <tt>prune</tt> can be used to convert a subquotient
+    The function <samp>prune</samp> can be used to convert a subquotient
     module to a quotient module.
 </p>
 <pre><code>prune N</code></pre>
 <p>
-    We can use <tt>resolution</tt> to compute a projective resolution of the 
+    We can use <samp>resolution</samp> to compute a projective resolution of the 
     cokernel of \(f\).
 </p>
 <pre><code>C = resolution cokernel f</code></pre>
 <p>
-    To examine in more detail the differentials we can use <tt>C.dd</tt>:
+    To examine in more detail the differentials we can use <samp>C.dd</samp>:
 </p>
 <pre><code>C.dd</code></pre>
 <p>
@@ -251,26 +252,26 @@
 </p>
 <pre><code>C.dd^2 == 0</code></pre>
 <p>
-    We can use <tt>betti</tt> to see the degrees of the components of \(C\).
+    We can use <samp>betti</samp> to see the degrees of the components of \(C\).
 </p>
 <pre><code>betti C</code></pre>
 <p>
-    Let's try a harder example.  We can use <tt>vars</tt> to create a sequence
+    Let's try a harder example.  We can use <samp>vars</samp> to create a sequence
     of variables:
 </p>
 <pre><code>R = ZZ/101[a .. r];</code></pre>
 <p>
-    We use <tt>genericMatrix</tt> to make a 3 by 6 generic matrix whose
+    We use <samp>genericMatrix</samp> to make a 3 by 6 generic matrix whose
     entries are drawn from the variables of the ring \(R\):
 </p>
 <pre><code>g = genericMatrix(R,a,3,6)</code></pre>
 <p>
-    Then we construct its cokernel with <tt>cokernel</tt>.
+    Then we construct its cokernel with <samp>cokernel</samp>.
 </p>
 <pre><code>M = cokernel g</code></pre>
 <p>
-    We may use <tt>resolution</tt> to produce a projective resolution of it, and
-    <tt>time</tt>, to report the time required.
+    We may use <samp>resolution</samp> to produce a projective resolution of it, and
+    <samp>time</samp>, to report the time required.
 </p>
 <pre><code>time C = resolution M</code></pre>
 <p>
@@ -282,7 +283,7 @@
 </p>
 <pre><code>S = ZZ/101[t_1 .. t_9, u_1 .. u_9];</code></pre>
 <p>
-    We can use <tt>genericMatrix</tt> to pack the variables into 
+    We can use <samp>genericMatrix</samp> to pack the variables into 
     3-by-3 matrices:
 </p>
 <pre><code>m = genericMatrix(S, t_1, 3, 3)</code></pre>
@@ -297,7 +298,7 @@
 </p>
 <pre><code>j = ideal(m*n - n*m)</code></pre>
 <p>
-    Let's compute a Groebner basis for the image of \(j\) with <tt>groebnerBasis</tt>:
+    Let's compute a Groebner basis for the image of \(j\) with <samp>groebnerBasis</samp>:
 </p>
 <pre><code>gbj = groebnerBasis j;</code></pre>
 <p>
@@ -306,7 +307,7 @@
     generators.
 </p>
 <p>
-    We can use <tt>betti</tt> to see the degrees involved in the Groebner basis.
+    We can use <samp>betti</samp> to see the degrees involved in the Groebner basis.
 </p>
 <pre><code>betti gbj</code></pre>
 <p>

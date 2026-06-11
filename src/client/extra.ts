@@ -24,7 +24,9 @@ import {
   autoIndent,
   syntaxHighlight,
   updateAndHighlightMaybe,
+  dynamicAutoCompleteHandling,
 } from "./editor";
+import type { CompletionRequester } from "./editor";
 import { activateTabInContainer, computeResizeFlexBasis } from "./uiHelpers";
 
 const hashCode = function (s: string) {
@@ -467,19 +469,20 @@ const extra1 = function () {
   let ismdwn = 0;
   let resizeStartX: number | null = null;
   let resizeStartWidth = 0;
-  const resizeMouseDown = () => {
+  let resizeIframePointerEvents = "";
+  const resizeMouseDown = (event) => {
+    event.preventDefault();
     ismdwn = 1;
     resizeStartX = null;
     resizeStartWidth = leftHalf.getBoundingClientRect().width;
     resize.classList.add("is-resizing");
-    document.body.addEventListener("mousemove", resizeMouseMove);
-    document.body.addEventListener("mouseup", resizeMouseEnd);
-    document.body.addEventListener("mouseleave", resizeMouseEnd);
-    if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body)
-      iFrame.contentDocument.body.addEventListener(
-        "mousemove",
-        resizeMouseMove
-      );
+    window.addEventListener("mousemove", resizeMouseMove);
+    window.addEventListener("mouseup", resizeMouseEnd);
+    window.addEventListener("blur", resizeMouseEnd);
+    if (iFrame) {
+      resizeIframePointerEvents = iFrame.style.pointerEvents;
+      iFrame.style.pointerEvents = "none";
+    }
     document.body.style.userSelect = "none";
   };
 
@@ -493,14 +496,10 @@ const extra1 = function () {
 
   const resizeMouseEnd = () => {
     ismdwn = 0;
-    document.body.removeEventListener("mousemove", resizeMouseMove);
-    document.body.removeEventListener("mouseup", resizeMouseEnd);
-    document.body.removeEventListener("mouseleave", resizeMouseEnd);
-    if (iFrame && iFrame.contentDocument && iFrame.contentDocument.body)
-      iFrame.contentDocument.body.removeEventListener(
-        "mousemove",
-        resizeMouseMove
-      );
+    window.removeEventListener("mousemove", resizeMouseMove);
+    window.removeEventListener("mouseup", resizeMouseEnd);
+    window.removeEventListener("blur", resizeMouseEnd);
+    if (iFrame) iFrame.style.pointerEvents = resizeIframePointerEvents;
     resize.classList.remove("is-resizing");
     document.body.style.userSelect = "";
     checkScrollButton();
@@ -541,7 +540,7 @@ const extra1 = function () {
 };
 
 // 2nd part: once session active
-const extra2 = function () {
+const extra2 = function (requestCompletions?: CompletionRequester) {
   const terminal = document.getElementById("terminal");
   const terminalDiv = document.getElementById("terminalDiv");
   const chatForm = document.getElementById("chatForm");
@@ -899,7 +898,19 @@ const extra2 = function () {
     else if (e.key == "Tab" && !e.shiftKey && !tabPressed) {
       // try to avoid disrupting the normal tab use as much as possible
       tabPressed = true;
-      if (!window.getSelection().isCollapsed || !autoCompleteHandling(editor))
+      const dynamicCompletionRequested =
+        window.getSelection().isCollapsed &&
+        dynamicAutoCompleteHandling(
+          editor,
+          editor,
+          requestCompletions,
+          undefined,
+          () => autoIndent(editor)
+        );
+      if (
+        !dynamicCompletionRequested &&
+        (!window.getSelection().isCollapsed || !autoCompleteHandling(editor))
+      )
         autoIndent(editor);
       e.preventDefault();
       return;
@@ -1144,8 +1155,51 @@ const extra2 = function () {
   socket.on("chat", socketChat);
 
   if (chatForm) {
-    const chatInput = document.getElementById("chatInput") as HTMLInputElement;
+    const chatInput = document.getElementById("chatInput") as HTMLElement;
     const chatAlias = document.getElementById("chatAlias") as HTMLInputElement;
+    const maxChatImageBytes = 512 * 1024;
+    const allowedChatImageTypes = new Set([
+      "image/gif",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ]);
+    const insertChatNode = function (node: Node) {
+      chatInput.focus();
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0 && chatInput.contains(sel.anchorNode)) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(node);
+        range.setStartAfter(node);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else {
+        chatInput.appendChild(node);
+      }
+    };
+    const insertChatImage = function (file: File) {
+      if (!allowedChatImageTypes.has(file.type)) {
+        alert("Only PNG, JPEG, GIF, or WebP images can be dropped into chat.");
+        return;
+      }
+      if (file.size > maxChatImageBytes) {
+        alert("Chat images must be at most 512 KB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function () {
+        const img = document.createElement("img");
+        img.src = reader.result as string;
+        img.alt = file.name;
+        img.className = "chat-inline-image";
+        insertChatNode(img);
+        chatInput.focus();
+        setCaretAtEndMaybe(chatInput);
+      };
+      reader.readAsDataURL(file);
+    };
     // init alias as cookie or default
     chatAlias.value = getCookie(options.cookieAliasName, options.defaultAlias);
     chatAlias.onchange = function () {
@@ -1173,12 +1227,12 @@ const extra2 = function () {
       if (e.key == "Enter" && !e.shiftKey) {
         e.preventDefault();
         const txt = chatInput.textContent.trim();
-        if (txt != "") {
+        if (txt != "" || chatInput.querySelector("img")) {
           const msg: Chat = {
             type: "message",
             alias: chatAlias.value,
             message: chatInput.innerHTML,
-            text: txt,
+            text: txt || "[image]",
             time: Date.now(),
           };
           if (
@@ -1208,6 +1262,15 @@ const extra2 = function () {
           chatInput.textContent = "";
         }
       }
+    };
+    chatInput.ondragover = function (e) {
+      e.preventDefault();
+    };
+    chatInput.ondrop = function (e) {
+      e.preventDefault();
+      Array.from(e.dataTransfer.files).forEach((file) => {
+        if (file.type.startsWith("image/")) insertChatImage(file);
+      });
     };
     // signal presence
     //    window.addEventListener("load", function () {

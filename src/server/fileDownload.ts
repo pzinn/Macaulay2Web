@@ -17,7 +17,9 @@ const downloadFromInstance = function (
   next
 ) {
   const isRootDirectory = sourceFileName == "/";
-  let fileName: string = isRootDirectory ? "root" : path.basename(sourceFileName);
+  let fileName: string = isRootDirectory
+    ? "root"
+    : path.basename(sourceFileName);
   if (!fileName || !client.instance || !client.instance.host) return next();
   const sshConnection: ssh2.Client = new ssh2.Client();
 

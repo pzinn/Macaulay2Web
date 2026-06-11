@@ -179,9 +179,32 @@ const completionRequestPrefix = Math.random().toString(36).slice(2);
 const completionRequests = new Map();
 const completionRequestTimeout = 250;
 
+type CompletionEntry = { name: string; kind?: string };
+
+const normalizeCompletionEntries = function (
+  entries
+): CompletionEntry[] | null {
+  if (!Array.isArray(entries)) return null;
+  const byName = new Map<string, CompletionEntry>();
+  entries.forEach((entry) => {
+    let normalized: CompletionEntry | null = null;
+    if (typeof entry === "string") normalized = { name: entry };
+    else if (entry && typeof entry.name === "string")
+      normalized = {
+        name: entry.name,
+        kind: typeof entry.kind === "string" ? entry.kind : "",
+      };
+    if (normalized && normalized.name && !byName.has(normalized.name))
+      byName.set(normalized.name, normalized);
+  });
+  return Array.from(byName.values()).sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+};
+
 const requestDynamicCompletions = function (
   prefix: string,
-  callback: (completions: string[] | null) => void
+  callback: (completions: CompletionEntry[] | null) => void
 ) {
   if (!socket || !socket.connected) {
     callback(null);
@@ -328,8 +351,7 @@ const init = function () {
 };
 
 const init2 = function () {
-  if (!MINIMAL)
-    document.getElementById("terminalDiv").style.display = "block";
+  if (!MINIMAL) document.getElementById("terminalDiv").style.display = "block";
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
   socket = io(ioParams, { autoConnect: false });
@@ -345,7 +367,7 @@ const init2 = function () {
       // first time we get our id, finish init
       initDone = true;
       socket.emit("restore"); // restore former M2 output
-      if (!MINIMAL) extra2();
+      if (!MINIMAL) extra2(requestDynamicCompletions);
       for (const e of emitStack) socket.oldEmit(e[0], e[1], e[2]); // not emit to avoid potential infinite loop
       emitStack.length = 0;
       const exec = url.searchParams.get("exec");
@@ -373,11 +395,7 @@ const init2 = function () {
     if (!request) return;
     completionRequests.delete(response.id);
     window.clearTimeout(request.timeout);
-    request.callback(
-      Array.isArray(response.completions)
-        ? Array.from(new Set(response.completions)).sort()
-        : null
-    );
+    request.callback(normalizeCompletionEntries(response.completions));
   });
   socket.oldEmit = socket.emit;
   socket.emit = wrapEmitForDisconnect;

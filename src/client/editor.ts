@@ -33,6 +33,73 @@ const UCsymbols = {
 };
 
 const UCsymbolKeys = Object.keys(UCsymbols).sort();
+type CompletionEntry = string | { name: string; kind?: string };
+type CompletionRequester = (
+  prefix: string,
+  callback: (completions: CompletionEntry[] | null) => void
+) => void;
+
+const completionWord = function (entry: CompletionEntry) {
+  return typeof entry === "string" ? entry : entry.name;
+};
+
+const completionKind = function (entry: CompletionEntry) {
+  return typeof entry === "string" ? "" : entry.kind || "";
+};
+
+const completionKindClass = function (kind: string) {
+  return "autocomplete-kind-" + kind.replace(/[^a-z0-9_-]/gi, "-");
+};
+
+const compareCompletions = function (a: CompletionEntry, b: CompletionEntry) {
+  const wordA = completionWord(a);
+  const wordB = completionWord(b);
+  return wordA < wordB ? -1 : wordA > wordB ? 1 : 0;
+};
+
+const mergeM2Completions = function (
+  dynamicCompletions: CompletionEntry[] | null
+) {
+  const completionsByName = new Map<string, CompletionEntry>();
+  M2symbols.forEach((name) => completionsByName.set(name, { name }));
+  if (dynamicCompletions)
+    dynamicCompletions.forEach((completion) => {
+      const name = completionWord(completion);
+      if (name) completionsByName.set(name, completion);
+    });
+  return Array.from(completionsByName.values()).sort(compareCompletions);
+};
+
+const dynamicAutoCompleteHandling = function (
+  el,
+  focusEl: Element,
+  requestCompletions: CompletionRequester | undefined,
+  onSuccess?: () => void,
+  onFallback?: () => void
+) {
+  const completionContext = autoCompleteWordContext();
+  if (
+    !completionContext ||
+    !completionContext.isM2Symbol ||
+    !requestCompletions
+  )
+    return false;
+  const requestedWord = completionContext.word;
+  requestCompletions(requestedWord, (completions) => {
+    const currentContext = autoCompleteWordContext();
+    if (
+      document.activeElement != focusEl ||
+      !currentContext ||
+      currentContext.word != requestedWord
+    )
+      return;
+    if (autoCompleteHandling(el, mergeM2Completions(completions), true)) {
+      if (onSuccess) onSuccess();
+    } else if (onFallback) onFallback();
+  });
+  return true;
+};
+
 //const UCsymbolValues = Object.values(UCsymbols)
 //  .map((i) => String.fromCodePoint(i))
 //  .join("");
@@ -212,18 +279,19 @@ const autoCompleteHandling = function (
 
   // find all symbols starting with last word of msg
   let j = 0;
-  while (j < lst.length && lst[j] < word) j++;
+  while (j < lst.length && completionWord(lst[j]) < word) j++;
   if (j < lst.length) {
     let k = j;
-    while (k < lst.length && lst[k].startsWith(word)) k++;
+    while (k < lst.length && completionWord(lst[k]).startsWith(word)) k++;
     if (k > j) {
       if (k == j + 1) {
+        const optionWord = completionWord(lst[j]);
         // yay, one solution
         if (flag)
           document.execCommand(
             "insertText",
             false,
-            lst[j].substring(word.length, lst[j].length)
+            optionWord.substring(word.length, optionWord.length)
           );
         else {
           while (i < pos) {
@@ -233,7 +301,7 @@ const autoCompleteHandling = function (
           document.execCommand(
             "insertText",
             false,
-            String.fromCodePoint(UCsymbols[lst[j]])
+            String.fromCodePoint(UCsymbols[optionWord])
           );
         }
       } else {
@@ -245,26 +313,42 @@ const autoCompleteHandling = function (
         autoComplete.dataset.word = flag ? word : "\u250B" + word;
         const tabMenu = document.createElement("ul");
         tabMenu.classList.add("menu");
+        if (removableDictionary)
+          tabMenu.classList.add("autocomplete-removable");
         tabMenu.tabIndex = 0;
         for (let l = j; l < k; l++) {
+          const optionWord = completionWord(lst[l]);
           const opt = document.createElement("li");
+          const kind = completionKind(lst[l]);
+          if (kind) {
+            opt.dataset.kind = kind;
+            opt.classList.add(completionKindClass(kind));
+          }
           const wordb = document.createElement("b");
           wordb.textContent = word;
-          opt.append(wordb, lst[l].substring(word.length, lst[l].length));
+          const optText = document.createElement("span");
+          optText.classList.add("autocomplete-label");
+          optText.append(
+            wordb,
+            optionWord.substring(word.length, optionWord.length)
+          );
+          opt.append(optText);
           opt.dataset.fullword = flag
-            ? lst[l]
-            : String.fromCodePoint(UCsymbols[lst[l]]);
+            ? optionWord
+            : String.fromCodePoint(UCsymbols[optionWord]);
           if (removableDictionary) {
             const icon = document.createElement("i");
-            icon.classList.add("material-icons");
+            icon.classList.add("material-icons", "autocomplete-delete");
             icon.textContent = "close";
-            icon.style.fontSize = "0.8em";
-            icon.style.float = "right";
             icon.onclick = function (e) {
               // can't use l, may have shifted
               let m = j;
               if (k > dictionary.length) k = dictionary.length;
-              while (m < k && dictionary[m] != opt.dataset.fullword) m++;
+              while (
+                m < k &&
+                completionWord(dictionary[m]) != opt.dataset.fullword
+              )
+                m++;
               if (m < k) dictionary.splice(m, 1);
               if (opt.classList.contains("selected")) {
                 const nextSelection =
@@ -274,7 +358,10 @@ const autoCompleteHandling = function (
               opt.remove();
               e.stopPropagation();
               if (tabMenu.childElementCount == 0)
-                removeAutoComplete(false, true); // no choice => back to normal typing
+                removeAutoComplete(
+                  false,
+                  true
+                ); // no choice => back to normal typing
               else updateAutoCompleteLayout();
             };
             opt.appendChild(icon);
@@ -305,7 +392,7 @@ const autoCompleteHandling = function (
           if (e.key.length == 1 && e.key >= " " && e.key <= "~") {
             let lostSelection = false;
             Array.from(tabMenu.children).forEach((el) => {
-              const startWord = el.firstChild;
+              const startWord = el.querySelector("b");
               const endWord = startWord.nextSibling;
               const endWordText = endWord.textContent;
               if (endWordText.length > 0 && endWordText[0] == e.key) {
@@ -579,7 +666,10 @@ const updateAndHighlightMaybe = function (
   // different: replace content
   if (fileName.endsWith(".m2"))
     el.innerHTML = Prism.highlight(txt, Prism.languages.macaulay2);
-  else el.textContent = txt;
+  else {
+    el.style.fontVariantLigatures = "none";
+    el.textContent = txt;
+  }
 };
 
 const htmlToM2 = function (el: HTMLElement) {
@@ -621,4 +711,8 @@ export {
   updateAndHighlightMaybe,
   autoIndent,
   htmlToM2,
+  mergeM2Completions,
+  dynamicAutoCompleteHandling,
 };
+
+export type { CompletionEntry, CompletionRequester };

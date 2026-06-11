@@ -6,7 +6,8 @@ import { options, sshCredentials } from "./server";
 const normalizeInstancePath = function (fileName: string): string | null {
   if (!fileName || fileName === "." || fileName === "./") return null;
   if (fileName.indexOf("\0") >= 0) return null;
-  if (fileName.startsWith("tutorials/") || fileName === "tutorials") return null;
+  if (fileName.startsWith("tutorials/") || fileName === "tutorials")
+    return null;
   if (!fileName.startsWith("/"))
     return options.serverConfig.baseDirectory + fileName;
   return fileName;
@@ -22,7 +23,10 @@ const deleteFromInstance = function (client: Client, fileName: string, next) {
   sshConnection.on("ready", function () {
     sshConnection.sftp(function (err, sftp) {
       if (err) {
-        logger.error("There was an error while connecting via sftp: " + err, client);
+        logger.error(
+          "There was an error while connecting via sftp: " + err,
+          client
+        );
         sshConnection.end();
         return next("Could not connect to file system.", true);
       }
@@ -37,7 +41,10 @@ const deleteFromInstance = function (client: Client, fileName: string, next) {
           sshConnection.end();
           if (deleteError) {
             logger.error(
-              "Error while deleting file: " + targetPath + ", ERROR: " + deleteError,
+              "Error while deleting file: " +
+                targetPath +
+                ", ERROR: " +
+                deleteError,
               client
             );
             return next("Delete failed.", true);
@@ -50,7 +57,10 @@ const deleteFromInstance = function (client: Client, fileName: string, next) {
         else if (stat.isDirectory()) sftp.rmdir(targetPath, finish);
         else {
           sshConnection.end();
-          next("Only regular files and empty directories can be deleted.", true);
+          next(
+            "Only regular files and empty directories can be deleted.",
+            true
+          );
         }
       });
     });

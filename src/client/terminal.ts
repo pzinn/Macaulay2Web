@@ -22,13 +22,14 @@ import {
 } from "./htmlTools";
 import {
   escapeKeyHandling,
-  autoCompleteWordContext,
   autoCompleteHandling,
   removeAutoComplete,
   sanitizeInput,
   delimiterHandling,
   htmlToM2,
+  dynamicAutoCompleteHandling,
 } from "./editor";
+import type { CompletionEntry } from "./editor";
 
 import Prism from "prismjs";
 
@@ -73,7 +74,7 @@ const Shell = function (
   emitInput: (msg: string) => void,
   requestCompletions: (
     prefix: string,
-    callback: (completions: string[] | null) => void
+    callback: (completions: CompletionEntry[] | null) => void
   ) => void,
   editor: HTMLElement,
   iFrame: HTMLFrameElement,
@@ -88,8 +89,6 @@ const Shell = function (
   const cmdHistory: any = []; // History of commands for terminal-like arrow navigation
   cmdHistory.index = 0;
   cmdHistory.sorted = []; // a sorted version
-  // input is a bit messy...
-  let inputEndFlag = false;
   let interpreterDepth = 1;
 
   const isEmptyCell = function (el) {
@@ -150,14 +149,13 @@ const Shell = function (
     htmlSec.appendChild(inputSpan);
 
     inputSpan.focus();
-
-    inputEndFlag = false;
   };
 
   if (createInputSpan) createInputEl();
   else htmlSec = terminal;
 
-  const codeElStack = []; // stack of past code currently being processed
+  const pendingCodeEls = []; // FIFO queue of submitted code awaiting completion
+  let submissionSerial = 0;
   const terminalProcInputLines = document.getElementById(
     "terminalProcInputLines"
   );
@@ -166,8 +164,8 @@ const Shell = function (
     if (terminalProcInput)
       terminalProcInput.scrollTop = terminalProcInput.scrollHeight;
   };
-  const clearCodeStack = function () {
-    codeElStack.length = 0;
+  const clearPendingCode = function () {
+    pendingCodeEls.length = 0;
     if (terminalProcInputLines) terminalProcInputLines.innerHTML = "";
   };
   const fadeProcessedInputLine = function (line: HTMLElement) {
@@ -203,49 +201,142 @@ const Shell = function (
 
   const inputSegments = (s) => s.match(/[^\n]+/g) || [];
   const countSegments = (s) => inputSegments(s).length;
+  let continuationCandidate: HTMLElement = null;
+
+  const closeInputSection = function (allowContinuation = true) {
+    if (htmlSec.classList.contains("M2Input")) {
+      continuationCandidate = allowContinuation ? htmlSec : null;
+      closeHtml();
+    } else if (!allowContinuation) {
+      continuationCandidate = null;
+    }
+  };
+
+  const reopenInputSectionForContinuation = function () {
+    if (htmlSec.classList.contains("M2Input")) return true;
+    if (!continuationCandidate || !continuationCandidate.isConnected)
+      return false;
+    htmlSec = continuationCandidate;
+    continuationCandidate = null;
+    const trailingBreak = htmlSec.nextSibling;
+    if (trailingBreak && trailingBreak.nodeName == "BR") trailingBreak.remove();
+    const text = htmlSec.textContent;
+    htmlSec.innerHTML = "";
+    htmlSec.classList.remove("M2PastInput");
+    htmlSec.appendChild(document.createTextNode(text));
+    if (inputSpan) attachElement(inputSpan, htmlSec);
+    return true;
+  };
+
+  const activeCell = function () {
+    let cell = htmlSec;
+    while (cell && cell !== terminal && !cell.classList.contains("M2Cell"))
+      cell = cell.parentElement;
+    return cell && cell !== terminal ? cell : null;
+  };
+
+  const discardEmptyOpenInputCell = function () {
+    if (!inputSpan || !htmlSec.classList.contains("M2Input")) return false;
+    if (!htmlSec.contains(inputSpan) || htmlSec.textContent != "") return false;
+    const cell = activeCell();
+    if (!cell) return false;
+    const parent = cell.parentElement;
+    attachElement(inputSpan, parent);
+    cell.remove();
+    htmlSec = parent;
+    return true;
+  };
 
   const countCellInputSegments = function (cell: HTMLElement) {
     return Array.from(
-      cell.querySelectorAll(".M2PastInput:not(.examples *)") as NodeListOf<HTMLElement>
+      cell.querySelectorAll(
+        ".M2PastInput:not(.examples *)"
+      ) as NodeListOf<HTMLElement>
     ).reduce((total, input) => total + countSegments(input.textContent), 0);
+  };
+
+  const recordCellInputHistory = function (cell: HTMLElement) {
+    if (!isTrueInputCell(cell)) return;
+    const inputs = Array.from(
+      cell.querySelectorAll(
+        ".M2PastInput:not(.examples *)"
+      ) as NodeListOf<HTMLElement>
+    );
+    let text = inputs.map((input) => input.textContent).join("");
+    if (text.endsWith("\n")) text = text.slice(0, -1);
+    if (!text) return;
+    cmdHistory.index = cmdHistory.push(text);
+    text.split("\n").forEach((line) => {
+      line = line.trim();
+      if (line.length > 0) cmdHistory.sorted.sortedPush(line);
+    });
+  };
+
+  const finishProcessedCodeEl = function (
+    cell: HTMLElement,
+    currentCodeEl: any
+  ) {
+    if (currentCodeEl.classList.contains("terminalProcLine"))
+      fadeProcessedInputLine(currentCodeEl);
+    else if (!MINIMAL) processTutorialOutput(cell, currentCodeEl);
   };
 
   const finishProcessedInputForCell = function (cell: HTMLElement) {
     let numInputs = countCellInputSegments(cell);
-    while (numInputs > 0 && codeElStack.length > 0) {
-      const currentCodeEl = codeElStack[0];
+    while (numInputs > 0 && pendingCodeEls.length > 0) {
+      const currentCodeEl = pendingCodeEls[0];
       if (currentCodeEl.numSegments > numInputs) {
         currentCodeEl.numSegments -= numInputs;
         numInputs = 0;
       } else {
         numInputs -= currentCodeEl.numSegments;
-        currentCodeEl.numSegments = 0;
-        if (currentCodeEl.classList.contains("terminalProcLine"))
-          fadeProcessedInputLine(currentCodeEl);
-        else if (!MINIMAL) processTutorialOutput(cell, currentCodeEl);
-        codeElStack.shift();
+        finishProcessedCodeEl(cell, currentCodeEl);
+        pendingCodeEls.shift();
       }
     }
+  };
+
+  const finishSubmission = function (cell: HTMLElement, submissionId: number) {
+    while (
+      pendingCodeEls.length > 0 &&
+      pendingCodeEls[0].submissionId === submissionId
+    ) {
+      finishProcessedCodeEl(cell, pendingCodeEls[0]);
+      pendingCodeEls.shift();
+    }
+  };
+
+  const finishDiscardedInputForCurrentCell = function () {
+    closeInputSection(false);
+    const cell = activeCell();
+    if (!cell || !isTrueInputCell(cell)) return;
+    const submissionId = pendingCodeEls[0]?.submissionId;
+    cell.dataset.processedInputFinalized = "true";
+    finishProcessedInputForCell(cell);
+    if (submissionId !== undefined) finishSubmission(cell, submissionId);
   };
 
   obj.postMessage = function (msg, el?) {
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
     const clean = sanitizeInput(msg);
+    const submissionId = ++submissionSerial;
     if (!el && terminalProcInputLines) {
       inputSegments(clean).forEach((line) => {
         const lineEl = document.createElement("div");
         lineEl.classList.add("terminalProcLine");
         lineEl.dataset.m2code = line;
-        codeElStack.push(lineEl);
+        pendingCodeEls.push(lineEl);
         lineEl.numSegments = 1;
+        lineEl.submissionId = submissionId;
         terminalProcInputLines.appendChild(lineEl);
         scrollProcessedInputDown();
       });
     } else if (el) {
       el.dataset.m2code = clean;
-      codeElStack.push(el);
+      pendingCodeEls.push(el);
       el.numSegments = countSegments(clean);
+      el.submissionId = submissionId;
     }
     inputSpan.textContent = "";
     scrollDownLeft(terminal);
@@ -405,29 +496,17 @@ const Shell = function (
     if (e.key == "Tab") {
       // try to avoid disrupting the normal tab use as much as possible
       if (document.activeElement == inputSpan && !e.shiftKey) {
-        const completionContext = autoCompleteWordContext();
         if (
-          completionContext &&
-          completionContext.isM2Symbol &&
-          requestCompletions
+          dynamicAutoCompleteHandling(
+            null,
+            inputSpan,
+            requestCompletions,
+            () => scrollDown(terminal),
+            () => {
+              if (autoCompleteHandling(null)) scrollDown(terminal);
+            }
+          )
         ) {
-          const requestedWord = completionContext.word;
-          requestCompletions(requestedWord, (completions) => {
-            const currentContext = autoCompleteWordContext();
-            if (
-              document.activeElement != inputSpan ||
-              !currentContext ||
-              currentContext.word != requestedWord
-            )
-              return;
-            if (
-              completions &&
-              completions.length > 0 &&
-              autoCompleteHandling(null, completions, true)
-            )
-              scrollDown(terminal);
-            else if (autoCompleteHandling(null)) scrollDown(terminal);
-          });
           e.preventDefault();
         } else if (autoCompleteHandling(null)) {
           //        scrollDown(terminal);
@@ -544,6 +623,14 @@ const Shell = function (
     return el == terminal;
   };
 
+  const isTrueInputCell = function (cell: HTMLElement) {
+    return (
+      createInputSpan &&
+      cell.classList.contains("M2Cell") &&
+      !cell.closest(".examples")
+    );
+  };
+
   const sessionCell = function (el: HTMLElement) {
     while (el && el.parentElement != terminal) {
       el = el.parentElement;
@@ -591,19 +678,6 @@ const Shell = function (
         htmlSec.parentElement.dataset.positions = " ";
       htmlSec.parentElement.dataset.positions += htmlSec.dataset.code + " ";
     } else if (htmlSec.classList.contains("M2Input")) {
-      if (isTrueInput()) {
-        // add input to history
-        let txt = htmlSec.textContent;
-        if (txt[txt.length - 1] == "\n") txt = txt.substring(0, txt.length - 1); // should be true
-        if (htmlSec.classList.contains("M2InputContd"))
-          // rare case where input is broken -- e.g.  I=ideal 0; x=(\n   1)
-          cmdHistory[cmdHistory.length - 1] += "\n" + txt;
-        else cmdHistory.index = cmdHistory.push(txt);
-        txt.split("\n").forEach((line) => {
-          line = line.trim();
-          if (line.length > 0) cmdHistory.sorted.sortedPush(line);
-        });
-      }
       // highlight
       htmlSec.innerHTML = Prism.highlight(
         htmlSec.textContent,
@@ -764,59 +838,55 @@ const Shell = function (
     const txt = msg.replace(/\r/g, "").split(webAppRegex);
     for (let i = 0; i < txt.length; i += 2) {
       //console.log(i+"-"+(i+1)+"/"+txt.length+": ",i==0?"":webAppClasses[txt[i-1]]," : ",txt[i].replace("\n",returnSymbol));
-      // if we are at the end of an input section
-      if (
-        inputEndFlag &&
-        ((i == 0 && txt[i].length > 0) ||
-          (i > 0 && txt[i - 1] !== webAppTags.InputContd))
-      ) {
-        closeHtml();
-        inputEndFlag = false;
-      }
       if (i > 0) {
         const tag = txt[i - 1];
-        if (tag == webAppTags.End || tag == webAppTags.CellEnd) {
+        if (tag == webAppTags.InputEnd) {
+          closeInputSection();
+        } else if (tag == webAppTags.InputContd) {
+          if (!reopenInputSectionForContinuation()) {
+            continuationCandidate = null;
+            createHtml(webAppClasses[tag]);
+            if (inputSpan) attachElement(inputSpan, htmlSec);
+          }
+        } else if (tag == webAppTags.InputDiscarded) {
+          finishDiscardedInputForCurrentCell();
+        } else if (tag == webAppTags.End) {
+          continuationCandidate = null;
           if (htmlSec != terminal || !createInputSpan) {
             // htmlSec == terminal should only happen at very start
             // or at the very end for rendering help -- then it's OK
-            while (htmlSec.classList.contains("M2Input")) closeHtml(); // M2Input is *NOT* closed by end tag but rather by \n
-            // but in rare circumstances (ctrl-C interrupt) it may be missing its \n
-            const oldHtmlSec = htmlSec;
             closeHtml();
-            if (tag == webAppTags.CellEnd && isTrueInput())
-              finishProcessedInputForCell(oldHtmlSec);
           }
-        } else if (tag === webAppTags.InputContd && inputEndFlag) {
-          // continuation of input section
-          inputEndFlag = false;
+        } else if (tag == webAppTags.CellEnd) {
+          if (!discardEmptyOpenInputCell()) {
+            closeInputSection(false);
+            if (htmlSec != terminal || !createInputSpan) {
+              // htmlSec == terminal should only happen at very start
+              // or at the very end for rendering help -- then it's OK
+              const oldHtmlSec = htmlSec;
+              recordCellInputHistory(oldHtmlSec);
+              closeHtml();
+              if (
+                isTrueInputCell(oldHtmlSec) &&
+                oldHtmlSec.dataset.processedInputFinalized !== "true"
+              ) {
+                finishProcessedInputForCell(oldHtmlSec);
+              }
+            }
+          }
         } else {
+          continuationCandidate = null;
           // new section
           createHtml(webAppClasses[tag]);
-          if (
-            inputSpan &&
-            (tag === webAppTags.Input || tag === webAppTags.InputContd)
-          ) {
-            // input section: a bit special (ends at first \n)
+          if (inputSpan && tag === webAppTags.Input) {
+            // Move the live input span inside the echoed input for indentation.
             attachElement(inputSpan, htmlSec); // !!! we move the input inside the current span to get proper indentation !!!
           }
         }
       }
 
       if (txt[i].length > 0) {
-        // for next round, check if we're nearing the end of an input section
-        if (htmlSec.classList.contains("M2Input")) {
-          const ii = txt[i].indexOf("\n");
-          if (ii >= 0) {
-            if (ii < txt[i].length - 1) {
-              // need to do some surgery
-              displayText(txt[i].substring(0, ii + 1));
-              closeHtml();
-              txt[i] = txt[i].substring(ii + 1, txt[i].length);
-            } else inputEndFlag = true;
-            // can't tell for sure if it's the end of input or not (could be a InputContd), so set a flag to remind us
-          }
-        }
-
+        continuationCandidate = null;
         if (htmlSec.dataset.code !== undefined) htmlSec.dataset.code += txt[i];
         else displayText(txt[i]);
         //          if (l.contains("M2Html")) htmlSec.innerHTML = htmlSec.dataset.code; // used to update in real time
@@ -837,14 +907,14 @@ const Shell = function (
   obj.reset = function () {
     console.log("Reset");
     removeAutoComplete(false, false); // remove autocomplete menu if open
-    clearCodeStack();
+    clearPendingCode();
     createInputEl(); // recreate the input area
     interpreterDepth = 1;
   };
 
   obj.interrupt = function () {
     removeAutoComplete(false, false); // remove autocomplete menu if open
-    clearCodeStack();
+    clearPendingCode();
     inputSpan.textContent = "";
     emitInput("\x03");
     setCaretAtEndMaybe(inputSpan);
