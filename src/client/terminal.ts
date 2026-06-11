@@ -627,6 +627,7 @@ const Shell = function (
     return (
       createInputSpan &&
       cell.classList.contains("M2Cell") &&
+      !cell.closest(".M2Html") &&
       !cell.closest(".examples")
     );
   };

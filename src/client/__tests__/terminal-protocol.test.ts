@@ -120,6 +120,19 @@ describe("terminal WebApp protocol", () => {
     expect(pressUp(terminal)).toBe(lines.join("\n"));
   });
 
+  it("does not add input embedded in help output to history", async () => {
+    const { shell, terminal } = await setupShell();
+
+    shell.displayOutput(
+      webAppTags.Html + inputCell(["example input"]) + webAppTags.End
+    );
+
+    expect(terminal.querySelector(".M2PastInput")?.textContent).toBe(
+      "example input\n"
+    );
+    expect(pressUp(terminal)).toBe("");
+  });
+
   it("finishes only the discarded submission when another is queued", async () => {
     const { shell, terminal } = await setupShell();
     shell.postMessage("a=()->(\n\\\nblah\n)");
