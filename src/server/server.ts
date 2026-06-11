@@ -441,7 +441,9 @@ const sendCompletionResponseToClient = function (
   }
   let completions = null;
   try {
-    const rawCompletions = JSON.parse(tab < 0 ? "[]" : payload.substring(tab + 1));
+    const rawCompletions = JSON.parse(
+      tab < 0 ? "[]" : payload.substring(tab + 1)
+    );
     if (Array.isArray(rawCompletions))
       completions = rawCompletions
         .map(normalizeCompletionEntry)
@@ -953,7 +955,10 @@ const socketInputAction = function (socket: Socket, client: Client) {
   };
 };
 
-const socketCompletionRequestAction = function (socket: Socket, client: Client) {
+const socketCompletionRequestAction = function (
+  socket: Socket,
+  client: Client
+) {
   return function (request: { id?: string; prefix?: string }) {
     const id = request && request.id;
     const prefix = request && request.prefix;
@@ -1053,7 +1058,10 @@ const listen = function () {
       safeEmit(socket, "instance", clientId);
     });
     socket.on("input", socketInputAction(socket, client));
-    socket.on("completion-request", socketCompletionRequestAction(socket, client));
+    socket.on(
+      "completion-request",
+      socketCompletionRequestAction(socket, client)
+    );
     socket.on("reset", socketResetAction(socket, client));
     socket.on("chat", socketChatAction(socket, client));
     socket.on("restore", socketRestoreAction(socket, client));

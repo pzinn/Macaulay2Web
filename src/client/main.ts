@@ -181,7 +181,9 @@ const completionRequestTimeout = 250;
 
 type CompletionEntry = { name: string; kind?: string };
 
-const normalizeCompletionEntries = function (entries): CompletionEntry[] | null {
+const normalizeCompletionEntries = function (
+  entries
+): CompletionEntry[] | null {
   if (!Array.isArray(entries)) return null;
   const byName = new Map<string, CompletionEntry>();
   entries.forEach((entry) => {
@@ -349,8 +351,7 @@ const init = function () {
 };
 
 const init2 = function () {
-  if (!MINIMAL)
-    document.getElementById("terminalDiv").style.display = "block";
+  if (!MINIMAL) document.getElementById("terminalDiv").style.display = "block";
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
   socket = io(ioParams, { autoConnect: false });

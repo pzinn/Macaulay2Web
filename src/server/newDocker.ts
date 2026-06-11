@@ -45,22 +45,25 @@ class NewDockerContainersInstanceManager implements InstanceManager {
 
   private getContainerIp(containerName: string, next) {
     const dockerInspectCmd = "sudo docker inspect " + containerName;
-    exec(dockerInspectCmd, function (error, stdout, stderr) {
-      if (error) {
-        logger.error(
-          "Error inspecting container " + containerName + ": " + error
-        );
-        return next(error);
-      }
-      const res = JSON.parse(stdout);
-      const ip = this.getIpFromInspect(res);
-      if (!ip) {
-        const msg = "No Docker bridge IP found for " + containerName;
-        logger.error(msg);
-        return next(new Error(msg));
-      }
-      next(null, ip);
-    }.bind(this));
+    exec(
+      dockerInspectCmd,
+      function (error, stdout, stderr) {
+        if (error) {
+          logger.error(
+            "Error inspecting container " + containerName + ": " + error
+          );
+          return next(error);
+        }
+        const res = JSON.parse(stdout);
+        const ip = this.getIpFromInspect(res);
+        if (!ip) {
+          const msg = "No Docker bridge IP found for " + containerName;
+          logger.error(msg);
+          return next(new Error(msg));
+        }
+        next(null, ip);
+      }.bind(this)
+    );
   }
 
   // scan existing dockers
@@ -334,7 +337,8 @@ class NewDockerContainersInstanceManager implements InstanceManager {
       'm"';
     dockerRunCmd += " --name " + newInstance.containerName;
     dockerRunCmd += " -l " + "clientId=" + newInstance.clientId;
-    dockerRunCmd += " -v " + staticFolder + "tutorials:/home/m2user/tutorials:ro";
+    dockerRunCmd +=
+      " -v " + staticFolder + "tutorials:/home/m2user/tutorials:ro";
     dockerRunCmd +=
       " " + this.hostConfig.containerType + " " + this.hostConfig.sshdCmd;
     //    logger.info("Running " + dockerRunCmd);

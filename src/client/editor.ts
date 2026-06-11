@@ -313,7 +313,8 @@ const autoCompleteHandling = function (
         autoComplete.dataset.word = flag ? word : "\u250B" + word;
         const tabMenu = document.createElement("ul");
         tabMenu.classList.add("menu");
-        if (removableDictionary) tabMenu.classList.add("autocomplete-removable");
+        if (removableDictionary)
+          tabMenu.classList.add("autocomplete-removable");
         tabMenu.tabIndex = 0;
         for (let l = j; l < k; l++) {
           const optionWord = completionWord(lst[l]);
@@ -357,7 +358,10 @@ const autoCompleteHandling = function (
               opt.remove();
               e.stopPropagation();
               if (tabMenu.childElementCount == 0)
-                removeAutoComplete(false, true); // no choice => back to normal typing
+                removeAutoComplete(
+                  false,
+                  true
+                ); // no choice => back to normal typing
               else updateAutoCompleteLayout();
             };
             opt.appendChild(icon);
@@ -662,7 +666,10 @@ const updateAndHighlightMaybe = function (
   // different: replace content
   if (fileName.endsWith(".m2"))
     el.innerHTML = Prism.highlight(txt, Prism.languages.macaulay2);
-  else el.textContent = txt;
+  else {
+    el.style.fontVariantLigatures = "none";
+    el.textContent = txt;
+  }
 };
 
 const htmlToM2 = function (el: HTMLElement) {

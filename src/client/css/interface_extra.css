@@ -590,6 +590,7 @@ dialog.app-dialog::backdrop {
     min-height: 100%;
     padding: 16px 18px 76px 18px;
     white-space: normal;
+    font-variant-ligatures: none;
 }
 
 .editorDirectoryTitle {

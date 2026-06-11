@@ -93,7 +93,8 @@ pre[class*="language-"] {
 .token.net,
 .token.string {
     --token-color: var(--syntax-string);
-	color: var(--token-color);
+    color: var(--token-color);
+    font-variant-ligatures: none;
 }
 
 /*
