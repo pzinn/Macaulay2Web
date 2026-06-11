@@ -154,7 +154,7 @@ const Shell = function (
   if (createInputSpan) createInputEl();
   else htmlSec = terminal;
 
-  const codeElStack = []; // stack of past code currently being processed
+  const pendingCodeEls = []; // FIFO queue of submitted code awaiting completion
   let submissionSerial = 0;
   const terminalProcInputLines = document.getElementById(
     "terminalProcInputLines"
@@ -164,8 +164,8 @@ const Shell = function (
     if (terminalProcInput)
       terminalProcInput.scrollTop = terminalProcInput.scrollHeight;
   };
-  const clearCodeStack = function () {
-    codeElStack.length = 0;
+  const clearPendingCode = function () {
+    pendingCodeEls.length = 0;
     if (terminalProcInputLines) terminalProcInputLines.innerHTML = "";
   };
   const fadeProcessedInputLine = function (line: HTMLElement) {
@@ -219,8 +219,7 @@ const Shell = function (
     htmlSec = continuationCandidate;
     continuationCandidate = null;
     const trailingBreak = htmlSec.nextSibling;
-    if (trailingBreak && trailingBreak.nodeName == "BR")
-      trailingBreak.remove();
+    if (trailingBreak && trailingBreak.nodeName == "BR") trailingBreak.remove();
     const text = htmlSec.textContent;
     htmlSec.innerHTML = "";
     htmlSec.classList.remove("M2PastInput");
@@ -250,8 +249,27 @@ const Shell = function (
 
   const countCellInputSegments = function (cell: HTMLElement) {
     return Array.from(
-      cell.querySelectorAll(".M2PastInput:not(.examples *)") as NodeListOf<HTMLElement>
+      cell.querySelectorAll(
+        ".M2PastInput:not(.examples *)"
+      ) as NodeListOf<HTMLElement>
     ).reduce((total, input) => total + countSegments(input.textContent), 0);
+  };
+
+  const recordCellInputHistory = function (cell: HTMLElement) {
+    if (!isTrueInputCell(cell)) return;
+    const inputs = Array.from(
+      cell.querySelectorAll(
+        ".M2PastInput:not(.examples *)"
+      ) as NodeListOf<HTMLElement>
+    );
+    let text = inputs.map((input) => input.textContent).join("");
+    if (text.endsWith("\n")) text = text.slice(0, -1);
+    if (!text) return;
+    cmdHistory.index = cmdHistory.push(text);
+    text.split("\n").forEach((line) => {
+      line = line.trim();
+      if (line.length > 0) cmdHistory.sorted.sortedPush(line);
+    });
   };
 
   const finishProcessedCodeEl = function (
@@ -265,28 +283,26 @@ const Shell = function (
 
   const finishProcessedInputForCell = function (cell: HTMLElement) {
     let numInputs = countCellInputSegments(cell);
-    while (numInputs > 0 && codeElStack.length > 0) {
-      const currentCodeEl = codeElStack[0];
+    while (numInputs > 0 && pendingCodeEls.length > 0) {
+      const currentCodeEl = pendingCodeEls[0];
       if (currentCodeEl.numSegments > numInputs) {
         currentCodeEl.numSegments -= numInputs;
         numInputs = 0;
       } else {
         numInputs -= currentCodeEl.numSegments;
         finishProcessedCodeEl(cell, currentCodeEl);
-        codeElStack.shift();
+        pendingCodeEls.shift();
       }
     }
   };
 
-  const finishCurrentSubmission = function (cell: HTMLElement) {
-    if (codeElStack.length == 0) return;
-    const submissionId = codeElStack[0].submissionId;
+  const finishSubmission = function (cell: HTMLElement, submissionId: number) {
     while (
-      codeElStack.length > 0 &&
-      codeElStack[0].submissionId === submissionId
+      pendingCodeEls.length > 0 &&
+      pendingCodeEls[0].submissionId === submissionId
     ) {
-      finishProcessedCodeEl(cell, codeElStack[0]);
-      codeElStack.shift();
+      finishProcessedCodeEl(cell, pendingCodeEls[0]);
+      pendingCodeEls.shift();
     }
   };
 
@@ -294,9 +310,10 @@ const Shell = function (
     closeInputSection(false);
     const cell = activeCell();
     if (!cell || !isTrueInputCell(cell)) return;
-    cell.dataset.webAppEvaluationProtocol = "true";
+    const submissionId = pendingCodeEls[0]?.submissionId;
+    cell.dataset.processedInputFinalized = "true";
     finishProcessedInputForCell(cell);
-    finishCurrentSubmission(cell);
+    if (submissionId !== undefined) finishSubmission(cell, submissionId);
   };
 
   obj.postMessage = function (msg, el?) {
@@ -309,7 +326,7 @@ const Shell = function (
         const lineEl = document.createElement("div");
         lineEl.classList.add("terminalProcLine");
         lineEl.dataset.m2code = line;
-        codeElStack.push(lineEl);
+        pendingCodeEls.push(lineEl);
         lineEl.numSegments = 1;
         lineEl.submissionId = submissionId;
         terminalProcInputLines.appendChild(lineEl);
@@ -317,7 +334,7 @@ const Shell = function (
       });
     } else if (el) {
       el.dataset.m2code = clean;
-      codeElStack.push(el);
+      pendingCodeEls.push(el);
       el.numSegments = countSegments(clean);
       el.submissionId = submissionId;
     }
@@ -607,7 +624,11 @@ const Shell = function (
   };
 
   const isTrueInputCell = function (cell: HTMLElement) {
-    return createInputSpan && !cell.closest(".examples");
+    return (
+      createInputSpan &&
+      cell.classList.contains("M2Cell") &&
+      !cell.closest(".examples")
+    );
   };
 
   const sessionCell = function (el: HTMLElement) {
@@ -657,19 +678,6 @@ const Shell = function (
         htmlSec.parentElement.dataset.positions = " ";
       htmlSec.parentElement.dataset.positions += htmlSec.dataset.code + " ";
     } else if (htmlSec.classList.contains("M2Input")) {
-      if (isTrueInput()) {
-        // add input to history
-        let txt = htmlSec.textContent;
-        if (txt[txt.length - 1] == "\n") txt = txt.substring(0, txt.length - 1); // should be true
-        if (htmlSec.classList.contains("M2InputContd"))
-          // rare case where input is broken -- e.g.  I=ideal 0; x=(\n   1)
-          cmdHistory[cmdHistory.length - 1] += "\n" + txt;
-        else cmdHistory.index = cmdHistory.push(txt);
-        txt.split("\n").forEach((line) => {
-          line = line.trim();
-          if (line.length > 0) cmdHistory.sorted.sortedPush(line);
-        });
-      }
       // highlight
       htmlSec.innerHTML = Prism.highlight(
         htmlSec.textContent,
@@ -842,9 +850,6 @@ const Shell = function (
           }
         } else if (tag == webAppTags.InputDiscarded) {
           finishDiscardedInputForCurrentCell();
-        } else if (tag == webAppTags.EvaluationEnd) {
-          // This marks one completed expression, not necessarily the end of
-          // the current prompt cell. A continuation may still follow.
         } else if (tag == webAppTags.End) {
           continuationCandidate = null;
           if (htmlSec != terminal || !createInputSpan) {
@@ -853,17 +858,17 @@ const Shell = function (
             closeHtml();
           }
         } else if (tag == webAppTags.CellEnd) {
-          continuationCandidate = null;
           if (!discardEmptyOpenInputCell()) {
             closeInputSection(false);
             if (htmlSec != terminal || !createInputSpan) {
               // htmlSec == terminal should only happen at very start
               // or at the very end for rendering help -- then it's OK
               const oldHtmlSec = htmlSec;
+              recordCellInputHistory(oldHtmlSec);
               closeHtml();
               if (
                 isTrueInputCell(oldHtmlSec) &&
-                oldHtmlSec.dataset.webAppEvaluationProtocol !== "true"
+                oldHtmlSec.dataset.processedInputFinalized !== "true"
               ) {
                 finishProcessedInputForCell(oldHtmlSec);
               }
@@ -902,14 +907,14 @@ const Shell = function (
   obj.reset = function () {
     console.log("Reset");
     removeAutoComplete(false, false); // remove autocomplete menu if open
-    clearCodeStack();
+    clearPendingCode();
     createInputEl(); // recreate the input area
     interpreterDepth = 1;
   };
 
   obj.interrupt = function () {
     removeAutoComplete(false, false); // remove autocomplete menu if open
-    clearCodeStack();
+    clearPendingCode();
     inputSpan.textContent = "";
     emitInput("\x03");
     setCaretAtEndMaybe(inputSpan);
