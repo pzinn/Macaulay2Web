@@ -75,7 +75,8 @@
     "build:renderhelp": "webpack --config webpack-renderhelp.config.js",
     "start:renderhelp": "node src/renderhelp/index.js",
     "test:client": "vitest run",
-    "test:client:watch": "vitest"
+    "test:client:watch": "vitest",
+    "test:server": "vitest run --config vitest.server.config.ts"
   },
   "repository": {
     "type": "git",

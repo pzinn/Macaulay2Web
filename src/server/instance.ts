@@ -8,6 +8,7 @@ interface Instance {
   numInputs: number;
   containerId?: string;
   killNotify?: () => void;
+  removalInProgress?: boolean;
   clientId: string;
 }
 

@@ -12,6 +12,7 @@ import {
   notifyExpectedMathProgramStop,
 } from "./server";
 import { logger } from "./logger";
+import { archiveDockerHome } from "./dockerArchive";
 
 const saveFile = "save.tar.gz";
 
@@ -236,7 +237,8 @@ class NewDockerContainersInstanceManager implements InstanceManager {
   };
 
   private addInstanceToArray = function (instance: Instance) {
-    this.currentContainers.push(instance);
+    if (this.currentContainers.indexOf(instance) < 0)
+      this.currentContainers.push(instance);
   };
 
   private isLegal = function (instance: Instance) {
@@ -271,6 +273,7 @@ class NewDockerContainersInstanceManager implements InstanceManager {
 
   private removeInstanceInternal(instance: Instance) {
     // actual removing docker
+    const self = this;
     const removeDockerContainer = "sudo docker rm -f " + instance.containerName;
     exec(removeDockerContainer, function (error) {
       if (error) {
@@ -280,13 +283,28 @@ class NewDockerContainersInstanceManager implements InstanceManager {
             " with error:" +
             error
         );
+        instance.removalInProgress = false;
+        self.addInstanceToArray(instance);
+        return;
       }
-      clients[instance.clientId].instance = null;
+      instance.removalInProgress = false;
+      if (
+        clients[instance.clientId] &&
+        clients[instance.clientId].instance === instance
+      )
+        clients[instance.clientId].instance = null;
     });
   }
 
   private removeInstance(instance: Instance, notifyClient = false) {
     const self = this;
+    if (instance.removalInProgress) {
+      logger.warn(
+        "Container removal already in progress: " + instance.containerName
+      );
+      return;
+    }
+    instance.removalInProgress = true;
     logger.info("Removing container: " + instance.containerName);
     if (notifyClient && clients[instance.clientId]) {
       notifyExpectedMathProgramStop(
@@ -296,32 +314,22 @@ class NewDockerContainersInstanceManager implements InstanceManager {
     }
     self.removeInstanceFromArray(instance); // do this first to avoid trying to remove the same container multiple times
 
-    if (instance.numInputs == 0) self.removeInstanceInternal(instance);
-    else {
-      // first, save files
-      const savePath =
-        staticFolder + userSpecificPath(instance.clientId) + saveFile;
-      const saveDockerContainer =
-        "rm -f " +
-        savePath +
-        "; sudo docker exec " +
-        instance.containerName +
-        ' tar --exclude "./.*" --exclude "./tutorials" -C /home/' +
-        instance.username +
-        " -czf - . > " +
-        savePath;
-      exec(saveDockerContainer, function (error) {
-        if (error) {
-          logger.error(
-            "Error saving container " +
-              instance.containerName +
-              " with error:" +
-              error
-          );
-        }
-        self.removeInstanceInternal(instance);
-      });
-    }
+    const savePath =
+      staticFolder + userSpecificPath(instance.clientId) + saveFile;
+    archiveDockerHome(instance, savePath, function (error) {
+      if (error) {
+        logger.error(
+          "Error saving container " +
+            instance.containerName +
+            "; container was not removed: " +
+            error
+        );
+        instance.removalInProgress = false;
+        self.addInstanceToArray(instance);
+        return;
+      }
+      self.removeInstanceInternal(instance);
+    });
   }
 
   private constructDockerRunCommand(resources, newInstance: Instance) {
