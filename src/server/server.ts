@@ -880,20 +880,25 @@ const sanitizeClient = function (
           client.saneState = true;
           if (next) next(true);
         } else {
-          // start over
-          try {
-            delete client.instance;
-            setTimeout(function () {
-              client.saneState = true;
-              sanitizeClient(client, next, clearSavedOutput);
-            }, 3000); // 3 sec
-          } catch (instanceDeleteError) {
-            logger.error(
-              "Error when deleting instance: " + instanceDeleteError,
-              client
-            );
-            deleteClientData(client);
-          }
+          // Remove the unusable container before creating its replacement.
+          instanceManager.removeInstanceFromId(
+            client.id,
+            function (removalError) {
+              if (removalError) {
+                logger.error(
+                  "Could not remove unusable instance: " + removalError,
+                  client
+                );
+                client.saneState = true;
+                if (next) next(false);
+                return;
+              }
+              setTimeout(function () {
+                client.saneState = true;
+                sanitizeClient(client, next, clearSavedOutput);
+              }, 3000);
+            }
+          );
         }
       });
     } else {

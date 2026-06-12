@@ -1,4 +1,9 @@
-import { Instance, InstanceManager } from "./instance";
+import {
+  Instance,
+  InstanceCallback,
+  InstanceManager,
+  InstanceRemovalCallback,
+} from "./instance";
 import fs = require("fs");
 
 import childProcess = require("child_process");
@@ -13,14 +18,18 @@ import {
 } from "./server";
 import { logger } from "./logger";
 import { archiveDockerHome } from "./dockerArchive";
+import { waitForDockerSshd } from "./dockerStartup";
+import { InstanceCreationQueue } from "./instanceCreationQueue";
 
 const saveFile = "save.tar.gz";
+const retryDelay = 3000;
 
 class NewDockerContainersInstanceManager implements InstanceManager {
   private resources: any;
   private hostConfig: any;
   private currentInstance: any;
   private currentContainers: any[];
+  private pendingCreations: InstanceCreationQueue;
 
   constructor(resources: any, hostConfig: any, currentInstance: Instance) {
     this.resources = resources;
@@ -28,6 +37,7 @@ class NewDockerContainersInstanceManager implements InstanceManager {
     this.currentInstance = currentInstance;
     const currentContainers = [];
     this.currentContainers = currentContainers;
+    this.pendingCreations = new InstanceCreationQueue();
   }
 
   private dockerName(clientId: string) {
@@ -129,39 +139,52 @@ class NewDockerContainersInstanceManager implements InstanceManager {
     });
   }
 
-  public getNewInstance(clientId: string, next) {
+  public getNewInstance(clientId: string, next: InstanceCallback) {
+    if (!this.pendingCreations.request(clientId, next)) {
+      logger.info("Joining pending container creation for " + clientId);
+      return;
+    }
+    this.createNewInstance(clientId);
+  }
+
+  private createNewInstance(clientId: string) {
     const self = this;
-    if (self.currentContainers.length >= self.hostConfig.maxContainerNumber)
-      self.killOldestContainers(
-        1 + self.currentContainers.length - self.hostConfig.maxContainerNumber
-      ); // no waiting for it
-    const instance = JSON.parse(JSON.stringify(self.currentInstance));
-    instance.containerName = self.dockerName(clientId);
-    instance.clientId = clientId;
-    instance.port = 22;
-    instance.lastActiveTime = Date.now();
-    instance.numInputs = 0;
-    exec(
-      self.constructDockerRunCommand(self.resources, instance),
-      function (error) {
-        if (error) {
-          logger.error("Error starting the docker container: " + error.message);
-          setTimeout(function () {
-            self.getNewInstance(clientId, next);
-          }, 3000);
-        } else {
+    self.ensureCapacity(function (capacityError) {
+      if (capacityError) {
+        logger.error(
+          "Unable to free capacity for " + clientId + ": " + capacityError
+        );
+        self.retryInstanceCreation(clientId);
+        return;
+      }
+
+      const instance = JSON.parse(JSON.stringify(self.currentInstance));
+      instance.containerName = self.dockerName(clientId);
+      instance.clientId = clientId;
+      instance.port = 22;
+      instance.lastActiveTime = Date.now();
+      instance.numInputs = 0;
+      exec(
+        self.constructDockerRunCommand(self.resources, instance),
+        function (error) {
+          if (error) {
+            logger.error(
+              "Error starting the docker container: " + error.message
+            );
+            self.retryInstanceCreation(clientId);
+            return;
+          }
+
           logger.info(
             "Docker container " +
               instance.containerName +
               " created for " +
               clientId
           );
+          self.addInstanceToArray(instance);
           self.getContainerIp(instance.containerName, function (ipError, ip) {
             if (ipError) {
-              self.removeInstanceInternal(instance);
-              setTimeout(function () {
-                self.getNewInstance(clientId, next);
-              }, 3000);
+              self.removeFailedStartupAndRetry(instance);
               return;
             }
             instance.host = ip;
@@ -171,54 +194,83 @@ class NewDockerContainersInstanceManager implements InstanceManager {
                 " has bridge IP " +
                 ip
             );
-            self.addInstanceToArray(instance);
-            // check for saved files
-            const savePath =
-              staticFolder + userSpecificPath(clientId) + saveFile;
-            fs.access(savePath, function (err) {
-              if (!err) {
-                logger.info("Restoring files for " + clientId);
-                const restoreDockerContainer =
-                  "sudo docker exec -i " +
-                  instance.containerName +
-                  " tar -C /home/" +
-                  instance.username +
-                  " -xzf - . < " +
-                  savePath;
-                exec(restoreDockerContainer, function (error) {
-                  if (error) {
-                    logger.error(
-                      "Error restoring files for container " +
-                        instance.containerName +
-                        " with error:" +
-                        error
-                    );
-                  } else {
-                    // cleanup
-                    /*
-                  fs.rm(
-                    savePath,
-                    { recursive: true, force: true },
-                    function (err) {
-                      if (err) {
-                        logger.warn(
-                          "Unable to delete user directory " +
-                            savePath +
-                            " : " +
-                            err
-                        );
-                      }
-                    }
-                  );
-		    */
-                  }
-                });
+            self.restoreFiles(instance);
+            waitForDockerSshd(
+              instance,
+              self.hostConfig.sshdCmd,
+              function (readinessError) {
+                if (readinessError) {
+                  logger.error(String(readinessError));
+                  self.removeFailedStartupAndRetry(instance);
+                  return;
+                }
+                self.completeInstanceCreation(instance);
               }
-              self.waitForSshd(next, instance); // don't wait for restore in case it hangs
-            });
+            );
           });
         }
-      }
+      );
+    });
+  }
+
+  private retryInstanceCreation(clientId: string) {
+    const self = this;
+    setTimeout(function () {
+      if (self.pendingCreations.has(clientId)) self.createNewInstance(clientId);
+    }, retryDelay);
+  }
+
+  private completeInstanceCreation(instance: Instance) {
+    this.pendingCreations.complete(instance);
+  }
+
+  private restoreFiles(instance: Instance) {
+    const savePath =
+      staticFolder + userSpecificPath(instance.clientId) + saveFile;
+    fs.access(savePath, function (err) {
+      if (err) return;
+      logger.info("Restoring files for " + instance.clientId);
+      const restoreDockerContainer =
+        "sudo docker exec -i " +
+        instance.containerName +
+        " tar -C /home/" +
+        instance.username +
+        " -xzf - . < " +
+        savePath;
+      exec(restoreDockerContainer, function (error) {
+        if (error)
+          logger.error(
+            "Error restoring files for container " +
+              instance.containerName +
+              " with error:" +
+              error
+          );
+      });
+    });
+  }
+
+  private removeFailedStartupAndRetry(instance: Instance) {
+    const self = this;
+    self.removeInstance(
+      instance,
+      false,
+      function (removalError) {
+        if (removalError) {
+          logger.error(
+            "Unable to remove failed container " +
+              instance.containerName +
+              "; retrying removal: " +
+              removalError
+          );
+          setTimeout(
+            () => self.removeFailedStartupAndRetry(instance),
+            retryDelay
+          );
+          return;
+        }
+        self.retryInstanceCreation(instance.clientId);
+      },
+      false
     );
   }
 
@@ -256,20 +308,58 @@ class NewDockerContainersInstanceManager implements InstanceManager {
     );
   };
 
-  private killOldestContainers = function (num: number) {
+  private ensureCapacity(next: InstanceRemovalCallback) {
+    const num =
+      1 + this.currentContainers.length - this.hostConfig.maxContainerNumber;
+    if (num <= 0) {
+      next();
+      return;
+    }
+
     logger.info("Too many containers (" + num + ")");
     this.sortInstancesByAge();
-    for (let i = 0; i < num && this.currentContainers.length > 0; i++) {
-      const instance = this.currentContainers[0];
-      if (this.isLegal(instance)) this.removeInstance(instance, true);
-      else throw new Error("Too many active users.");
+    const instances = this.currentContainers.slice(0, num);
+    if (
+      instances.length < num ||
+      instances.some((instance) => !this.isLegal(instance))
+    ) {
+      next(new Error("Too many active users."));
+      return;
     }
+
+    let remaining = instances.length;
+    let firstError: Error;
+    instances.forEach((instance) =>
+      this.removeInstance(instance, true, function (error) {
+        if (error && !firstError) firstError = error;
+        remaining--;
+        if (remaining === 0) next(firstError);
+      })
+    );
+  }
+
+  public removeInstanceFromId = function (
+    clientId: string,
+    next: InstanceRemovalCallback = () => {}
+  ) {
+    if (clients[clientId] && clients[clientId].instance)
+      this.removeInstance(clients[clientId].instance, false, next);
+    else next();
   };
 
-  public removeInstanceFromId = function (clientId: string) {
-    if (clients[clientId] && clients[clientId].instance)
-      this.removeInstance(clients[clientId].instance);
-  };
+  private finishRemoval(instance: Instance, error?: Error) {
+    instance.removalInProgress = false;
+    if (error) this.addInstanceToArray(instance);
+    else if (
+      clients[instance.clientId] &&
+      clients[instance.clientId].instance === instance
+    )
+      clients[instance.clientId].instance = null;
+
+    const callbacks = instance.removalCallbacks || [];
+    instance.removalCallbacks = [];
+    callbacks.forEach((callback) => callback(error));
+  }
 
   private removeInstanceInternal(instance: Instance) {
     // actual removing docker
@@ -283,21 +373,27 @@ class NewDockerContainersInstanceManager implements InstanceManager {
             " with error:" +
             error
         );
-        instance.removalInProgress = false;
-        self.addInstanceToArray(instance);
-        return;
       }
-      instance.removalInProgress = false;
-      if (
-        clients[instance.clientId] &&
-        clients[instance.clientId].instance === instance
-      )
-        clients[instance.clientId].instance = null;
+      self.finishRemoval(
+        instance,
+        error instanceof Error
+          ? error
+          : error
+          ? new Error(String(error))
+          : undefined
+      );
     });
   }
 
-  private removeInstance(instance: Instance, notifyClient = false) {
+  private removeInstance(
+    instance: Instance,
+    notifyClient = false,
+    next: InstanceRemovalCallback = () => {},
+    saveFiles = true
+  ) {
     const self = this;
+    if (!instance.removalCallbacks) instance.removalCallbacks = [];
+    instance.removalCallbacks.push(next);
     if (instance.removalInProgress) {
       logger.warn(
         "Container removal already in progress: " + instance.containerName
@@ -314,6 +410,11 @@ class NewDockerContainersInstanceManager implements InstanceManager {
     }
     self.removeInstanceFromArray(instance); // do this first to avoid trying to remove the same container multiple times
 
+    if (!saveFiles) {
+      self.removeInstanceInternal(instance);
+      return;
+    }
+
     const savePath =
       staticFolder + userSpecificPath(instance.clientId) + saveFile;
     archiveDockerHome(instance, savePath, function (error) {
@@ -324,8 +425,7 @@ class NewDockerContainersInstanceManager implements InstanceManager {
             "; container was not removed: " +
             error
         );
-        instance.removalInProgress = false;
-        self.addInstanceToArray(instance);
+        self.finishRemoval(instance, error);
         return;
       }
       self.removeInstanceInternal(instance);
@@ -351,40 +451,6 @@ class NewDockerContainersInstanceManager implements InstanceManager {
       " " + this.hostConfig.containerType + " " + this.hostConfig.sshdCmd;
     //    logger.info("Running " + dockerRunCmd);
     return dockerRunCmd;
-  }
-
-  private waitForSshd(next, instance: Instance) {
-    const dockerRunningProcesses =
-      "sudo docker exec " + instance.containerName + " ps aux";
-    const filterForSshd = 'grep "' + this.hostConfig.sshdCmd + '"';
-    const excludeGrep = "grep -v grep";
-
-    const self = this;
-    exec(
-      dockerRunningProcesses + " | " + filterForSshd + " | " + excludeGrep,
-      function (error, stdout, stderr) {
-        if (error) {
-          logger.error("Error while waiting for sshd: " + error);
-          setTimeout(function () {
-            self.getNewInstance(instance.clientId, next); // what if instance is still running?
-          }, 3000);
-          return;
-        }
-        const runningSshDaemons = stdout;
-
-        logger.info("Looking for sshd. OUT: " + stdout + " ERR: " + stderr);
-
-        if (runningSshDaemons) {
-          logger.info("sshd is ready");
-          next(instance);
-        } else {
-          logger.info("sshd not ready yet");
-          setTimeout(function () {
-            self.waitForSshd(next, instance);
-          }, 3000);
-        }
-      }
-    );
   }
 }
 

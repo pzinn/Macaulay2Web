@@ -96,12 +96,13 @@ class SshDockerContainersInstanceManager implements InstanceManager {
     });
   }
 
-  public removeInstanceFromId(clientId: string) {
+  public removeInstanceFromId(clientId: string, next?) {
     // TODO
     /*
 	if (clients[clientId] && clients[clientId].instance)
 	    removeInstance(clients[clientId].instance);
 	*/
+    if (next) next();
   }
 
   public checkInstance = function (instance: Instance, next) {
