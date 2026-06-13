@@ -4,10 +4,6 @@ import {
   InstanceManager,
   InstanceRemovalCallback,
 } from "./instance";
-import fs = require("fs");
-
-import childProcess = require("child_process");
-const exec = childProcess.exec;
 
 import { Client, userSpecificPath } from "./client";
 import {
@@ -17,9 +13,11 @@ import {
   notifyExpectedMathProgramStop,
 } from "./server";
 import { logger } from "./logger";
-import { archiveDockerHome } from "./dockerArchive";
-import { waitForDockerSshd } from "./dockerStartup";
 import { InstanceCreationQueue } from "./instanceCreationQueue";
+import {
+  DockerManagerDependencies,
+  defaultDockerManagerDependencies,
+} from "./dockerManagerDependencies";
 
 const saveFile = "save.tar.gz";
 const retryDelay = 3000;
@@ -31,8 +29,14 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   private currentContainers: any[];
   private startPort: number;
   private pendingCreations: InstanceCreationQueue;
+  private dependencies: DockerManagerDependencies;
 
-  constructor(resources: any, hostConfig: any, currentInstance: Instance) {
+  constructor(
+    resources: any,
+    hostConfig: any,
+    currentInstance: Instance,
+    dependencies: DockerManagerDependencies = defaultDockerManagerDependencies
+  ) {
     this.resources = resources;
     this.hostConfig = hostConfig;
     this.currentInstance = currentInstance;
@@ -40,6 +44,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     this.currentContainers = currentContainers;
     this.startPort = currentInstance.port;
     this.pendingCreations = new InstanceCreationQueue();
+    this.dependencies = dependencies;
   }
 
   private incrementPort() {
@@ -53,7 +58,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   public recoverInstances(next) {
     const self = this;
     const dockerPsCmd = "sudo docker ps -q";
-    exec(dockerPsCmd, function (error, stdout, stderr) {
+    self.dependencies.exec(dockerPsCmd, function (error, stdout, stderr) {
       const lst = stdout.split("\n");
 
       const asyncLoop = function (i) {
@@ -65,56 +70,59 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
         i--;
         if (lst[i] != "") {
           const dockerInspectCmd = "sudo docker inspect " + lst[i];
-          exec(dockerInspectCmd, function (error, stdout, stderr) {
-            if (error) {
-              logger.error(
-                "Error inspecting container " + lst[i] + ": " + error
-              );
-              asyncLoop(i);
-              return;
-            }
-            const res = JSON.parse(stdout);
-            const clientId =
-              res[0].Config.Labels && res[0].Config.Labels.clientId;
-            if (clientId) {
-              logger.info(
-                "Scanning " + lst[i] + " found " + clientId + res[0].Name
-              );
-              // find port
-              const sshPorts =
-                res[0].NetworkSettings.Ports &&
-                res[0].NetworkSettings.Ports["22/tcp"];
-              if (!sshPorts || !sshPorts[0] || !sshPorts[0].HostPort) {
-                logger.info(
-                  "Skipping " +
-                    res[0].Name +
-                    " because it has no published SSH port"
+          self.dependencies.exec(
+            dockerInspectCmd,
+            function (error, stdout, stderr) {
+              if (error) {
+                logger.error(
+                  "Error inspecting container " + lst[i] + ": " + error
                 );
                 asyncLoop(i);
                 return;
               }
-              const port = +sshPorts[0].HostPort;
-              const newInstance = JSON.parse(
-                JSON.stringify(self.currentInstance)
-              ); // eww
-              // test for sshd?
-              newInstance.port = port;
-              if (self.currentInstance.port < port)
-                self.currentInstance.port = port;
-              newInstance.clientId = clientId;
-              newInstance.lastActiveTime =
-                Date.now() - self.hostConfig.minContainerAge; // now Date.now() to avoid nasty bug where new users can't be created for 10 mins after reboot
-              newInstance.numInputs = 0;
-              newInstance.containerName = "m2Port" + newInstance.port;
-              if (clients[clientId]) {
-                if (clients[clientId].instance)
-                  self.removeInstance(clients[clientId].instance);
-              } else clients[clientId] = new Client(clientId);
-              clients[clientId].instance = newInstance;
-              self.addInstanceToArray(newInstance);
+              const res = JSON.parse(stdout);
+              const clientId =
+                res[0].Config.Labels && res[0].Config.Labels.clientId;
+              if (clientId) {
+                logger.info(
+                  "Scanning " + lst[i] + " found " + clientId + res[0].Name
+                );
+                // find port
+                const sshPorts =
+                  res[0].NetworkSettings.Ports &&
+                  res[0].NetworkSettings.Ports["22/tcp"];
+                if (!sshPorts || !sshPorts[0] || !sshPorts[0].HostPort) {
+                  logger.info(
+                    "Skipping " +
+                      res[0].Name +
+                      " because it has no published SSH port"
+                  );
+                  asyncLoop(i);
+                  return;
+                }
+                const port = +sshPorts[0].HostPort;
+                const newInstance = JSON.parse(
+                  JSON.stringify(self.currentInstance)
+                ); // eww
+                // test for sshd?
+                newInstance.port = port;
+                if (self.currentInstance.port < port)
+                  self.currentInstance.port = port;
+                newInstance.clientId = clientId;
+                newInstance.lastActiveTime =
+                  Date.now() - self.hostConfig.minContainerAge; // now Date.now() to avoid nasty bug where new users can't be created for 10 mins after reboot
+                newInstance.numInputs = 0;
+                newInstance.containerName = "m2Port" + newInstance.port;
+                if (clients[clientId]) {
+                  if (clients[clientId].instance)
+                    self.removeInstance(clients[clientId].instance);
+                } else clients[clientId] = new Client(clientId);
+                clients[clientId].instance = newInstance;
+                self.addInstanceToArray(newInstance);
+              }
+              asyncLoop(i);
             }
-            asyncLoop(i);
-          });
+          );
         } else asyncLoop(i);
       };
       asyncLoop(lst.length);
@@ -146,7 +154,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       instance.clientId = clientId;
       instance.lastActiveTime = Date.now();
       instance.numInputs = 0;
-      exec(
+      self.dependencies.exec(
         self.constructDockerRunCommand(self.resources, instance),
         function (error) {
           if (error) {
@@ -165,7 +173,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
           );
           self.addInstanceToArray(instance);
           self.restoreFiles(instance);
-          waitForDockerSshd(
+          self.dependencies.waitForDockerSshd(
             instance,
             self.hostConfig.sshdCmd,
             function (readinessError) {
@@ -196,7 +204,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   private restoreFiles(instance: Instance) {
     const savePath =
       staticFolder + userSpecificPath(instance.clientId) + saveFile;
-    fs.access(savePath, function (err) {
+    this.dependencies.access(savePath, function (err) {
       if (err) return;
       logger.info("Restoring files for " + instance.clientId);
       const restoreDockerContainer =
@@ -206,7 +214,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
         instance.username +
         " -xzf - . < " +
         savePath;
-      exec(restoreDockerContainer, function (error) {
+      this.dependencies.exec(restoreDockerContainer, function (error) {
         if (error)
           logger.error(
             "Error restoring files for container " +
@@ -244,7 +252,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
   }
 
   public checkInstance = function (instance: Instance, next) {
-    exec(
+    this.dependencies.exec(
       "diff <(sudo docker inspect m2container --format='{{.Id}}') <(sudo docker inspect " +
         instance.containerName +
         " --format='{{.Image}}')",
@@ -334,7 +342,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     // actual removing docker
     const self = this;
     const removeDockerContainer = "sudo docker rm -f " + instance.containerName;
-    exec(removeDockerContainer, function (error) {
+    self.dependencies.exec(removeDockerContainer, function (error) {
       if (error) {
         logger.error(
           "Error removing container " +
@@ -386,7 +394,7 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
     const savePath =
       staticFolder + userSpecificPath(instance.clientId) + saveFile;
-    archiveDockerHome(instance, savePath, function (error) {
+    self.dependencies.archiveDockerHome(instance, savePath, function (error) {
       if (error) {
         logger.error(
           "Error saving container " +
@@ -428,4 +436,4 @@ const options = {
   manager: SudoDockerContainersInstanceManager,
 };
 
-export { options };
+export { options, SudoDockerContainersInstanceManager };

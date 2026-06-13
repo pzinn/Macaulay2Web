@@ -4,6 +4,7 @@ import { Client, userSpecificPath } from "./client";
 import path = require("path");
 import { logger } from "./logger";
 import { staticFolder, unlink, options, sshCredentials } from "./server";
+import { instanceDownloadCandidates } from "./fileTransferPaths";
 
 // note that downloadFromInstance is currently called in two distinct ways: (see in server.ts)
 // * by fileexists request from the client e.g. trying to open a docker file in editor
@@ -98,24 +99,20 @@ const downloadFromInstance = function (
         });
       };
 
-      // determine where and if file exists
-      const relative = !sourceFileName.startsWith("/");
-      if (isRootDirectory) {
-        sourceFileName1 = sourceFileName;
-        checkExists(failure);
-      } else {
-        sourceFileName1 =
-          options.serverConfig.baseDirectory +
-          (relative ? sourceFileName : sourceFileName.substring(1));
+      // Absolute-looking paths may either be relative to the configured base
+      // directory or genuinely absolute, so preserve the historical fallback.
+      const candidates = instanceDownloadCandidates(
+        sourceFileName,
+        options.serverConfig.baseDirectory
+      );
+      const checkCandidate = function (index: number) {
+        sourceFileName1 = candidates[index];
         checkExists(function () {
-          if (relative) failure();
-          else {
-            // annoying subtlety: if relative false, we don't know if path relative or absolute => try both :/
-            sourceFileName1 = sourceFileName;
-            checkExists(failure);
-          }
+          if (index + 1 < candidates.length) checkCandidate(index + 1);
+          else failure();
         });
-      }
+      };
+      checkCandidate(0);
     });
   });
   sshConnection.on("error", function (error) {

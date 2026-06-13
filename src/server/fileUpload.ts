@@ -3,11 +3,7 @@ import ssh2 = require("ssh2");
 import { logger } from "./logger";
 import { unlink, options, sshCredentials } from "./server";
 import path = require("path");
-
-const shellQuote = function (value: string): string {
-  // Single-quote shell escaping: abc'def -> 'abc'"'"'def'
-  return "'" + value.replace(/'/g, "'\"'\"'") + "'";
-};
+import { shellQuote } from "./fileTransferPaths";
 
 const uploadToInstance = function (
   client: Client,

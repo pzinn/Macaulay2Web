@@ -10,6 +10,13 @@ import { uploadToInstance } from "./fileUpload";
 import { webAppTags, completionProtocol } from "../common/tags";
 import { logger } from "./logger";
 import { Socket, Server } from "socket.io";
+import { consumeCompletionOutput } from "./completionOutput";
+import {
+  extractTutorialArchive,
+  isPathInside,
+  sanitizeTutorialFileName,
+} from "./tutorialArchive";
+import { describeMathProgramExit } from "./mathProgramExit";
 
 import Cookie = require("cookie");
 
@@ -21,7 +28,7 @@ const httpServer = http.createServer(app);
 import fs = require("fs");
 import multer = require("multer");
 import url = require("url");
-const { exec, execFile } = require("child_process");
+const { exec } = require("child_process");
 const upload = multer({
   dest: "/tmp/",
   preservePath: true,
@@ -38,60 +45,6 @@ let serverConfig;
 let options;
 const staticFolder = path.join(__dirname, "../../public/");
 const tutorialsFolder = path.join(staticFolder, "tutorials");
-
-const isPathInside = function (
-  basePath: string,
-  candidatePath: string
-): boolean {
-  const relative = path.relative(basePath, candidatePath);
-  return (
-    relative === "" ||
-    (!relative.startsWith("..") && !path.isAbsolute(relative))
-  );
-};
-
-const sanitizeTutorialFileName = function (fileName: string): string | null {
-  if (!fileName) return null;
-  const basename = path.basename(fileName);
-  if (!basename || basename === "." || basename === "..") return null;
-  return basename;
-};
-
-const hasUnsafeTarEntryPath = function (entryPath: string): boolean {
-  if (!entryPath || entryPath.includes("\0")) return true;
-  if (path.posix.isAbsolute(entryPath)) return true;
-  if (/^[A-Za-z]:/.test(entryPath)) return true; // Windows absolute path
-  const normalized = path.posix.normalize(entryPath);
-  return normalized === ".." || normalized.startsWith("../");
-};
-
-const hasUnsafeTarEntryType = function (line: string): boolean {
-  const trimmed = line.trim();
-  if (trimmed === "") return false;
-  const type = trimmed[0];
-  return type === "l" || type === "h"; // symbolic link or hard link
-};
-
-const extractTutorialArchive = function (archivePath: string, next) {
-  execFile("tar", ["-tvzf", archivePath], function (typeError, typeOut) {
-    if (typeError) return next(typeError);
-    const entriesWithType = typeOut.split("\n");
-    if (entriesWithType.some(hasUnsafeTarEntryType)) {
-      return next(new Error("Archive contains unsupported link entries."));
-    }
-    execFile("tar", ["-tzf", archivePath], function (listError, stdout) {
-      if (listError) return next(listError);
-      const entries = stdout
-        .split("\n")
-        .map((x) => x.trim())
-        .filter((x) => x.length > 0);
-      if (entries.some(hasUnsafeTarEntryPath)) {
-        return next(new Error("Archive contains unsafe paths."));
-      }
-      execFile("tar", ["-xzf", archivePath, "-C", tutorialsFolder], next);
-    });
-  });
-};
 
 const sshCredentials = function (instance: Instance): ssh2.ConnectConfig {
   if (instance)
@@ -246,33 +199,16 @@ function notifyMathProgramExit(
 ) {
   if (client.channel === channel) client.channel = null;
   if (expectedChannelCloses.has(channel)) return;
-  if (exitCode === 0 && exitSignal === null) {
+  const exit = describeMathProgramExit(exitCode, exitSignal);
+  if (exit.normal) {
     logger.info("MathProgram exited normally with exit code 0", client);
     return;
   }
-  const exitDetail =
-    typeof exitSignal === "string"
-      ? "signal " + exitSignal
-      : exitCode !== null
-      ? "exit code " + exitCode
-      : "unknown exit status";
-  logger.warn("MathProgram exited unexpectedly with " + exitDetail, client);
-  const userMessage =
-    exitSignal === "SIGKILL"
-      ? "Macaulay2 was killed, probably because it exceeded the memory limit. Press Reset to start a fresh process."
-      : typeof exitSignal === "string"
-      ? "Macaulay2 exited unexpectedly with signal " +
-        exitSignal +
-        ". Press Reset to start a fresh process."
-      : exitCode !== null
-      ? "Macaulay2 exited unexpectedly with exit code " +
-        exitCode +
-        ". Press Reset to start a fresh process."
-      : "Macaulay2 exited unexpectedly. Press Reset to start a fresh process.";
+  logger.warn("MathProgram exited unexpectedly with " + exit.detail, client);
   sendDataToClient(client)(
     webAppTags.Html +
       '<div class="M2Error">' +
-      userMessage +
+      exit.userMessage +
       "</div>" +
       webAppTags.End +
       webAppTags.CellEnd +
@@ -416,97 +352,19 @@ const sendDataToClient = function (client: Client) {
   };
 };
 
-const maxCompletionFrameLength = 200000;
-
-const normalizeCompletionEntry = function (entry) {
-  if (typeof entry === "string") return { name: entry, kind: "" };
-  if (!entry || typeof entry !== "object" || typeof entry.name !== "string")
-    return null;
-  if (entry.name.length == 0 || entry.name.length > 256) return null;
-  return {
-    name: entry.name,
-    kind: typeof entry.kind === "string" ? entry.kind : "",
-  };
-};
-
-const sendCompletionResponseToClient = function (
-  client: Client,
-  payload: string
-) {
-  const tab = payload.indexOf("\t");
-  const id = tab < 0 ? payload : payload.substring(0, tab);
-  if (!id || !/^[A-Za-z0-9_-]{1,96}$/.test(id)) {
-    logger.warn("Dropping malformed completion response", client);
-    return;
-  }
-  let completions = null;
-  try {
-    const rawCompletions = JSON.parse(
-      tab < 0 ? "[]" : payload.substring(tab + 1)
-    );
-    if (Array.isArray(rawCompletions))
-      completions = rawCompletions
-        .map(normalizeCompletionEntry)
-        .filter((entry) => entry !== null);
-  } catch (error) {
-    logger.warn("Dropping malformed completion payload: " + error, client);
-  }
-  emitViaClientSockets(client, "completion-response", {
-    id,
-    completions,
-  });
-};
-
 const sendM2OutputToClient = function (client: Client) {
   const sendOutput = sendDataToClient(client);
-  const completionResponsePrefixLength = function (data: string) {
-    const maxLength = Math.min(
-      data.length,
-      completionProtocol.ResponseStart.length - 1
-    );
-    for (let length = maxLength; length > 0; length--)
-      if (completionProtocol.ResponseStart.startsWith(data.slice(-length)))
-        return length;
-    return 0;
-  };
   return function (dataObject) {
-    let data = client.controlOutputBuffer + dataObject.toString();
-    client.controlOutputBuffer = "";
-    while (data.length > 0) {
-      const start = data.indexOf(completionProtocol.ResponseStart);
-      if (start < 0) {
-        const keep = completionResponsePrefixLength(data);
-        if (keep > 0) {
-          if (data.length > keep) sendOutput(data.slice(0, -keep));
-          client.controlOutputBuffer = data.slice(-keep);
-          return;
-        }
-        sendOutput(data);
-        return;
+    client.controlOutputBuffer = consumeCompletionOutput(
+      client.controlOutputBuffer,
+      dataObject.toString(),
+      {
+        output: sendOutput,
+        response: (response) =>
+          emitViaClientSockets(client, "completion-response", response),
+        warn: (message) => logger.warn(message, client),
       }
-      if (start > 0) {
-        sendOutput(data.substring(0, start));
-        data = data.substring(start);
-      }
-      const end = data.indexOf(
-        completionProtocol.End,
-        completionProtocol.ResponseStart.length
-      );
-      if (end < 0) {
-        if (data.length > maxCompletionFrameLength) {
-          logger.warn("Dropping oversized incomplete completion frame", client);
-          data = data.substring(completionProtocol.ResponseStart.length);
-          continue;
-        }
-        client.controlOutputBuffer = data;
-        return;
-      }
-      sendCompletionResponseToClient(
-        client,
-        data.substring(completionProtocol.ResponseStart.length, end)
-      );
-      data = data.substring(end + 1);
-    }
+    );
   };
 };
 
@@ -734,7 +592,7 @@ const fileUpload = function (request, response) {
       }
       unlink(file.path);
       if (fileName.endsWith(".tar.gz")) {
-        extractTutorialArchive(fileName, (extractError) => {
+        extractTutorialArchive(fileName, tutorialsFolder, (extractError) => {
           unlink(fileName);
           if (!request.body.noreply) {
             if (extractError) {
