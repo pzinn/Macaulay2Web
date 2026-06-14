@@ -171,26 +171,29 @@ describe("terminal WebApp protocol", () => {
     expect(processedLine.classList.contains("is-complete")).toBe(true);
   });
 
-  it("finishes only the discarded submission when another is queued", async () => {
+  it("finishes all buffered input after a delayed parsing error", async () => {
     const { shell, terminal } = await setupShell();
-    shell.postMessage("a=()->(\n\\\nblah\n)");
-    shell.postMessage("next");
+    shell.postMessage("sleep 5");
+    shell.postMessage("@");
+    shell.postMessage("anything here");
 
-    shell.displayOutput(inputCell(["a=()->(", "\\"], true));
+    shell.displayOutput(inputCell(["sleep 5"]));
 
     const lines = Array.from(
       document.querySelectorAll(".terminalProcLine")
     ) as HTMLElement[];
-    expect(lines).toHaveLength(5);
-    expect(
-      lines.slice(0, 4).every((line) => line.classList.contains("is-complete"))
-    ).toBe(true);
-    expect(lines[4].classList.contains("is-complete")).toBe(false);
+    expect(lines).toHaveLength(3);
+    expect(lines[0].classList.contains("is-complete")).toBe(true);
+    expect(lines[1].classList.contains("is-complete")).toBe(false);
+    expect(lines[2].classList.contains("is-complete")).toBe(false);
 
-    shell.displayOutput(inputCell(["next"]));
-    expect(lines[4].classList.contains("is-complete")).toBe(true);
-    expect(pressUp(terminal)).toBe("next");
-    expect(pressUp(terminal)).toBe("a=()->(\n\\");
+    shell.displayOutput(inputCell(["@"], true));
+
+    expect(
+      lines.every((line) => line.classList.contains("is-complete"))
+    ).toBe(true);
+    expect(pressUp(terminal)).toBe("@");
+    expect(pressUp(terminal)).toBe("sleep 5");
   });
 
   it("finishes discarded processed input before the enclosing cell ends", async () => {

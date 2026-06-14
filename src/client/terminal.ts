@@ -155,7 +155,6 @@ const Shell = function (
   else htmlSec = terminal;
 
   const pendingCodeEls = []; // FIFO queue of submitted code awaiting completion
-  let submissionSerial = 0;
   const terminalProcInputLines = document.getElementById(
     "terminalProcInputLines"
   );
@@ -296,11 +295,8 @@ const Shell = function (
     }
   };
 
-  const finishSubmission = function (cell: HTMLElement, submissionId: number) {
-    while (
-      pendingCodeEls.length > 0 &&
-      pendingCodeEls[0].submissionId === submissionId
-    ) {
+  const finishAllPendingInput = function (cell: HTMLElement) {
+    while (pendingCodeEls.length > 0) {
       finishProcessedCodeEl(cell, pendingCodeEls[0]);
       pendingCodeEls.shift();
     }
@@ -310,17 +306,16 @@ const Shell = function (
     closeInputSection(false);
     const cell = activeCell();
     if (!cell || !isTrueInputCell(cell)) return;
-    const submissionId = pendingCodeEls[0]?.submissionId;
     cell.dataset.processedInputFinalized = "true";
     finishProcessedInputForCell(cell);
-    if (submissionId !== undefined) finishSubmission(cell, submissionId);
+    // M2 flushes all input already buffered after a parsing error.
+    finishAllPendingInput(cell);
   };
 
   obj.postMessage = function (msg, el?) {
     // send input, adding \n if necessary
     removeAutoComplete(false, false); // remove autocomplete menu if open
     const clean = sanitizeInput(msg);
-    const submissionId = ++submissionSerial;
     if (!el && terminalProcInputLines) {
       inputSegments(clean).forEach((line) => {
         const lineEl = document.createElement("div");
@@ -328,7 +323,6 @@ const Shell = function (
         lineEl.dataset.m2code = line;
         pendingCodeEls.push(lineEl);
         lineEl.numSegments = 1;
-        lineEl.submissionId = submissionId;
         terminalProcInputLines.appendChild(lineEl);
         scrollProcessedInputDown();
       });
@@ -336,7 +330,6 @@ const Shell = function (
       el.dataset.m2code = clean;
       pendingCodeEls.push(el);
       el.numSegments = countSegments(clean);
-      el.submissionId = submissionId;
     }
     inputSpan.textContent = "";
     scrollDownLeft(terminal);
