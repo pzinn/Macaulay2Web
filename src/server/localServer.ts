@@ -26,8 +26,9 @@ class LocalContainerManager implements InstanceManager {
     next();
   }
 
-  public removeInstanceFromId() {
+  public removeInstanceFromId(clientId: string, next?) {
     // not needed
+    if (next) next();
   }
   public checkInstance = function (instance, next) {
     // not needed

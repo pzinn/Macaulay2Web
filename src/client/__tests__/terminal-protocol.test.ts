@@ -120,6 +120,27 @@ describe("terminal WebApp protocol", () => {
     expect(pressUp(terminal)).toBe(lines.join("\n"));
   });
 
+  it("preserves multiline input when output arrives in several chunks", async () => {
+    const { shell, terminal } = await setupShell();
+    const lines = ["scan(5,i->(", "i", "))"];
+    const stream = inputCell(lines);
+    const boundaries = [
+      stream.indexOf("scan") + 2,
+      stream.indexOf(webAppTags.InputContd) + 1,
+      stream.lastIndexOf(webAppTags.CellEnd),
+    ];
+
+    shell.displayOutput(stream.slice(0, boundaries[0]));
+    shell.displayOutput(stream.slice(boundaries[0], boundaries[1]));
+    shell.displayOutput(stream.slice(boundaries[1], boundaries[2]));
+    shell.displayOutput(stream.slice(boundaries[2]));
+
+    const pastInputs = terminal.querySelectorAll(".M2PastInput");
+    expect(pastInputs).toHaveLength(1);
+    expect(pastInputs[0].textContent).toBe(lines.join("\n") + "\n");
+    expect(pressUp(terminal)).toBe(lines.join("\n"));
+  });
+
   it("does not add input embedded in help output to history", async () => {
     const { shell, terminal } = await setupShell();
 
@@ -133,26 +154,66 @@ describe("terminal WebApp protocol", () => {
     expect(pressUp(terminal)).toBe("");
   });
 
-  it("finishes only the discarded submission when another is queued", async () => {
-    const { shell, terminal } = await setupShell();
-    shell.postMessage("a=()->(\n\\\nblah\n)");
-    shell.postMessage("next");
+  it("does not let input embedded in help complete pending user input", async () => {
+    const { shell } = await setupShell();
+    shell.postMessage("pending()");
 
-    shell.displayOutput(inputCell(["a=()->(", "\\"], true));
+    shell.displayOutput(
+      webAppTags.Html + inputCell(["example input"]) + webAppTags.End
+    );
+
+    const processedLine = document.querySelector(
+      ".terminalProcLine"
+    ) as HTMLElement;
+    expect(processedLine.classList.contains("is-complete")).toBe(false);
+
+    shell.displayOutput(inputCell(["pending()"]));
+    expect(processedLine.classList.contains("is-complete")).toBe(true);
+  });
+
+  it("finishes all buffered input after a delayed parsing error", async () => {
+    const { shell, terminal } = await setupShell();
+    shell.postMessage("sleep 5");
+    shell.postMessage("@");
+    shell.postMessage("anything here");
+
+    shell.displayOutput(inputCell(["sleep 5"]));
 
     const lines = Array.from(
       document.querySelectorAll(".terminalProcLine")
     ) as HTMLElement[];
-    expect(lines).toHaveLength(5);
-    expect(
-      lines.slice(0, 4).every((line) => line.classList.contains("is-complete"))
-    ).toBe(true);
-    expect(lines[4].classList.contains("is-complete")).toBe(false);
+    expect(lines).toHaveLength(3);
+    expect(lines[0].classList.contains("is-complete")).toBe(true);
+    expect(lines[1].classList.contains("is-complete")).toBe(false);
+    expect(lines[2].classList.contains("is-complete")).toBe(false);
 
-    shell.displayOutput(inputCell(["next"]));
-    expect(lines[4].classList.contains("is-complete")).toBe(true);
-    expect(pressUp(terminal)).toBe("next");
-    expect(pressUp(terminal)).toBe("a=()->(\n\\");
+    shell.displayOutput(inputCell(["@"], true));
+
+    expect(
+      lines.every((line) => line.classList.contains("is-complete"))
+    ).toBe(true);
+    expect(pressUp(terminal)).toBe("@");
+    expect(pressUp(terminal)).toBe("sleep 5");
+  });
+
+  it("finishes discarded processed input before the enclosing cell ends", async () => {
+    const { shell } = await setupShell();
+    shell.postMessage("a=()->(\n\\\nblah\n)");
+    const stream = inputCell(["a=()->(", "\\"], true);
+    const cellEnd = stream.lastIndexOf(webAppTags.CellEnd);
+
+    shell.displayOutput(stream.slice(0, cellEnd));
+
+    const lines = Array.from(
+      document.querySelectorAll(".terminalProcLine")
+    ) as HTMLElement[];
+    expect(lines).toHaveLength(4);
+    expect(lines.every((line) => line.classList.contains("is-complete"))).toBe(
+      true
+    );
+
+    shell.displayOutput(stream.slice(cellEnd));
+    expect(document.querySelectorAll(".M2PastInput")).toHaveLength(1);
   });
 
   it("does not reserve an EvaluationEnd control character", () => {

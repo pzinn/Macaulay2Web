@@ -2,19 +2,13 @@ import { Client } from "./client";
 import ssh2 = require("ssh2");
 import { logger } from "./logger";
 import { options, sshCredentials } from "./server";
-
-const normalizeInstancePath = function (fileName: string): string | null {
-  if (!fileName || fileName === "." || fileName === "./") return null;
-  if (fileName.indexOf("\0") >= 0) return null;
-  if (fileName.startsWith("tutorials/") || fileName === "tutorials")
-    return null;
-  if (!fileName.startsWith("/"))
-    return options.serverConfig.baseDirectory + fileName;
-  return fileName;
-};
+import { normalizeInstancePath } from "./fileTransferPaths";
 
 const deleteFromInstance = function (client: Client, fileName: string, next) {
-  const targetPath = normalizeInstancePath(fileName);
+  const targetPath = normalizeInstancePath(
+    fileName,
+    options.serverConfig.baseDirectory
+  );
   if (!targetPath || !client.instance || !client.instance.host) {
     return next("Invalid file name.", true);
   }
