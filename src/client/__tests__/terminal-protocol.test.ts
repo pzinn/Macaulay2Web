@@ -154,6 +154,46 @@ describe("terminal WebApp protocol", () => {
     expect(pressUp(terminal)).toBe("");
   });
 
+  it("links loaded M2 files in past input to the editor", async () => {
+    Prism.languages.macaulay2 = {
+      string: /"(?:\\[\s\S]|(?!")[^\\])*"/,
+      function: /\b(?:input|load|needs|needsPackage)\b/,
+    };
+    const { shell, terminal } = await setupShell();
+
+    shell.displayOutput(
+      inputCell([
+        'load "myfile.m2"; needs "dir/other file.m2"; needsPackage "Graphs"',
+      ])
+    );
+
+    const links = Array.from(
+      terminal.querySelectorAll(".M2PastInput a.editor-file-link")
+    ) as HTMLAnchorElement[];
+    expect(links.map((link) => link.textContent)).toEqual([
+      '"myfile.m2"',
+      '"dir/other file.m2"',
+    ]);
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      "#editor:myfile.m2",
+      "#editor:dir/other%20file.m2",
+    ]);
+  });
+
+  it("does not link arbitrary strings or non-M2 load targets", async () => {
+    Prism.languages.macaulay2 = {
+      string: /"(?:\\[\s\S]|(?!")[^\\])*"/,
+      function: /\b(?:input|load|needs)\b/,
+    };
+    const { shell, terminal } = await setupShell();
+
+    shell.displayOutput(inputCell(['print "myfile.m2"; load "README"']));
+
+    expect(
+      terminal.querySelector(".M2PastInput a.editor-file-link")
+    ).toBeNull();
+  });
+
   it("does not let input embedded in help complete pending user input", async () => {
     const { shell } = await setupShell();
     shell.postMessage("pending()");

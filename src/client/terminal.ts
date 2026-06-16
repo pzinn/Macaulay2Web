@@ -202,6 +202,44 @@ const Shell = function (
   const countSegments = (s) => inputSegments(s).length;
   let continuationCandidate: HTMLElement = null;
 
+  const decodeM2StringLiteral = function (literal: string): string | null {
+    if (!/^"(?:\\[\s\S]|[^\\"])*"$/.test(literal)) return null;
+    return literal
+      .slice(1, -1)
+      .replace(/\\(["\\])/g, "$1")
+      .replace(/\\n/g, "\n")
+      .replace(/\\t/g, "\t");
+  };
+
+  const editorHashForFile = function (fileName: string) {
+    return "#editor:" + encodeURI(fileName).replace(/#/g, "%23");
+  };
+
+  const linkPastInputFileNames = function (input: HTMLElement) {
+    const text = input.textContent;
+    let searchStart = 0;
+    Array.from(
+      input.querySelectorAll(".token.string") as NodeListOf<HTMLElement>
+    ).forEach((stringToken) => {
+      const literal = stringToken.textContent;
+      const start = text.indexOf(literal, searchStart);
+      if (start < 0) return;
+      searchStart = start + literal.length;
+
+      if (!/(^|[^\w])(?:load|input|needs)\s*$/.test(text.slice(0, start)))
+        return;
+      const fileName = decodeM2StringLiteral(literal);
+      if (!fileName || !/\.m2$/i.test(fileName)) return;
+
+      const link = document.createElement("a");
+      link.classList.add("editor-file-link");
+      link.href = editorHashForFile(fileName);
+      link.textContent = literal;
+      stringToken.textContent = "";
+      stringToken.appendChild(link);
+    });
+  };
+
   const closeInputSection = function (allowContinuation = true) {
     if (htmlSec.classList.contains("M2Input")) {
       continuationCandidate = allowContinuation ? htmlSec : null;
@@ -677,6 +715,7 @@ const Shell = function (
         htmlSec.textContent,
         Prism.languages.macaulay2
       );
+      linkPastInputFileNames(htmlSec);
       htmlSec.classList.add("M2PastInput");
     } else if (htmlSec.classList.contains("M2Html")) {
       // first things first: make sure we don't mess with input (interrupts, tasks, etc, can display unexpectedly)

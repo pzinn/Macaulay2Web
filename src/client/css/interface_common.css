@@ -503,6 +503,12 @@ pre > code, code.block { /* code block */
     cursor: pointer;
 }
 
+.M2PastInput a.editor-file-link {
+    color: var(--text-link);
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
+}
+
 /*code:active, .M2PastInput:active {*/
 .codetrigger { /* modified so can be actived or not programmatically */
     transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */
