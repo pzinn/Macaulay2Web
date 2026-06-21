@@ -216,27 +216,20 @@ const Shell = function (
   };
 
   const linkPastInputFileNames = function (input: HTMLElement) {
-    const text = input.textContent;
-    let searchStart = 0;
     Array.from(
       input.querySelectorAll(".token.string") as NodeListOf<HTMLElement>
     ).forEach((stringToken) => {
       const literal = stringToken.textContent;
-      const start = text.indexOf(literal, searchStart);
-      if (start < 0) return;
-      searchStart = start + literal.length;
-
-      if (!/(^|[^\w])(?:load|input|needs)\s*$/.test(text.slice(0, start)))
-        return;
       const fileName = decodeM2StringLiteral(literal);
       if (!fileName || !/\.m2$/i.test(fileName)) return;
 
       const link = document.createElement("a");
       link.classList.add("editor-file-link");
       link.href = editorHashForFile(fileName);
-      link.textContent = literal;
-      stringToken.textContent = "";
-      stringToken.appendChild(link);
+      link.title = "Open in editor";
+      link.setAttribute("aria-label", "Open " + fileName + " in editor");
+      stringToken.classList.add("has-editor-file-link");
+      stringToken.insertBefore(link, stringToken.firstChild);
     });
   };
 
@@ -710,6 +703,7 @@ const Shell = function (
         htmlSec.parentElement.dataset.positions = " ";
       htmlSec.parentElement.dataset.positions += htmlSec.dataset.code + " ";
     } else if (htmlSec.classList.contains("M2Input")) {
+      htmlSec.dataset.m2code = htmlSec.textContent;
       // highlight
       htmlSec.innerHTML = Prism.highlight(
         htmlSec.textContent,

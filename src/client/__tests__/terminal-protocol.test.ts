@@ -154,40 +154,47 @@ describe("terminal WebApp protocol", () => {
     expect(pressUp(terminal)).toBe("");
   });
 
-  it("links loaded M2 files in past input to the editor", async () => {
+  it("adds editor badges to M2 file strings in past input", async () => {
     Prism.languages.macaulay2 = {
       string: /"(?:\\[\s\S]|(?!")[^\\])*"/,
-      function: /\b(?:input|load|needs|needsPackage)\b/,
     };
     const { shell, terminal } = await setupShell();
 
     shell.displayOutput(
       inputCell([
-        'load "myfile.m2"; needs "dir/other file.m2"; needsPackage "Graphs"',
+        'load "myfile.m2"; print "dir/other file.m2"; needsPackage "Graphs"',
       ])
     );
 
     const links = Array.from(
       terminal.querySelectorAll(".M2PastInput a.editor-file-link")
     ) as HTMLAnchorElement[];
-    expect(links.map((link) => link.textContent)).toEqual([
-      '"myfile.m2"',
-      '"dir/other file.m2"',
-    ]);
+    expect(links.map((link) => link.textContent)).toEqual(["", ""]);
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
       "#editor:myfile.m2",
       "#editor:dir/other%20file.m2",
     ]);
+    expect(links.map((link) => link.getAttribute("aria-label"))).toEqual([
+      "Open myfile.m2 in editor",
+      "Open dir/other file.m2 in editor",
+    ]);
+    expect(terminal.querySelector(".M2PastInput").textContent).toBe(
+      'load "myfile.m2"; print "dir/other file.m2"; needsPackage "Graphs"\n'
+    );
+    expect(
+      (terminal.querySelector(".M2PastInput") as HTMLElement).dataset.m2code
+    ).toBe(
+      'load "myfile.m2"; print "dir/other file.m2"; needsPackage "Graphs"\n'
+    );
   });
 
-  it("does not link arbitrary strings or non-M2 load targets", async () => {
+  it("does not add editor badges to non-M2 strings", async () => {
     Prism.languages.macaulay2 = {
       string: /"(?:\\[\s\S]|(?!")[^\\])*"/,
-      function: /\b(?:input|load|needs)\b/,
     };
     const { shell, terminal } = await setupShell();
 
-    shell.displayOutput(inputCell(['print "myfile.m2"; load "README"']));
+    shell.displayOutput(inputCell(['print "README"; load "file.txt"']));
 
     expect(
       terminal.querySelector(".M2PastInput a.editor-file-link")
