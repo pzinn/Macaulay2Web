@@ -154,6 +154,53 @@ describe("terminal WebApp protocol", () => {
     expect(pressUp(terminal)).toBe("");
   });
 
+  it("adds editor badges to M2 file strings in past input", async () => {
+    Prism.languages.macaulay2 = {
+      string: /"(?:\\[\s\S]|(?!")[^\\])*"/,
+    };
+    const { shell, terminal } = await setupShell();
+
+    shell.displayOutput(
+      inputCell([
+        'load "myfile.m2"; print "dir/other file.m2"; needsPackage "Graphs"',
+      ])
+    );
+
+    const links = Array.from(
+      terminal.querySelectorAll(".M2PastInput a.editor-file-link")
+    ) as HTMLAnchorElement[];
+    expect(links.map((link) => link.textContent)).toEqual(["", ""]);
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      "#editor:myfile.m2",
+      "#editor:dir/other%20file.m2",
+    ]);
+    expect(links.map((link) => link.getAttribute("aria-label"))).toEqual([
+      "Open myfile.m2 in editor",
+      "Open dir/other file.m2 in editor",
+    ]);
+    expect(terminal.querySelector(".M2PastInput").textContent).toBe(
+      'load "myfile.m2"; print "dir/other file.m2"; needsPackage "Graphs"\n'
+    );
+    expect(
+      (terminal.querySelector(".M2PastInput") as HTMLElement).dataset.m2code
+    ).toBe(
+      'load "myfile.m2"; print "dir/other file.m2"; needsPackage "Graphs"\n'
+    );
+  });
+
+  it("does not add editor badges to non-M2 strings", async () => {
+    Prism.languages.macaulay2 = {
+      string: /"(?:\\[\s\S]|(?!")[^\\])*"/,
+    };
+    const { shell, terminal } = await setupShell();
+
+    shell.displayOutput(inputCell(['print "README"; load "file.txt"']));
+
+    expect(
+      terminal.querySelector(".M2PastInput a.editor-file-link")
+    ).toBeNull();
+  });
+
   it("does not let input embedded in help complete pending user input", async () => {
     const { shell } = await setupShell();
     shell.postMessage("pending()");

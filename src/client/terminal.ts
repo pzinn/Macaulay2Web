@@ -202,6 +202,37 @@ const Shell = function (
   const countSegments = (s) => inputSegments(s).length;
   let continuationCandidate: HTMLElement = null;
 
+  const decodeM2StringLiteral = function (literal: string): string | null {
+    if (!/^"(?:\\[\s\S]|[^\\"])*"$/.test(literal)) return null;
+    return literal
+      .slice(1, -1)
+      .replace(/\\(["\\])/g, "$1")
+      .replace(/\\n/g, "\n")
+      .replace(/\\t/g, "\t");
+  };
+
+  const editorHashForFile = function (fileName: string) {
+    return "#editor:" + encodeURI(fileName).replace(/#/g, "%23");
+  };
+
+  const linkPastInputFileNames = function (input: HTMLElement) {
+    Array.from(
+      input.querySelectorAll(".token.string") as NodeListOf<HTMLElement>
+    ).forEach((stringToken) => {
+      const literal = stringToken.textContent;
+      const fileName = decodeM2StringLiteral(literal);
+      if (!fileName || !/\.m2$/i.test(fileName)) return;
+
+      const link = document.createElement("a");
+      link.classList.add("editor-file-link");
+      link.href = editorHashForFile(fileName);
+      link.title = "Open in editor";
+      link.setAttribute("aria-label", "Open " + fileName + " in editor");
+      stringToken.classList.add("has-editor-file-link");
+      stringToken.insertBefore(link, stringToken.firstChild);
+    });
+  };
+
   const closeInputSection = function (allowContinuation = true) {
     if (htmlSec.classList.contains("M2Input")) {
       continuationCandidate = allowContinuation ? htmlSec : null;
@@ -672,11 +703,13 @@ const Shell = function (
         htmlSec.parentElement.dataset.positions = " ";
       htmlSec.parentElement.dataset.positions += htmlSec.dataset.code + " ";
     } else if (htmlSec.classList.contains("M2Input")) {
+      htmlSec.dataset.m2code = htmlSec.textContent;
       // highlight
       htmlSec.innerHTML = Prism.highlight(
         htmlSec.textContent,
         Prism.languages.macaulay2
       );
+      linkPastInputFileNames(htmlSec);
       htmlSec.classList.add("M2PastInput");
     } else if (htmlSec.classList.contains("M2Html")) {
       // first things first: make sure we don't mess with input (interrupts, tasks, etc, can display unexpectedly)

@@ -503,6 +503,37 @@ pre > code, code.block { /* code block */
     cursor: pointer;
 }
 
+.M2PastInput .has-editor-file-link {
+    position: relative;
+}
+
+.M2PastInput a.editor-file-link {
+    position: absolute;
+    left: 0;
+    bottom: 2em;
+    display: inline-block;
+    padding: 0 0.3em;
+    border-radius: 0.3em;
+    color: var(--text-link);
+    background: var(--bg-surface);
+    box-shadow: 0 0 0 0.08em var(--bg-code-hover);
+    font-family: "Epilogue";
+    font-size: 0.65em;
+    line-height: 1.25;
+    text-decoration: none;
+    z-index: 2;
+}
+
+.M2PastInput a.editor-file-link::before {
+    content: "editor";
+}
+
+.M2PastInput a.editor-file-link:hover,
+.M2PastInput a.editor-file-link:focus-visible {
+    background: var(--bg-code-hover);
+    outline: none;
+}
+
 /*code:active, .M2PastInput:active {*/
 .codetrigger { /* modified so can be actived or not programmatically */
     transition: background-color 0ms; /* clicking should instantly change color, otherwise won't even reach color before button released */

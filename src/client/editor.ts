@@ -429,44 +429,97 @@ const removeDelimiterHighlight = function (el) {
 const openingDelimiters = "([{";
 const closingDelimiters = ")]}";
 
+const isEscaped = function (input: string, pos: number) {
+  let backslashes = 0;
+  for (let i = pos - 1; i >= 0 && input[i] == "\\"; i--) backslashes++;
+  return backslashes % 2 == 1;
+};
+
+interface LexInfo {
+  code: boolean[];
+  quoteMatches: Map<number, number>;
+}
+
+const markNonCode = function (code: boolean[], start: number, end: number) {
+  for (let i = start; i < end; i++) code[i] = false;
+};
+
+const analyzeM2Text = function (input: string): LexInfo {
+  const code = Array(input.length).fill(true);
+  const quoteMatches = new Map<number, number>();
+  let i = 0;
+  while (i < input.length) {
+    if (input.startsWith("--", i)) {
+      const end = input.indexOf("\n", i + 2);
+      markNonCode(code, i, end < 0 ? input.length : end);
+      i = end < 0 ? input.length : end;
+    } else if (input.startsWith("-*", i)) {
+      const end = input.indexOf("*-", i + 2);
+      const stop = end < 0 ? input.length : end + 2;
+      markNonCode(code, i, stop);
+      i = stop;
+    } else if (input.startsWith("///", i)) {
+      const end = input.indexOf("///", i + 3);
+      const stop = end < 0 ? input.length : end + 3;
+      markNonCode(code, i, stop);
+      i = stop;
+    } else if (input[i] == '"') {
+      const start = i;
+      i++;
+      while (
+        i < input.length &&
+        !(input[i] == '"' && !isEscaped(input, i))
+      )
+        i++;
+      const stop = i < input.length ? i + 1 : input.length;
+      markNonCode(code, start, stop);
+      if (i < input.length) {
+        quoteMatches.set(start, i);
+        quoteMatches.set(i, start);
+      }
+      i = stop;
+    } else i++;
+  }
+  return { code, quoteMatches };
+};
+
+const matchingOpeningDelimiter = function (closing: string) {
+  return openingDelimiters[closingDelimiters.indexOf(closing)];
+};
+
+const matchingClosingDelimiter = function (opening: string) {
+  return closingDelimiters[openingDelimiters.indexOf(opening)];
+};
+
 const delimiterHandling = function (el) {
   const sel = window.getSelection();
   if (!sel.isCollapsed) return;
-  const pos = sel.anchorOffset;
-  if (pos == 0) return;
-  const key = sel.anchorNode.textContent[pos - 1];
+  const input = el.textContent;
+  const pos = getCaret(el);
+  if (pos === null || pos == 0) return;
+  const key = input[pos - 1];
+  const info = analyzeM2Text(input);
   if (key == '"') {
-    quoteHandling(key, el);
+    quoteHandling(pos - 1, el, info);
     return;
   }
   let index = closingDelimiters.indexOf(key);
   if (index >= 0) {
-    closingDelimiterHandling(index, el);
+    closingDelimiterHandling(pos - 1, el, info);
     return;
   }
   index = openingDelimiters.indexOf(key);
   if (index >= 0) {
-    openingDelimiterHandling(index, el);
+    openingDelimiterHandling(pos - 1, el, info);
     return;
   }
 };
 
 // quotes need to be treated separately
-const quoteHandling = function (quote, el) {
-  const pos = getCaret(el) - 1;
-  const input = el.textContent;
-  if (pos > 0 && input[pos - 1] == "\\") return true; // \" does not trigger highlighting
-  let flag = true;
-  let last = -1;
-  let i;
-  for (i = 0; i < pos; i++)
-    if (input[i] == quote && (i == 0 || input[i - 1] != "\\")) {
-      flag = !flag;
-      last = i;
-    }
-  if (flag) return true; // opening " -- does not try to check, too confusing
-  // otherwise, closing "
-  addMarkerEl(el, last).classList.add("valid-marker");
+const quoteHandling = function (pos: number, el, info: LexInfo) {
+  const match = info.quoteMatches.get(pos);
+  if (match === undefined) return true;
+  addMarkerEl(el, match).classList.add("valid-marker");
   //	marker.dataset.content=quote;
   addMarkerEl(el, pos).classList.add("valid-marker");
   //	marker.dataset.content=quote;
@@ -474,76 +527,66 @@ const quoteHandling = function (quote, el) {
   return true;
 };
 
-const closingDelimiterHandling = function (index, el) {
-  const pos = getCaret(el) - 1;
-
+const closingDelimiterHandling = function (pos: number, el, info: LexInfo) {
   const input = el.textContent;
-  let i, j;
-  const depth = [];
-  for (i = 0; i < openingDelimiters.length; i++) depth.push(i == index ? 1 : 0);
-  i = pos;
-  while (i > 0 && depth[index] > 0) {
-    i--;
-    j = openingDelimiters.indexOf(input[i]);
-    if (j >= 0) {
-      if (openingDelimiters[j] == closingDelimiters[j]) {
-        if (i == 0 || input[i - 1] != "\\")
-          // ignore \"
-          depth[j] = 1 - depth[j];
-      } else {
-        depth[j]--;
-        if (depth[j] < 0) break;
+  if (!info.code[pos]) return true;
+  const expectedOpening = matchingOpeningDelimiter(input[pos]);
+  const stack = [];
+  for (let i = 0; i <= pos; i++) {
+    if (!info.code[i]) continue;
+    if (openingDelimiters.indexOf(input[i]) >= 0) stack.push(i);
+    else if (closingDelimiters.indexOf(input[i]) >= 0) {
+      const openingPos = stack.pop();
+      if (i == pos) {
+        if (
+          openingPos !== undefined &&
+          input[openingPos] == expectedOpening
+        ) {
+          addMarkerEl(el, openingPos).classList.add("valid-marker");
+          addMarkerEl(el, pos).classList.add("valid-marker");
+        } else addMarkerEl(el, pos).classList.add("error-marker");
+        setCaret(el, pos + 1);
+        return true;
       }
-    } else {
-      j = closingDelimiters.indexOf(input[i]);
-      if (j >= 0) depth[j]++;
     }
   }
-  if (depth.every((val) => val == 0)) {
-    addMarkerEl(el, i).classList.add("valid-marker");
-    addMarkerEl(el, pos).classList.add("valid-marker");
-  } else addMarkerEl(el, pos).classList.add("error-marker");
+  addMarkerEl(el, pos).classList.add("error-marker");
   setCaret(el, pos + 1);
   return true;
 };
 
-const openingDelimiterHandling = function (index, el) {
-  const pos = getCaret(el) - 1;
+const openingDelimiterHandling = function (pos: number, el, info: LexInfo) {
   const input = el.textContent;
-  let i, j;
-  const depth = [];
-  for (i = 0; i < openingDelimiters.length; i++) depth.push(i == index ? 1 : 0);
-  i = pos;
-  while (i < input.length - 1 && depth[index] > 0) {
-    i++;
-    j = closingDelimiters.indexOf(input[i]);
-    if (j >= 0) {
-      if (openingDelimiters[j] == closingDelimiters[j]) {
-        if (i == 0 || input[i - 1] != "\\")
-          // ignore \"
-          depth[j] = 1 - depth[j];
-      } else {
-        depth[j]--;
-        if (depth[j] < 0) break;
+  if (!info.code[pos]) return true;
+  const stack = [pos];
+  for (let i = pos + 1; i < input.length; i++) {
+    if (!info.code[i]) continue;
+    if (openingDelimiters.indexOf(input[i]) >= 0) stack.push(i);
+    else if (closingDelimiters.indexOf(input[i]) >= 0) {
+      const openingPos = stack.pop();
+      if (
+        openingPos === undefined ||
+        matchingClosingDelimiter(input[openingPos]) != input[i]
+      )
+        break;
+      if (stack.length == 0) {
+        addMarkerEl(el, pos).classList.add("valid-marker");
+        addMarkerEl(el, i).classList.add("valid-marker");
+        break;
       }
-    } else {
-      j = openingDelimiters.indexOf(input[i]);
-      if (j >= 0) depth[j]++;
     }
   }
-  if (depth.every((val) => val == 0)) {
-    addMarkerEl(el, pos).classList.add("valid-marker");
-    addMarkerEl(el, i).classList.add("valid-marker");
-  } // we never throw an error on an opening delimiter -- it's assumed more input is coming
+  // we never throw an error on an opening delimiter -- it's assumed more input is coming
   setCaret(el, pos + 1);
   return true;
 };
 
 const M2indent = 4;
 
-const delimLevel = function (s, start, end) {
+const delimLevel = function (s, start, end, info: LexInfo) {
   let level = 0;
   for (let k = start; k < end; k++) {
+    if (!info.code[k]) continue;
     if (openingDelimiters.indexOf(s[k]) >= 0) level++;
     else if (closingDelimiters.indexOf(s[k]) >= 0) level--;
   }
@@ -553,6 +596,7 @@ const delimLevel = function (s, start, end) {
 const autoIndent = function (el) {
   //  const t = Date.now();
   const input = el.textContent;
+  const info = analyzeM2Text(input);
   const sel = window.getSelection() as any;
   let pos = getCaret2(el); // start and end
   if (pos === null) return;
@@ -572,7 +616,7 @@ const autoIndent = function (el) {
     else break; // other exotic spaces?
     pos0++;
   }
-  indent += delimLevel(input, pos0, indStart - 1) * M2indent;
+  indent += delimLevel(input, pos0, indStart - 1, info) * M2indent;
   if (indent < 0) indent = 0;
   let pos1 = indStart; // keep track of current position in input
   sel.collapseToStart();
@@ -624,7 +668,7 @@ const autoIndent = function (el) {
       }
     }
     if (pos3 + 1 >= indEnd) break;
-    indent += delimLevel(input, pos2, pos4) * M2indent; // if (indent<0) indent=0;
+    indent += delimLevel(input, pos2, pos4, info) * M2indent; // if (indent<0) indent=0;
     pos1 = pos3 + 1; // start of next line
   }
   //  console.log(Date.now() - t);
