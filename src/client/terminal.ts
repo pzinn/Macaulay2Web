@@ -78,7 +78,8 @@ const Shell = function (
   ) => void,
   editor: HTMLElement,
   iFrame: HTMLFrameElement,
-  createInputSpan: boolean
+  createInputSpan: boolean,
+  postProcessPastInput?: (input: HTMLElement) => void
 ) {
   // Shell is an old-style javascript oop constructor
   // we're using arguments as private variables, cf
@@ -201,37 +202,6 @@ const Shell = function (
   const inputSegments = (s) => s.match(/[^\n]+/g) || [];
   const countSegments = (s) => inputSegments(s).length;
   let continuationCandidate: HTMLElement = null;
-
-  const decodeM2StringLiteral = function (literal: string): string | null {
-    if (!/^"(?:\\[\s\S]|[^\\"])*"$/.test(literal)) return null;
-    return literal
-      .slice(1, -1)
-      .replace(/\\(["\\])/g, "$1")
-      .replace(/\\n/g, "\n")
-      .replace(/\\t/g, "\t");
-  };
-
-  const editorHashForFile = function (fileName: string) {
-    return "#editor:" + encodeURI(fileName).replace(/#/g, "%23");
-  };
-
-  const linkPastInputFileNames = function (input: HTMLElement) {
-    Array.from(
-      input.querySelectorAll(".token.string") as NodeListOf<HTMLElement>
-    ).forEach((stringToken) => {
-      const literal = stringToken.textContent;
-      const fileName = decodeM2StringLiteral(literal);
-      if (!fileName || !/\.m2$/i.test(fileName)) return;
-
-      const link = document.createElement("a");
-      link.classList.add("editor-file-link");
-      link.href = editorHashForFile(fileName);
-      link.title = "Open in editor";
-      link.setAttribute("aria-label", "Open " + fileName + " in editor");
-      stringToken.classList.add("has-editor-file-link");
-      stringToken.insertBefore(link, stringToken.firstChild);
-    });
-  };
 
   const closeInputSection = function (allowContinuation = true) {
     if (htmlSec.classList.contains("M2Input")) {
@@ -709,7 +679,7 @@ const Shell = function (
         htmlSec.textContent,
         Prism.languages.macaulay2
       );
-      linkPastInputFileNames(htmlSec);
+      if (postProcessPastInput) postProcessPastInput(htmlSec);
       htmlSec.classList.add("M2PastInput");
     } else if (htmlSec.classList.contains("M2Html")) {
       // first things first: make sure we don't mess with input (interrupts, tasks, etc, can display unexpectedly)

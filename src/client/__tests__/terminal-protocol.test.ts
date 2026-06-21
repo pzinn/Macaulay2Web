@@ -9,7 +9,15 @@ vi.mock("../tutorials", () => ({
   processTutorialOutput: vi.fn(),
 }));
 
+vi.mock("../main", () => ({
+  clientId: "test",
+  myshell: null,
+  socket: null,
+  url: new URL("http://localhost/"),
+}));
+
 import { webAppRegex, webAppTags } from "../../common/tags";
+import { linkPastInputFileNames } from "../extra";
 import { Shell } from "../terminal";
 
 const position = (row: number) =>
@@ -43,7 +51,9 @@ const setCaretAtEnd = (el: HTMLElement) => {
   selection.addRange(range);
 };
 
-const setupShell = async () => {
+const setupShell = async (
+  postProcessPastInput?: (input: HTMLElement) => void
+) => {
   document.body.innerHTML = `
     <div id="terminalProcInput">
       <div id="terminalProcInputLines"></div>
@@ -61,7 +71,8 @@ const setupShell = async () => {
     undefined,
     document.getElementById("editorDiv"),
     document.getElementById("browseFrame"),
-    true
+    true,
+    postProcessPastInput
   );
   return { shell, terminal, emitInput };
 };
@@ -158,7 +169,7 @@ describe("terminal WebApp protocol", () => {
     Prism.languages.macaulay2 = {
       string: /"(?:\\[\s\S]|(?!")[^\\])*"/,
     };
-    const { shell, terminal } = await setupShell();
+    const { shell, terminal } = await setupShell(linkPastInputFileNames);
 
     shell.displayOutput(
       inputCell([
@@ -192,7 +203,7 @@ describe("terminal WebApp protocol", () => {
     Prism.languages.macaulay2 = {
       string: /"(?:\\[\s\S]|(?!")[^\\])*"/,
     };
-    const { shell, terminal } = await setupShell();
+    const { shell, terminal } = await setupShell(linkPastInputFileNames);
 
     shell.displayOutput(inputCell(['print "README"; load "file.txt"']));
 
@@ -236,9 +247,9 @@ describe("terminal WebApp protocol", () => {
 
     shell.displayOutput(inputCell(["@"], true));
 
-    expect(
-      lines.every((line) => line.classList.contains("is-complete"))
-    ).toBe(true);
+    expect(lines.every((line) => line.classList.contains("is-complete"))).toBe(
+      true
+    );
     expect(pressUp(terminal)).toBe("@");
     expect(pressUp(terminal)).toBe("sleep 5");
   });

@@ -4,7 +4,13 @@ declare const MINIMAL;
 
 import { Socket as Socket0, io } from "socket.io-client";
 
-import { extra1, extra2, getCookieId, setCookieId } from "./extra";
+import {
+  extra1,
+  extra2,
+  getCookieId,
+  linkPastInputFileNames,
+  setCookieId,
+} from "./extra";
 import { syncChat } from "./chat";
 
 type Socket = Socket0 & { oldEmit?: any };
@@ -413,7 +419,8 @@ const init2 = function () {
     requestDynamicCompletions,
     document.getElementById("editorDiv"),
     document.getElementById("browseFrame") as HTMLFrameElement,
-    true
+    true,
+    MINIMAL ? undefined : linkPastInputFileNames
   );
 
   socket.connect();
