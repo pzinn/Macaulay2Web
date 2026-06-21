@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { delimiterHandling } from "../editor";
+import { autoIndent, delimiterHandling } from "../editor";
 import { setCaret } from "../htmlTools";
 
 const setupEditor = function (text: string, caret = text.length) {
@@ -19,6 +19,26 @@ const markerClasses = function (editor: HTMLElement) {
     valid: marker.classList.contains("valid-marker"),
     error: marker.classList.contains("error-marker"),
   }));
+};
+
+const installExecCommandMock = function () {
+  Object.defineProperty(document, "execCommand", {
+    configurable: true,
+    value: vi.fn((command: string, _showUI?: boolean, value?: string) => {
+      if (command !== "insertText") return true;
+      const selection = window.getSelection();
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      const node = document.createTextNode(value || "");
+      range.insertNode(node);
+      range.setStartAfter(node);
+      range.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      return true;
+    }),
+  });
+  return document.execCommand as any;
 };
 
 describe("delimiter handling", () => {
@@ -84,5 +104,43 @@ describe("delimiter handling", () => {
     const editor = setupEditor("f([)");
 
     expect(markerClasses(editor)).toEqual([{ valid: false, error: true }]);
+  });
+
+  it("autoindents after delimiters in code", () => {
+    const execCommand = installExecCommandMock();
+    const editor = setupEditor("f(\n");
+
+    autoIndent(editor);
+
+    expect(editor.textContent).toBe("f(\n    ");
+    expect(execCommand).toHaveBeenCalledWith("insertText", false, "    ");
+  });
+
+  it("does not autoindent after delimiters inside strings", () => {
+    const execCommand = installExecCommandMock();
+    const editor = setupEditor('print "("\n');
+
+    autoIndent(editor);
+
+    expect(editor.textContent).toBe('print "("\n');
+    expect(execCommand).not.toHaveBeenCalledWith(
+      "insertText",
+      false,
+      expect.any(String)
+    );
+  });
+
+  it("does not autoindent after delimiters inside comments", () => {
+    const execCommand = installExecCommandMock();
+    const editor = setupEditor("-- (\n");
+
+    autoIndent(editor);
+
+    expect(editor.textContent).toBe("-- (\n");
+    expect(execCommand).not.toHaveBeenCalledWith(
+      "insertText",
+      false,
+      expect.any(String)
+    );
   });
 });

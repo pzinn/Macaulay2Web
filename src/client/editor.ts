@@ -583,9 +583,10 @@ const openingDelimiterHandling = function (pos: number, el, info: LexInfo) {
 
 const M2indent = 4;
 
-const delimLevel = function (s, start, end) {
+const delimLevel = function (s, start, end, info: LexInfo) {
   let level = 0;
   for (let k = start; k < end; k++) {
+    if (!info.code[k]) continue;
     if (openingDelimiters.indexOf(s[k]) >= 0) level++;
     else if (closingDelimiters.indexOf(s[k]) >= 0) level--;
   }
@@ -595,6 +596,7 @@ const delimLevel = function (s, start, end) {
 const autoIndent = function (el) {
   //  const t = Date.now();
   const input = el.textContent;
+  const info = analyzeM2Text(input);
   const sel = window.getSelection() as any;
   let pos = getCaret2(el); // start and end
   if (pos === null) return;
@@ -614,7 +616,7 @@ const autoIndent = function (el) {
     else break; // other exotic spaces?
     pos0++;
   }
-  indent += delimLevel(input, pos0, indStart - 1) * M2indent;
+  indent += delimLevel(input, pos0, indStart - 1, info) * M2indent;
   if (indent < 0) indent = 0;
   let pos1 = indStart; // keep track of current position in input
   sel.collapseToStart();
@@ -666,7 +668,7 @@ const autoIndent = function (el) {
       }
     }
     if (pos3 + 1 >= indEnd) break;
-    indent += delimLevel(input, pos2, pos4) * M2indent; // if (indent<0) indent=0;
+    indent += delimLevel(input, pos2, pos4, info) * M2indent; // if (indent<0) indent=0;
     pos1 = pos3 + 1; // start of next line
   }
   //  console.log(Date.now() - t);
