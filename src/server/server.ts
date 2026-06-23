@@ -24,7 +24,6 @@ import express = require("express");
 const app = express();
 import http = require("http");
 import https = require("https");
-const httpServer = http.createServer(app);
 import fs = require("fs");
 import multer = require("multer");
 import url = require("url");
@@ -37,7 +36,7 @@ const upload = multer({
 import ssh2 = require("ssh2");
 
 //import socketio = require("socket.io");
-const io = new Server(httpServer, { pingTimeout: 30000 });
+let io: Server;
 
 import path = require("path");
 let getClientId;
@@ -890,8 +889,8 @@ const validateId = function (s): string {
   return s == "" ? undefined : s;
 };
 
-const listen = function () {
-  io.on("connection", function (socket: Socket) {
+const attachSocketHandlers = function (socketServer: Server) {
+  socketServer.on("connection", function (socket: Socket) {
     logger.info("Incoming new connection");
     const version = socket.handshake.query.version;
     if (options.version && version != options.version) {
@@ -933,10 +932,47 @@ const listen = function () {
     socket.on("fileexists", socketFileExists(socket, client));
     socket.on("deletefile", socketDeleteFile(socket, client));
   });
+};
 
+const listenHttp = function () {
+  const httpServer = http.createServer(app);
+  io = new Server(httpServer, { pingTimeout: 30000 });
+  attachSocketHandlers(io);
   const listener = httpServer.listen(serverConfig.port);
   logger.info("Server running on " + (listener.address() as AddressInfo).port);
   return listener;
+};
+
+const listenGreenlock = function () {
+  const greenlock = require("greenlock-express");
+
+  const httpsWorker = function (glx) {
+    const httpsServer = glx.httpsServer();
+    io = new Server(httpsServer, { pingTimeout: 30000 });
+    attachSocketHandlers(io);
+    glx.serveApp(app);
+  };
+
+  greenlock
+    .init({
+      packageRoot: path.join(__dirname, "/../.."),
+      maintainerEmail: serverConfig.maintainerEmail,
+      configDir: serverConfig.greenlockConfigDir,
+      cluster: false,
+    })
+    .ready(httpsWorker);
+
+  logger.info("Greenlock HTTP server running on " + serverConfig.port);
+  logger.info("Greenlock HTTPS server running on " + serverConfig.httpsPort);
+};
+
+const listen = function () {
+  if (serverConfig.httpsMode === "greenlock") return listenGreenlock();
+  if (serverConfig.httpsMode && serverConfig.httpsMode !== "off") {
+    logger.error("Unknown HTTPS mode " + serverConfig.httpsMode);
+    throw new Error("Unknown HTTPS mode " + serverConfig.httpsMode);
+  }
+  return listenHttp();
 };
 
 const getClientIdAuth = function (authOption: boolean) {

@@ -9,12 +9,14 @@ import { mathServer } from "./server";
 import { logger } from "./logger";
 
 const usage = function (): void {
-  logger.info("Usage: npm {run/start} {local|docker|new|ssh} [port]");
+  logger.info(
+    "Usage: npm {run/start} {local|docker|new|ssh} [http port] [https port]"
+  );
 };
 
 logger.info("Macaulay2Web version " + options.version);
 
-if (n > 4) {
+if (n > 5) {
   logger.error("Too many options");
   usage();
   process.exit(0);
@@ -50,8 +52,13 @@ overrideDefaultOptions(overrideOptions.options, options);
 options.serverConfig.mode = mode;
 
 if (n > 3) {
-  logger.info("port " + args[3] + " requested");
+  logger.info("http port " + args[3] + " requested");
   overrideDefaultOptions({ serverConfig: { port: args[3] } }, options);
+}
+
+if (n > 4) {
+  logger.info("https port " + args[4] + " requested");
+  overrideDefaultOptions({ serverConfig: { httpsPort: args[4] } }, options);
 }
 
 const fileExistsPromise = function (filename) {

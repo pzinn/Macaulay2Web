@@ -23,6 +23,14 @@ const options = {
     },
     m2Command: "M2 --webapp",
     port: 8002,
+    httpsMode: process.env.M2WEB_HTTPS_MODE || "off",
+    httpsPort: process.env.M2WEB_HTTPS_PORT
+      ? Number(process.env.M2WEB_HTTPS_PORT)
+      : 443,
+    greenlockConfigDir:
+      process.env.M2WEB_GREENLOCK_CONFIG_DIR || "./greenlock.d",
+    maintainerEmail:
+      process.env.M2WEB_MAINTAINER_EMAIL || "pzinn@unimelb.edu.au",
     baseDirectory: "", // to change the directory in which M2 is started & files are up/downloaded
     mode: undefined,
   },

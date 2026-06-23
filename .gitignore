@@ -29,3 +29,6 @@ host_key*
 public/tutorials
 public/files
 package-lock.json
+.greenlockrc
+greenlock.d/config.json
+greenlock.d/live/
