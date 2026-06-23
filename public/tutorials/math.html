@@ -584,7 +584,7 @@
     We could also use the data type <tt>ChainComplex</tt>
     and use a built-in facility to take homology (in our case $H_1$):
 </p>
-<pre><code>FF = chainComplex(phi1,phi2)</code></pre>
+<pre><code>FF = complex{phi1,phi2}</code></pre>
 <pre><code>FF.dd</code></pre>
 <pre><code>homology FF</code></pre>
 <pre><code>presentation (homology FF)_1</code></pre>
@@ -596,16 +596,16 @@
     There are other ways to construct Koszul complexes.  One way is as the tensor product of
     chain complexes of length 1:
 </p>
-<pre><code>FF = chainComplex matrix {{x^2}} ** chainComplex matrix {{x*y^2}}</code></pre>
+<pre><code>FF = complex matrix {{x^2}} ** complex matrix {{x*y^2}}</code></pre>
 <pre><code>FF.dd</code></pre>
 <p>
-    Another way is by using the function <tt>koszul</tt>, designed for that purpose:
+    Another way is by using the function <tt>koszulComplex</tt>, designed for that purpose:
 </p>
-<pre><code>FF = koszul matrix {{x^2, x*y^2}}</code></pre>
+<pre><code>FF = koszulComplex matrix {{x^2, x*y^2}}</code></pre>
 <pre><code>FF.dd</code></pre>
 <p>
     Since \(\mac\) can compute resolutions and homology, it can
-    compute things such as $Ext$, $Tor$ and sheaf cohomology, as in the
+    compute things such as <tt>Ext</tt>, <tt>Tor</tt> and sheaf cohomology, as in the
     following examples. The first uses Serre's formula to compute
     the multiplicity with which a 2-plane meets the union
     of two 2-planes in 4-space (this is the first case in which
@@ -620,7 +620,7 @@
 <pre><code>IY = ideal(a-c, b-d)</code></pre>
 <pre><code>degree ((S^1/IX) ** (S^1/IY))</code></pre>
 <pre><code>for j from 0 to 4 list degree Tor_j(S^1/IX, S^1/IY)</code></pre>
-<pre><code>sum(0..4, j-> (-1)^j * degree Tor_j(S^1/IX, S^1/IY))</code></pre>
+<pre><code>sum(0..4, j -> (-1)^j * degree Tor_j(S^1/IX, S^1/IY))</code></pre>
 <p>
     Similarly, we can compute Hom and Ext:
 </p>
