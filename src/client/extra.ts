@@ -63,6 +63,37 @@ const setCookieId = function (): void {
   setCookie(options.cookieName, clientId);
 };
 
+const decodeM2StringLiteral = function (literal: string): string | null {
+  if (!/^"(?:\\[\s\S]|[^\\"])*"$/.test(literal)) return null;
+  return literal
+    .slice(1, -1)
+    .replace(/\\(["\\])/g, "$1")
+    .replace(/\\n/g, "\n")
+    .replace(/\\t/g, "\t");
+};
+
+const editorHashForFile = function (fileName: string) {
+  return "#editor:" + encodeURI(fileName).replace(/#/g, "%23");
+};
+
+const linkPastInputFileNames = function (input: HTMLElement) {
+  Array.from(
+    input.querySelectorAll(".token.string") as NodeListOf<HTMLElement>
+  ).forEach((stringToken) => {
+    const literal = stringToken.textContent;
+    const fileName = decodeM2StringLiteral(literal);
+    if (!fileName || !/\.m2$/i.test(fileName)) return;
+
+    const link = document.createElement("a");
+    link.classList.add("editor-file-link");
+    link.href = editorHashForFile(fileName);
+    link.title = "Open in editor";
+    link.setAttribute("aria-label", "Open " + fileName + " in editor");
+    stringToken.classList.add("has-editor-file-link");
+    stringToken.insertBefore(link, stringToken.firstChild);
+  });
+};
+
 /*
 const unsetCookie = function (name: string): void {
   document.cookie = Cookie.serialize(name, "", {
@@ -1324,5 +1355,6 @@ export {
   getCookieId,
   setCookieId,
   checkScrollButton,
+  linkPastInputFileNames,
   openTutorialInEditor,
 };
