@@ -41,6 +41,20 @@ const inputCell = (lines: string[], discarded = false) => {
   return stream + webAppTags.CellEnd;
 };
 
+const commandCell = (input: string, output = "") =>
+  webAppTags.Cell +
+  webAppTags.Prompt +
+  "i1" +
+  webAppTags.End +
+  " : " +
+  webAppTags.Input +
+  position(1) +
+  input +
+  "\n" +
+  webAppTags.InputEnd +
+  output +
+  webAppTags.CellEnd;
+
 const setCaretAtEnd = (el: HTMLElement) => {
   el.focus();
   const range = document.createRange();
@@ -129,6 +143,28 @@ describe("terminal WebApp protocol", () => {
     expect(pastInputs[0].textContent).toBe(lines.join("\n") + "\n");
     expect(pressUp(terminal)).toBe(lines.join("\n"));
     expect(pressUp(terminal)).toBe(lines.join("\n"));
+  });
+
+  it("does not record the outer session cell as one history entry after restart", async () => {
+    const { shell, terminal } = await setupShell();
+
+    shell.displayOutput(
+      webAppTags.Cell +
+        webAppTags.Cell +
+        "Macaulay2 startup" +
+        webAppTags.CellEnd +
+        commandCell("a=1", webAppTags.Prompt + "o1" + webAppTags.End + " = 1") +
+        commandCell("b=2", webAppTags.Prompt + "o2" + webAppTags.End + " = 2") +
+        commandCell("restart") +
+        webAppTags.CellEnd +
+        webAppTags.Cell +
+        webAppTags.Cell +
+        "Macaulay2 startup"
+    );
+
+    expect(pressUp(terminal)).toBe("restart");
+    expect(pressUp(terminal)).toBe("b=2");
+    expect(pressUp(terminal)).toBe("a=1");
   });
 
   it("preserves multiline input when output arrives in several chunks", async () => {

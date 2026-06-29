@@ -247,21 +247,22 @@ const Shell = function (
     return true;
   };
 
+  const directPastInputs = function (cell: HTMLElement) {
+    return Array.from(cell.children).filter((child) =>
+      child.classList.contains("M2PastInput")
+    ) as HTMLElement[];
+  };
+
   const countCellInputSegments = function (cell: HTMLElement) {
-    return Array.from(
-      cell.querySelectorAll(
-        ".M2PastInput:not(.examples *)"
-      ) as NodeListOf<HTMLElement>
-    ).reduce((total, input) => total + countSegments(input.textContent), 0);
+    return directPastInputs(cell).reduce(
+      (total, input) => total + countSegments(input.textContent),
+      0
+    );
   };
 
   const recordCellInputHistory = function (cell: HTMLElement) {
     if (!isTrueInputCell(cell)) return;
-    const inputs = Array.from(
-      cell.querySelectorAll(
-        ".M2PastInput:not(.examples *)"
-      ) as NodeListOf<HTMLElement>
-    );
+    const inputs = directPastInputs(cell);
     let text = inputs.map((input) => input.textContent).join("");
     if (text.endsWith("\n")) text = text.slice(0, -1);
     if (!text) return;
