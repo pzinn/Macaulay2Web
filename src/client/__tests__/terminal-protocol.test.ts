@@ -229,6 +229,78 @@ describe("terminal WebApp protocol", () => {
     expect(processedLine.classList.contains("is-complete")).toBe(true);
   });
 
+  it("finishes read replies wrapped by readIO", async () => {
+    const { shell } = await setupShell();
+    shell.postMessage('<< "n="; n=value read()');
+    shell.postMessage("3");
+    shell.postMessage("next command");
+
+    shell.displayOutput(
+      webAppTags.Cell +
+        webAppTags.Prompt +
+        "i1" +
+        webAppTags.End +
+        " : " +
+        webAppTags.Input +
+        position(1) +
+        '<< "n="; n=value read()\n' +
+        webAppTags.InputEnd +
+        "n=" +
+        webAppTags.Input +
+        "3\n" +
+        webAppTags.InputEnd +
+        webAppTags.Prompt +
+        "o2" +
+        webAppTags.End +
+        " = 3" +
+        webAppTags.CellEnd
+    );
+
+    const lines = Array.from(
+      document.querySelectorAll(".terminalProcLine")
+    ) as HTMLElement[];
+    expect(lines).toHaveLength(3);
+    expect(lines[0].classList.contains("is-complete")).toBe(true);
+    expect(lines[1].classList.contains("is-complete")).toBe(true);
+    expect(lines[2].classList.contains("is-complete")).toBe(false);
+  });
+
+  it('finishes read "n=" replies wrapped by readIO', async () => {
+    const { shell } = await setupShell();
+    shell.postMessage('n=value read "n="');
+    shell.postMessage("3");
+    shell.postMessage("next command");
+
+    shell.displayOutput(
+      webAppTags.Cell +
+        webAppTags.Prompt +
+        "i1" +
+        webAppTags.End +
+        " : " +
+        webAppTags.Input +
+        position(1) +
+        'n=value read "n="\n' +
+        webAppTags.InputEnd +
+        "n=" +
+        webAppTags.Input +
+        "3\n" +
+        webAppTags.InputEnd +
+        webAppTags.Prompt +
+        "o1" +
+        webAppTags.End +
+        " = 3" +
+        webAppTags.CellEnd
+    );
+
+    const lines = Array.from(
+      document.querySelectorAll(".terminalProcLine")
+    ) as HTMLElement[];
+    expect(lines).toHaveLength(3);
+    expect(lines[0].classList.contains("is-complete")).toBe(true);
+    expect(lines[1].classList.contains("is-complete")).toBe(true);
+    expect(lines[2].classList.contains("is-complete")).toBe(false);
+  });
+
   it("finishes all buffered input after a delayed parsing error", async () => {
     const { shell, terminal } = await setupShell();
     shell.postMessage("sleep 5");
