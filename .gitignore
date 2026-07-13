@@ -5,11 +5,13 @@ public/index.css
 public/minimal.js
 public/minimal.js.LICENSE.txt
 public/minimal.css
+public/tutorial.js
+public/tutorial.js.LICENSE.txt
+public/tutorial.css
 public/renderhelp.js
 public/renderhelp.js.LICENSE.txt
 public/VectorGraphics.js
 public/users.htpasswd
-public/*-files
 src/client/css/katex*
 src/client/css/VectorGraphics*
 src/client/css/material*

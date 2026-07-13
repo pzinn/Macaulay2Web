@@ -1,17 +1,7 @@
 /* eslint-env browser */
 "use strict";
-declare const MINIMAL;
 
 import { Socket as Socket0, io } from "socket.io-client";
-
-import {
-  extra1,
-  extra2,
-  getCookieId,
-  linkPastInputFileNames,
-  setCookieId,
-} from "./extra";
-import { syncChat } from "./chat";
 
 type Socket = Socket0 & { oldEmit?: any };
 
@@ -31,9 +21,20 @@ import { options } from "../common/global";
 
 import { language } from "./htmlTools";
 import { getThemeButtonState } from "./uiHelpers";
+import { isFullMode, isMinimalMode, isTutorialMode } from "./appMode";
+import { getSessionId, setSessionId } from "./sessionIdentity";
+
+type ClientHooks = {
+  beforeSession?: () => void;
+  afterSession?: (requestCompletions: any) => void;
+  reconnect?: () => void;
+  postProcessPastInput?: (input: HTMLElement) => void;
+};
+
+let clientHooks: ClientHooks = {};
 
 let myshell = null; // the terminal
-let clientId = MINIMAL ? "public" : getCookieId(); // client's id. it's public / in the cookie,
+let clientId = isMinimalMode ? "public" : getSessionId(); // client's id. it's public / in the cookie,
 // but can be overwritten by url or chosen by server if no cookie
 let initDone = false;
 
@@ -93,7 +94,7 @@ const wrapEmitForDisconnect = function (event, msg, callback?) {
 const fixAnchor = function (t: HTMLAnchorElement) {
   const url = t.href;
   if (!t.target && t.hash == "") {
-    if (MINIMAL || (t.host && t.host != window.location.host))
+    if (!isFullMode || (t.host && t.host != window.location.host))
       t.target = "_blank";
     else t.target = "browse";
   } // external links in new tab, internal in frame (except # which should stay default)
@@ -147,7 +148,7 @@ const rightclickAction = function (e) {
 };
 
 let socketOutput;
-if (MINIMAL) {
+if (!isFullMode) {
   socketOutput = function (msg: string) {
     myshell.displayOutput(msg);
   };
@@ -291,22 +292,25 @@ const initTheme = function (): void {
   }
 };
 
-const init = function () {
+const init = function (hooks: ClientHooks = {}) {
+  clientHooks = hooks;
   initTheme();
-  if (!MINIMAL && !navigator.cookieEnabled) {
+  if (!isMinimalMode && !navigator.cookieEnabled) {
     alert("This site requires cookies to be enabled.");
     return;
   }
 
   console.log("Macaulay2Web version " + options.version);
 
-  if (!MINIMAL) extra1();
+  if (isFullMode) clientHooks.beforeSession?.();
 
   const userId: any = url.searchParams.get("user");
   const newId = userId ? userId : "";
   if (userId && clientId !== newId) {
-    if (MINIMAL) clientId = newId;
-    else {
+    if (!isFullMode) {
+      clientId = newId;
+      if (isTutorialMode) setSessionId(clientId);
+    } else {
       const dialog = document.getElementById("changeUserDialog"); // not a dialog
       document.getElementById("newUserId").textContent = userId;
       document.getElementById("oldUserIdReminder").innerHTML = clientId
@@ -320,7 +324,7 @@ const init = function () {
         if (el.tagName === "BUTTON") {
           // eww
           clientId = newId;
-          if (el.textContent == "permanent") setCookieId();
+          if (el.textContent == "permanent") setSessionId(clientId);
           dialog.style.display = "none";
           init2();
         }
@@ -328,8 +332,8 @@ const init = function () {
       //      dialog.showModal();
       return;
     }
-  } else if (!MINIMAL) {
-    if (clientId) setCookieId();
+  } else if (isFullMode) {
+    if (clientId) setSessionId(clientId);
     // reset the cookie clock
     else {
       // set up start button
@@ -346,7 +350,7 @@ const init = function () {
           resetBtn1.textContent = "Reset";
           resetBtn2.innerHTML = "<i class='material-icons'>replay</i>";
           resetBtn.classList.remove("startButton");
-          clientId = getCookieId(); // in the unlikely event that it got changed while we were waiting
+          clientId = getSessionId(); // in the unlikely event that it got changed while we were waiting
           init2();
         };
       }, 300);
@@ -357,7 +361,8 @@ const init = function () {
 };
 
 const init2 = function () {
-  if (!MINIMAL) document.getElementById("terminalDiv").style.display = "block";
+  if (isFullMode)
+    document.getElementById("terminalDiv").style.display = "block";
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
   socket = io(ioParams, { autoConnect: false });
@@ -367,13 +372,13 @@ const init2 = function () {
     if (id != clientId) {
       // new id was generated
       clientId = id;
-      if (!MINIMAL) setCookieId();
+      if (!isMinimalMode) setSessionId(clientId);
     }
     if (!initDone) {
       // first time we get our id, finish init
       initDone = true;
       socket.emit("restore"); // restore former M2 output
-      if (!MINIMAL) extra2(requestDynamicCompletions);
+      if (isFullMode) clientHooks.afterSession?.(requestDynamicCompletions);
       for (const e of emitStack) socket.oldEmit(e[0], e[1], e[2]); // not emit to avoid potential infinite loop
       emitStack.length = 0;
       const exec = url.searchParams.get("exec");
@@ -385,7 +390,7 @@ const init2 = function () {
     if (initDone) {
       console.log("Socket reconnected");
       // reconnect stuff
-      if (!MINIMAL) syncChat();
+      if (isFullMode) clientHooks.reconnect?.();
       for (const e of emitStack) socket.oldEmit(e[0], e[1], e[2]); // not emit to avoid potential infinite loop
       emitStack.length = 0;
     } else console.log("Socket connected");
@@ -419,11 +424,11 @@ const init2 = function () {
     requestDynamicCompletions,
     document.getElementById("editorDiv"),
     document.getElementById("browseFrame") as HTMLFrameElement,
-    true,
-    MINIMAL ? undefined : linkPastInputFileNames
+    !isTutorialMode,
+    isFullMode ? clientHooks.postProcessPastInput : undefined
   );
 
   socket.connect();
 };
 
-export { init, myshell, socket, url, clientId };
+export { ClientHooks, init, myshell, socket, url, clientId };

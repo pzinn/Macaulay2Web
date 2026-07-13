@@ -135,6 +135,7 @@ Useful URL forms:
 * `#tutorial-name-n`: open page `n` of tutorial `name`.
 * `?user=name`: choose an explicit user id, allowing the same session to be used across browsers or devices.
 * `/minimal.html`: use the minimal embeddable interface.
+* `/tutorial.html#tutorial-name-n`: open page `n` of tutorial `name` in the standalone, full-window tutorial interface.
 
 Example minimal embed:
 
@@ -155,16 +156,18 @@ The minimal interface does not read or write cookies. If no `user` option is spe
 npm run build
 ```
 
-Builds server, full client, minimal client, and CSS.
+Builds the server, full client, minimal client, standalone tutorial client, and CSS.
 
 Individual build commands:
 
 * `npm run build:server`: compile server TypeScript to `dist/server/`.
 * `npm run build:client`: build the normal client bundle `public/index.js`.
 * `npm run build:minimal`: build the minimal client bundle `public/minimal.js`.
-* `npm run build:css`: build `public/index.css` and `public/minimal.css`.
+* `npm run build:tutorial`: build the standalone tutorial bundle `public/tutorial.js`.
+* `npm run build:css`: build `public/index.css`, `public/minimal.css`, and `public/tutorial.css`.
 * `npm run build:debug`: build a non-production normal client bundle.
 * `npm run build:debug-minimal`: build a non-production minimal client bundle.
+* `npm run build:debug-tutorial`: build a non-production standalone tutorial bundle.
 
 Generated build outputs in `dist/` and `public/*.js` / `public/*.css` are not tracked by Git.
 
@@ -201,7 +204,7 @@ Main source directories:
 
 * `src/server/`: server, Docker/container management, upload/download handling, chat, tests.
 * `src/client/`: browser client TypeScript.
-* `src/client/css/`: CSS sources assembled into `public/index.css` and `public/minimal.css`.
+* `src/client/css/`: CSS sources assembled into the full, minimal, and standalone tutorial stylesheets.
 * `src/common/`: code shared between client and server.
 * `public/`: static files served to the browser.
 * `docker-m2-container/`: Dockerfile for the base Macaulay2 image.

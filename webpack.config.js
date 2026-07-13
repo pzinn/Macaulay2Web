@@ -2,7 +2,7 @@ const webpack = require('webpack');
 const katexVersion = require('./KaTeX/package.json').version;
 
 module.exports = env => {
-    var mode,filename,devtool;
+    var mode,filename,entry,devtool;
     if (env.debug) {
 	mode = "development";
 	devtool = "inline-source-map";
@@ -11,9 +11,18 @@ module.exports = env => {
 	mode = "production";
 	devtool = false;
     }
-    if (env.minimal) filename = "public/minimal.js"; else filename = "public/index.js";
+    const appMode = env.tutorial ? "tutorial" : env.minimal ? "minimal" : "full";
+    if (appMode === "tutorial") {
+	entry = "./src/client/tutorial-entry.ts";
+	filename = "public/tutorial.js";
+    } else {
+	entry = appMode === "minimal"
+	    ? "./src/client/minimal-entry.ts"
+	    : "./src/client/index.ts";
+	filename = appMode === "minimal" ? "public/minimal.js" : "public/index.js";
+    }
     return {
-	entry: "./src/client/index.ts",
+	entry: entry,
 	output: {
 	    path: __dirname, // otherwise is put in "dist/"
 	    filename: filename
@@ -42,7 +51,7 @@ module.exports = env => {
 	mode: mode,
 	devtool: devtool,
 	plugins: [
-	    new webpack.DefinePlugin({ "MINIMAL": JSON.stringify(env.minimal),
+	    new webpack.DefinePlugin({ "APP_MODE": JSON.stringify(appMode),
 				       "process.env.npm_package_version": JSON.stringify(process.env.npm_package_version),
 				       "__VERSION__": JSON.stringify(katexVersion) }),
 	]

@@ -164,16 +164,6 @@ html, body {
     background: var(--bg-button);
 }
 
-.app-btn {
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font: inherit;
-    font-family: sans-serif;
-    color: var(--text-main);
-    border-radius: 2px;
-}
-
 .app-header .app-btn {
     color: inherit;
 }
@@ -192,88 +182,8 @@ html, body {
     outline: none;
 }
 
-.app-header .app-btn-raised {
-    color: var(--text-main);
-}
-
-.app-btn:hover {
-    background: var(--bg-button);
-}
-
-.app-btn-icon:focus,
-.app-btn-icon:focus-visible {
-    background: var(--bg-button);
-    outline: none;
-}
-
-.app-btn:disabled {
-    cursor: default;
-    opacity: 0.65;
-    background: transparent;
-}
-
-.app-btn-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    padding: 8px;
-    border-radius: 50%;
-}
-
-.app-btn-raised {
-    border-radius: 2px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    vertical-align: middle;
-    font-size: 14px;
-    line-height: 1.2;
-    padding: 0 16px;
-    min-height: 38px;
-    box-shadow: 0 1px 2px var(--shadow-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    background: var(--bg-button-raised-day);
-}
-
-.app-btn-raised.app-btn-secondary {
-    background: var(--bg-button);
-    color: var(--text-main);
-}
-
-.app-btn-raised.app-btn-secondary:hover {
-    filter: brightness(1.05);
-}
-
-.app-btn-raised.app-btn-brand {
-    background: var(--bg-header);
+.app-header .app-btn-raised.app-btn-brand {
     color: var(--text-on-accent);
-    border: none;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 3px 3px 0 rgba(0, 0, 0, 0.16), 0 4px 2px -2px rgba(0, 0, 0, 0.22), 0 2px 7px 0 rgba(0, 0, 0, 0.16);
-}
-
-.app-btn-raised.app-btn-brand:hover {
-    filter: brightness(1.1);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 4px 5px 0 rgba(0, 0, 0, 0.18), 0 5px 3px -2px rgba(0, 0, 0, 0.24), 0 3px 9px 0 rgba(0, 0, 0, 0.18);
-}
-
-.app-btn-raised.app-btn-brand:active {
-    transform: translateY(1px);
-    border: none;
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.22), 0 1px 1px rgba(0, 0, 0, 0.12);
-}
-
-.app-btn-raised.app-btn-muted,
-.app-btn-raised.app-btn-muted:disabled {
-    background: rgba(158, 158, 158, 0.35);
-}
-
-.app-btn-fab {
-    border-radius: 50%;
-    width: 56px;
-    height: 56px;
 }
 
 .app-tabs {
@@ -553,17 +463,6 @@ dialog.app-dialog::backdrop {
     }
 }
 
-#lesson {
-    height: 100%;
-    width: 100%;
-    overflow-y: auto;
-    overflow-x: auto;
-    z-index: 1;
-    /* Position:absolute is needed for the editor not to be a tiny bit too high. */
-    position: absolute;
-    box-sizing: border-box;
-}
-
 #browse {
     overflow: hidden;
 }
@@ -573,24 +472,6 @@ dialog.app-dialog::backdrop {
     width: 100%;
     height: 100%;
     border: 0;
-}
-
-#lessonNav {
-    position: relative;
-    z-index: 2;
-    float: right;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    margin-right: 20px;
-    margin-bottom: 0px;
-}
-
-#lessonNr {
-    display: inline-flex;
-    align-items: center;
-    min-height: 40px;
-    vertical-align: middle;
 }
 
 #editorDiv {
@@ -848,85 +729,11 @@ dialog.app-dialog::backdrop {
     width: 20vw;
 }
 
-.accordion {
-  overflow-y: hidden;
-  transition: height 0.5s;
-  padding-bottom: 5px;
-}
-
-.accordion > :not(:first-child) {
-    display: none;
-}
-
-.accordion.accordionOpen  > :not(:first-child), .accordion.accordionDelayed > :not(:first-child) {
-    display: initial;
-}
-
-.accordionMenu {
-    list-style: none;
-    margin: 0px;
-}
-
-.material-icons {
-    font-family: "Material Symbols Outlined", "Material Icons";
-    font-weight: 400;
-    font-style: normal;
-    font-size: 24px;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
-    display: inline-block;
-    white-space: nowrap;
-    direction: ltr;
-    -webkit-font-smoothing: antialiased;
-    font-variation-settings:
-        "FILL" 0,
-        "wght" 400,
-        "GRAD" 0,
-        "opsz" 24;
-    vertical-align: middle;
-    transition: transform 0.5s;
-}
-
 /*
 button.accordionOpen .material-icons {
     transform: translate(-12px,-12px) rotate(90deg);
 }
 */
-.accordionOpen .material-icons {
-    transform: rotate(90deg);
-}
-
-.accordionTitleBar {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    font-family: sans-serif;
-    width: 100%;
-    box-sizing: border-box;
-    background-color: var(--bg-accordion-titlebar);
-    cursor: pointer;
-    padding: 12px;
-}
-
-.accordionTitleBar:hover {
-    background-color: var(--bg-accent-soft);
-}
-
-.accordionTitle {
-    flex: 0 1 auto;
-    display: inline-block;
-    text-align: left;
-}
-
-.accordionTitleBar > .material-icons {
-    margin-left: 0.35em;
-}
-
-.accordionTitle:hover {
-    background-color: var(--bg-accent-strong);
-}
-
 .app-tab{
     font-family: sans-serif;
     color: var(--text-dim);
@@ -1071,62 +878,9 @@ nav {
     margin-bottom: 0;
 }
 
-#lesson section:not(section section) {
-    display: none;
-}
-
-#lesson section.current-lesson {
-    display: block;
-}
-
-.accordionTitle > *, .accordionMenuTitle > * { /* titles should have normal font in accordion menu */
-    font: inherit;
-    margin: inherit;
-    line-height: inherit;
-    letter-spacing: inherit;
-}
-
 #loadTutorialBtn {
     margin-top: 8px;
     margin-left: 8px;
-}
-
-#lesson hr.separator {
-  text-align: center;
-  background-color: var(--bg-rule);
-  border-radius: 8px;
-  height: fit-content;
-  height: -moz-fit-content;
-  margin: 10px 0px 10px 0px;
-  cursor: pointer;
-  /*  display: block; */
-}
-
-
-#lesson hr.separator::after {
-  font-family: "Material Symbols Outlined", "Material Icons";
-  font-variation-settings:
-    "FILL" 0,
-    "wght" 400,
-    "GRAD" 0,
-    "opsz" 24;
-  content: "expand_less";
-  color: white;
-  display: inline;
-}
-
-#lesson hr.closed::after {
-  content: "expand_more";
-}
-
-:fullscreen {
-    background-color: var(--bg-page);
-/*    padding: 20px; /* /* buggy for some reason */
-    overflow: auto;
-}
-
-:fullscreen #lesson {
-    padding: 20px;
 }
 
 .M2Cell.M2Block {
@@ -1234,6 +988,10 @@ nav {
     color: var(--text-strong);
 }
 
+:root[data-theme="night"] .app-header .app-btn-raised.app-btn-brand {
+    color: var(--text-on-accent);
+}
+
 :root[data-theme="night"] .app-drawer {
     background-color: var(--bg-drawer);
     color: var(--text-main);
@@ -1247,16 +1005,6 @@ nav {
 
 :root[data-theme="night"] .app-drawer .app-nav-link:hover {
     background: var(--bg-button);
-}
-
-:root[data-theme="night"] .app-btn-raised {
-    background: var(--bg-button);
-    color: var(--text-main);
-}
-
-:root[data-theme="night"] .app-btn-raised.app-btn-secondary {
-    background: var(--bg-button);
-    color: var(--text-main);
 }
 
 :root[data-theme="night"] input,

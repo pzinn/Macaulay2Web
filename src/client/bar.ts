@@ -1,4 +1,4 @@
-declare const MINIMAL;
+import { isFullMode } from "./appMode";
 // cell bar handling
 import { setupMenu } from "./menu";
 import { setCaret } from "./htmlTools";
@@ -155,7 +155,7 @@ const barAction = function (action: string, target0: HTMLElement) {
 
   const final = acts[4];
   if (final) final(curInput);
-  if (!MINIMAL) checkScrollButton();
+  if (isFullMode) checkScrollButton();
   return true;
 };
 

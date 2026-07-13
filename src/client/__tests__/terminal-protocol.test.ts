@@ -19,6 +19,7 @@ vi.mock("../main", () => ({
 import { webAppRegex, webAppTags } from "../../common/tags";
 import { linkPastInputFileNames } from "../extra";
 import { Shell } from "../terminal";
+import { processTutorialOutput } from "../tutorials";
 
 const position = (row: number) =>
   webAppTags.Position + `${row}:0` + webAppTags.End;
@@ -52,7 +53,8 @@ const setCaretAtEnd = (el: HTMLElement) => {
 };
 
 const setupShell = async (
-  postProcessPastInput?: (input: HTMLElement) => void
+  postProcessPastInput?: (input: HTMLElement) => void,
+  createInputSpan = true
 ) => {
   document.body.innerHTML = `
     <div id="terminalProcInput">
@@ -71,7 +73,7 @@ const setupShell = async (
     undefined,
     document.getElementById("editorDiv"),
     document.getElementById("browseFrame"),
-    true,
+    createInputSpan,
     postProcessPastInput
   );
   return { shell, terminal, emitInput };
@@ -103,6 +105,22 @@ describe("terminal WebApp protocol", () => {
     ) as HTMLElement;
     expect(processedLine.classList.contains("is-complete")).toBe(true);
     expect(pressUp(terminal)).toBe("1+1");
+  });
+
+  it("returns completed output to standalone tutorial code", async () => {
+    const { shell } = await setupShell(undefined, false);
+    const code = document.createElement("code");
+    code.textContent = "1+1";
+    document.body.appendChild(code);
+
+    shell.postMessage("1+1", code);
+    shell.displayOutput(inputCell(["1+1"]));
+
+    expect(processTutorialOutput).toHaveBeenCalledOnce();
+    expect(processTutorialOutput).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      code
+    );
   });
 
   it("keeps multiline input in one DOM block and history entry", async () => {

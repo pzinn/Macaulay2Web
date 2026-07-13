@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1">
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="tutorial.css" type="text/css">
+
+    <script type="text/javascript" src="tutorial.js"></script>
+
+    <title>Macaulay2 Tutorial</title>
+  </head>
+  <body>
+    <main id="tutorial" aria-live="polite">
+      <div id="lesson"></div>
+      <div id="lessonNav" aria-label="Tutorial navigation">
+        <button class="app-btn app-btn-icon app-btn-colored" title="Go to previous lesson"
+                id="prevBtn"><i class="material-icons">arrow_left</i></button>
+        <button class="app-btn app-btn-icon app-btn-colored" title="Go to next lesson"
+                id="nextBtn"><i class="material-icons">arrow_right</i></button>
+        <span id="lessonNr" class="M2Text"></span>
+        <button class="app-btn app-btn-icon app-btn-colored" title="Run all lesson code"
+                id="runAllTute"><i class="material-icons">playlist_play</i></button>
+        <button class="app-btn app-btn-icon app-btn-colored" title="Interrupt Macaulay2"
+                id="interruptTute"><i class="material-icons">cancel</i></button>
+        <button class="app-btn app-btn-icon app-btn-colored" title="Full screen tutorial"
+                id="fullscreenTute"><i class="material-icons">open_in_full</i></button>
+        <button class="app-btn app-btn-icon app-btn-colored" title="Switch color scheme"
+                id="themeBtn"><i id="themeBtnIcon" class="material-icons">dark_mode</i></button>
+      </div>
+      <p id="tutorialError" role="alert" hidden></p>
+    </main>
+
+    <!-- Shell parses the WebApp protocol here; tutorial output is copied beside its source code. -->
+    <div id="terminal" hidden></div>
+  </body>
+</html>

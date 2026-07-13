@@ -1,4 +1,4 @@
-declare const MINIMAL;
+import { isMinimalMode } from "./appMode";
 //import { clientId } from "./main";
 import { processTutorialOutput } from "./tutorials"; // extra processing of output for tutorial
 
@@ -278,7 +278,7 @@ const Shell = function (
   ) {
     if (currentCodeEl.classList.contains("terminalProcLine"))
       fadeProcessedInputLine(currentCodeEl);
-    else if (!MINIMAL) processTutorialOutput(cell, currentCodeEl);
+    else if (!isMinimalMode) processTutorialOutput(cell, currentCodeEl);
   };
 
   const finishProcessedInputForCell = function (cell: HTMLElement) {
@@ -306,7 +306,7 @@ const Shell = function (
   const finishDiscardedInputForCurrentCell = function () {
     closeInputSection(false);
     const cell = activeCell();
-    if (!cell || !isTrueInputCell(cell)) return;
+    if (!cell || !isSubmittedInputCell(cell)) return;
     cell.dataset.processedInputFinalized = "true";
     finishProcessedInputForCell(cell);
     // M2 flushes all input already buffered after a parsing error.
@@ -332,7 +332,7 @@ const Shell = function (
       pendingCodeEls.push(el);
       el.numSegments = countSegments(clean);
     }
-    inputSpan.textContent = "";
+    if (inputSpan) inputSpan.textContent = "";
     scrollDownLeft(terminal);
     emitInput(clean + "\n");
   };
@@ -626,6 +626,16 @@ const Shell = function (
     );
   };
 
+  const isSubmittedInputCell = function (cell: HTMLElement) {
+    return (
+      isTrueInputCell(cell) ||
+      (pendingCodeEls.length > 0 &&
+        cell.classList.contains("M2Cell") &&
+        !cell.closest(".M2Html") &&
+        !cell.closest(".examples"))
+    );
+  };
+
   const sessionCell = function (el: HTMLElement) {
     while (el && el.parentElement != terminal) {
       el = el.parentElement;
@@ -864,7 +874,7 @@ const Shell = function (
               recordCellInputHistory(oldHtmlSec);
               closeHtml();
               if (
-                isTrueInputCell(oldHtmlSec) &&
+                isSubmittedInputCell(oldHtmlSec) &&
                 oldHtmlSec.dataset.processedInputFinalized !== "true"
               ) {
                 finishProcessedInputForCell(oldHtmlSec);
@@ -905,16 +915,20 @@ const Shell = function (
     console.log("Reset");
     removeAutoComplete(false, false); // remove autocomplete menu if open
     clearPendingCode();
-    createInputEl(); // recreate the input area
+    if (createInputSpan) createInputEl(); // recreate the input area
+    else {
+      terminal.innerHTML = "";
+      htmlSec = terminal;
+    }
     interpreterDepth = 1;
   };
 
   obj.interrupt = function () {
     removeAutoComplete(false, false); // remove autocomplete menu if open
     clearPendingCode();
-    inputSpan.textContent = "";
+    if (inputSpan) inputSpan.textContent = "";
     emitInput("\x03");
-    setCaretAtEndMaybe(inputSpan);
+    if (inputSpan) setCaretAtEndMaybe(inputSpan);
   };
 
   obj.locateStdio = function (cel: HTMLElement, row: number, column: number) {

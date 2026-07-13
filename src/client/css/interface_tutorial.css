@@ -1,0 +1,190 @@
+.tutorial-standalone {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.tutorial-standalone #tutorial {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    background: var(--bg-page);
+}
+
+#lesson {
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+    z-index: 1;
+    position: absolute;
+    box-sizing: border-box;
+}
+
+.tutorial-standalone #lesson {
+    padding: 20px;
+    padding-top: 54px;
+}
+
+:fullscreen #lesson {
+    padding: 20px;
+}
+
+#lessonNav {
+    position: relative;
+    z-index: 2;
+    float: right;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-right: 20px;
+    margin-bottom: 0;
+}
+
+.tutorial-standalone #lessonNav {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    margin: 0;
+    padding: 2px;
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--bg-page) 88%, transparent);
+    box-shadow: 0 1px 4px var(--shadow-soft);
+}
+
+#lessonNr {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.accordion {
+    overflow-y: hidden;
+    transition: height 0.5s;
+    padding-bottom: 5px;
+}
+
+.accordion > :not(:first-child) {
+    display: none;
+}
+
+.accordion.accordionOpen > :not(:first-child),
+.accordion.accordionDelayed > :not(:first-child) {
+    display: initial;
+}
+
+.accordionMenu {
+    list-style: none;
+    margin: 0;
+}
+
+.accordionOpen .material-icons {
+    transform: rotate(90deg);
+}
+
+.accordionTitleBar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-family: sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--bg-accordion-titlebar);
+    cursor: pointer;
+    padding: 12px;
+}
+
+.accordionTitleBar:hover {
+    background-color: var(--bg-accent-soft);
+}
+
+.accordionTitle {
+    flex: 0 1 auto;
+    display: inline-block;
+    text-align: left;
+}
+
+.accordionTitleBar > .material-icons {
+    margin-left: 0.35em;
+}
+
+.accordionTitle:hover {
+    background-color: var(--bg-accent-strong);
+}
+
+.accordionTitle > *,
+.accordionMenuTitle > * {
+    font: inherit;
+    margin: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+}
+
+#lesson section:not(section section) {
+    display: none;
+}
+
+#lesson section.current-lesson {
+    display: block;
+}
+
+#lesson hr.separator {
+    text-align: center;
+    background-color: var(--bg-rule);
+    border-radius: 8px;
+    height: fit-content;
+    height: -moz-fit-content;
+    margin: 10px 0;
+    cursor: pointer;
+}
+
+#lesson hr.separator::after {
+    font-family: "Material Symbols Outlined", "Material Icons";
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    content: "expand_less";
+    color: white;
+    display: inline;
+}
+
+#lesson hr.closed::after {
+    content: "expand_more";
+}
+
+:fullscreen {
+    background-color: var(--bg-page);
+    overflow: auto;
+}
+
+#tutorialError {
+    position: absolute;
+    z-index: 3;
+    top: 60px;
+    left: 20px;
+    margin: 0;
+    padding: 24px;
+    background: var(--bg-page);
+    color: var(--state-error);
+}
+
+@media (max-width: 600px) {
+    .tutorial-standalone #lesson {
+        padding: 48px 12px 12px;
+    }
+
+    .tutorial-standalone #lessonNav {
+        top: 3px;
+        right: 3px;
+    }
+
+    .tutorial-standalone .app-btn-icon {
+        width: 34px;
+        height: 34px;
+        padding: 5px;
+    }
+
+    #lessonNr {
+        min-height: 34px;
+        margin-right: 2px;
+    }
+}

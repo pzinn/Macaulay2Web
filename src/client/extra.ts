@@ -415,7 +415,9 @@ const extra1 = function () {
   editor = document.getElementById("editorDiv");
 
   let tab = url.hash;
-  initTutorials();
+  initTutorials({
+    openInEditor: (text, fileName) => openTutorialInEditor(text, fileName),
+  });
 
   let oldTab = "";
   let editorFoc = false;

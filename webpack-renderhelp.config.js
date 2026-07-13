@@ -41,7 +41,7 @@ module.exports = env => {
 	mode: mode,
 	devtool: devtool,
 	plugins: [
-	    new webpack.DefinePlugin({ "MINIMAL": "true",
+	    new webpack.DefinePlugin({ "APP_MODE": JSON.stringify("minimal"),
 				       "process.env.npm_package_version": JSON.stringify(process.env.npm_package_version),
 				       "__VERSION__": JSON.stringify(katexVersion) }),
 	]

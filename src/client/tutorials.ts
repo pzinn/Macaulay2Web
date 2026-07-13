@@ -6,7 +6,6 @@ import {
 import { autoRender } from "./autoRender";
 import { mdToHTML, escapeHTML } from "./md";
 import { language } from "./htmlTools";
-import { openTutorialInEditor } from "./extra";
 import Prism from "prismjs";
 
 interface Tutorial {
@@ -15,12 +14,34 @@ interface Tutorial {
   clickAction?: any;
 }
 
+interface TutorialOptions {
+  startingTutorials?: string[];
+  useAccordion?: boolean;
+  allowUpload?: boolean;
+  standalone?: boolean;
+  openInEditor?: (text: string, fileName: string) => void;
+}
+
+type TutorialRoute = {
+  tutorial: string;
+  lesson: number;
+};
+
+let tutorialOptions: Required<
+  Pick<
+    TutorialOptions,
+    "startingTutorials" | "useAccordion" | "allowUpload" | "standalone"
+  >
+> &
+  Pick<TutorialOptions, "openInEditor">;
+
 const processTutorialOutput = function (
   cell: HTMLElement,
   clickedCode: HTMLElement
 ) {
   if (
-    (document.fullscreenElement !== document.getElementById("tutorial") &&
+    (!tutorialOptions?.standalone &&
+      document.fullscreenElement !== document.getElementById("tutorial") &&
       !clickedCode.classList.contains("copy")) ||
     clickedCode.classList.contains("nocopy")
   )
@@ -185,17 +206,19 @@ const uploadTutorial = function () {
         const file1 = new File([txt], fileName);
         uploadTutorial1(file1, fileName);
       } else uploadTutorial1(file, fileName);
-      if (fileName.endsWith(".m2"))
-        // open in editor
-        openTutorialInEditor(txt, fileName);
-      else {
+      if (fileName.endsWith(".m2")) {
+        if (tutorialOptions.openInEditor)
+          tutorialOptions.openInEditor(txt, fileName);
+      } else {
         // open in tutorial tab
         fileName = fileName.substring(0, fileName.length - 5);
         const newTutorial = processTutorial(txt);
         tutorials[fileName] = newTutorial;
         if (tutorialIndex == fileName) tutorialIndex = null; // force reload
-        initAccordion(fileName);
-        appendTutorialToAccordion(newTutorial, fileName);
+        if (tutorialOptions.useAccordion) {
+          initAccordion(fileName);
+          appendTutorialToAccordion(newTutorial, fileName);
+        }
       }
     };
   } else uploadTutorial1(file, fileName);
@@ -247,28 +270,45 @@ tutorialUploadInput.setAttribute("multiple", "false");
 tutorialUploadInput.addEventListener("change", uploadTutorial, false);
 
 const loadTutorial = function (newTutorialIndex, newLessonNr) {
-  initAccordion(newTutorialIndex); // reserve a slot in the accordion, for ordering purposes
+  if (!isValidTutorialIndex(newTutorialIndex)) {
+    showTutorialError("Invalid tutorial name.");
+    return;
+  }
+  if (tutorialOptions.useAccordion) initAccordion(newTutorialIndex); // reserve a slot in the accordion, for ordering purposes
   tutorials[newTutorialIndex] = { lessonNr: newLessonNr }; // reserve a slot in the list
   const xhr = new XMLHttpRequest();
   xhr.onload = function () {
     if (xhr.status != 200) {
       console.log("tutorial " + newTutorialIndex + " failed to load");
       delete tutorials[newTutorialIndex];
+      showTutorialError(
+        "Tutorial ‘" + newTutorialIndex + "’ could not be loaded."
+      );
       return;
     }
     console.log("tutorial " + newTutorialIndex + " loaded");
     newLessonNr = tutorials[newTutorialIndex].lessonNr; // in case it was updated
     tutorials[newTutorialIndex] = processTutorial(xhr.responseText);
-    appendTutorialToAccordion(tutorials[newTutorialIndex], newTutorialIndex);
+    if (tutorialOptions.useAccordion)
+      appendTutorialToAccordion(tutorials[newTutorialIndex], newTutorialIndex);
+    showTutorialError("");
     if (newLessonNr) renderLesson(newTutorialIndex, newLessonNr);
   };
-  xhr.open("GET", "tutorials/" + newTutorialIndex + ".html", true);
+  xhr.open(
+    "GET",
+    "tutorials/" + encodeURIComponent(newTutorialIndex) + ".html",
+    true
+  );
   xhr.send(null);
 };
 
 const renderLessonMaybe = function (newTutorialIndex?, newLessonNr?) {
   if (newTutorialIndex === undefined)
-    newTutorialIndex = tutorialIndex ? tutorialIndex : startingTutorials[0];
+    newTutorialIndex = tutorialIndex
+      ? tutorialIndex
+      : tutorialOptions.startingTutorials[0];
+  if (!isValidTutorialIndex(newTutorialIndex))
+    newTutorialIndex = tutorialOptions.startingTutorials[0];
   newLessonNr =
     newLessonNr === undefined
       ? newTutorialIndex === tutorialIndex
@@ -353,16 +393,50 @@ const startingTutorials = [
 ];
 // weird hard-coding of initial tutorials TODO better
 
-const initTutorials = function () {
+const isValidTutorialIndex = function (index: string): boolean {
+  return typeof index === "string" && /^[A-Za-z0-9_-]+$/.test(index);
+};
+
+const parseTutorialHash = function (
+  hash: string,
+  defaultTutorial = startingTutorials[0]
+): TutorialRoute {
+  const value = hash.replace(/^#/, "");
+  const match = /^tutorial-([A-Za-z0-9_][A-Za-z0-9_-]*?)(?:-([1-9]\d*))?$/.exec(
+    value
+  );
+  return match
+    ? { tutorial: match[1], lesson: match[2] ? +match[2] : 1 }
+    : { tutorial: defaultTutorial, lesson: 1 };
+};
+
+const showTutorialError = function (message: string) {
+  const error = document.getElementById("tutorialError");
+  if (!error) return;
+  error.textContent = message;
+  error.hidden = !message;
+};
+
+const initTutorials = function (options: TutorialOptions = {}) {
+  tutorialOptions = {
+    startingTutorials: options.startingTutorials || startingTutorials,
+    useAccordion: options.useAccordion !== false,
+    allowUpload: options.allowUpload !== false,
+    standalone: options.standalone === true,
+    openInEditor: options.openInEditor,
+  };
   tutorialIndex = null;
   lessonNr = 1;
 
   const tutorial = document.getElementById("tutorial");
 
-  for (const tute of startingTutorials) loadTutorial(tute, 0); // zero means don't render
-  document.getElementById("loadTutorialBtn").onclick = function () {
-    tutorialUploadInput.click();
-  };
+  if (tutorialOptions.useAccordion)
+    for (const tute of tutorialOptions.startingTutorials) loadTutorial(tute, 0); // zero means don't render
+  const loadTutorialBtn = document.getElementById("loadTutorialBtn");
+  if (loadTutorialBtn && tutorialOptions.allowUpload)
+    loadTutorialBtn.onclick = function () {
+      tutorialUploadInput.click();
+    };
 
   document.getElementById("runAllTute").onclick = function () {
     if (tutorials[tutorialIndex]) {
@@ -377,13 +451,16 @@ const initTutorials = function () {
     }
   };
 
-  document.getElementById("fullscreenTute").onclick = function () {
-    if (document.fullscreenElement !== tutorial) tutorial.requestFullscreen();
-    else document.exitFullscreen();
-  };
+  const fullscreenBtn = document.getElementById("fullscreenTute");
+  if (fullscreenBtn)
+    fullscreenBtn.onclick = function () {
+      if (document.fullscreenElement !== tutorial) tutorial.requestFullscreen();
+      else document.exitFullscreen();
+    };
 
   document.addEventListener("keydown", function (e: KeyboardEvent) {
-    if (document.fullscreenElement !== tutorial) return;
+    if (!tutorialOptions.standalone && document.fullscreenElement !== tutorial)
+      return;
     const target = e.target as HTMLElement | null;
     if (
       target &&
@@ -426,5 +503,9 @@ export {
   renderLessonMaybe,
   removeTutorial,
   Tutorial,
+  TutorialOptions,
+  TutorialRoute,
   processTutorialOutput,
+  parseTutorialHash,
+  isValidTutorialIndex,
 };
