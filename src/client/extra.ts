@@ -27,7 +27,11 @@ import {
   dynamicAutoCompleteHandling,
 } from "./editor";
 import type { CompletionRequester } from "./editor";
-import { activateTabInContainer, computeResizeFlexBasis } from "./uiHelpers";
+import {
+  activateTabInContainer,
+  computeResizeFlexBasis,
+  findDirectoryPrefixMatch,
+} from "./uiHelpers";
 
 const hashCode = function (s: string) {
   let hash = 0,
@@ -147,6 +151,85 @@ const updateFileName = function (newName: string) {
 let currentFileIsDirectory;
 let currentFileIsReadonly;
 let editor; // "editorDiv"
+let directoryTypeaheadPrefix = "";
+let directoryTypeaheadTimeout: number;
+
+const clearDirectoryTypeaheadMatch = function () {
+  editor
+    .querySelectorAll(".editorDirectoryName")
+    .forEach((label: HTMLElement) => {
+      const name = label.dataset.directoryName;
+      if (name !== undefined) label.textContent = name;
+    });
+};
+
+const clearDirectoryTypeahead = function () {
+  directoryTypeaheadPrefix = "";
+  if (directoryTypeaheadTimeout)
+    window.clearTimeout(directoryTypeaheadTimeout);
+  directoryTypeaheadTimeout = 0;
+  clearDirectoryTypeaheadMatch();
+};
+
+const updateDirectoryTypeahead = function () {
+  const items = Array.from(
+    editor.querySelectorAll(".editorDirectoryItem")
+  ) as HTMLElement[];
+  const labels = items.map(
+    (item) => item.querySelector(".editorDirectoryName") as HTMLElement
+  );
+  const names = labels.map((label) => label?.dataset.directoryName || "");
+  const matchName = findDirectoryPrefixMatch(names, directoryTypeaheadPrefix);
+  const matchIndex = matchName === null ? -1 : names.indexOf(matchName);
+
+  clearDirectoryTypeaheadMatch();
+  const match = matchIndex < 0 ? null : items[matchIndex];
+  if (match) {
+    const label = labels[matchIndex];
+    const highlightedPrefix = document.createElement("span");
+    highlightedPrefix.className = "editorDirectoryTypeaheadMatch";
+    highlightedPrefix.textContent = directoryTypeaheadPrefix;
+    label.replaceChildren(
+      highlightedPrefix,
+      matchName.substring(directoryTypeaheadPrefix.length)
+    );
+    match.scrollIntoView({ block: "center", inline: "nearest" });
+  }
+
+  if (directoryTypeaheadTimeout)
+    window.clearTimeout(directoryTypeaheadTimeout);
+  directoryTypeaheadTimeout = window.setTimeout(
+    () => clearDirectoryTypeahead(),
+    1500
+  );
+};
+
+const directoryTypeaheadKeyDown = function (e: KeyboardEvent): boolean {
+  if (e.key === "Escape" && directoryTypeaheadPrefix) {
+    clearDirectoryTypeahead();
+    return true;
+  }
+  if (e.key === "Backspace" && directoryTypeaheadPrefix) {
+    directoryTypeaheadPrefix = directoryTypeaheadPrefix.slice(0, -1);
+    if (directoryTypeaheadPrefix) updateDirectoryTypeahead();
+    else clearDirectoryTypeahead();
+    return true;
+  }
+  if (e.key === "Enter") {
+    const match = editor.querySelector(
+      ".editorDirectoryTypeaheadMatch"
+    ) as HTMLElement;
+    if (!match) return false;
+    const link = match.closest(".editorDirectoryLink") as HTMLAnchorElement;
+    clearDirectoryTypeahead();
+    link.click();
+    return true;
+  }
+  if (e.key.length !== 1 || e.ctrlKey || e.altKey || e.metaKey) return false;
+  directoryTypeaheadPrefix += e.key;
+  updateDirectoryTypeahead();
+  return true;
+};
 
 const setEditorActionButtonsDisabled = function (disabled: boolean) {
   ["runBtn", "runAllEditor"].forEach((id) => {
@@ -161,8 +244,11 @@ const setEditorActionButtonsDisabled = function (disabled: boolean) {
 };
 
 const setDirectory = function (val: boolean) {
+  clearDirectoryTypeahead();
   currentFileIsDirectory = val;
   editor.contentEditable = !val; // auto convert to string
+  if (val) editor.tabIndex = 0;
+  else editor.removeAttribute("tabindex");
   setEditorActionButtonsDisabled(val);
 };
 
@@ -319,6 +405,7 @@ const listDirToEditor = function (dirName: string, fileName: string) {
 
       const label = document.createElement("span");
       label.className = "editorDirectoryName";
+      label.dataset.directoryName = entry.name;
       label.textContent = entry.name;
       link.append(icon, label);
       if (isM2File) {
@@ -361,6 +448,7 @@ const listDirToEditor = function (dirName: string, fileName: string) {
     }
     directoryView.appendChild(list);
     editor.replaceChildren(directoryView);
+    editor.focus({ preventScroll: true });
   };
   autoSaveHash = undefined; // no autosaving for directories
   xhr.send(null);
@@ -897,8 +985,8 @@ const extra2 = function (requestCompletions?: CompletionRequester) {
   const editorKeyDown = function (e) {
     removeAutoComplete(false, true); // remove autocomplete menu if open and move caret to right after
     //removeDelimiterHighlight(editor);
-    if (currentFileIsDirectory && isCtrlS(e)) {
-      e.preventDefault();
+    if (currentFileIsDirectory) {
+      if (directoryTypeaheadKeyDown(e) || isCtrlS(e)) e.preventDefault();
       return;
     }
     if (searchMode) {

@@ -37,4 +37,17 @@ const computeResizeFlexBasis = function (
   return startWidth + (currentX - startX) + "px";
 };
 
-export { getThemeButtonState, activateTabInContainer, computeResizeFlexBasis };
+const findDirectoryPrefixMatch = function (
+  names: string[],
+  prefix: string
+): string | null {
+  if (!prefix) return null;
+  return names.find((name) => name !== ".." && name.startsWith(prefix)) || null;
+};
+
+export {
+  getThemeButtonState,
+  activateTabInContainer,
+  computeResizeFlexBasis,
+  findDirectoryPrefixMatch,
+};

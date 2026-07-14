@@ -591,6 +591,12 @@ dialog.app-dialog::backdrop {
     white-space: nowrap;
 }
 
+.editorDirectoryTypeaheadMatch {
+    background: color-mix(in srgb, var(--text-link) 22%, transparent);
+    border-bottom: 2px solid var(--text-link);
+    border-radius: 2px;
+}
+
 .editorDirectoryDeleteButton {
     flex: 0 0 auto;
     height: 32px;
