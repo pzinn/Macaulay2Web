@@ -42,6 +42,20 @@ const inputCell = (lines: string[], discarded = false) => {
   return stream + webAppTags.CellEnd;
 };
 
+const commandCell = (input: string, output = "") =>
+  webAppTags.Cell +
+  webAppTags.Prompt +
+  "i1" +
+  webAppTags.End +
+  " : " +
+  webAppTags.Input +
+  position(1) +
+  input +
+  "\n" +
+  webAppTags.InputEnd +
+  output +
+  webAppTags.CellEnd;
+
 const setCaretAtEnd = (el: HTMLElement) => {
   el.focus();
   const range = document.createRange();
@@ -149,6 +163,28 @@ describe("terminal WebApp protocol", () => {
     expect(pressUp(terminal)).toBe(lines.join("\n"));
   });
 
+  it("does not record the outer session cell as one history entry after restart", async () => {
+    const { shell, terminal } = await setupShell();
+
+    shell.displayOutput(
+      webAppTags.Cell +
+        webAppTags.Cell +
+        "Macaulay2 startup" +
+        webAppTags.CellEnd +
+        commandCell("a=1", webAppTags.Prompt + "o1" + webAppTags.End + " = 1") +
+        commandCell("b=2", webAppTags.Prompt + "o2" + webAppTags.End + " = 2") +
+        commandCell("restart") +
+        webAppTags.CellEnd +
+        webAppTags.Cell +
+        webAppTags.Cell +
+        "Macaulay2 startup"
+    );
+
+    expect(pressUp(terminal)).toBe("restart");
+    expect(pressUp(terminal)).toBe("b=2");
+    expect(pressUp(terminal)).toBe("a=1");
+  });
+
   it("preserves multiline input when output arrives in several chunks", async () => {
     const { shell, terminal } = await setupShell();
     const lines = ["scan(5,i->(", "i", "))"];
@@ -245,6 +281,78 @@ describe("terminal WebApp protocol", () => {
 
     shell.displayOutput(inputCell(["pending()"]));
     expect(processedLine.classList.contains("is-complete")).toBe(true);
+  });
+
+  it("finishes read replies wrapped by readIO", async () => {
+    const { shell } = await setupShell();
+    shell.postMessage('<< "n="; n=value read()');
+    shell.postMessage("3");
+    shell.postMessage("next command");
+
+    shell.displayOutput(
+      webAppTags.Cell +
+        webAppTags.Prompt +
+        "i1" +
+        webAppTags.End +
+        " : " +
+        webAppTags.Input +
+        position(1) +
+        '<< "n="; n=value read()\n' +
+        webAppTags.InputEnd +
+        "n=" +
+        webAppTags.Input +
+        "3\n" +
+        webAppTags.InputEnd +
+        webAppTags.Prompt +
+        "o2" +
+        webAppTags.End +
+        " = 3" +
+        webAppTags.CellEnd
+    );
+
+    const lines = Array.from(
+      document.querySelectorAll(".terminalProcLine")
+    ) as HTMLElement[];
+    expect(lines).toHaveLength(3);
+    expect(lines[0].classList.contains("is-complete")).toBe(true);
+    expect(lines[1].classList.contains("is-complete")).toBe(true);
+    expect(lines[2].classList.contains("is-complete")).toBe(false);
+  });
+
+  it('finishes read "n=" replies wrapped by readIO', async () => {
+    const { shell } = await setupShell();
+    shell.postMessage('n=value read "n="');
+    shell.postMessage("3");
+    shell.postMessage("next command");
+
+    shell.displayOutput(
+      webAppTags.Cell +
+        webAppTags.Prompt +
+        "i1" +
+        webAppTags.End +
+        " : " +
+        webAppTags.Input +
+        position(1) +
+        'n=value read "n="\n' +
+        webAppTags.InputEnd +
+        "n=" +
+        webAppTags.Input +
+        "3\n" +
+        webAppTags.InputEnd +
+        webAppTags.Prompt +
+        "o1" +
+        webAppTags.End +
+        " = 3" +
+        webAppTags.CellEnd
+    );
+
+    const lines = Array.from(
+      document.querySelectorAll(".terminalProcLine")
+    ) as HTMLElement[];
+    expect(lines).toHaveLength(3);
+    expect(lines[0].classList.contains("is-complete")).toBe(true);
+    expect(lines[1].classList.contains("is-complete")).toBe(true);
+    expect(lines[2].classList.contains("is-complete")).toBe(false);
   });
 
   it("finishes all buffered input after a delayed parsing error", async () => {
