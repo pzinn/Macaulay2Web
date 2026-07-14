@@ -9,12 +9,10 @@
 }
 
 .app-btn:hover,
-.app-btn-icon:focus,
 .app-btn-icon:focus-visible {
     background: var(--bg-button);
 }
 
-.app-btn-icon:focus,
 .app-btn-icon:focus-visible {
     outline: none;
 }

@@ -176,7 +176,6 @@ html, body {
     background-color: rgba(255, 255, 255, 0.16);
 }
 
-.app-header .app-btn-icon:focus,
 .app-header .app-btn-icon:focus-visible {
     background-color: rgba(255, 255, 255, 0.16);
     outline: none;
@@ -671,7 +670,6 @@ dialog.app-dialog::backdrop {
 }
 
 .github-corner:hover,
-.github-corner:focus,
 .github-corner:focus-visible {
     opacity: 1;
     outline: none;
@@ -695,10 +693,8 @@ dialog.app-dialog::backdrop {
 }
 
 #scrollBtn .app-btn-fab:hover,
-#scrollBtn .app-btn-fab:focus,
 #scrollBtn .app-btn-fab:focus-visible,
 #terminalFullscreen .app-btn-icon:hover,
-#terminalFullscreen .app-btn-icon:focus,
 #terminalFullscreen .app-btn-icon:focus-visible {
     background: var(--bg-button);
     outline: none;
