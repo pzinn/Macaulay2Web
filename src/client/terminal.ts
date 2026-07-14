@@ -273,33 +273,48 @@ const Shell = function (
     });
   };
 
-  const finishProcessedCodeEl = function (
+  const renderTutorialOutputForCell = function (
     cell: HTMLElement,
-    currentCodeEl: any
+    currentCodeEl: any,
+    renderedCodeEls: Set<HTMLElement>
   ) {
-    if (currentCodeEl.classList.contains("terminalProcLine"))
-      fadeProcessedInputLine(currentCodeEl);
-    else if (!isMinimalMode) processTutorialOutput(cell, currentCodeEl);
+    if (
+      !currentCodeEl.classList.contains("terminalProcLine") &&
+      !isMinimalMode &&
+      !renderedCodeEls.has(currentCodeEl)
+    ) {
+      processTutorialOutput(cell, currentCodeEl);
+      renderedCodeEls.add(currentCodeEl);
+    }
   };
 
   const finishProcessedInputForCell = function (cell: HTMLElement) {
     let numInputs = countCellInputSegments(cell);
+    const renderedCodeEls = new Set<HTMLElement>();
     while (numInputs > 0 && pendingCodeEls.length > 0) {
       const currentCodeEl = pendingCodeEls[0];
-      if (currentCodeEl.numSegments > numInputs) {
-        currentCodeEl.numSegments -= numInputs;
-        numInputs = 0;
-      } else {
-        numInputs -= currentCodeEl.numSegments;
-        finishProcessedCodeEl(cell, currentCodeEl);
+      renderTutorialOutputForCell(cell, currentCodeEl, renderedCodeEls);
+      const consumedInputs = Math.min(currentCodeEl.numSegments, numInputs);
+      currentCodeEl.numSegments -= consumedInputs;
+      numInputs -= consumedInputs;
+      if (currentCodeEl.numSegments === 0) {
+        if (currentCodeEl.classList.contains("terminalProcLine"))
+          fadeProcessedInputLine(currentCodeEl);
         pendingCodeEls.shift();
       }
     }
+    return renderedCodeEls;
   };
 
-  const finishAllPendingInput = function (cell: HTMLElement) {
+  const finishAllPendingInput = function (
+    cell: HTMLElement,
+    renderedCodeEls = new Set<HTMLElement>()
+  ) {
     while (pendingCodeEls.length > 0) {
-      finishProcessedCodeEl(cell, pendingCodeEls[0]);
+      const currentCodeEl = pendingCodeEls[0];
+      renderTutorialOutputForCell(cell, currentCodeEl, renderedCodeEls);
+      if (currentCodeEl.classList.contains("terminalProcLine"))
+        fadeProcessedInputLine(currentCodeEl);
       pendingCodeEls.shift();
     }
   };
@@ -309,9 +324,9 @@ const Shell = function (
     const cell = activeCell();
     if (!cell || !isSubmittedInputCell(cell)) return;
     cell.dataset.processedInputFinalized = "true";
-    finishProcessedInputForCell(cell);
+    const renderedCodeEls = finishProcessedInputForCell(cell);
     // M2 flushes all input already buffered after a parsing error.
-    finishAllPendingInput(cell);
+    finishAllPendingInput(cell, renderedCodeEls);
   };
 
   obj.postMessage = function (msg, el?) {

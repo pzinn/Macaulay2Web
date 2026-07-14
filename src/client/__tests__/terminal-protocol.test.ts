@@ -137,6 +137,58 @@ describe("terminal WebApp protocol", () => {
     );
   });
 
+  it("returns every completed cell from multi-expression tutorial code", async () => {
+    const { shell } = await setupShell();
+    const code = document.createElement("code");
+    code.textContent = "1+1\n2+2";
+    document.body.appendChild(code);
+
+    shell.postMessage(code.textContent, code);
+    shell.displayOutput(commandCell("1+1", "2\n"));
+    shell.displayOutput(commandCell("2+2", "4\n"));
+
+    expect(processTutorialOutput).toHaveBeenCalledTimes(2);
+    expect(processTutorialOutput).toHaveBeenNthCalledWith(
+      1,
+      expect.any(HTMLElement),
+      code
+    );
+    expect(processTutorialOutput).toHaveBeenNthCalledWith(
+      2,
+      expect.any(HTMLElement),
+      code
+    );
+  });
+
+  it("returns one cell from one continued multi-line tutorial expression", async () => {
+    const { shell } = await setupShell();
+    const code = document.createElement("code");
+    const lines = ["scan(2,i->(", "i", "))"];
+    code.textContent = lines.join("\n");
+    document.body.appendChild(code);
+
+    shell.postMessage(code.textContent, code);
+    shell.displayOutput(inputCell(lines));
+
+    expect(processTutorialOutput).toHaveBeenCalledOnce();
+    expect(processTutorialOutput).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      code
+    );
+  });
+
+  it("does not duplicate tutorial output when input is discarded", async () => {
+    const { shell } = await setupShell();
+    const code = document.createElement("code");
+    code.textContent = "bad\ninput";
+    document.body.appendChild(code);
+
+    shell.postMessage(code.textContent, code);
+    shell.displayOutput(inputCell(["bad"], true));
+
+    expect(processTutorialOutput).toHaveBeenCalledOnce();
+  });
+
   it("keeps multiline input in one DOM block and history entry", async () => {
     const { shell, terminal } = await setupShell();
     const lines = ["scan(5,i->(", "i", "))"];
