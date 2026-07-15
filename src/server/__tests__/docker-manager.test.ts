@@ -18,7 +18,8 @@ vi.mock("../server", () => ({
   notifyExpectedMathProgramStop: mocks.notifyExpectedMathProgramStop,
 }));
 
-vi.mock("../dockerArchive", () => ({
+vi.mock("../dockerArchive", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../dockerArchive")>()),
   archiveDockerHome: mocks.archiveDockerHome,
 }));
 
@@ -302,6 +303,67 @@ describe.each(managers)("$label", ({ create, configureSuccessfulExec }) => {
     expect(mocks.clients[instance.clientId].instance).toBe(instance);
     expect(manager.currentContainers).toContain(instance);
     expect(instance.removalInProgress).toBe(false);
+  });
+
+  it("clears a stale instance when its container was externally deleted", () => {
+    const missingError = new Error(
+      "docker exec failed with exit code 1: Error response from daemon: No such container: missing-container"
+    );
+    mocks.archiveDockerHome.mockImplementation((instance, savePath, next) =>
+      next(missingError)
+    );
+    const manager = create() as any;
+    const instance: Instance = {
+      ...startingInstance(),
+      clientId: "externally-deleted",
+      containerName: "missing-container",
+    };
+    mocks.clients[instance.clientId] = { instance };
+    manager.currentContainers.push(instance);
+    const removed = vi.fn();
+
+    manager.removeInstanceFromId(instance.clientId, removed);
+
+    expect(removed).toHaveBeenCalledWith(undefined);
+    expect(mocks.clients[instance.clientId].instance).toBeNull();
+    expect(manager.currentContainers).not.toContain(instance);
+    expect(
+      mocks.exec.mock.calls.some(([command]) =>
+        command.startsWith("sudo docker rm -f ")
+      )
+    ).toBe(false);
+  });
+
+  it("accepts disappearance after files have been archived", () => {
+    mocks.archiveDockerHome.mockImplementation((instance, savePath, next) =>
+      next()
+    );
+    mocks.exec.mockImplementation((command, next) => {
+      if (command.startsWith("sudo docker rm -f "))
+        next(
+          new Error(
+            "Error response from daemon: No such container: vanished-after-save"
+          ),
+          "",
+          ""
+        );
+      else next(null, "", "");
+    });
+    const manager = create() as any;
+    const instance: Instance = {
+      ...startingInstance(),
+      clientId: "vanished-after-save",
+      containerName: "vanished-after-save",
+    };
+    mocks.clients[instance.clientId] = { instance };
+    manager.currentContainers.push(instance);
+    const removed = vi.fn();
+
+    manager.removeInstanceFromId(instance.clientId, removed);
+
+    expect(removed).toHaveBeenCalledWith(undefined);
+    expect(mocks.clients[instance.clientId].instance).toBeNull();
+    expect(manager.currentContainers).not.toContain(instance);
   });
 
   it("joins callbacks when removal is already in progress", () => {

@@ -18,6 +18,7 @@ import {
   DockerManagerDependencies,
   defaultDockerManagerDependencies,
 } from "./dockerManagerDependencies";
+import { isDockerContainerMissingError } from "./dockerArchive";
 
 const saveFile = "save.tar.gz";
 const retryDelay = 3000;
@@ -371,6 +372,11 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     const self = this;
     const removeDockerContainer = "sudo docker rm -f " + instance.containerName;
     self.dependencies.exec(removeDockerContainer, function (error) {
+      if (isDockerContainerMissingError(error)) {
+        logger.info("Container already absent: " + instance.containerName);
+        self.finishRemoval(instance);
+        return;
+      }
       if (error) {
         logger.error(
           "Error removing container " +
@@ -424,6 +430,14 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
       staticFolder + userSpecificPath(instance.clientId) + saveFile;
     self.dependencies.archiveDockerHome(instance, savePath, function (error) {
       if (error) {
+        if (isDockerContainerMissingError(error)) {
+          logger.info(
+            "Container already absent; retaining previous saved files for " +
+              instance.clientId
+          );
+          self.finishRemoval(instance);
+          return;
+        }
         logger.error(
           "Error saving container " +
             instance.containerName +

@@ -7,7 +7,10 @@ import path = require("path");
 import { PassThrough } from "stream";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { archiveDockerHome } from "../dockerArchive";
+import {
+  archiveDockerHome,
+  isDockerContainerMissingError,
+} from "../dockerArchive";
 import { Instance } from "../instance";
 
 const instance: Instance = {
@@ -103,5 +106,26 @@ describe("Docker home archiving", () => {
 
     expect(fs.readFileSync(savePath, "utf8")).toBe("previous archive");
     expect(fs.existsSync(savePath + ".tmp")).toBe(false);
+  });
+});
+
+describe("Docker missing-container errors", () => {
+  it("recognizes Docker container and object errors", () => {
+    expect(
+      isDockerContainerMissingError(
+        new Error("Error response from daemon: No such container: m2Port1051")
+      )
+    ).toBe(true);
+    expect(
+      isDockerContainerMissingError(
+        new Error("Error response from daemon: No such object: m2Port1051")
+      )
+    ).toBe(true);
+  });
+
+  it("does not classify other Docker failures as missing containers", () => {
+    expect(isDockerContainerMissingError(new Error("permission denied"))).toBe(
+      false
+    );
   });
 });

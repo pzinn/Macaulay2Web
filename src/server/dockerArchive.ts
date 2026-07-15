@@ -7,6 +7,15 @@ import { logger } from "./logger";
 type ArchiveCallback = (error?: Error) => void;
 type Spawn = typeof childProcess.spawn;
 
+const isDockerContainerMissingError = function (error: unknown): boolean {
+  if (!error) return false;
+  const detail =
+    error instanceof Error
+      ? error.message + " " + String((error as any).stderr || "")
+      : String(error);
+  return /No such (?:container|object):/i.test(detail);
+};
+
 const removeTemporaryArchive = function (
   temporaryPath: string,
   next: () => void
@@ -112,4 +121,4 @@ const archiveDockerHome = function (
   });
 };
 
-export { archiveDockerHome };
+export { archiveDockerHome, isDockerContainerMissingError };
