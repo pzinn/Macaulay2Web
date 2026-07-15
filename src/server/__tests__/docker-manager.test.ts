@@ -184,6 +184,58 @@ describe.each(managers)("$label", ({ create, configureSuccessfulExec }) => {
     expect(ready).toHaveBeenCalledOnce();
   });
 
+  it("compares immutable image IDs without shell process substitution", () => {
+    const manager = create();
+    const instance: Instance = {
+      ...startingInstance(),
+      clientId: "version-check",
+      containerName: "m2Client.version-check",
+    };
+    mocks.exec.mockImplementation((command, next) => {
+      if (command.includes("m2container --format='{{.Id}}'"))
+        next(null, "sha256:current\n", "");
+      else if (command.includes("--format='{{.Image}}'"))
+        next(null, "sha256:current\n", "");
+      else throw new Error("Unexpected command: " + command);
+    });
+    const checked = vi.fn();
+
+    manager.checkInstance(instance, checked);
+
+    expect(checked).toHaveBeenCalledWith(false);
+    expect(
+      mocks.exec.mock.calls.some(([command]) => command.includes("<("))
+    ).toBe(false);
+
+    mocks.exec.mockImplementation((command, next) => {
+      if (command.includes("m2container --format='{{.Id}}'"))
+        next(null, "sha256:current", "");
+      else next(null, "sha256:old", "");
+    });
+    manager.checkInstance(instance, checked);
+
+    expect(checked).toHaveBeenLastCalledWith(true);
+  });
+
+  it("does not report an inspect failure as a version mismatch", () => {
+    const manager = create();
+    const checked = vi.fn();
+    mocks.exec.mockImplementation((command, next) =>
+      next(new Error("Docker unavailable"), "", "")
+    );
+
+    manager.checkInstance(
+      {
+        ...startingInstance(),
+        clientId: "failed-version-check",
+        containerName: "m2Client.failed-version-check",
+      },
+      checked
+    );
+
+    expect(checked).toHaveBeenCalledWith(false);
+  });
+
   it("archives even an unused container before removing it", () => {
     let finishArchive;
     mocks.archiveDockerHome.mockImplementation((instance, savePath, next) => {

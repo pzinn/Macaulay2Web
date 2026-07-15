@@ -259,10 +259,32 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
 
   public checkInstance = function (instance: Instance, next) {
     this.dependencies.exec(
-      "diff <(sudo docker inspect m2container --format='{{.Id}}') <(sudo docker inspect " +
-        instance.containerName +
-        " --format='{{.Image}}')",
-      next
+      "sudo docker inspect m2container --format='{{.Id}}'",
+      (imageError, imageId) => {
+        if (imageError) {
+          logger.error("Unable to inspect current Docker image: " + imageError);
+          next(false);
+          return;
+        }
+        this.dependencies.exec(
+          "sudo docker inspect " +
+            instance.containerName +
+            " --format='{{.Image}}'",
+          function (containerError, containerImageId) {
+            if (containerError) {
+              logger.error(
+                "Unable to inspect container " +
+                  instance.containerName +
+                  ": " +
+                  containerError
+              );
+              next(false);
+              return;
+            }
+            next(imageId.trim() !== containerImageId.trim());
+          }
+        );
+      }
     );
   };
 

@@ -123,8 +123,8 @@ const emitViaOtherClientSockets = function (
 
 const getInstance = function (client: Client, next): void {
   if (client.instance) {
-    instanceManager.checkInstance(client.instance, function (error) {
-      if (error) {
+    instanceManager.checkInstance(client.instance, function (outdated) {
+      if (outdated) {
         systemChat(
           client,
           "A new version of Macaulay2 is available. Type /kill in chat to upgrade."
