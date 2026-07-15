@@ -154,6 +154,36 @@ describe.each(managers)("$label", ({ create, configureSuccessfulExec }) => {
     expect(first.mock.calls[0][0]).toBe(second.mock.calls[0][0]);
   });
 
+  it("restores saved files before exposing a new container", () => {
+    mocks.access.mockImplementation((fileName, next) => next());
+    const successfulExec = mocks.exec.getMockImplementation();
+    let finishRestore;
+    mocks.exec.mockImplementation((command, next) => {
+      if (command.includes(" tar -C /home/m2user -xzf - . < ")) {
+        finishRestore = next;
+        return;
+      }
+      return successfulExec(command, next);
+    });
+    const manager = create();
+    const ready = vi.fn();
+
+    manager.getNewInstance("restore-client", ready);
+
+    expect(mocks.access).toHaveBeenCalledWith(
+      "/tmp/m2web-manager-tests/files/restore-client-save.tar.gz",
+      expect.any(Function)
+    );
+    expect(finishRestore).toBeTypeOf("function");
+    expect(mocks.waitForDockerSshd).not.toHaveBeenCalled();
+    expect(ready).not.toHaveBeenCalled();
+
+    finishRestore(null);
+
+    expect(mocks.waitForDockerSshd).toHaveBeenCalledOnce();
+    expect(ready).toHaveBeenCalledOnce();
+  });
+
   it("archives even an unused container before removing it", () => {
     let finishArchive;
     mocks.archiveDockerHome.mockImplementation((instance, savePath, next) => {

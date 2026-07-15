@@ -172,19 +172,20 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               clientId
           );
           self.addInstanceToArray(instance);
-          self.restoreFiles(instance);
-          self.dependencies.waitForDockerSshd(
-            instance,
-            self.hostConfig.sshdCmd,
-            function (readinessError) {
-              if (readinessError) {
-                logger.error(String(readinessError));
-                self.removeFailedStartupAndRetry(instance);
-                return;
+          self.restoreFiles(instance, function () {
+            self.dependencies.waitForDockerSshd(
+              instance,
+              self.hostConfig.sshdCmd,
+              function (readinessError) {
+                if (readinessError) {
+                  logger.error(String(readinessError));
+                  self.removeFailedStartupAndRetry(instance);
+                  return;
+                }
+                self.completeInstanceCreation(instance);
               }
-              self.completeInstanceCreation(instance);
-            }
-          );
+            );
+          });
         }
       );
     });
@@ -201,11 +202,14 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
     this.pendingCreations.complete(instance);
   }
 
-  private restoreFiles(instance: Instance) {
+  private restoreFiles(instance: Instance, next: () => void) {
     const savePath =
       staticFolder + userSpecificPath(instance.clientId) + saveFile;
-    this.dependencies.access(savePath, function (err) {
-      if (err) return;
+    this.dependencies.access(savePath, (err) => {
+      if (err) {
+        next();
+        return;
+      }
       logger.info("Restoring files for " + instance.clientId);
       const restoreDockerContainer =
         "sudo docker exec -i " +
@@ -222,6 +226,8 @@ class SudoDockerContainersInstanceManager implements InstanceManager {
               " with error:" +
               error
           );
+        else logger.info("Restored files for " + instance.clientId);
+        next();
       });
     });
   }
