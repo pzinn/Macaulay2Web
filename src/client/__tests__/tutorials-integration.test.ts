@@ -49,6 +49,20 @@ const unfoldedTutorialHtml = `
   </section>
 `;
 
+const foldingTutorialHtml = `
+  <section>
+    <header><h2>Folding tutorial 1</h2></header>
+    <p>Introduction</p>
+    <hr><p>First reveal</p>
+    <hr><p>Second reveal</p>
+  </section>
+  <section>
+    <header><h2>Folding tutorial 2</h2></header>
+    <p>Introduction</p>
+    <hr><p>Another reveal</p>
+  </section>
+`;
+
 const installTutorialRoutes = function () {
   MockXHR.routes = {
     "tutorials/welcome.html": { status: 200, body: tutorialHtml("Welcome") },
@@ -61,6 +75,7 @@ const installTutorialRoutes = function () {
     },
     "tutorials/sample.html": { status: 200, body: tutorialHtml("Sample", 2) },
     "tutorials/unfolded.html": { status: 200, body: unfoldedTutorialHtml },
+    "tutorials/folding.html": { status: 200, body: foldingTutorialHtml },
   };
 };
 
@@ -122,6 +137,50 @@ describe("tutorials integration", () => {
     window.location.hash = "#tutorial-sample-1";
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
     expect(window.location.hash).toContain("tutorial-sample-2");
+  });
+
+  it("uses arrow keys to unfold and fold separators before changing lessons", async () => {
+    const { initTutorials, renderLessonMaybe } = await import("../tutorials");
+    initTutorials({
+      startingTutorials: ["welcome"],
+      useAccordion: false,
+      allowUpload: false,
+    });
+    renderLessonMaybe("folding", 1);
+
+    const tutorialEl = document.getElementById("tutorial") as HTMLElement;
+    Object.defineProperty(document, "fullscreenElement", {
+      configurable: true,
+      get: () => tutorialEl,
+    });
+    window.location.hash = "#tutorial-folding-1";
+    const lesson = document.querySelector(
+      "section.current-lesson"
+    ) as HTMLElement;
+    const breaks = Array.from(lesson.querySelectorAll("hr"));
+
+    expect(breaks.every((hr) => hr.classList.contains("closed"))).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    expect(breaks[0].classList.contains("closed")).toBe(false);
+    expect(breaks[1].classList.contains("closed")).toBe(true);
+    expect(window.location.hash).toBe("#tutorial-folding-1");
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    expect(breaks.every((hr) => !hr.classList.contains("closed"))).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft" }));
+    expect(breaks[0].classList.contains("closed")).toBe(false);
+    expect(breaks[1].classList.contains("closed")).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    expect(window.location.hash).toBe("#tutorial-folding-2");
+
+    renderLessonMaybe("folding", 2);
+    window.location.hash = "#tutorial-folding-2";
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft" }));
+    expect(window.location.hash).toBe("#tutorial-folding-1");
   });
 
   it("parses standalone tutorial routes and rejects unsafe hashes", async () => {

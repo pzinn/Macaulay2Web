@@ -169,6 +169,12 @@ const tutorials = {};
 let lessonNr: number;
 let tutorialIndex: string | null;
 
+const currentTutorialLesson = function (): HTMLElement | null {
+  const tutorial = tutorials[tutorialIndex];
+  if (!tutorial) return null;
+  return (lessonNr > 0 ? tutorial.lessons[lessonNr - 1] : tutorial.body) || null;
+};
+
 const updateTutorialNav = function () {
   const prevBtn = document.getElementById("prevBtn") as HTMLButtonElement;
   const nextBtn = document.getElementById("nextBtn") as HTMLButtonElement;
@@ -358,10 +364,7 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
     else tutorials[tutorialIndex].lessons[i].classList.remove("current-lesson");
   lessonDiv.scrollTop = 0;
   //tutorials[tutorialIndex].lessons[lessonNr-1].scrollIntoView();
-  const lesson =
-    lessonNr > 0
-      ? tutorials[tutorialIndex].lessons[lessonNr - 1]
-      : tutorials[tutorialIndex].body; // want to apply to current lesson only -- except if it's one page
+  const lesson = currentTutorialLesson();
   if (lesson) {
     const hr = lesson.querySelector("hr");
     if (hr) {
@@ -460,16 +463,11 @@ const initTutorials = function (options: TutorialOptions = {}) {
     };
 
   document.getElementById("runAllTute").onclick = function () {
-    if (tutorials[tutorialIndex]) {
-      const lesson =
-        lessonNr > 0
-          ? tutorials[tutorialIndex].lessons[lessonNr - 1]
-          : tutorials[tutorialIndex].body; // want to apply to current lesson only -- except if it's one page
-      if (lesson)
-        Array.from(lesson.getElementsByTagName("code")).forEach((code) =>
-          (code as HTMLElement).click()
-        );
-    }
+    const lesson = currentTutorialLesson();
+    if (lesson)
+      Array.from(lesson.getElementsByTagName("code")).forEach((code) =>
+        (code as HTMLElement).click()
+      );
   };
 
   const fullscreenBtn = document.getElementById("fullscreenTute");
@@ -492,12 +490,33 @@ const initTutorials = function (options: TutorialOptions = {}) {
       return;
 
     if (e.key === "ArrowLeft") {
+      const lesson = currentTutorialLesson();
+      const unfoldedBreaks = lesson
+        ? Array.from(lesson.querySelectorAll("hr.separator:not(.closed)"))
+        : [];
+      const lastUnfoldedBreak = unfoldedBreaks[unfoldedBreaks.length - 1] as
+        | HTMLElement
+        | undefined;
+      if (lastUnfoldedBreak) {
+        e.preventDefault();
+        lastUnfoldedBreak.click();
+        return;
+      }
       const prevBtn = document.getElementById("prevBtn") as HTMLButtonElement;
       if (prevBtn && !prevBtn.disabled) {
         e.preventDefault();
         prevBtn.click();
       }
     } else if (e.key === "ArrowRight") {
+      const lesson = currentTutorialLesson();
+      const firstClosedBreak = lesson?.querySelector(
+        "hr.separator.closed"
+      ) as HTMLElement | null;
+      if (firstClosedBreak) {
+        e.preventDefault();
+        firstClosedBreak.click();
+        return;
+      }
       const nextBtn = document.getElementById("nextBtn") as HTMLButtonElement;
       if (nextBtn && !nextBtn.disabled) {
         e.preventDefault();
