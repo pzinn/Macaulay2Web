@@ -60,8 +60,14 @@ const setTutorialBreakClosed = function (
       if (current.tagName === "HR") current.classList.add("closed");
     } else current.style.display = current.dataset.display || "";
   }
-  if (!closing && scroll)
-    first.scrollIntoView({ behavior: "smooth" });
+  if (!closing && scroll) first.scrollIntoView({ behavior: "smooth" });
+};
+
+const lessonBreaks = function (lesson: Element): HTMLElement[] {
+  return Array.from(lesson.children).filter(
+    (child): child is HTMLElement =>
+      child instanceof HTMLElement && child.tagName === "HR"
+  );
 };
 
 const processTutorialOutput = function (
@@ -138,13 +144,16 @@ const processTutorial = function (theHtml: string) {
     addAccordionButton(acc as HTMLElement);
   }
 
-  // add breaks
-  const breaks = Array.from(el.getElementsByTagName("hr"));
-  for (const hr of breaks) {
-    hr.onclick = function () {
-      setTutorialBreakClosed(hr, !hr.classList.contains("closed"));
-    };
-    hr.classList.add("separator");
+  const lessons = el.querySelectorAll("section:not(section section)");
+
+  // Only direct children of a lesson delimit its successive reveal stages.
+  for (const lesson of lessons) {
+    for (const hr of lessonBreaks(lesson)) {
+      hr.onclick = function () {
+        setTutorialBreakClosed(hr, !hr.classList.contains("closed"));
+      };
+      hr.classList.add("separator");
+    }
   }
 
   // run scripts
@@ -159,7 +168,7 @@ const processTutorial = function (theHtml: string) {
 
   const tutorial: Tutorial = {
     body: el,
-    lessons: el.querySelectorAll("section:not(section section)"),
+    lessons,
   };
   return tutorial;
 };
@@ -172,7 +181,9 @@ let tutorialIndex: string | null;
 const currentTutorialLesson = function (): HTMLElement | null {
   const tutorial = tutorials[tutorialIndex];
   if (!tutorial) return null;
-  return (lessonNr > 0 ? tutorial.lessons[lessonNr - 1] : tutorial.body) || null;
+  return (
+    (lessonNr > 0 ? tutorial.lessons[lessonNr - 1] : tutorial.body) || null
+  );
 };
 
 const updateTutorialNav = function () {
@@ -366,15 +377,16 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
   //tutorials[tutorialIndex].lessons[lessonNr-1].scrollIntoView();
   const lesson = currentTutorialLesson();
   if (lesson) {
-    const hr = lesson.querySelector("hr");
+    const breaks = lessonBreaks(lesson);
+    const hr = breaks[0];
     if (hr) {
       hr.classList.remove("closed");
       hr.click();
     }
     if (tutorialOptions.unfold)
-      lesson.querySelectorAll("hr.closed").forEach((closedHr: HTMLElement) =>
-        setTutorialBreakClosed(closedHr, false, false)
-      );
+      breaks
+        .filter((closedHr) => closedHr.classList.contains("closed"))
+        .forEach((closedHr) => setTutorialBreakClosed(closedHr, false, false));
     // auto code
     const codes = Array.from(
       lesson.querySelectorAll("code[data-language=Macaulay2]:not(.clicked)")
@@ -492,7 +504,11 @@ const initTutorials = function (options: TutorialOptions = {}) {
     if (e.key === "ArrowLeft") {
       const lesson = currentTutorialLesson();
       const unfoldedBreaks = lesson
-        ? Array.from(lesson.querySelectorAll("hr.separator:not(.closed)"))
+        ? lessonBreaks(lesson).filter(
+            (hr) =>
+              hr.classList.contains("separator") &&
+              !hr.classList.contains("closed")
+          )
         : [];
       const lastUnfoldedBreak = unfoldedBreaks[unfoldedBreaks.length - 1] as
         | HTMLElement
@@ -509,9 +525,10 @@ const initTutorials = function (options: TutorialOptions = {}) {
       }
     } else if (e.key === "ArrowRight") {
       const lesson = currentTutorialLesson();
-      const firstClosedBreak = lesson?.querySelector(
-        "hr.separator.closed"
-      ) as HTMLElement | null;
+      const firstClosedBreak = lessonBreaks(lesson).find(
+        (hr) =>
+          hr.classList.contains("separator") && hr.classList.contains("closed")
+      );
       if (firstClosedBreak) {
         e.preventDefault();
         firstClosedBreak.click();

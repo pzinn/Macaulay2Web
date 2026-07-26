@@ -63,6 +63,17 @@ const foldingTutorialHtml = `
   </section>
 `;
 
+const nestedBreakTutorialHtml = `
+  <section>
+    <header><h2>Nested break tutorial</h2></header>
+    <div>
+      <p>Nested content</p>
+      <hr id="nested-break"><p id="nested-following">Still introductory</p>
+    </div>
+    <hr id="lesson-break"><p id="lesson-reveal">First reveal</p>
+  </section>
+`;
+
 const installTutorialRoutes = function () {
   MockXHR.routes = {
     "tutorials/welcome.html": { status: 200, body: tutorialHtml("Welcome") },
@@ -76,6 +87,7 @@ const installTutorialRoutes = function () {
     "tutorials/sample.html": { status: 200, body: tutorialHtml("Sample", 2) },
     "tutorials/unfolded.html": { status: 200, body: unfoldedTutorialHtml },
     "tutorials/folding.html": { status: 200, body: foldingTutorialHtml },
+    "tutorials/nested.html": { status: 200, body: nestedBreakTutorialHtml },
   };
 };
 
@@ -181,6 +193,28 @@ describe("tutorials integration", () => {
     window.location.hash = "#tutorial-folding-2";
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft" }));
     expect(window.location.hash).toBe("#tutorial-folding-1");
+  });
+
+  it("ignores hr elements nested below the lesson level", async () => {
+    const { initTutorials, renderLessonMaybe } = await import("../tutorials");
+    initTutorials({
+      startingTutorials: ["welcome"],
+      useAccordion: false,
+      allowUpload: false,
+      standalone: true,
+    });
+    renderLessonMaybe("nested", 1);
+
+    const nestedBreak = document.getElementById("nested-break");
+    const lessonBreak = document.getElementById("lesson-break");
+    expect(nestedBreak?.classList.contains("separator")).toBe(false);
+    expect(nestedBreak?.classList.contains("closed")).toBe(false);
+    expect(document.getElementById("nested-following")?.style.display).toBe("");
+    expect(lessonBreak?.classList.contains("separator")).toBe(true);
+    expect(lessonBreak?.classList.contains("closed")).toBe(true);
+    expect(document.getElementById("lesson-reveal")?.style.display).toBe(
+      "none"
+    );
   });
 
   it("parses standalone tutorial routes and rejects unsafe hashes", async () => {
