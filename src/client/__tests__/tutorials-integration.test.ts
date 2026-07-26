@@ -40,6 +40,15 @@ const tutorialHtml = function (title: string, nLessons = 1): string {
   return `<!DOCTYPE html><html><head><title>${title}</title></head><body>${lessons}</body></html>`;
 };
 
+const unfoldedTutorialHtml = `
+  <section>
+    <header><h2>Unfolded tutorial</h2></header>
+    <p>Introduction</p>
+    <hr><p>First reveal</p>
+    <hr><p>Second reveal</p>
+  </section>
+`;
+
 const installTutorialRoutes = function () {
   MockXHR.routes = {
     "tutorials/welcome.html": { status: 200, body: tutorialHtml("Welcome") },
@@ -51,6 +60,7 @@ const installTutorialRoutes = function () {
       body: tutorialHtml("Interface"),
     },
     "tutorials/sample.html": { status: 200, body: tutorialHtml("Sample", 2) },
+    "tutorials/unfolded.html": { status: 200, body: unfoldedTutorialHtml },
   };
 };
 
@@ -72,6 +82,7 @@ const setupTutorialDom = function () {
 describe("tutorials integration", () => {
   beforeEach(() => {
     vi.resetModules();
+    window.history.replaceState(null, "", "/");
     setupTutorialDom();
     installTutorialRoutes();
     MockXHR.requests = [];
@@ -142,6 +153,26 @@ describe("tutorials integration", () => {
     expect(MockXHR.requests).toEqual(["tutorials/sample.html"]);
     expect(document.getElementById("accordion-sample")).toBeNull();
     expect(document.getElementById("lessonNr")?.textContent).toContain("2/2");
+  });
+
+  it("reveals every hr-delimited section in unfold mode", async () => {
+    const { initTutorials, renderLessonMaybe } = await import("../tutorials");
+    window.history.replaceState(null, "", "/?unfold");
+    initTutorials({
+      startingTutorials: ["welcome"],
+      useAccordion: false,
+      allowUpload: false,
+      standalone: true,
+    });
+    renderLessonMaybe("unfolded", 1);
+
+    const lesson = document.querySelector("section.current-lesson");
+    expect(lesson?.querySelectorAll("hr.closed")).toHaveLength(0);
+    expect(
+      Array.from(lesson?.children || []).every(
+        (child: HTMLElement) => child.style.display !== "none"
+      )
+    ).toBe(true);
   });
 
   it("places standalone tutorial output beside the code that produced it", async () => {

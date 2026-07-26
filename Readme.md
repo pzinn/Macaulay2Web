@@ -136,6 +136,7 @@ Useful URL forms:
 * `?user=name`: choose an explicit user id, allowing the same session to be used across browsers or devices.
 * `/minimal.html`: use the minimal embeddable interface.
 * `/tutorial.html#tutorial-name-n`: open page `n` of tutorial `name` in the standalone, full-window tutorial interface.
+* `?unfold`: reveal every `<hr>`-delimited section on a tutorial page, for example `/tutorial.html?unfold#tutorial-name-n`.
 
 Example minimal embed:
 

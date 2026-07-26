@@ -19,6 +19,7 @@ interface TutorialOptions {
   useAccordion?: boolean;
   allowUpload?: boolean;
   standalone?: boolean;
+  unfold?: boolean;
   openInEditor?: (text: string, fileName: string) => void;
 }
 
@@ -30,10 +31,38 @@ type TutorialRoute = {
 let tutorialOptions: Required<
   Pick<
     TutorialOptions,
-    "startingTutorials" | "useAccordion" | "allowUpload" | "standalone"
+    | "startingTutorials"
+    | "useAccordion"
+    | "allowUpload"
+    | "standalone"
+    | "unfold"
   >
 > &
   Pick<TutorialOptions, "openInEditor">;
+
+const setTutorialBreakClosed = function (
+  hr: HTMLElement,
+  closing: boolean,
+  scroll = true
+) {
+  const first = hr;
+  let current = first;
+  hr.classList.toggle("closed", closing);
+  while (
+    current.nextElementSibling &&
+    (closing || current === first || current.tagName !== "HR")
+  ) {
+    current = current.nextElementSibling as HTMLElement;
+    if (closing) {
+      if (current.dataset.display === undefined)
+        current.dataset.display = current.style.display;
+      current.style.display = "none";
+      if (current.tagName === "HR") current.classList.add("closed");
+    } else current.style.display = current.dataset.display || "";
+  }
+  if (!closing && scroll)
+    first.scrollIntoView({ behavior: "smooth" });
+};
 
 const processTutorialOutput = function (
   cell: HTMLElement,
@@ -112,23 +141,8 @@ const processTutorial = function (theHtml: string) {
   // add breaks
   const breaks = Array.from(el.getElementsByTagName("hr"));
   for (const hr of breaks) {
-    hr.onclick = function (e) {
-      const cur0 = e.target as HTMLElement;
-      let cur = cur0;
-      const closing = cur.classList.toggle("closed");
-      while (
-        cur.nextElementSibling &&
-        (closing || cur == cur0 || cur.tagName != "HR")
-      ) {
-        cur = cur.nextElementSibling as HTMLElement;
-        if (closing) {
-          if (cur.dataset.display === undefined)
-            cur.dataset.display = cur.style.display;
-          cur.style.display = "none";
-          if (cur.tagName == "HR") cur.classList.add("closed");
-        } else cur.style.display = cur.dataset.display;
-      }
-      if (!closing) cur0.scrollIntoView({ behavior: "smooth" });
+    hr.onclick = function () {
+      setTutorialBreakClosed(hr, !hr.classList.contains("closed"));
     };
     hr.classList.add("separator");
   }
@@ -354,6 +368,10 @@ const renderLesson = function (newTutorialIndex, newLessonNr): void {
       hr.classList.remove("closed");
       hr.click();
     }
+    if (tutorialOptions.unfold)
+      lesson.querySelectorAll("hr.closed").forEach((closedHr: HTMLElement) =>
+        setTutorialBreakClosed(closedHr, false, false)
+      );
     // auto code
     const codes = Array.from(
       lesson.querySelectorAll("code[data-language=Macaulay2]:not(.clicked)")
@@ -423,6 +441,9 @@ const initTutorials = function (options: TutorialOptions = {}) {
     useAccordion: options.useAccordion !== false,
     allowUpload: options.allowUpload !== false,
     standalone: options.standalone === true,
+    unfold:
+      options.unfold === true ||
+      new URLSearchParams(window.location.search).has("unfold"),
     openInEditor: options.openInEditor,
   };
   tutorialIndex = null;
