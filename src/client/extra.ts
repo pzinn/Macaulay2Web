@@ -558,10 +558,11 @@ const extra1 = function () {
     } else document.location.hash = "#" + oldTab; // should this be there?
   };
 
-  let ignoreFirstLoad = true;
-  const openBrowseTab = function (event) {
-    if (ignoreFirstLoad) ignoreFirstLoad = false;
-    else if (document.location.hash !== "#browse")
+  const openBrowseTab = function () {
+    // Ignore only the iframe's initial empty document, not whichever load
+    // event happens to arrive first after this handler is installed.
+    if (iFrame.contentDocument?.URL === "about:blank") return;
+    if (document.location.hash !== "#browse")
       document.location.hash = "#browse";
     else activateTabInContainer(tabs, "browse");
     // try to enable actions
@@ -572,8 +573,6 @@ const extra1 = function () {
       bdy.onmousedown = document.body.onmousedown;
       bdy.oncontextmenu = document.body.oncontextmenu;
     }
-    // do not follow link
-    event.preventDefault();
   };
 
   if (tab === "") tab = "#home";
