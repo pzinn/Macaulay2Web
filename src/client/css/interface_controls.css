@@ -1,3 +1,11 @@
+@font-face {
+    font-family: "Material Symbols Outlined";
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: block;
+    src: url("fonts/MaterialSymbols/MaterialSymbolsOutlined.woff2") format("woff2");
+}
+
 .app-btn {
     border: none;
     background: transparent;
@@ -96,8 +104,12 @@
     letter-spacing: normal;
     text-transform: none;
     display: inline-block;
+    width: 1em;
+    overflow: hidden;
     white-space: nowrap;
     direction: ltr;
+    font-feature-settings: "liga";
+    -webkit-font-feature-settings: "liga";
     -webkit-font-smoothing: antialiased;
     font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
     vertical-align: middle;
