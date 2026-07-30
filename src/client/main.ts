@@ -184,7 +184,7 @@ if (!isFullMode) {
 let completionRequestCounter = 0;
 const completionRequestPrefix = Math.random().toString(36).slice(2);
 const completionRequests = new Map();
-const completionRequestTimeout = 250;
+const completionRequestTimeout = 500;
 
 type CompletionEntry = { name: string; kind?: string };
 
