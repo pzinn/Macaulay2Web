@@ -12,8 +12,10 @@ const options = {
     cpuShares: 1,
     memory: 384, // Mb
     maxSavedOutput: 200000, // size of saved output in bytes
-    maxOutputRate: 0.01, // max rate of output per millisecond
-    maxOutputStat: 2000, // # outputs before error thrown
+    maxOutputBytesPerSecond: 16 * 1024,
+    maxOutputBurstBytes: 512 * 1024,
+    maxOutputBytesPerInput: 2 * 1024 * 1024,
+    outputChunkOverheadBytes: 256,
   },
   serverConfig: {
     m2Prefixes: {

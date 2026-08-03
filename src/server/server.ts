@@ -17,6 +17,15 @@ import {
   sanitizeTutorialFileName,
 } from "./tutorialArchive";
 import { describeMathProgramExit } from "./mathProgramExit";
+import { performance } from "perf_hooks";
+import {
+  OutputLimitReason,
+  appendBoundedOutputHistory,
+  beginOutputShutdown,
+  chargeOutput,
+  resetOutputForInput,
+  resetOutputForProcess,
+} from "./outputProtection";
 
 import Cookie = require("cookie");
 
@@ -103,9 +112,40 @@ const shortSocketPayload = function (type: string, data): string {
 };
 
 const emitViaClientSockets = function (client: Client, type: string, data) {
-  const s = shortSocketPayload(type, data);
-  logger.info("Sending " + type + ": " + s, client);
+  if (type !== "output") {
+    const s = shortSocketPayload(type, data);
+    logger.info("Sending " + type + ": " + s, client);
+  }
   client.sockets.forEach((socket) => safeEmit(socket, type, data));
+};
+
+const outputLogInterval = 5000;
+
+const flushOutputLog = function (client: Client): void {
+  if (!client.outputLogChunks || client.outputLogStartedAt === null) return;
+  const elapsed = Math.max(0, Date.now() - client.outputLogStartedAt);
+  logger.info(
+    "Output summary: " +
+      client.outputLogBytes +
+      " bytes in " +
+      client.outputLogChunks +
+      " chunks over " +
+      elapsed +
+      " ms",
+    client
+  );
+  client.outputLogBytes = 0;
+  client.outputLogChunks = 0;
+  client.outputLogStartedAt = null;
+};
+
+const recordOutputLog = function (client: Client, byteLength: number): void {
+  const now = Date.now();
+  if (client.outputLogStartedAt === null) client.outputLogStartedAt = now;
+  client.outputLogBytes += byteLength;
+  client.outputLogChunks++;
+  if (now - client.outputLogStartedAt >= outputLogInterval)
+    flushOutputLog(client);
 };
 
 const emitViaOtherClientSockets = function (
@@ -196,6 +236,7 @@ function notifyMathProgramExit(
   exitCode: number | null,
   exitSignal: string | null
 ) {
+  flushOutputLog(client);
   if (client.channel === channel) client.channel = null;
   if (expectedChannelCloses.has(channel)) return;
   const exit = describeMathProgramExit(exitCode, exitSignal);
@@ -290,70 +331,79 @@ const socketErrorAction = function (client: Client) {
   };
 };
 
-const vdots = " \u22EE\n";
+const retainAndEmitOutput = function (client: Client, data: string): void {
+  const history = appendBoundedOutputHistory(
+    client.savedOutput,
+    data,
+    options.perContainerResources.maxSavedOutput,
+    client.savedOutputDropping,
+    client.id === "public"
+  );
+  client.savedOutput = history.output;
+  client.savedOutputDropping = history.dropping;
+  emitViaClientSockets(client, "output", data);
+};
 
-const cellRegExp = new RegExp(
-  webAppTags.Cell +
-    "[^" +
-    webAppTags.Cell +
-    webAppTags.CellEnd +
-    "]*" +
-    webAppTags.CellEnd
-); // tricky: because of possible nesting
+const blockExcessiveOutput = function (
+  client: Client,
+  reason: OutputLimitReason
+): void {
+  if (!beginOutputShutdown(client.outputProtection)) return;
+  flushOutputLog(client);
+
+  const channel = client.channel;
+  if (channel) {
+    channel.removeAllListeners("data");
+    channel.pause();
+  }
+
+  const message =
+    reason === "input"
+      ? "Output limit for one command exceeded. Killing M2."
+      : "Output rate exceeded. Killing M2.";
+  logger.warn(
+    message +
+      " Output for current input: " +
+      client.outputProtection.bytesThisInput +
+      " bytes.",
+    client
+  );
+  // M2 normally closes both the active input cell and its session cell. This
+  // forced shutdown must do the same before a replacement process is started.
+  retainAndEmitOutput(client, webAppTags.CellEnd + webAppTags.CellEnd);
+  killMathProgram(client);
+  systemChat(client, message);
+};
 
 const sendDataToClient = function (client: Client) {
   return function (dataObject) {
-    if (client.outputStat < 0) return; // output rate exceeded
+    if (client.outputProtection.blocked) return;
     if (!client.instance) {
       logger.warn("No instance for client", client);
       return;
     }
     const data: string = dataObject.toString();
-    // new: prevent flooding
-    client.outputStat +=
-      1 +
-      0.001 * data.length +
-      options.perContainerResources.maxOutputRate *
-        (client.instance.lastActiveTime - Date.now());
+    const byteLength = Buffer.byteLength(data);
+    recordOutputLog(client, byteLength);
     client.instance.lastActiveTime = Date.now();
-    if (client.outputStat < 0) client.outputStat = 0;
-    else if (client.outputStat > options.perContainerResources.maxOutputStat) {
-      killMathProgram(client);
-      systemChat(client, "Output rate exceeded. Killing M2.");
-      logger.warn("Output rate exceeded", client);
-      client.outputStat = -1; // signal to avoid repeat message
+    const limitReason = chargeOutput(
+      client.outputProtection,
+      byteLength,
+      options.perContainerResources,
+      performance.now()
+    );
+    if (limitReason) {
+      blockExcessiveOutput(client, limitReason);
       return;
     }
-    client.savedOutput += data;
-    // extra logging for *users* only
-    if (client.id !== "public") {
-      while (
-        client.savedOutput.length > options.perContainerResources.maxSavedOutput
-      ) {
-        const m = client.savedOutput.match(cellRegExp);
-        if (m === null) break; // give up -- normally, shouldn't happen except transitionally
-        client.savedOutput =
-          client.savedOutput.substring(0, m.index) +
-          vdots +
-          client.savedOutput.substring(m.index + m[0].length);
-      }
-    } else {
-      const i = client.savedOutput.lastIndexOf(webAppTags.CellEnd);
-      client.savedOutput =
-        i < 0 ||
-        client.savedOutput.length - (vdots.length + i) >
-          options.perContainerResources.maxSavedOutput
-          ? vdots
-          : vdots + client.savedOutput.substring(i);
-      //client.savedOutput = webAppTags.Cell + "i* : " + webAppTags.Input; // a little better than that: keeps last cell
-    }
-    emitViaClientSockets(client, "output", data);
+    retainAndEmitOutput(client, data);
   };
 };
 
 const sendM2OutputToClient = function (client: Client) {
   const sendOutput = sendDataToClient(client);
   return function (dataObject) {
+    if (client.outputProtection.blocked) return;
     client.controlOutputBuffer = consumeCompletionOutput(
       client.controlOutputBuffer,
       dataObject.toString(),
@@ -388,12 +438,19 @@ const attachChannelToClient = function (
 ) {
   channel.setEncoding("utf8");
   clearCompletionOutputBuffer(client);
+  flushOutputLog(client);
+  resetOutputForProcess(
+    client.outputProtection,
+    options.perContainerResources,
+    performance.now()
+  );
   client.channel = channel;
   attachListenersToOutput(client);
 };
 
 const killMathProgram = function (client: Client) {
   logger.info("kill MathProgram", client);
+  flushOutputLog(client);
   clearCompletionOutputBuffer(client);
   if (!client.channel) return;
   expectMathProgramClose(client);
@@ -732,8 +789,10 @@ const sanitizeClient = function (
       spawnMathProgram(client, function (success: boolean) {
         if (success) {
           //          emitViaClientSockets(client, "output", webAppTags.CellEnd + "\n"); // to make it look nicer
-          if (clearSavedOutput) client.savedOutput = "";
-          client.outputStat = 0;
+          if (clearSavedOutput) {
+            client.savedOutput = "";
+            client.savedOutputDropping = false;
+          }
           client.saneState = true;
           if (next) next(true);
         } else {
@@ -812,8 +871,10 @@ const socketInputAction = function (socket: Socket, client: Client) {
     logger.info("Receiving input: " + short(msg), client);
     if (msg == "\x03") clearCompletionOutputBuffer(client);
     //      updateLastActiveTime(client); // only output now triggers that
-    if (client.saneState) checkAndWrite(client, msg);
-    else logger.warn("Input failed, client being sanitized", client);
+    if (client.saneState) {
+      if (msg !== "\x03") resetOutputForInput(client.outputProtection);
+      checkAndWrite(client, msg);
+    } else logger.warn("Input failed, client being sanitized", client);
   };
 };
 
