@@ -14,6 +14,7 @@ import {
 import { logger } from "./logger";
 import { execInInstance } from "./exec";
 import { decode, encode } from "html-entities";
+import { describeChatPayload, parseIncomingChat } from "./chatValidation";
 
 const chatList: Chat[] = []; // used to restore chat
 const chatBlackList: string[] = [];
@@ -92,7 +93,9 @@ const socketChatAction = function (socket: Socket, client: Client) {
       if (id1 == "") safeEmit(io, "chat", chat1);
       // broadcast
       else {
-        const client1 = clients[id1];
+        const client1 = Object.prototype.hasOwnProperty.call(clients, id1)
+          ? clients[id1]
+          : undefined;
         if (client1) emitViaClientSockets(client1, "chat", chat1);
       }
     }
@@ -246,7 +249,24 @@ const socketChatAction = function (socket: Socket, client: Client) {
     }
   };
 
-  return function (chat: Chat) {
+  return function (payload: unknown) {
+    const parsed = parseIncomingChat(payload);
+    if (parsed.error) {
+      logger.warn(
+        "Rejected malformed chat: " +
+          JSON.stringify({
+            reason: parsed.error,
+            socketId: socket.id,
+            address: socket.handshake.address,
+            transport: socket.conn?.transport?.name,
+            userAgent: socket.handshake.headers?.["user-agent"]?.slice(0, 256),
+            payload: describeChatPayload(payload),
+          }),
+        client
+      );
+      return;
+    }
+    const chat = parsed.chat;
     logger.info("Chat of type " + chat.type, client);
     if (
       !admin &&
