@@ -14,6 +14,7 @@ import {
   parseLocation,
 } from "./htmlTools";
 import { socketChat, syncChat } from "./chat";
+import { useWasmEngine } from "./wasmEngine";
 import { initTutorials, renderLessonMaybe } from "./tutorials";
 import { Chat } from "../common/chatClass";
 import {
@@ -420,22 +421,48 @@ const listDirToEditor = function (dirName: string, fileName: string) {
         "app-btn app-btn-icon editorDirectoryDeleteButton";
       deleteButton.type = "button";
       deleteButton.disabled = entry.parent;
+      // the WebAssembly engine deletes directories with their contents
       deleteButton.title = entry.name.endsWith("/")
-        ? "Delete empty directory"
+        ? useWasmEngine
+          ? "Delete directory and its contents"
+          : "Delete empty directory"
         : "Delete file";
       if (!entry.parent) {
         deleteButton.onclick = function () {
           const entryName = entry.name.endsWith("/")
             ? entry.name.substring(0, entry.name.length - 1)
             : entry.name;
-          if (!window.confirm("Delete " + entryName + "?")) return;
-          socket.emit("deletefile", entry.href, function (msg, err) {
-            if (err) {
-              window.alert(msg || "Delete failed.");
-              return;
-            }
-            newEditorFileMaybe(dirName);
-          });
+          const deleteEntry = function (question: string) {
+            if (!window.confirm(question)) return;
+            socket.emit("deletefile", entry.href, function (msg, err) {
+              if (err) {
+                window.alert(msg || "Delete failed.");
+                return;
+              }
+              newEditorFileMaybe(dirName);
+            });
+          };
+          if (!useWasmEngine || !entry.name.endsWith("/"))
+            deleteEntry("Delete " + entryName + "?");
+          else
+            socket.emit("fileexists", entry.href, async function (response) {
+              const n = response
+                ? (await (await fetch(response)).text())
+                    .split("\n")
+                    .filter((s) => s && ![".", "..", "./", "../"].includes(s))
+                    .length
+                : 0;
+              deleteEntry(
+                n > 0
+                  ? "Delete the directory " +
+                      entryName +
+                      " and all its contents (" +
+                      n +
+                      (n > 1 ? " items" : " item") +
+                      ")? This cannot be undone."
+                  : "Delete the empty directory " + entryName + "?"
+              );
+            });
         };
       }
       const deleteIcon = document.createElement("i");
