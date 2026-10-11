@@ -5,6 +5,8 @@ It provides an interactive Macaulay2 terminal, tutorials, an editor, a chat pane
 
 The public instance currently runs at <https://www.unimelb-macaulay2.cloud.edu.au/>.
 
+NEW! thanks to [wangyenshu](https://github.com/wangyenshu), there is wasm-based static version of Macaulay2Web, see <https://pzinn.github.io/Macaulay2Web/>.
+
 ## Overview
 
 Macaulay2Web has a server/client structure:
