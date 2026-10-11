@@ -23,6 +23,7 @@ import { language } from "./htmlTools";
 import { getThemeButtonState } from "./uiHelpers";
 import { isFullMode, isMinimalMode, isTutorialMode } from "./appMode";
 import { getSessionId, setSessionId } from "./sessionIdentity";
+import { useWasmEngine, wasmSocket } from "./wasmEngine";
 
 type ClientHooks = {
   beforeSession?: () => void;
@@ -365,7 +366,9 @@ const init2 = function () {
     document.getElementById("terminalDiv").style.display = "block";
   let ioParams = "?version=" + options.version;
   if (clientId) ioParams += "&id=" + clientId;
-  socket = io(ioParams, { autoConnect: false });
+  socket = useWasmEngine
+    ? (wasmSocket(clientId) as unknown as Socket)
+    : io(ioParams, { autoConnect: false });
 
   socket.on("instance", function (id) {
     console.log("Instance with id " + id);

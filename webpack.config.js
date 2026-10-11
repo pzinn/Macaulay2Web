@@ -52,6 +52,7 @@ module.exports = env => {
 	devtool: devtool,
 	plugins: [
 	    new webpack.DefinePlugin({ "APP_MODE": JSON.stringify(appMode),
+				       "DEFAULT_ENGINE": JSON.stringify(env.wasm ? "wasm" : "server"), // see src/client/wasmEngine.ts
 				       "process.env.npm_package_version": JSON.stringify(process.env.npm_package_version),
 				       "__VERSION__": JSON.stringify(katexVersion) }),
 	]

@@ -49,6 +49,41 @@ Common modes:
 
 The default local server is plain HTTP on port `8002`.
 
+## WebAssembly Engine
+
+Instead of a Macaulay2 server, the client can run Macaulay2 compiled to WebAssembly in the browser: the [emscripten-forge `macaulay2-vanilla` package](https://prefix.dev/channels/emscripten-forge-4x/packages/macaulay2-vanilla) runs in a web worker as `M2 --webapp`, and the interface is unchanged. Only static files are needed, so this works on GitHub Pages.
+
+Guide for GitHub Pages Deployment:
+
+Clone the repository with `--recursive`.
+
+```bash
+npm install
+npm run build:wasm
+cp -rL public _site
+touch _site/.nojekyll
+```
+
+Then publish `_site` to desired branches (e.g. gh-pages).
+
+* `./fetch-m2wasm [version]` installs the package with micromamba (downloaded if missing) into `public/m2wasm/`, gzipped.
+* The engine is chosen with `?engine=wasm` or `?engine=server`; the default is set at build time (`webpack --env wasm`). A server installation can therefore also offer the WebAssembly engine, after `./fetch-m2wasm`.
+
+| Build command | Default engine |
+| --- | --- |
+| `npm run build`, `docker`, `new`, `local`, `ssh`, `debug`) | server |
+| `npm run build:client`, `build:minimal`, `build:tutorial` | server |
+| `npm run build:debug`, `build:debug-minimal`, `build:debug-tutorial` | server |
+| `npm run build:wasm` | wasm |
+| any `webpack` command with `--env wasm` added | wasm |
+* `.github/workflows/deploy-wasm.yml` builds and deploys the site to GitHub Pages.
+
+How it works: `src/client/wasmEngine.ts` replaces the socket.io connection with an object that speaks the same events, `public/m2wasm-worker.js` runs Macaulay2, and the service worker `public/m2wasm-sw.js` passes input to it (Macaulay2 reads its input synchronously, and SharedArrayBuffer would require cross-origin isolation headers, which GitHub Pages cannot set), handles uploads and keeps the files. Differences with the server:
+
+* Files live in the browser (home directory `/home/web_user`). They are kept in the browser's storage (IndexedDB), so they survive reloads, resets and browser restarts: they are saved whenever Macaulay2 waits for input, and uploads and editor saves as soon as they are made. Files are removed with the editor's delete buttons, or all at once by clearing the site's data in the browser.
+* Interrupting works whenever Macaulay2 calls into JavaScript, which most computations do frequently; otherwise interrupting a second time restarts Macaulay2.
+* External programs cannot be run, and features relying on them (`run`, `fork`, `help` in the 1.26.06 package...) fail; chat only echoes locally.
+
 ## HTTPS
 
 By default, Macaulay2Web serves HTTP. For production, either run it behind a reverse proxy that handles HTTPS, or enable the built-in Greenlock mode.
@@ -137,6 +172,7 @@ Useful URL forms:
 * `/minimal.html`: use the minimal embeddable interface.
 * `/tutorial.html#tutorial-name-n`: open page `n` of tutorial `name` in the standalone, full-window tutorial interface.
 * `?unfold`: reveal every `<hr>`-delimited section on a tutorial page, for example `/tutorial.html?unfold#tutorial-name-n`.
+* `?engine=wasm` / `?engine=server`: run Macaulay2 in the browser or on the server (see WebAssembly Engine).
 
 Example minimal embed:
 
@@ -166,6 +202,7 @@ Individual build commands:
 * `npm run build:minimal`: build the minimal client bundle `public/minimal.js`.
 * `npm run build:tutorial`: build the standalone tutorial bundle `public/tutorial.js`.
 * `npm run build:css`: build `public/index.css`, `public/minimal.css`, and `public/tutorial.css`.
+* `npm run build:wasm`: build the client bundles with the WebAssembly engine as default, and fetch the engine.
 * `npm run build:debug`: build a non-production normal client bundle.
 * `npm run build:debug-minimal`: build a non-production minimal client bundle.
 * `npm run build:debug-tutorial`: build a non-production standalone tutorial bundle.

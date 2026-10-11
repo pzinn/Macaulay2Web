@@ -11,6 +11,7 @@ public/tutorial.css
 public/renderhelp.js
 public/renderhelp.js.LICENSE.txt
 public/VectorGraphics.js
+public/m2wasm
 public/users.htpasswd
 src/client/css/katex*
 src/client/css/VectorGraphics*

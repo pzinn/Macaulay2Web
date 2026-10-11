@@ -1,0 +1,45 @@
+#!/bin/bash
+# Fetch the precompiled WebAssembly build of Macaulay2 from emscripten-forge
+# (https://prefix.dev/channels/emscripten-forge-4x/packages/macaulay2)
+# and install it into public/m2wasm/ for the WebAssembly engine.
+# Usage: ./fetch-m2wasm [version]     e.g. ./fetch-m2wasm 1.26.06
+# Uses micromamba (downloaded on the fly if not on the PATH).
+set -euo pipefail
+
+SPEC="macaulay2-vanilla${1:+=$1}"
+CHANNEL=https://repo.prefix.dev/emscripten-forge-4x
+DEST="$(cd "$(dirname "$0")" && pwd)/public/m2wasm"
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+
+MICROMAMBA="$(command -v micromamba || true)"
+if [ -z "$MICROMAMBA" ]; then
+    echo "Downloading micromamba"
+    MICROMAMBA="$WORK/micromamba"
+    case "$(uname -s)-$(uname -m)" in
+        Linux-x86_64) PLATFORM=linux-64 ;;
+        Linux-aarch64) PLATFORM=linux-aarch64 ;;
+        Darwin-arm64) PLATFORM=osx-arm64 ;;
+        Darwin-x86_64) PLATFORM=osx-64 ;;
+        *) echo "Unsupported platform; install micromamba manually" >&2; exit 1 ;;
+    esac
+    curl -fsSL -o "$MICROMAMBA" \
+        "https://github.com/mamba-org/micromamba-releases/releases/latest/download/micromamba-$PLATFORM"
+    chmod +x "$MICROMAMBA"
+fi
+
+echo "Installing $SPEC from $CHANNEL"
+MAMBA_ROOT_PREFIX="$WORK/root" "$MICROMAMBA" create --yes --quiet \
+    --prefix "$WORK/env" --platform emscripten-wasm32 \
+    --override-channels -c "$CHANNEL" -c conda-forge "$SPEC"
+
+BIN="$WORK/env/bin"
+mkdir -p "$DEST"
+rm -f "$DEST"/M2*
+cp "$BIN/M2-binary.js" "$BIN/M2.data.js" "$DEST/"
+# GitHub Pages does not compress .wasm/.data: ship them gzipped (~5x smaller),
+# the worker decompresses them (DecompressionStream)
+gzip -9 -c "$BIN/M2-binary.wasm" > "$DEST/M2-binary.wasm.gz"
+gzip -9 -c "$BIN/M2.data" > "$DEST/M2.data.gz"
+"$MICROMAMBA" list --prefix "$WORK/env" macaulay2 | grep -i macaulay2 > "$DEST/VERSION" || true
+ls -l "$DEST"
